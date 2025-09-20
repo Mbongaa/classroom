@@ -7,6 +7,7 @@ This document provides a comprehensive summary of the classroom feature implemen
 ## 🎯 Project Goals
 
 Transform LiveKit Meet into a classroom-capable platform where:
+
 - **Teachers/Presenters**: Have full audio/video publishing capabilities and room management
 - **Students/Listeners**: Join in listen-only mode with chat capabilities
 - **Backward Compatibility**: Regular meeting rooms remain completely unchanged
@@ -14,6 +15,7 @@ Transform LiveKit Meet into a classroom-capable platform where:
 ## 🏗️ Architecture
 
 ### System Design
+
 ```
 ┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
 │   Browser UI    │────▶│  API Endpoint    │────▶│  LiveKit Cloud  │
@@ -27,6 +29,7 @@ Transform LiveKit Meet into a classroom-capable platform where:
 ```
 
 ### URL Structure
+
 ```
 Regular Room:    /rooms/[roomName]
 Classroom Teacher: /rooms/[roomName]?classroom=true&role=teacher
@@ -36,9 +39,11 @@ Classroom Student: /rooms/[roomName]?classroom=true&role=student
 ## 📁 Implementation Details
 
 ### 1. Backend Token Generation
+
 **File**: `/app/api/connection-details/route.ts`
 
 #### Key Changes:
+
 - Added classroom detection via URL parameters
 - Role-based permission assignment
 - Metadata enrichment with role information
@@ -78,9 +83,11 @@ Classroom Student: /rooms/[roomName]?classroom=true&role=student
 ```
 
 ### 2. Frontend Client Implementation
+
 **File**: `/app/rooms/[roomName]/PageClientImpl.tsx`
 
 #### Smart PreJoin Behavior:
+
 ```typescript
 // Detect role from URL
 const classroomInfo = React.useMemo(() => {
@@ -93,16 +100,18 @@ const classroomInfo = React.useMemo(() => {
 // Set defaults based on role
 const preJoinDefaults = {
   username: '',
-  videoEnabled: !isStudent,  // OFF for students
-  audioEnabled: !isStudent,  // OFF for students
+  videoEnabled: !isStudent, // OFF for students
+  audioEnabled: !isStudent, // OFF for students
 };
 ```
 
 #### Role Indicator Badge:
+
 - **Teacher**: 👨‍🏫 "Joining as Teacher (Full Access)" (Green)
 - **Student**: 👨‍🎓 "Joining as Student (Listen-Only Mode)" (Blue)
 
 #### Conditional Media Enabling:
+
 ```typescript
 // Only attempt to enable media for non-students
 if (!isStudent) {
@@ -118,6 +127,7 @@ if (!isStudent) {
 ```
 
 ### 3. Type Definitions
+
 **File**: `/lib/types.ts`
 
 ```typescript
@@ -130,13 +140,16 @@ export interface ClassroomMetadata {
 ```
 
 ### 4. Testing Utilities
+
 **Files**:
+
 - `/app/test-classroom/page.tsx` - Interactive testing UI
 - `/app/api/test-classroom/route.ts` - Test URL generator
 
 ## 🔄 User Flows
 
 ### Teacher Flow
+
 1. Navigate to room with `?classroom=true&role=teacher`
 2. See "Teacher (Full Access)" badge
 3. PreJoin shows with camera/mic ON
@@ -145,6 +158,7 @@ export interface ClassroomMetadata {
 6. Full control over media, can manage room
 
 ### Student Flow
+
 1. Navigate to room with `?classroom=true&role=student`
 2. See "Student (Listen-Only Mode)" badge
 3. PreJoin shows with camera/mic OFF
@@ -153,6 +167,7 @@ export interface ClassroomMetadata {
 6. Can watch/listen to teacher, use chat
 
 ### Regular Room Flow
+
 1. Navigate to `/rooms/[roomName]` (no params)
 2. Standard PreJoin experience
 3. Everyone has full permissions
@@ -161,6 +176,7 @@ export interface ClassroomMetadata {
 ## ✅ Phase 1 Achievements
 
 ### Completed Features
+
 - [x] Role-based token generation
 - [x] Teacher/Student permission model
 - [x] Smart PreJoin defaults
@@ -171,6 +187,7 @@ export interface ClassroomMetadata {
 - [x] 100% backward compatibility
 
 ### Problems Solved
+
 - No more permission errors for students
 - Clear visual role identification
 - Browser doesn't ask students for unnecessary permissions
@@ -180,30 +197,35 @@ export interface ClassroomMetadata {
 ## 🚀 Future Roadmap
 
 ### Phase 2: Dedicated Classroom UI
+
 - [ ] Create `/classroom/[roomName]` route
 - [ ] Custom classroom-specific layout
 - [ ] Participant list with role badges
 - [ ] Optimized for one-to-many scenarios
 
 ### Phase 3: Enhanced PreJoin
+
 - [ ] Role selection in PreJoin component
 - [ ] "Request to Speak" for students
 - [ ] Waiting room for late joiners
 - [ ] Custom avatars for students without video
 
 ### Phase 4: Teacher Controls
+
 - [ ] Mute all students button
 - [ ] Grant/revoke student speaking privileges
 - [ ] Participant management panel
 - [ ] Kick/ban functionality
 
 ### Phase 5: Interactive Features
+
 - [ ] Raise hand functionality
 - [ ] Q&A queue system
 - [ ] Polls and quizzes
 - [ ] Breakout rooms
 
 ### Phase 6: Translation Integration
+
 - [ ] Real-time transcription
 - [ ] Multi-language translation
 - [ ] Subtitle overlay
@@ -212,6 +234,7 @@ export interface ClassroomMetadata {
 ## 🧪 Testing
 
 ### Quick Test
+
 ```bash
 # Start dev server
 pnpm dev
@@ -221,6 +244,7 @@ http://localhost:3000/test-classroom
 ```
 
 ### Manual Testing URLs
+
 ```bash
 # Teacher
 http://localhost:3000/rooms/test-123?classroom=true&role=teacher
@@ -233,6 +257,7 @@ http://localhost:3000/rooms/test-123
 ```
 
 ### Multi-Participant Testing
+
 1. Use different browsers (Chrome/Firefox/Edge)
 2. Or use incognito/private windows
 3. Or use browser profiles
@@ -241,11 +266,13 @@ http://localhost:3000/rooms/test-123
 ## 🔒 Security Considerations
 
 ### Current Implementation
+
 - ⚠️ **No Authentication**: Anyone can choose their role
 - ⚠️ **Client-Side Role**: Role determined by URL parameter
 - ✅ **Server-Side Permissions**: Token enforces actual permissions
 
 ### Production Requirements
+
 - [ ] Add authentication layer
 - [ ] Validate roles server-side
 - [ ] Store role assignments in database
@@ -256,6 +283,7 @@ http://localhost:3000/rooms/test-123
 ## 📊 Technical Specifications
 
 ### Token Structure
+
 ```javascript
 // JWT Payload for Teacher
 {
@@ -293,6 +321,7 @@ http://localhost:3000/rooms/test-123
 ### API Endpoints
 
 #### Connection Details
+
 ```http
 GET /api/connection-details
   ?roomName=string
@@ -303,6 +332,7 @@ GET /api/connection-details
 ```
 
 #### Test Endpoint (Dev Only)
+
 ```http
 GET /api/test-classroom
   ?roomName=string        # Optional
@@ -320,18 +350,22 @@ GET /api/test-classroom
 ## 📝 Development Notes
 
 ### Environment Variables
+
 No new environment variables required. Uses existing:
+
 - `LIVEKIT_API_KEY`
 - `LIVEKIT_API_SECRET`
 - `LIVEKIT_URL`
 
 ### Browser Compatibility
+
 - Chrome 90+ ✅
 - Firefox 88+ ✅
 - Safari 14+ ✅
 - Edge 90+ ✅
 
 ### Performance Impact
+
 - Minimal overhead (< 1ms for role detection)
 - No additional API calls
 - No impact on WebRTC performance
@@ -340,6 +374,7 @@ No new environment variables required. Uses existing:
 ## 🤝 Contributing
 
 When extending this implementation:
+
 1. Maintain backward compatibility
 2. Follow existing patterns
 3. Add tests for new features
@@ -355,5 +390,5 @@ When extending this implementation:
 
 ---
 
-*Last Updated: Implementation of Phase 1 - Role-Based Permissions*
-*Status: ✅ Production Ready (with authentication layer)*
+_Last Updated: Implementation of Phase 1 - Role-Based Permissions_
+_Status: ✅ Production Ready (with authentication layer)_

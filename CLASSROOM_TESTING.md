@@ -1,17 +1,20 @@
 # Classroom Feature Testing Guide - Phase 1
 
 ## Overview
+
 This document provides testing instructions for Phase 1 of the classroom feature implementation, which adds role-based permissions (teacher/student) to LiveKit Meet.
 
 ## What's Been Implemented
 
 ### 1. Backend Changes
+
 - **Modified**: `/app/api/connection-details/route.ts`
   - Added support for `classroom=true` and `role=teacher|student` query parameters
   - Teachers get full permissions including `roomAdmin` and `roomRecord`
   - Students get restricted permissions (no `canPublish`, but can still use chat)
 
 ### 2. Frontend Improvements (Fixed Student Issues)
+
 - **Modified**: `/app/rooms/[roomName]/PageClientImpl.tsx`
   - PreJoin now detects classroom role and disables camera/mic for students by default
   - Added role indicator badge above PreJoin (Teacher/Student mode)
@@ -20,11 +23,13 @@ This document provides testing instructions for Phase 1 of the classroom feature
   - No more confusing errors for students!
 
 ### 3. Type Definitions
+
 - **Modified**: `/lib/types.ts`
   - Added `ClassroomRole` type ('teacher' | 'student')
   - Added `ClassroomMetadata` interface
 
 ### 4. Test Utilities
+
 - **Created**: `/app/api/test-classroom/route.ts` - API endpoint for generating test URLs
 - **Created**: `/app/test-classroom/page.tsx` - UI for testing classroom functionality
 
@@ -33,6 +38,7 @@ This document provides testing instructions for Phase 1 of the classroom feature
 ### Method 1: Using the Test Page (Recommended)
 
 1. Start the development server:
+
    ```bash
    pnpm dev
    ```
@@ -51,16 +57,19 @@ This document provides testing instructions for Phase 1 of the classroom feature
 2. Open different URLs in different browsers:
 
    **Teacher URL** (Chrome):
+
    ```
    http://localhost:3000/rooms/test-room-123?classroom=true&role=teacher
    ```
 
    **Student URL** (Firefox):
+
    ```
    http://localhost:3000/rooms/test-room-123?classroom=true&role=student
    ```
 
    **Regular Room** (Edge):
+
    ```
    http://localhost:3000/rooms/test-room-123
    ```
@@ -68,6 +77,7 @@ This document provides testing instructions for Phase 1 of the classroom feature
 ### Method 3: Using the Test API
 
 1. Call the test API:
+
    ```bash
    curl http://localhost:3000/api/test-classroom?roomName=my-test-room
    ```
@@ -77,12 +87,15 @@ This document provides testing instructions for Phase 1 of the classroom feature
 ## What to Verify
 
 ### ✅ Backward Compatibility
+
 1. Regular rooms (without classroom params) should work exactly as before
 2. All participants in regular rooms should have full permissions
 3. No errors in console for regular room usage
 
 ### ✅ Teacher Permissions
+
 When joining as a teacher, verify:
+
 1. Camera button is enabled
 2. Microphone button is enabled
 3. Can turn on/off camera and microphone
@@ -91,7 +104,9 @@ When joining as a teacher, verify:
 6. Should see "roomAdmin: true" in token (if checking LiveKit dashboard)
 
 ### ✅ Student Permissions
+
 When joining as a student, verify:
+
 1. **Role badge shows** "👨‍🎓 Joining as Student (Listen-Only Mode)"
 2. **PreJoin behavior**: Camera and mic toggles are OFF by default
 3. **No permission prompts**: Browser doesn't ask for camera/mic access
@@ -101,7 +116,9 @@ When joining as a student, verify:
 7. **Token verification**: Should see "canPublish: false" in token
 
 ### ✅ Metadata
+
 Check browser console and verify:
+
 1. Participant metadata includes role information
 2. Teacher metadata: `{ role: "teacher" }`
 3. Student metadata: `{ role: "student" }`
@@ -126,15 +143,19 @@ To test multiple participants on the same machine:
 ## Common Issues and Solutions
 
 ### Issue: Both participants have same permissions
+
 **Solution**: Check that classroom parameters are being passed correctly in the URL
 
 ### Issue: Student can still turn on camera/mic
+
 **Solution**: Clear browser cache and cookies, the token might be cached
 
 ### Issue: Camera/mic conflicts
+
 **Solution**: Use different browsers or disable video for testing
 
 ### Issue: Token expired error
+
 **Solution**: Tokens have 5-minute TTL, refresh the page to get a new token
 
 ## Debugging Tips
@@ -154,6 +175,7 @@ To test multiple participants on the same machine:
 ## Next Steps
 
 Once Phase 1 is verified:
+
 1. Phase 2: Create dedicated classroom UI routes
 2. Phase 3: Add role selection to PreJoin component
 3. Phase 4: Add teacher controls for managing students

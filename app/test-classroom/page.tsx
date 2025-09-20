@@ -46,7 +46,14 @@ export default function TestClassroomPage() {
         ⚠️ This is a test page for development only - not for production use
       </p>
 
-      <div style={{ marginBottom: '2rem', padding: '1rem', background: '#f0f0f0', borderRadius: '8px' }}>
+      <div
+        style={{
+          marginBottom: '2rem',
+          padding: '1rem',
+          background: '#f0f0f0',
+          borderRadius: '8px',
+        }}
+      >
         <h2>Test Room Setup</h2>
         <div style={{ marginBottom: '1rem' }}>
           <label>Room Name: </label>
@@ -86,11 +93,7 @@ export default function TestClassroomPage() {
             <br />
             <small>(Cannot publish media)</small>
           </button>
-          <button
-            className="lk-button"
-            onClick={joinAsRegular}
-            style={{ flex: 1 }}
-          >
+          <button className="lk-button" onClick={joinAsRegular} style={{ flex: 1 }}>
             Join Regular Room
             <br />
             <small>(Full permissions)</small>
@@ -119,12 +122,15 @@ export default function TestClassroomPage() {
         )}
       </div>
 
-      <div style={{ marginTop: '2rem', padding: '1rem', background: '#e8f4fd', borderRadius: '8px' }}>
+      <div
+        style={{ marginTop: '2rem', padding: '1rem', background: '#e8f4fd', borderRadius: '8px' }}
+      >
         <h3>Testing Instructions:</h3>
         <ol>
           <li>Open this page in multiple browsers (Chrome, Firefox, Edge)</li>
           <li>Join the same room with different roles</li>
-          <li>Verify permissions:
+          <li>
+            Verify permissions:
             <ul>
               <li>Teacher: Can enable camera and microphone</li>
               <li>Student: Camera and mic buttons should be disabled</li>

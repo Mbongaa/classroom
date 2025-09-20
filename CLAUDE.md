@@ -34,6 +34,7 @@ pnpm test                  # Run all tests with Vitest
 ## Architecture
 
 ### Core Stack
+
 - **Framework**: Next.js 15.2.4 with App Router
 - **LiveKit**: `@livekit/components-react` 2.9.14, `livekit-client` 2.15.7
 - **Language**: TypeScript 5.9.2
@@ -43,6 +44,7 @@ pnpm test                  # Run all tests with Vitest
 ### Project Structure
 
 #### API Routes (`/app/api/`)
+
 - **`connection-details/route.ts`**: Generates participant tokens with room access grants
   - Creates unique participant identity with random postfix
   - Handles room name, participant name, metadata, and region
@@ -54,6 +56,7 @@ pnpm test                  # Run all tests with Vitest
   - Speaker layout by default
 
 #### Room Pages (`/app/rooms/[roomName]/`)
+
 - **`PageClientImpl.tsx`**: Main conference room implementation
   - PreJoin → Connection Details → VideoConference flow
   - Handles E2EE setup with external key provider
@@ -62,6 +65,7 @@ pnpm test                  # Run all tests with Vitest
   - Low CPU optimization via `useLowCPUOptimizer`
 
 #### Custom Connection (`/app/custom/`)
+
 - **`VideoConferenceClientImpl.tsx`**: Direct token connection
   - Used when connecting with pre-generated tokens
   - Bypasses PreJoin flow
@@ -70,6 +74,7 @@ pnpm test                  # Run all tests with Vitest
 ### Key Configuration
 
 #### Room Options
+
 ```typescript
 {
   videoCaptureDefaults: {
@@ -87,6 +92,7 @@ pnpm test                  # Run all tests with Vitest
 ```
 
 #### Token Grants
+
 ```typescript
 {
   room: roomName,
@@ -122,12 +128,14 @@ S3_REGION=
 ## Key Features & Implementation Details
 
 ### E2EE (End-to-End Encryption)
+
 - Uses `ExternalE2EEKeyProvider` with shared passphrase
 - Passphrase encoded in URL hash (e.g., `#passphrase`)
 - Incompatible with av1/vp9 codecs when enabled
 - Requires browser support check
 
 ### Connection Flow
+
 1. **Landing Page**: Choose Demo (auto-generated room) or Custom (manual token)
 2. **PreJoin**: Configure username, devices, optionally E2EE
 3. **Token Generation**: Server creates JWT with participant identity
@@ -135,6 +143,7 @@ S3_REGION=
 5. **Media Publishing**: Enable camera/microphone based on PreJoin choices
 
 ### Performance Optimizations
+
 - **Adaptive Streaming**: Adjusts quality based on bandwidth
 - **Dynacast**: Pauses video layers when not visible
 - **Simulcast**: Multiple quality layers for optimal viewing
@@ -142,16 +151,19 @@ S3_REGION=
 - **RED**: Redundancy encoding for audio quality
 
 ### Security Headers
+
 ```javascript
 // next.config.js
 Cross-Origin-Opener-Policy: same-origin
 Cross-Origin-Embedder-Policy: credentialless
 ```
+
 Required for SharedArrayBuffer (E2EE and certain features)
 
 ## Presenter-Listener Integration Plan
 
 ### Current State
+
 The app currently gives all participants full publish permissions. The integration plan (from parent CLAUDE.md) outlines adding:
 
 1. **Role-based permissions**: Presenter can publish, listeners can only subscribe
@@ -160,6 +172,7 @@ The app currently gives all participants full publish permissions. The integrati
 4. **Classroom features**: Raise hand, presenter queue, etc.
 
 ### Key Integration Points
+
 - Modify `connection-details/route.ts` to accept `isPresenter` parameter
 - Update `PreJoin` component to include role selection
 - Conditionally render controls based on participant role
@@ -168,13 +181,16 @@ The app currently gives all participants full publish permissions. The integrati
 ## Testing Considerations
 
 ### Multi-participant Testing
+
 When testing multiple roles on the same machine:
+
 - Use different browsers (Chrome/Firefox/Edge)
 - Use incognito/private windows
 - Test with audio-only to avoid camera conflicts
 - Consider virtual camera/microphone tools
 
 ### Browser Requirements
+
 - WebRTC support required
 - SharedArrayBuffer support for E2EE
 - Modern browser versions recommended
@@ -198,21 +214,25 @@ When testing multiple roles on the same machine:
 ## Common Development Tasks
 
 ### Adding a New API Route
+
 1. Create route in `/app/api/[endpoint]/route.ts`
 2. Use Next.js 15 route handlers (GET, POST, etc.)
 3. Access LiveKit SDK via `livekit-server-sdk`
 
 ### Modifying Room Behavior
+
 1. Edit `PageClientImpl.tsx` for room-specific changes
 2. Update `VideoConference` props for UI modifications
 3. Adjust `RoomOptions` for media configuration
 
 ### Custom UI Components
+
 1. Place in `/lib/` directory
 2. Use `@livekit/components-react` hooks and contexts
 3. Access room via `RoomContext`
 
 ### Testing Locally
+
 1. Set up `.env.local` with LiveKit Cloud credentials
 2. Run `pnpm dev`
 3. Generate room: `http://localhost:3000/rooms/[any-name]`

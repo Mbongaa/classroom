@@ -4,7 +4,10 @@
       "Read(//mnt/c/Users/HP/Desktop/Bayaan classroom/**)",
       "Bash(cd:*)",
       "Read(//mnt/c/Users/HP/Desktop/Bayaan/**)",
-      "Bash(echo $PWD)"
+      "Bash(echo $PWD)",
+      "Bash(pnpm format:write:*)",
+      "Bash(pnpm format:check:*)",
+      "Bash(pnpm prettier:*)"
     ],
     "deny": [],
     "ask": []

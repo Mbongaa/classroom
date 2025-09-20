@@ -44,12 +44,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Add role to metadata for client-side use
-    const enrichedMetadata = metadata ?
-      JSON.stringify({
-        ...JSON.parse(metadata),
-        ...(isClassroom ? { role } : {})
-      }) :
-      (isClassroom ? JSON.stringify({ role }) : '');
+    const enrichedMetadata = metadata
+      ? JSON.stringify({
+          ...JSON.parse(metadata),
+          ...(isClassroom ? { role } : {}),
+        })
+      : isClassroom
+        ? JSON.stringify({ role })
+        : '';
 
     const participantToken = await createParticipantToken(
       {
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
       },
       roomName,
       isClassroom,
-      role
+      role,
     );
 
     // Return connection details
@@ -86,7 +88,7 @@ function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
   isClassroom: boolean = false,
-  role: string = 'student'
+  role: string = 'student',
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
   at.ttl = '5m';
@@ -112,7 +114,7 @@ function createParticipantToken(
       grant = {
         room: roomName,
         roomJoin: true,
-        canPublish: false,  // Cannot publish initially
+        canPublish: false, // Cannot publish initially
         canPublishData: true, // Can still use chat
         canSubscribe: true,
         canUpdateOwnMetadata: false,

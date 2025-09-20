@@ -59,39 +59,42 @@ export function PageClientImpl(props: {
 
     return {
       username: '',
-      videoEnabled: !isStudent,  // Disabled for students
-      audioEnabled: !isStudent,  // Disabled for students
+      videoEnabled: !isStudent, // Disabled for students
+      audioEnabled: !isStudent, // Disabled for students
     };
   }, [classroomInfo]);
   const [connectionDetails, setConnectionDetails] = React.useState<ConnectionDetails | undefined>(
     undefined,
   );
 
-  const handlePreJoinSubmit = React.useCallback(async (values: LocalUserChoices) => {
-    setPreJoinChoices(values);
-    const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
-    url.searchParams.append('roomName', props.roomName);
-    url.searchParams.append('participantName', values.username);
-    if (props.region) {
-      url.searchParams.append('region', props.region);
-    }
+  const handlePreJoinSubmit = React.useCallback(
+    async (values: LocalUserChoices) => {
+      setPreJoinChoices(values);
+      const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
+      url.searchParams.append('roomName', props.roomName);
+      url.searchParams.append('participantName', values.username);
+      if (props.region) {
+        url.searchParams.append('region', props.region);
+      }
 
-    // Check if we have classroom parameters in the current URL
-    const currentUrl = new URL(window.location.href);
-    const isClassroom = currentUrl.searchParams.get('classroom');
-    const role = currentUrl.searchParams.get('role');
+      // Check if we have classroom parameters in the current URL
+      const currentUrl = new URL(window.location.href);
+      const isClassroom = currentUrl.searchParams.get('classroom');
+      const role = currentUrl.searchParams.get('role');
 
-    if (isClassroom) {
-      url.searchParams.append('classroom', isClassroom);
-    }
-    if (role) {
-      url.searchParams.append('role', role);
-    }
+      if (isClassroom) {
+        url.searchParams.append('classroom', isClassroom);
+      }
+      if (role) {
+        url.searchParams.append('role', role);
+      }
 
-    const connectionDetailsResp = await fetch(url.toString());
-    const connectionDetailsData = await connectionDetailsResp.json();
-    setConnectionDetails(connectionDetailsData);
-  }, [props.roomName, props.region]);
+      const connectionDetailsResp = await fetch(url.toString());
+      const connectionDetailsData = await connectionDetailsResp.json();
+      setConnectionDetails(connectionDetailsData);
+    },
+    [props.roomName, props.region],
+  );
   const handlePreJoinError = React.useCallback((e: any) => console.error(e), []);
 
   return (
@@ -100,15 +103,17 @@ export function PageClientImpl(props: {
         <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             {classroomInfo && (
-              <div style={{
-                marginBottom: '1.5rem',
-                padding: '0.75rem 1.5rem',
-                background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
-                color: 'white',
-                borderRadius: '8px',
-                fontSize: '1.1rem',
-                fontWeight: 'bold'
-              }}>
+              <div
+                style={{
+                  marginBottom: '1.5rem',
+                  padding: '0.75rem 1.5rem',
+                  background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
+                  color: 'white',
+                  borderRadius: '8px',
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                }}
+              >
                 {classroomInfo.role === 'teacher'
                   ? '👨‍🏫 Joining as Teacher (Full Access)'
                   : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
