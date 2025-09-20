@@ -1,0 +1,799 @@
+# LiveKit Classroom Implementation - Phases 2, 3, & 4
+
+## Overview
+
+This document outlines the implementation plan for the core presenter-listener architecture (Phases 2, 3, & 4) of the Bayaan Classroom system, strictly adhering to LiveKit architecture patterns and principles.
+
+## Architecture Principles (LiveKit-First Approach)
+
+### Core Principles
+1. **LiveKit Components for Core Features**: All video/audio/chat features use `@livekit/components-react`
+2. **Shadcn for UI Enhancement**: Non-LiveKit UI elements use shadcn/ui components
+3. **Role-Based Architecture**: Leverage LiveKit's ParticipantPermission system
+4. **Event-Driven Communication**: Use LiveKit's room events and data channels
+5. **Progressive Enhancement**: Build on existing LiveKit Meet foundation
+
+## Phase 2: Role-Based Architecture
+
+### 2.1 Token Generation with Role Management
+
+#### API Route Enhancement: `/app/api/connection-details/route.ts`
+
+```typescript
+import { AccessToken, VideoGrant, ParticipantInfo } from 'livekit-server-sdk';
+
+interface TokenRequest {
+  roomName: string;
+  participantName: string;
+  metadata?: string;
+  region?: string;
+  role?: 'presenter' | 'listener'; // New role parameter
+}
+
+export async function POST(request: Request) {
+  const body = await request.json() as TokenRequest;
+  const { roomName, participantName, role = 'listener' } = body;
+
+  // Create participant metadata with role
+  const metadata: ParticipantInfo = {
+    role,
+    raisedHand: false,
+    queuePosition: null,
+  };
+
+  // Configure grants based on role
+  const grant: VideoGrant = {
+    room: roomName,
+    roomJoin: true,
+    canPublish: role === 'presenter',
+    canPublishData: true, // All participants can send chat/reactions
+    canSubscribe: true,
+    canUpdateOwnMetadata: true, // For hand raising
+  };
+
+  const at = new AccessToken(
+    process.env.LIVEKIT_API_KEY!,
+    process.env.LIVEKIT_API_SECRET!,
+    {
+      identity: `${participantName}-${Math.random().toString(36).substring(7)}`,
+      name: participantName,
+      metadata: JSON.stringify(metadata),
+    }
+  );
+
+  at.addGrant(grant);
+  at.ttl = '5m';
+
+  return Response.json({
+    token: await at.toJwt(),
+    serverUrl: process.env.LIVEKIT_URL!,
+  });
+}
+```
+
+### 2.2 PreJoin Component Enhancement
+
+#### Component: `/app/components/PreJoinEnhanced.tsx`
+
+```typescript
+'use client';
+
+import { PreJoin, PreJoinProps } from '@livekit/components-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
+
+interface EnhancedPreJoinProps extends PreJoinProps {
+  onRoleSelect?: (role: 'presenter' | 'listener') => void;
+}
+
+export function PreJoinEnhanced({ onRoleSelect, ...props }: EnhancedPreJoinProps) {
+  const [selectedRole, setSelectedRole] = useState<'presenter' | 'listener'>('listener');
+
+  const handleSubmit = (values: LocalUserChoices) => {
+    // Pass role to parent component
+    onRoleSelect?.(selectedRole);
+    // Continue with normal PreJoin submission
+    props.onSubmit?.(values);
+  };
+
+  return (
+    <div className="flex flex-col gap-4">
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <CardTitle>Join Classroom</CardTitle>
+          <CardDescription>Select your role in the classroom</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <RadioGroup
+            value={selectedRole}
+            onValueChange={(value) => setSelectedRole(value as 'presenter' | 'listener')}
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="presenter" id="presenter" />
+              <Label htmlFor="presenter" className="cursor-pointer">
+                <div className="font-medium">Presenter</div>
+                <div className="text-sm text-muted-foreground">
+                  Can share video, audio, and screen
+                </div>
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="listener" id="listener" />
+              <Label htmlFor="listener" className="cursor-pointer">
+                <div className="font-medium">Listener</div>
+                <div className="text-sm text-muted-foreground">
+                  Can view and participate via chat
+                </div>
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
+
+      <PreJoin
+        {...props}
+        onSubmit={handleSubmit}
+        defaults={{
+          ...props.defaults,
+          // Listeners start with camera/mic disabled
+          videoEnabled: selectedRole === 'presenter',
+          audioEnabled: selectedRole === 'presenter',
+        }}
+      />
+    </div>
+  );
+}
+```
+
+### 2.3 Room Page Integration
+
+#### Update: `/app/rooms/[roomName]/PageClientImpl.tsx`
+
+```typescript
+'use client';
+
+import { useState, useCallback } from 'react';
+import { LiveKitRoom, VideoConference, useToken } from '@livekit/components-react';
+import { PreJoinEnhanced } from '@/components/PreJoinEnhanced';
+
+export function PageClientImpl({ roomName, region }: PageClientImplProps) {
+  const [role, setRole] = useState<'presenter' | 'listener'>('listener');
+  const [preJoinChoices, setPreJoinChoices] = useState<LocalUserChoices | undefined>();
+
+  const token = useToken('/api/connection-details', roomName, {
+    userInfo: {
+      identity: preJoinChoices?.username,
+      name: preJoinChoices?.username,
+      metadata: JSON.stringify({ role }),
+    },
+  });
+
+  if (!preJoinChoices) {
+    return (
+      <PreJoinEnhanced
+        onRoleSelect={setRole}
+        onSubmit={setPreJoinChoices}
+        defaults={{
+          username: '',
+          videoEnabled: false,
+          audioEnabled: false,
+        }}
+      />
+    );
+  }
+
+  return (
+    <LiveKitRoom
+      token={token}
+      serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+      connect={true}
+      audio={role === 'presenter'}
+      video={role === 'presenter'}
+    >
+      <ClassroomVideoConference role={role} />
+    </LiveKitRoom>
+  );
+}
+```
+
+## Phase 3: Transcription & Translation System
+
+### 3.1 Transcription Hook with Translation
+
+#### Hook: `/app/hooks/useTranscriptionWithTranslation.ts`
+
+```typescript
+import { useTrackTranscription, TrackReferenceOrPlaceholder } from '@livekit/components-react';
+import { useEffect, useState, useCallback } from 'react';
+import { RoomEvent } from 'livekit-client';
+import { useRoomContext } from '@livekit/components-react';
+
+interface TranslatedSegment {
+  original: string;
+  translated: string;
+  language: string;
+  timestamp: number;
+  participant: string;
+}
+
+export function useTranscriptionWithTranslation(
+  trackRef: TrackReferenceOrPlaceholder | undefined,
+  targetLanguage: string = 'en'
+) {
+  const room = useRoomContext();
+  const { segments } = useTrackTranscription(trackRef);
+  const [translatedSegments, setTranslatedSegments] = useState<TranslatedSegment[]>([]);
+
+  // Listen for transcription events from Python agent
+  useEffect(() => {
+    if (!room) return;
+
+    const handleTranscription = (
+      segments: ReceivedTranscriptionSegment[],
+      participant?: Participant
+    ) => {
+      // Process incoming transcription segments
+      segments.forEach(segment => {
+        if (segment.final) {
+          // Send to translation service via data channel
+          const translationRequest = {
+            type: 'translate',
+            text: segment.text,
+            targetLanguage,
+            participant: participant?.identity,
+          };
+
+          room.localParticipant.publishData(
+            new TextEncoder().encode(JSON.stringify(translationRequest)),
+            { reliable: true, topic: 'translation' }
+          );
+        }
+      });
+    };
+
+    // Listen for translation responses
+    const handleDataReceived = (payload: Uint8Array, participant?: Participant) => {
+      try {
+        const message = JSON.parse(new TextDecoder().decode(payload));
+        if (message.type === 'translation') {
+          setTranslatedSegments(prev => [...prev, {
+            original: message.original,
+            translated: message.translated,
+            language: message.language,
+            timestamp: Date.now(),
+            participant: message.participant,
+          }]);
+        }
+      } catch (error) {
+        console.error('Failed to parse translation:', error);
+      }
+    };
+
+    room.on(RoomEvent.TranscriptionReceived, handleTranscription);
+    room.on(RoomEvent.DataReceived, handleDataReceived);
+
+    return () => {
+      room.off(RoomEvent.TranscriptionReceived, handleTranscription);
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+    };
+  }, [room, targetLanguage]);
+
+  return {
+    segments,
+    translatedSegments,
+  };
+}
+```
+
+### 3.2 Caption Display Component
+
+#### Component: `/app/components/CaptionDisplay.tsx`
+
+```typescript
+'use client';
+
+import { useTranscriptions } from '@livekit/components-react';
+import { Card } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
+
+interface CaptionDisplayProps {
+  className?: string;
+  showOriginal?: boolean;
+  maxHeight?: number;
+}
+
+export function CaptionDisplay({
+  className,
+  showOriginal = false,
+  maxHeight = 200
+}: CaptionDisplayProps) {
+  const transcriptions = useTranscriptions();
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to latest caption
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [transcriptions]);
+
+  if (transcriptions.length === 0) return null;
+
+  return (
+    <Card className={cn("absolute bottom-20 left-1/2 transform -translate-x-1/2 w-[600px] bg-black/80 backdrop-blur", className)}>
+      <ScrollArea ref={scrollRef} className="h-full" style={{ maxHeight }}>
+        <div className="p-4 space-y-2">
+          {transcriptions.map((item, index) => (
+            <div key={index} className="space-y-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  {item.participant?.name || 'Unknown'}
+                </Badge>
+                <span className="text-xs text-muted-foreground">
+                  {new Date(item.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+              <p className="text-white text-sm leading-relaxed">
+                {item.text}
+              </p>
+              {showOriginal && item.original && (
+                <p className="text-gray-400 text-xs italic">
+                  Original: {item.original}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+    </Card>
+  );
+}
+```
+
+### 3.3 Classroom Video Conference Component
+
+#### Component: `/app/components/ClassroomVideoConference.tsx`
+
+```typescript
+'use client';
+
+import {
+  VideoConference,
+  GridLayout,
+  ParticipantTile,
+  ControlBar,
+  RoomAudioRenderer,
+  useParticipants,
+  useTracks,
+} from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import { CaptionDisplay } from './CaptionDisplay';
+import { HandRaisePanel } from './HandRaisePanel';
+import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { Subtitles, SubtitlesOff } from 'lucide-react';
+
+interface ClassroomVideoConferenceProps {
+  role: 'presenter' | 'listener';
+}
+
+export function ClassroomVideoConference({ role }: ClassroomVideoConferenceProps) {
+  const [showCaptions, setShowCaptions] = useState(true);
+  const participants = useParticipants();
+  const tracks = useTracks(
+    [Track.Source.Camera, Track.Source.ScreenShare],
+    { onlySubscribed: true }
+  );
+
+  // Filter presenter tracks for spotlight view
+  const presenterTracks = tracks.filter(track => {
+    const participant = participants.find(p => p.identity === track.participant.identity);
+    const metadata = participant?.metadata ? JSON.parse(participant.metadata) : {};
+    return metadata.role === 'presenter';
+  });
+
+  return (
+    <div className="relative h-full">
+      {/* Main video area - presenter focused */}
+      <div className="h-full">
+        {presenterTracks.length > 0 ? (
+          <GridLayout tracks={presenterTracks}>
+            <ParticipantTile />
+          </GridLayout>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <p className="text-muted-foreground">Waiting for presenter...</p>
+          </div>
+        )}
+      </div>
+
+      {/* Audio renderer for all participants */}
+      <RoomAudioRenderer />
+
+      {/* Caption overlay */}
+      {showCaptions && <CaptionDisplay />}
+
+      {/* Control bar with role-specific controls */}
+      <ControlBar
+        variation="minimal"
+        controls={{
+          microphone: role === 'presenter',
+          camera: role === 'presenter',
+          screenShare: role === 'presenter',
+          chat: true,
+          leave: true,
+        }}
+      >
+        {/* Caption toggle button */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowCaptions(!showCaptions)}
+          title={showCaptions ? 'Hide captions' : 'Show captions'}
+        >
+          {showCaptions ? <Subtitles /> : <SubtitlesOff />}
+        </Button>
+
+        {/* Hand raise panel for listeners */}
+        {role === 'listener' && <HandRaisePanel />}
+      </ControlBar>
+    </div>
+  );
+}
+```
+
+## Phase 4: Queue Management System
+
+### 4.1 Hand Raise Component
+
+#### Component: `/app/components/HandRaisePanel.tsx`
+
+```typescript
+'use client';
+
+import { Button } from '@/components/ui/button';
+import { Hand, UserPlus } from 'lucide-react';
+import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
+import { useState, useEffect } from 'react';
+import { Badge } from '@/components/ui/badge';
+
+export function HandRaisePanel() {
+  const room = useRoomContext();
+  const { localParticipant } = useLocalParticipant();
+  const [isHandRaised, setIsHandRaised] = useState(false);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!localParticipant) return;
+
+    const metadata = localParticipant.metadata ? JSON.parse(localParticipant.metadata) : {};
+    setIsHandRaised(metadata.raisedHand || false);
+    setQueuePosition(metadata.queuePosition || null);
+  }, [localParticipant?.metadata]);
+
+  const handleRaiseHand = async () => {
+    if (!localParticipant) return;
+
+    const metadata = localParticipant.metadata ? JSON.parse(localParticipant.metadata) : {};
+    const newMetadata = {
+      ...metadata,
+      raisedHand: !isHandRaised,
+      timestamp: Date.now(),
+    };
+
+    // Update local participant metadata
+    await localParticipant.setMetadata(JSON.stringify(newMetadata));
+
+    // Send data message to notify presenter
+    const message = {
+      type: 'hand_raise',
+      action: !isHandRaised ? 'raise' : 'lower',
+      participant: localParticipant.identity,
+      name: localParticipant.name,
+    };
+
+    localParticipant.publishData(
+      new TextEncoder().encode(JSON.stringify(message)),
+      { reliable: true, topic: 'queue' }
+    );
+
+    setIsHandRaised(!isHandRaised);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        variant={isHandRaised ? "default" : "outline"}
+        size="sm"
+        onClick={handleRaiseHand}
+        className="gap-2"
+      >
+        <Hand className={isHandRaised ? "animate-pulse" : ""} />
+        {isHandRaised ? 'Lower Hand' : 'Raise Hand'}
+      </Button>
+
+      {queuePosition !== null && (
+        <Badge variant="secondary">
+          Queue Position: {queuePosition}
+        </Badge>
+      )}
+    </div>
+  );
+}
+```
+
+### 4.2 Presenter Queue Management
+
+#### Component: `/app/components/PresenterQueuePanel.tsx`
+
+```typescript
+'use client';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { useParticipants, useRoomContext } from '@livekit/components-react';
+import { useEffect, useState } from 'react';
+import { UserCheck, UserX, Users } from 'lucide-react';
+
+interface QueuedParticipant {
+  identity: string;
+  name: string;
+  timestamp: number;
+}
+
+export function PresenterQueuePanel() {
+  const room = useRoomContext();
+  const participants = useParticipants();
+  const [queue, setQueue] = useState<QueuedParticipant[]>([]);
+
+  useEffect(() => {
+    if (!room) return;
+
+    // Listen for hand raise events
+    const handleDataReceived = (payload: Uint8Array, participant?: Participant) => {
+      try {
+        const message = JSON.parse(new TextDecoder().decode(payload));
+        if (message.type === 'hand_raise') {
+          if (message.action === 'raise') {
+            setQueue(prev => [...prev, {
+              identity: message.participant,
+              name: message.name,
+              timestamp: Date.now(),
+            }]);
+          } else {
+            setQueue(prev => prev.filter(p => p.identity !== message.participant));
+          }
+        }
+      } catch (error) {
+        console.error('Failed to parse queue message:', error);
+      }
+    };
+
+    room.on(RoomEvent.DataReceived, handleDataReceived);
+
+    return () => {
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+    };
+  }, [room]);
+
+  const promoteToPresenter = async (participantIdentity: string) => {
+    // Send permission update to server
+    const response = await fetch('/api/update-permissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        roomName: room?.name,
+        participantIdentity,
+        canPublish: true,
+      }),
+    });
+
+    if (response.ok) {
+      // Remove from queue
+      setQueue(prev => prev.filter(p => p.identity !== participantIdentity));
+
+      // Notify participant
+      room?.localParticipant.publishData(
+        new TextEncoder().encode(JSON.stringify({
+          type: 'permission_granted',
+          participant: participantIdentity,
+        })),
+        { reliable: true, destination: [participantIdentity] }
+      );
+    }
+  };
+
+  const removeFromQueue = (participantIdentity: string) => {
+    setQueue(prev => prev.filter(p => p.identity !== participantIdentity));
+  };
+
+  if (queue.length === 0) return null;
+
+  return (
+    <Card className="absolute top-4 right-4 w-80">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-sm font-medium flex items-center gap-2">
+          <Users className="h-4 w-4" />
+          Participant Queue ({queue.length})
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ScrollArea className="h-[200px]">
+          <div className="space-y-2">
+            {queue.map((participant, index) => (
+              <div
+                key={participant.identity}
+                className="flex items-center justify-between p-2 rounded-lg bg-muted"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium">#{index + 1}</span>
+                  <span className="text-sm">{participant.name}</span>
+                </div>
+                <div className="flex gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => promoteToPresenter(participant.identity)}
+                  >
+                    <UserCheck className="h-3 w-3" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7"
+                    onClick={() => removeFromQueue(participant.identity)}
+                  >
+                    <UserX className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+      </CardContent>
+    </Card>
+  );
+}
+```
+
+### 4.3 Permission Update API
+
+#### API Route: `/app/api/update-permissions/route.ts`
+
+```typescript
+import { RoomServiceClient } from 'livekit-server-sdk';
+
+const roomService = new RoomServiceClient(
+  process.env.LIVEKIT_URL!,
+  process.env.LIVEKIT_API_KEY!,
+  process.env.LIVEKIT_API_SECRET!
+);
+
+export async function POST(request: Request) {
+  try {
+    const { roomName, participantIdentity, canPublish } = await request.json();
+
+    // Update participant permissions
+    await roomService.updateParticipant(
+      roomName,
+      participantIdentity,
+      undefined, // name
+      {
+        canPublish,
+        canPublishData: true,
+        canSubscribe: true,
+      }
+    );
+
+    return Response.json({ success: true });
+  } catch (error) {
+    console.error('Failed to update permissions:', error);
+    return Response.json({ error: 'Failed to update permissions' }, { status: 500 });
+  }
+}
+```
+
+## Testing Strategy
+
+### 4.1 Multi-Role Testing Setup
+
+```bash
+# Terminal 1 - Presenter
+pnpm dev
+# Open http://localhost:3000/rooms/test-classroom
+# Select "Presenter" role
+
+# Terminal 2 - Listener 1
+# Open http://localhost:3000/rooms/test-classroom in incognito
+# Select "Listener" role
+
+# Terminal 3 - Listener 2
+# Open http://localhost:3000/rooms/test-classroom in different browser
+# Select "Listener" role
+```
+
+### 4.2 Test Scenarios
+
+1. **Role Assignment**: Verify presenter can publish, listeners cannot
+2. **Hand Raising**: Test queue management and ordering
+3. **Permission Promotion**: Promote listener to temporary presenter
+4. **Transcription**: Verify real-time transcription display
+5. **Translation**: Test multi-language caption support
+
+## Python Agent Integration (Phase 3 Support)
+
+### Agent Configuration: `python-agent/agent.py`
+
+```python
+from livekit.agents import Agent, JobContext, WorkerOptions, cli
+from livekit.agents.transcription import STTSegment
+from livekit.agents.translation import Translator
+import asyncio
+
+class ClassroomAgent(Agent):
+    def __init__(self, ctx: JobContext):
+        super().__init__(ctx)
+        self.transcriber = None
+        self.translator = None
+
+    async def on_participant_connected(self, participant):
+        """Setup transcription for presenters"""
+        metadata = json.loads(participant.metadata or '{}')
+        if metadata.get('role') == 'presenter':
+            # Start transcription for presenter
+            self.transcriber = await self.create_transcriber(participant)
+
+    async def on_transcription(self, segment: STTSegment):
+        """Handle transcription and translation"""
+        # Send original transcription
+        await self.room.local_participant.publish_transcription(segment)
+
+        # Translate to configured languages
+        for lang in self.target_languages:
+            translated = await self.translator.translate(segment.text, lang)
+            await self.publish_translation(segment.text, translated, lang)
+
+    async def publish_translation(self, original, translated, language):
+        """Publish translated text via data channel"""
+        message = {
+            'type': 'translation',
+            'original': original,
+            'translated': translated,
+            'language': language,
+        }
+        await self.room.local_participant.publish_data(
+            json.dumps(message).encode(),
+            topic='translation'
+        )
+
+if __name__ == '__main__':
+    cli.run_app(WorkerOptions(agent_class=ClassroomAgent))
+```
+
+## Deployment Checklist
+
+- [ ] Environment variables configured for LiveKit Cloud
+- [ ] Python agent deployed with Deepgram/OpenAI keys
+- [ ] Shadcn UI components installed
+- [ ] Permission update API secured with authentication
+- [ ] WebSocket connection tested for real-time updates
+- [ ] Transcription/translation services configured
+- [ ] Queue management state persistence implemented
+- [ ] Error handling for network disconnections
+- [ ] Accessibility features tested
+- [ ] Performance optimized for 100+ participants
+
+## Next Steps
+
+1. **Phase 5**: Recording and playback implementation
+2. **Phase 6**: Analytics and engagement tracking
+3. **Phase 7**: Mobile application development
+4. **Phase 8**: Scalability and performance optimization
