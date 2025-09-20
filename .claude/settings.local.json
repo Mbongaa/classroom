@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//mnt/c/Users/HP/Desktop/Bayaan classroom/**)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Read(//mnt/c/Users/HP/Desktop/Bayaan/**)",
+      "Bash(echo $PWD)"
     ],
     "deny": [],
     "ask": []
