@@ -43,13 +43,26 @@ export function PageClientImpl(props: {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
   );
+
+  // Check classroom role from URL
+  const classroomInfo = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const currentUrl = new URL(window.location.href);
+    const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
+    const role = currentUrl.searchParams.get('role');
+    return isClassroom ? { role: role || 'student' } : null;
+  }, []);
+
   const preJoinDefaults = React.useMemo(() => {
+    // For students, disable camera/mic by default to avoid permission issues
+    const isStudent = classroomInfo?.role === 'student';
+
     return {
       username: '',
-      videoEnabled: true,
-      audioEnabled: true,
+      videoEnabled: !isStudent,  // Disabled for students
+      audioEnabled: !isStudent,  // Disabled for students
     };
-  }, []);
+  }, [classroomInfo]);
   const [connectionDetails, setConnectionDetails] = React.useState<ConnectionDetails | undefined>(
     undefined,
   );
@@ -62,21 +75,51 @@ export function PageClientImpl(props: {
     if (props.region) {
       url.searchParams.append('region', props.region);
     }
+
+    // Check if we have classroom parameters in the current URL
+    const currentUrl = new URL(window.location.href);
+    const isClassroom = currentUrl.searchParams.get('classroom');
+    const role = currentUrl.searchParams.get('role');
+
+    if (isClassroom) {
+      url.searchParams.append('classroom', isClassroom);
+    }
+    if (role) {
+      url.searchParams.append('role', role);
+    }
+
     const connectionDetailsResp = await fetch(url.toString());
     const connectionDetailsData = await connectionDetailsResp.json();
     setConnectionDetails(connectionDetailsData);
-  }, []);
+  }, [props.roomName, props.region]);
   const handlePreJoinError = React.useCallback((e: any) => console.error(e), []);
 
   return (
     <main data-lk-theme="default" style={{ height: '100%' }}>
       {connectionDetails === undefined || preJoinChoices === undefined ? (
         <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
-          <PreJoin
-            defaults={preJoinDefaults}
-            onSubmit={handlePreJoinSubmit}
-            onError={handlePreJoinError}
-          />
+          <div style={{ textAlign: 'center' }}>
+            {classroomInfo && (
+              <div style={{
+                marginBottom: '1.5rem',
+                padding: '0.75rem 1.5rem',
+                background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
+                color: 'white',
+                borderRadius: '8px',
+                fontSize: '1.1rem',
+                fontWeight: 'bold'
+              }}>
+                {classroomInfo.role === 'teacher'
+                  ? '👨‍🏫 Joining as Teacher (Full Access)'
+                  : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
+              </div>
+            )}
+            <PreJoin
+              defaults={preJoinDefaults}
+              onSubmit={handlePreJoinSubmit}
+              onError={handlePreJoinError}
+            />
+          </div>
         </div>
       ) : (
         <VideoConferenceComponent
@@ -174,19 +217,40 @@ function VideoConferenceComponent(props: {
           props.connectionDetails.participantToken,
           connectOptions,
         )
+        .then(() => {
+          // Check if user is a student by parsing the token or checking URL
+          const currentUrl = new URL(window.location.href);
+          const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
+          const role = currentUrl.searchParams.get('role');
+          const isStudent = isClassroom && role === 'student';
+
+          // Only enable media for non-students or if explicitly chosen
+          if (!isStudent) {
+            if (props.userChoices.videoEnabled) {
+              room.localParticipant.setCameraEnabled(true).catch((error) => {
+                console.warn('Failed to enable camera:', error);
+                // Only show error if it's not a permission issue
+                if (!error.message?.includes('permission')) {
+                  handleError(error);
+                }
+              });
+            }
+            if (props.userChoices.audioEnabled) {
+              room.localParticipant.setMicrophoneEnabled(true).catch((error) => {
+                console.warn('Failed to enable microphone:', error);
+                // Only show error if it's not a permission issue
+                if (!error.message?.includes('permission')) {
+                  handleError(error);
+                }
+              });
+            }
+          } else {
+            console.log('Joined as student - media publishing disabled');
+          }
+        })
         .catch((error) => {
           handleError(error);
         });
-      if (props.userChoices.videoEnabled) {
-        room.localParticipant.setCameraEnabled(true).catch((error) => {
-          handleError(error);
-        });
-      }
-      if (props.userChoices.audioEnabled) {
-        room.localParticipant.setMicrophoneEnabled(true).catch((error) => {
-          handleError(error);
-        });
-      }
     }
     return () => {
       room.off(RoomEvent.Disconnected, handleOnLeave);

@@ -17,6 +17,11 @@ export async function GET(request: NextRequest) {
     const participantName = request.nextUrl.searchParams.get('participantName');
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
+
+    // NEW: Check if this is a classroom and what role
+    const isClassroom = request.nextUrl.searchParams.get('classroom') === 'true';
+    const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
+
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
     }
@@ -37,13 +42,24 @@ export async function GET(request: NextRequest) {
     if (!randomParticipantPostfix) {
       randomParticipantPostfix = randomString(4);
     }
+
+    // Add role to metadata for client-side use
+    const enrichedMetadata = metadata ?
+      JSON.stringify({
+        ...JSON.parse(metadata),
+        ...(isClassroom ? { role } : {})
+      }) :
+      (isClassroom ? JSON.stringify({ role }) : '');
+
     const participantToken = await createParticipantToken(
       {
         identity: `${participantName}__${randomParticipantPostfix}`,
         name: participantName,
-        metadata,
+        metadata: enrichedMetadata,
       },
       roomName,
+      isClassroom,
+      role
     );
 
     // Return connection details
@@ -66,16 +82,53 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function createParticipantToken(userInfo: AccessTokenOptions, roomName: string) {
+function createParticipantToken(
+  userInfo: AccessTokenOptions,
+  roomName: string,
+  isClassroom: boolean = false,
+  role: string = 'student'
+) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
   at.ttl = '5m';
-  const grant: VideoGrant = {
-    room: roomName,
-    roomJoin: true,
-    canPublish: true,
-    canPublishData: true,
-    canSubscribe: true,
-  };
+
+  let grant: VideoGrant;
+
+  if (isClassroom) {
+    if (role === 'teacher') {
+      // Teachers have full permissions
+      grant = {
+        room: roomName,
+        roomJoin: true,
+        canPublish: true,
+        canPublishData: true,
+        canSubscribe: true,
+        canUpdateOwnMetadata: true,
+        // Teacher can manage room
+        roomAdmin: true,
+        roomRecord: true,
+      };
+    } else {
+      // Students start with limited permissions
+      grant = {
+        room: roomName,
+        roomJoin: true,
+        canPublish: false,  // Cannot publish initially
+        canPublishData: true, // Can still use chat
+        canSubscribe: true,
+        canUpdateOwnMetadata: false,
+      };
+    }
+  } else {
+    // Regular meeting room - existing behavior
+    grant = {
+      room: roomName,
+      roomJoin: true,
+      canPublish: true,
+      canPublishData: true,
+      canSubscribe: true,
+    };
+  }
+
   at.addGrant(grant);
   return at.toJwt();
 }

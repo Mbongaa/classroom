@@ -26,3 +26,11 @@ export type ConnectionDetails = {
   participantName: string;
   participantToken: string;
 };
+
+// Classroom-specific types
+export type ClassroomRole = 'teacher' | 'student';
+
+export interface ClassroomMetadata {
+  role?: ClassroomRole;
+  [key: string]: any;
+}
