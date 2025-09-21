@@ -13,6 +13,7 @@ import {
   PreJoin,
   RoomContext,
   VideoConference,
+  LayoutContextProvider,
 } from '@livekit/components-react';
 import {
   ExternalE2EEKeyProvider,
@@ -103,20 +104,65 @@ export function PageClientImpl(props: {
         <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
           <div style={{ textAlign: 'center' }}>
             {classroomInfo && (
-              <div
-                style={{
-                  marginBottom: '1.5rem',
-                  padding: '0.75rem 1.5rem',
-                  background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
-                  color: 'white',
-                  borderRadius: '8px',
-                  fontSize: '1.1rem',
-                  fontWeight: 'bold',
-                }}
-              >
-                {classroomInfo.role === 'teacher'
-                  ? '👨‍🏫 Joining as Teacher (Full Access)'
-                  : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
+              <div>
+                <div
+                  style={{
+                    marginBottom: '1.5rem',
+                    padding: '0.75rem 1.5rem',
+                    background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
+                    color: 'white',
+                    borderRadius: '8px',
+                    fontSize: '1.1rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {classroomInfo.role === 'teacher'
+                    ? '👨‍🏫 Joining as Teacher (Full Access)'
+                    : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
+                </div>
+
+                {/* Show room code for teachers to share */}
+                {classroomInfo.role === 'teacher' && (
+                  <div
+                    style={{
+                      marginBottom: '1.5rem',
+                      padding: '1rem',
+                      background: 'rgba(76, 175, 80, 0.1)',
+                      border: '1px solid rgba(76, 175, 80, 0.3)',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                      📋 Share this Room Code with Students:
+                    </div>
+                    <div
+                      style={{
+                        padding: '0.5rem',
+                        background: 'rgba(0, 0, 0, 0.2)',
+                        borderRadius: '4px',
+                        fontFamily: 'monospace',
+                        fontSize: '1.1rem',
+                        textAlign: 'center',
+                        userSelect: 'all',
+                        cursor: 'pointer',
+                      }}
+                      onClick={(e) => {
+                        const target = e.currentTarget;
+                        const selection = window.getSelection();
+                        const range = document.createRange();
+                        range.selectNodeContents(target);
+                        selection?.removeAllRanges();
+                        selection?.addRange(range);
+                      }}
+                    >
+                      {props.roomName}
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>
+                      Click to select • Students can join from the homepage
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             <PreJoin
@@ -285,16 +331,32 @@ function VideoConferenceComponent(props: {
     }
   }, [lowPowerMode]);
 
+  // Check if we're in classroom mode
+  const isClassroom = React.useMemo(() => {
+    if (typeof window === 'undefined') return false;
+    const currentUrl = new URL(window.location.href);
+    return currentUrl.searchParams.get('classroom') === 'true';
+  }, []);
+
+  // Get user's role for classroom mode
+  const userRole = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    const currentUrl = new URL(window.location.href);
+    return currentUrl.searchParams.get('role');
+  }, []);
+
   return (
-    <div className="lk-room-container">
+    <div className="lk-room-container" data-lk-theme="default">
       <RoomContext.Provider value={room}>
-        <KeyboardShortcuts />
-        <VideoConference
-          chatMessageFormatter={formatChatMessageLinks}
-          SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
-        />
-        <DebugMode />
-        <RecordingIndicator />
+        <LayoutContextProvider>
+          <KeyboardShortcuts />
+          <VideoConference
+            chatMessageFormatter={formatChatMessageLinks}
+            SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+          />
+          <DebugMode />
+          <RecordingIndicator />
+        </LayoutContextProvider>
       </RoomContext.Provider>
     </div>
   );

@@ -45,6 +45,8 @@ function DemoMeetingTab(props: { label: string }) {
   const router = useRouter();
   const [e2ee, setE2ee] = useState(false);
   const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
+  const [roomCode, setRoomCode] = useState('');
+
   const startMeeting = () => {
     if (e2ee) {
       router.push(`/rooms/${generateRoomId()}#${encodePassphrase(sharedPassphrase)}`);
@@ -52,12 +54,84 @@ function DemoMeetingTab(props: { label: string }) {
       router.push(`/rooms/${generateRoomId()}`);
     }
   };
+
+  const startClassroom = () => {
+    const roomId = generateRoomId();
+    // Teacher starts a new classroom
+    router.push(`/rooms/${roomId}?classroom=true&role=teacher`);
+  };
+
+  const joinClassroomAsStudent = () => {
+    if (!roomCode.trim()) {
+      alert('Please enter a room code');
+      return;
+    }
+    // Student joins existing classroom with room code
+    router.push(`/rooms/${roomCode}?classroom=true&role=student`);
+  };
+
   return (
     <div className={styles.tabContent}>
       <p style={{ margin: 0 }}>Try LiveKit Meet for free with our live demo project.</p>
-      <button style={{ marginTop: '1rem' }} className="lk-button" onClick={startMeeting}>
-        Start Meeting
-      </button>
+      <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+        <button className="lk-button" onClick={startMeeting}>
+          Start Meeting
+        </button>
+        <button
+          className="lk-button"
+          onClick={startClassroom}
+          style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+        >
+          Start Classroom (Teacher)
+        </button>
+      </div>
+
+      {/* Student join section */}
+      <div
+        style={{
+          marginTop: '2rem',
+          padding: '1rem',
+          background: 'rgba(240, 147, 251, 0.1)',
+          borderRadius: '8px',
+          border: '1px solid rgba(240, 147, 251, 0.3)',
+        }}
+      >
+        <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.1rem', color: '#f093fb' }}>
+          Join Classroom as Student
+        </h3>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <input
+            type="text"
+            placeholder="Enter room code (e.g., abc-def-ghi)"
+            value={roomCode}
+            onChange={(e) => setRoomCode(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                joinClassroomAsStudent();
+              }
+            }}
+            style={{
+              padding: '0.5rem',
+              borderRadius: '4px',
+              border: '1px solid #ccc',
+              flex: 1,
+              minWidth: '200px',
+              background: '#1a1d21',
+              color: 'white',
+            }}
+          />
+          <button
+            className="lk-button"
+            onClick={joinClassroomAsStudent}
+            style={{ background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }}
+          >
+            Join as Student
+          </button>
+        </div>
+        <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>
+          Ask your teacher for the room code to join the classroom
+        </p>
+      </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
           <input

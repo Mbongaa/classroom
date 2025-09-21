@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Common Development Commands
 
 ### Development
+
 ```bash
 pnpm dev         # Start development server on http://localhost:3000
 pnpm build       # Build for production
@@ -12,6 +13,7 @@ pnpm start       # Start production server
 ```
 
 ### Code Quality
+
 ```bash
 pnpm lint        # Run ESLint
 pnpm lint:fix    # Fix ESLint issues automatically
@@ -21,6 +23,7 @@ pnpm test        # Run tests with Vitest
 ```
 
 ### Environment Setup
+
 1. Copy `.env.example` to `.env.local`
 2. Set required LiveKit credentials:
    - `LIVEKIT_API_KEY` - From LiveKit Cloud Dashboard
@@ -30,28 +33,33 @@ pnpm test        # Run tests with Vitest
 ## Architecture Overview
 
 ### Core Application Structure
+
 This is a Next.js 15 application using React 18 with LiveKit Components for video conferencing.
 
 ### Key Routes & Components
 
 **Landing Page** (`/app/page.tsx`)
+
 - Two tabs: Demo mode (free tier) and Custom connection (own LiveKit server)
 - Generates room IDs and handles E2EE passphrase encoding
 - Routes to either `/rooms/[roomName]` or `/custom/`
 
 **Room Implementation** (`/app/rooms/[roomName]/`)
+
 - `page.tsx`: Server component handling params and search params
 - `PageClientImpl.tsx`: Main client component with PreJoin and video conference logic
 - Supports classroom mode via URL params (`?classroom=true&role=teacher|student`)
 - Smart defaults: Students join with mic/camera off, teachers with media on
 
 **Custom Connection** (`/app/custom/`)
+
 - For connecting with custom LiveKit servers using user-provided tokens
 - Similar structure to rooms but bypasses internal token generation
 
 ### Token Generation & Permissions
 
 **API Endpoint** (`/app/api/connection-details/route.ts`)
+
 - Generates LiveKit JWT tokens with role-based permissions
 - Three permission models:
   1. **Regular Room**: Full permissions for all participants
@@ -78,6 +86,7 @@ See `CLASSROOM_PHASE_1.md` for implementation details and `CLASSROOM_ROADMAP.md`
 **Track Processors**: Krisp noise filter support when using LiveKit Cloud
 
 ### Component Library (`/lib/`)
+
 - `SettingsMenu.tsx`: Audio/video device selection
 - `RecordingIndicator.tsx`: Shows recording status
 - `KeyboardShortcuts.tsx`: Hotkey support
@@ -87,20 +96,24 @@ See `CLASSROOM_PHASE_1.md` for implementation details and `CLASSROOM_ROADMAP.md`
 ## Development Patterns
 
 ### Type Safety
+
 - TypeScript strict mode enabled
 - Custom types in `/lib/types.ts` for video codecs, connection details, classroom roles
 - React component props use TypeScript interfaces
 
 ### Path Aliases
+
 - Use `@/*` for absolute imports from project root
 - Example: `import { generateRoomId } from '@/lib/client-utils'`
 
 ### State Management
+
 - React hooks for local state
 - URL params for room configuration (region, codec, quality)
 - Cookies for participant identity persistence
 
 ### Error Handling
+
 - Graceful media permission failures for students
 - Try-catch blocks around camera/microphone enabling
 - Connection error boundaries in video conference components
@@ -108,6 +121,7 @@ See `CLASSROOM_PHASE_1.md` for implementation details and `CLASSROOM_ROADMAP.md`
 ## Testing
 
 ### Running Tests
+
 ```bash
 pnpm test              # Run all tests once
 pnpm test --watch      # Watch mode for development

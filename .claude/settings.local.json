@@ -2,7 +2,17 @@
   "permissions": {
     "allow": [
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(pnpm ls:*)",
+      "Bash(pnpm lint:fix:*)",
+      "Bash(pnpm lint:*)",
+      "Bash(pnpm format:write:*)",
+      "Bash(killall:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(find:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
