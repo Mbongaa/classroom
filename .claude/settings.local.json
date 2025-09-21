@@ -16,7 +16,10 @@
       "mcp__sequential-thinking__sequentialthinking",
       "Bash(pnpm format:check:*)",
       "Bash(pnpm prettier:*)",
-      "Read(//mnt/c/Users/HP/Desktop/**)"
+      "Read(//mnt/c/Users/HP/Desktop/**)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm install:*)",
+      "Bash(yes)"
     ],
     "deny": [],
     "ask": []
