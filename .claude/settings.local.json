@@ -12,7 +12,11 @@
       "Bash(xargs kill:*)",
       "Bash(find:*)",
       "Bash(pnpm dev:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "mcp__sequential-thinking__sequentialthinking",
+      "Bash(pnpm format:check:*)",
+      "Bash(pnpm prettier:*)",
+      "Read(//mnt/c/Users/HP/Desktop/**)"
     ],
     "deny": [],
     "ask": []

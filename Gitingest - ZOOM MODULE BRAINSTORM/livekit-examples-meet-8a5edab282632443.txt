@@ -1,0 +1,2642 @@
+Directory structure:
+└── livekit-examples-meet/
+    ├── README.md
+    ├── LICENSE
+    ├── next-env.d.ts
+    ├── next.config.js
+    ├── package.json
+    ├── renovate.json
+    ├── tsconfig.json
+    ├── .env.example
+    ├── .eslintrc.json
+    ├── .prettierignore
+    ├── .prettierrc
+    ├── app/
+    │   ├── layout.tsx
+    │   ├── page.tsx
+    │   ├── api/
+    │   │   ├── connection-details/
+    │   │   │   └── route.ts
+    │   │   └── record/
+    │   │       ├── start/
+    │   │       │   └── route.ts
+    │   │       └── stop/
+    │   │           └── route.ts
+    │   ├── custom/
+    │   │   ├── page.tsx
+    │   │   └── VideoConferenceClientImpl.tsx
+    │   └── rooms/
+    │       └── [roomName]/
+    │           ├── page.tsx
+    │           └── PageClientImpl.tsx
+    ├── lib/
+    │   ├── CameraSettings.tsx
+    │   ├── client-utils.ts
+    │   ├── Debug.tsx
+    │   ├── getLiveKitURL.test.ts
+    │   ├── getLiveKitURL.ts
+    │   ├── KeyboardShortcuts.tsx
+    │   ├── MicrophoneSettings.tsx
+    │   ├── RecordingIndicator.tsx
+    │   ├── SettingsMenu.tsx
+    │   ├── types.ts
+    │   ├── usePerfomanceOptimiser.ts
+    │   └── useSetupE2EE.ts
+    ├── styles/
+    │   ├── Debug.module.css
+    │   ├── globals.css
+    │   ├── Home.module.css
+    │   └── SettingsMenu.module.css
+    └── .github/
+        ├── assets/
+        │   ├── template-dark.webp
+        │   └── template-light.webp
+        └── workflows/
+            ├── sync-to-production.yaml
+            └── test.yaml
+
+================================================
+FILE: README.md
+================================================
+<a href="https://livekit.io/">
+  <img src="./.github/assets/livekit-mark.png" alt="LiveKit logo" width="100" height="100">
+</a>
+
+# LiveKit Meet
+
+<p>
+  <a href="https://meet.livekit.io"><strong>Try the demo</strong></a>
+  •
+  <a href="https://github.com/livekit/components-js">LiveKit Components</a>
+  •
+  <a href="https://docs.livekit.io/">LiveKit Docs</a>
+  •
+  <a href="https://livekit.io/cloud">LiveKit Cloud</a>
+  •
+  <a href="https://blog.livekit.io/">Blog</a>
+</p>
+
+<br>
+
+LiveKit Meet is an open source video conferencing app built on [LiveKit Components](https://github.com/livekit/components-js), [LiveKit Cloud](https://cloud.livekit.io/), and Next.js. It's been completely redesigned from the ground up using our new components library.
+
+![LiveKit Meet screenshot](./.github/assets/livekit-meet.jpg)
+
+## Tech Stack
+
+- This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+- App is built with [@livekit/components-react](https://github.com/livekit/components-js/) library.
+
+## Demo
+
+Give it a try at https://meet.livekit.io.
+
+## Dev Setup
+
+Steps to get a local dev setup up and running:
+
+1. Run `pnpm install` to install all dependencies.
+2. Copy `.env.example` in the project root and rename it to `.env.local`.
+3. Update the missing environment variables in the newly created `.env.local` file.
+4. Run `pnpm dev` to start the development server and visit [http://localhost:3000](http://localhost:3000) to see the result.
+5. Start development 🎉
+
+
+
+================================================
+FILE: LICENSE
+================================================
+
+                                 Apache License
+                           Version 2.0, January 2004
+                        http://www.apache.org/licenses/
+
+   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
+
+   1. Definitions.
+
+      "License" shall mean the terms and conditions for use, reproduction,
+      and distribution as defined by Sections 1 through 9 of this document.
+
+      "Licensor" shall mean the copyright owner or entity authorized by
+      the copyright owner that is granting the License.
+
+      "Legal Entity" shall mean the union of the acting entity and all
+      other entities that control, are controlled by, or are under common
+      control with that entity. For the purposes of this definition,
+      "control" means (i) the power, direct or indirect, to cause the
+      direction or management of such entity, whether by contract or
+      otherwise, or (ii) ownership of fifty percent (50%) or more of the
+      outstanding shares, or (iii) beneficial ownership of such entity.
+
+      "You" (or "Your") shall mean an individual or Legal Entity
+      exercising permissions granted by this License.
+
+      "Source" form shall mean the preferred form for making modifications,
+      including but not limited to software source code, documentation
+      source, and configuration files.
+
+      "Object" form shall mean any form resulting from mechanical
+      transformation or translation of a Source form, including but
+      not limited to compiled object code, generated documentation,
+      and conversions to other media types.
+
+      "Work" shall mean the work of authorship, whether in Source or
+      Object form, made available under the License, as indicated by a
+      copyright notice that is included in or attached to the work
+      (an example is provided in the Appendix below).
+
+      "Derivative Works" shall mean any work, whether in Source or Object
+      form, that is based on (or derived from) the Work and for which the
+      editorial revisions, annotations, elaborations, or other modifications
+      represent, as a whole, an original work of authorship. For the purposes
+      of this License, Derivative Works shall not include works that remain
+      separable from, or merely link (or bind by name) to the interfaces of,
+      the Work and Derivative Works thereof.
+
+      "Contribution" shall mean any work of authorship, including
+      the original version of the Work and any modifications or additions
+      to that Work or Derivative Works thereof, that is intentionally
+      submitted to Licensor for inclusion in the Work by the copyright owner
+      or by an individual or Legal Entity authorized to submit on behalf of
+      the copyright owner. For the purposes of this definition, "submitted"
+      means any form of electronic, verbal, or written communication sent
+      to the Licensor or its representatives, including but not limited to
+      communication on electronic mailing lists, source code control systems,
+      and issue tracking systems that are managed by, or on behalf of, the
+      Licensor for the purpose of discussing and improving the Work, but
+      excluding communication that is conspicuously marked or otherwise
+      designated in writing by the copyright owner as "Not a Contribution."
+
+      "Contributor" shall mean Licensor and any individual or Legal Entity
+      on behalf of whom a Contribution has been received by Licensor and
+      subsequently incorporated within the Work.
+
+   2. Grant of Copyright License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      copyright license to reproduce, prepare Derivative Works of,
+      publicly display, publicly perform, sublicense, and distribute the
+      Work and such Derivative Works in Source or Object form.
+
+   3. Grant of Patent License. Subject to the terms and conditions of
+      this License, each Contributor hereby grants to You a perpetual,
+      worldwide, non-exclusive, no-charge, royalty-free, irrevocable
+      (except as stated in this section) patent license to make, have made,
+      use, offer to sell, sell, import, and otherwise transfer the Work,
+      where such license applies only to those patent claims licensable
+      by such Contributor that are necessarily infringed by their
+      Contribution(s) alone or by combination of their Contribution(s)
+      with the Work to which such Contribution(s) was submitted. If You
+      institute patent litigation against any entity (including a
+      cross-claim or counterclaim in a lawsuit) alleging that the Work
+      or a Contribution incorporated within the Work constitutes direct
+      or contributory patent infringement, then any patent licenses
+      granted to You under this License for that Work shall terminate
+      as of the date such litigation is filed.
+
+   4. Redistribution. You may reproduce and distribute copies of the
+      Work or Derivative Works thereof in any medium, with or without
+      modifications, and in Source or Object form, provided that You
+      meet the following conditions:
+
+      (a) You must give any other recipients of the Work or
+          Derivative Works a copy of this License; and
+
+      (b) You must cause any modified files to carry prominent notices
+          stating that You changed the files; and
+
+      (c) You must retain, in the Source form of any Derivative Works
+          that You distribute, all copyright, patent, trademark, and
+          attribution notices from the Source form of the Work,
+          excluding those notices that do not pertain to any part of
+          the Derivative Works; and
+
+      (d) If the Work includes a "NOTICE" text file as part of its
+          distribution, then any Derivative Works that You distribute must
+          include a readable copy of the attribution notices contained
+          within such NOTICE file, excluding those notices that do not
+          pertain to any part of the Derivative Works, in at least one
+          of the following places: within a NOTICE text file distributed
+          as part of the Derivative Works; within the Source form or
+          documentation, if provided along with the Derivative Works; or,
+          within a display generated by the Derivative Works, if and
+          wherever such third-party notices normally appear. The contents
+          of the NOTICE file are for informational purposes only and
+          do not modify the License. You may add Your own attribution
+          notices within Derivative Works that You distribute, alongside
+          or as an addendum to the NOTICE text from the Work, provided
+          that such additional attribution notices cannot be construed
+          as modifying the License.
+
+      You may add Your own copyright statement to Your modifications and
+      may provide additional or different license terms and conditions
+      for use, reproduction, or distribution of Your modifications, or
+      for any such Derivative Works as a whole, provided Your use,
+      reproduction, and distribution of the Work otherwise complies with
+      the conditions stated in this License.
+
+   5. Submission of Contributions. Unless You explicitly state otherwise,
+      any Contribution intentionally submitted for inclusion in the Work
+      by You to the Licensor shall be under the terms and conditions of
+      this License, without any additional terms or conditions.
+      Notwithstanding the above, nothing herein shall supersede or modify
+      the terms of any separate license agreement you may have executed
+      with Licensor regarding such Contributions.
+
+   6. Trademarks. This License does not grant permission to use the trade
+      names, trademarks, service marks, or product names of the Licensor,
+      except as required for reasonable and customary use in describing the
+      origin of the Work and reproducing the content of the NOTICE file.
+
+   7. Disclaimer of Warranty. Unless required by applicable law or
+      agreed to in writing, Licensor provides the Work (and each
+      Contributor provides its Contributions) on an "AS IS" BASIS,
+      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+      implied, including, without limitation, any warranties or conditions
+      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A
+      PARTICULAR PURPOSE. You are solely responsible for determining the
+      appropriateness of using or redistributing the Work and assume any
+      risks associated with Your exercise of permissions under this License.
+
+   8. Limitation of Liability. In no event and under no legal theory,
+      whether in tort (including negligence), contract, or otherwise,
+      unless required by applicable law (such as deliberate and grossly
+      negligent acts) or agreed to in writing, shall any Contributor be
+      liable to You for damages, including any direct, indirect, special,
+      incidental, or consequential damages of any character arising as a
+      result of this License or out of the use or inability to use the
+      Work (including but not limited to damages for loss of goodwill,
+      work stoppage, computer failure or malfunction, or any and all
+      other commercial damages or losses), even if such Contributor
+      has been advised of the possibility of such damages.
+
+   9. Accepting Warranty or Additional Liability. While redistributing
+      the Work or Derivative Works thereof, You may choose to offer,
+      and charge a fee for, acceptance of support, warranty, indemnity,
+      or other liability obligations and/or rights consistent with this
+      License. However, in accepting such obligations, You may act only
+      on Your own behalf and on Your sole responsibility, not on behalf
+      of any other Contributor, and only if You agree to indemnify,
+      defend, and hold each Contributor harmless for any liability
+      incurred by, or claims asserted against, such Contributor by reason
+      of your accepting any such warranty or additional liability.
+
+   END OF TERMS AND CONDITIONS
+
+   APPENDIX: How to apply the Apache License to your work.
+
+      To apply the Apache License to your work, attach the following
+      boilerplate notice, with the fields enclosed by brackets "[]"
+      replaced with your own identifying information. (Don't include
+      the brackets!)  The text should be enclosed in the appropriate
+      comment syntax for the file format. We also recommend that a
+      file or class name and description of purpose be included on the
+      same "printed page" as the copyright notice for easier
+      identification within third-party archives.
+
+   Copyright [yyyy] [name of copyright owner]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+
+
+================================================
+FILE: next-env.d.ts
+================================================
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+
+
+================================================
+FILE: next.config.js
+================================================
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: false,
+  productionBrowserSourceMaps: true,
+  images: {
+    formats: ['image/webp'],
+  },
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }) => {
+    // Important: return the modified config
+    config.module.rules.push({
+      test: /\.mjs$/,
+      enforce: 'pre',
+      use: ['source-map-loader'],
+    });
+
+    return config;
+  },
+  headers: async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'credentialless',
+          },
+        ],
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
+
+
+
+================================================
+FILE: package.json
+================================================
+{
+  "name": "livekit-meet",
+  "version": "0.2.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "test": "vitest run",
+    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
+    "format:write": "prettier --write \"**/*.{ts,tsx,md,json}\""
+  },
+  "dependencies": {
+    "@datadog/browser-logs": "^5.23.3",
+    "@livekit/components-react": "2.9.14",
+    "@livekit/components-styles": "1.1.6",
+    "@livekit/krisp-noise-filter": "0.3.4",
+    "@livekit/track-processors": "^0.6.0",
+    "livekit-client": "2.15.7",
+    "livekit-server-sdk": "2.13.3",
+    "next": "15.2.4",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "react-hot-toast": "^2.5.2",
+    "tinykeys": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.17.2",
+    "@types/react": "18.3.23",
+    "@types/react-dom": "18.3.7",
+    "eslint": "9.33.0",
+    "eslint-config-next": "15.4.6",
+    "prettier": "3.6.2",
+    "source-map-loader": "^5.0.0",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@10.9.0"
+}
+
+
+
+================================================
+FILE: renovate.json
+================================================
+{
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "schedule": "before 6am on the first day of the month",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "devDependencies (non-major)"
+    },
+    {
+      "matchSourceUrlPrefixes": ["https://github.com/livekit/"],
+      "rangeStrategy": "replace",
+      "groupName": "LiveKit dependencies (non-major)",
+      "automerge": true
+    }
+  ]
+}
+
+
+
+================================================
+FILE: tsconfig.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["dom", "dom.iterable", "ES2020"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ES2020",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "sourceMap": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+
+================================================
+FILE: .env.example
+================================================
+# 1. Copy this file and rename it to .env.local
+# 2. Update the enviroment variables below.
+
+# REQUIRED SETTINGS
+# ################# 
+# If you are using LiveKit Cloud, the API key and secret can be generated from the Cloud Dashboard.
+LIVEKIT_API_KEY=
+LIVEKIT_API_SECRET=
+# URL pointing to the LiveKit server. (example: `wss://my-livekit-project.livekit.cloud`)
+LIVEKIT_URL=
+
+
+# OPTIONAL SETTINGS
+# ################# 
+# Recording
+# S3_KEY_ID=
+# S3_KEY_SECRET=
+# S3_ENDPOINT=
+# S3_BUCKET=
+# S3_REGION=
+
+# PUBLIC
+# Uncomment settings menu when using a LiveKit Cloud, it'll enable Krisp noise filters.
+# NEXT_PUBLIC_SHOW_SETTINGS_MENU=true
+# NEXT_PUBLIC_LK_RECORD_ENDPOINT=/api/record
+
+# Optional, to pipe logs to datadog
+# NEXT_PUBLIC_DATADOG_CLIENT_TOKEN=client-token
+# NEXT_PUBLIC_DATADOG_SITE=datadog-site
+
+
+
+
+================================================
+FILE: .eslintrc.json
+================================================
+{
+  "extends": "next/core-web-vitals"
+}
+
+
+
+================================================
+FILE: .prettierignore
+================================================
+.github/
+.next/
+node_modules/
+
+
+================================================
+FILE: .prettierrc
+================================================
+{
+  "singleQuote": true,
+  "trailingComma": "all",
+  "semi": true,
+  "tabWidth": 2,
+  "printWidth": 100
+}
+
+
+
+================================================
+FILE: app/layout.tsx
+================================================
+import '../styles/globals.css';
+import '@livekit/components-styles';
+import '@livekit/components-styles/prefabs';
+import type { Metadata, Viewport } from 'next';
+import { Toaster } from 'react-hot-toast';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'LiveKit Meet | Conference app build with LiveKit open source',
+    template: '%s',
+  },
+  description:
+    'LiveKit is an open source WebRTC project that gives you everything needed to build scalable and real-time audio and/or video experiences in your applications.',
+  twitter: {
+    creator: '@livekitted',
+    site: '@livekitted',
+    card: 'summary_large_image',
+  },
+  openGraph: {
+    url: 'https://meet.livekit.io',
+    images: [
+      {
+        url: 'https://meet.livekit.io/images/livekit-meet-open-graph.png',
+        width: 2000,
+        height: 1000,
+        type: 'image/png',
+      },
+    ],
+    siteName: 'LiveKit Meet',
+  },
+  icons: {
+    icon: {
+      rel: 'icon',
+      url: '/favicon.ico',
+    },
+    apple: [
+      {
+        rel: 'apple-touch-icon',
+        url: '/images/livekit-apple-touch.png',
+        sizes: '180x180',
+      },
+      { rel: 'mask-icon', url: '/images/livekit-safari-pinned-tab.svg', color: '#070707' },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#070707',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body data-lk-theme="default">
+        <Toaster />
+        {children}
+      </body>
+    </html>
+  );
+}
+
+
+
+================================================
+FILE: app/page.tsx
+================================================
+'use client';
+
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useState } from 'react';
+import { encodePassphrase, generateRoomId, randomString } from '@/lib/client-utils';
+import styles from '../styles/Home.module.css';
+
+function Tabs(props: React.PropsWithChildren<{}>) {
+  const searchParams = useSearchParams();
+  const tabIndex = searchParams?.get('tab') === 'custom' ? 1 : 0;
+
+  const router = useRouter();
+  function onTabSelected(index: number) {
+    const tab = index === 1 ? 'custom' : 'demo';
+    router.push(`/?tab=${tab}`);
+  }
+
+  let tabs = React.Children.map(props.children, (child, index) => {
+    return (
+      <button
+        className="lk-button"
+        onClick={() => {
+          if (onTabSelected) {
+            onTabSelected(index);
+          }
+        }}
+        aria-pressed={tabIndex === index}
+      >
+        {/* @ts-ignore */}
+        {child?.props.label}
+      </button>
+    );
+  });
+
+  return (
+    <div className={styles.tabContainer}>
+      <div className={styles.tabSelect}>{tabs}</div>
+      {/* @ts-ignore */}
+      {props.children[tabIndex]}
+    </div>
+  );
+}
+
+function DemoMeetingTab(props: { label: string }) {
+  const router = useRouter();
+  const [e2ee, setE2ee] = useState(false);
+  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
+  const startMeeting = () => {
+    if (e2ee) {
+      router.push(`/rooms/${generateRoomId()}#${encodePassphrase(sharedPassphrase)}`);
+    } else {
+      router.push(`/rooms/${generateRoomId()}`);
+    }
+  };
+  return (
+    <div className={styles.tabContent}>
+      <p style={{ margin: 0 }}>Try LiveKit Meet for free with our live demo project.</p>
+      <button style={{ marginTop: '1rem' }} className="lk-button" onClick={startMeeting}>
+        Start Meeting
+      </button>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+          <input
+            id="use-e2ee"
+            type="checkbox"
+            checked={e2ee}
+            onChange={(ev) => setE2ee(ev.target.checked)}
+          ></input>
+          <label htmlFor="use-e2ee">Enable end-to-end encryption</label>
+        </div>
+        {e2ee && (
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+            <label htmlFor="passphrase">Passphrase</label>
+            <input
+              id="passphrase"
+              type="password"
+              value={sharedPassphrase}
+              onChange={(ev) => setSharedPassphrase(ev.target.value)}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CustomConnectionTab(props: { label: string }) {
+  const router = useRouter();
+
+  const [e2ee, setE2ee] = useState(false);
+  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
+
+  const onSubmit: React.FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target as HTMLFormElement);
+    const serverUrl = formData.get('serverUrl');
+    const token = formData.get('token');
+    if (e2ee) {
+      router.push(
+        `/custom/?liveKitUrl=${serverUrl}&token=${token}#${encodePassphrase(sharedPassphrase)}`,
+      );
+    } else {
+      router.push(`/custom/?liveKitUrl=${serverUrl}&token=${token}`);
+    }
+  };
+  return (
+    <form className={styles.tabContent} onSubmit={onSubmit}>
+      <p style={{ marginTop: 0 }}>
+        Connect LiveKit Meet with a custom server using LiveKit Cloud or LiveKit Server.
+      </p>
+      <input
+        id="serverUrl"
+        name="serverUrl"
+        type="url"
+        placeholder="LiveKit Server URL: wss://*.livekit.cloud"
+        required
+      />
+      <textarea
+        id="token"
+        name="token"
+        placeholder="Token"
+        required
+        rows={5}
+        style={{ padding: '1px 2px', fontSize: 'inherit', lineHeight: 'inherit' }}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+          <input
+            id="use-e2ee"
+            type="checkbox"
+            checked={e2ee}
+            onChange={(ev) => setE2ee(ev.target.checked)}
+          ></input>
+          <label htmlFor="use-e2ee">Enable end-to-end encryption</label>
+        </div>
+        {e2ee && (
+          <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem' }}>
+            <label htmlFor="passphrase">Passphrase</label>
+            <input
+              id="passphrase"
+              type="password"
+              value={sharedPassphrase}
+              onChange={(ev) => setSharedPassphrase(ev.target.value)}
+            />
+          </div>
+        )}
+      </div>
+
+      <hr
+        style={{ width: '100%', borderColor: 'rgba(255, 255, 255, 0.15)', marginBlock: '1rem' }}
+      />
+      <button
+        style={{ paddingInline: '1.25rem', width: '100%' }}
+        className="lk-button"
+        type="submit"
+      >
+        Connect
+      </button>
+    </form>
+  );
+}
+
+export default function Page() {
+  return (
+    <>
+      <main className={styles.main} data-lk-theme="default">
+        <div className="header">
+          <img src="/images/livekit-meet-home.svg" alt="LiveKit Meet" width="360" height="45" />
+          <h2>
+            Open source video conferencing app built on{' '}
+            <a href="https://github.com/livekit/components-js?ref=meet" rel="noopener">
+              LiveKit&nbsp;Components
+            </a>
+            ,{' '}
+            <a href="https://livekit.io/cloud?ref=meet" rel="noopener">
+              LiveKit&nbsp;Cloud
+            </a>{' '}
+            and Next.js.
+          </h2>
+        </div>
+        <Suspense fallback="Loading">
+          <Tabs>
+            <DemoMeetingTab label="Demo" />
+            <CustomConnectionTab label="Custom" />
+          </Tabs>
+        </Suspense>
+      </main>
+      <footer data-lk-theme="default">
+        Hosted on{' '}
+        <a href="https://livekit.io/cloud?ref=meet" rel="noopener">
+          LiveKit Cloud
+        </a>
+        . Source code on{' '}
+        <a href="https://github.com/livekit/meet?ref=meet" rel="noopener">
+          GitHub
+        </a>
+        .
+      </footer>
+    </>
+  );
+}
+
+
+
+================================================
+FILE: app/api/connection-details/route.ts
+================================================
+import { randomString } from '@/lib/client-utils';
+import { getLiveKitURL } from '@/lib/getLiveKitURL';
+import { ConnectionDetails } from '@/lib/types';
+import { AccessToken, AccessTokenOptions, VideoGrant } from 'livekit-server-sdk';
+import { NextRequest, NextResponse } from 'next/server';
+
+const API_KEY = process.env.LIVEKIT_API_KEY;
+const API_SECRET = process.env.LIVEKIT_API_SECRET;
+const LIVEKIT_URL = process.env.LIVEKIT_URL;
+
+const COOKIE_KEY = 'random-participant-postfix';
+
+export async function GET(request: NextRequest) {
+  try {
+    // Parse query parameters
+    const roomName = request.nextUrl.searchParams.get('roomName');
+    const participantName = request.nextUrl.searchParams.get('participantName');
+    const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
+    const region = request.nextUrl.searchParams.get('region');
+    if (!LIVEKIT_URL) {
+      throw new Error('LIVEKIT_URL is not defined');
+    }
+    const livekitServerUrl = region ? getLiveKitURL(LIVEKIT_URL, region) : LIVEKIT_URL;
+    let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
+    if (livekitServerUrl === undefined) {
+      throw new Error('Invalid region');
+    }
+
+    if (typeof roomName !== 'string') {
+      return new NextResponse('Missing required query parameter: roomName', { status: 400 });
+    }
+    if (participantName === null) {
+      return new NextResponse('Missing required query parameter: participantName', { status: 400 });
+    }
+
+    // Generate participant token
+    if (!randomParticipantPostfix) {
+      randomParticipantPostfix = randomString(4);
+    }
+    const participantToken = await createParticipantToken(
+      {
+        identity: `${participantName}__${randomParticipantPostfix}`,
+        name: participantName,
+        metadata,
+      },
+      roomName,
+    );
+
+    // Return connection details
+    const data: ConnectionDetails = {
+      serverUrl: livekitServerUrl,
+      roomName: roomName,
+      participantToken: participantToken,
+      participantName: participantName,
+    };
+    return new NextResponse(JSON.stringify(data), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Set-Cookie': `${COOKIE_KEY}=${randomParticipantPostfix}; Path=/; HttpOnly; SameSite=Strict; Secure; Expires=${getCookieExpirationTime()}`,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      return new NextResponse(error.message, { status: 500 });
+    }
+  }
+}
+
+function createParticipantToken(userInfo: AccessTokenOptions, roomName: string) {
+  const at = new AccessToken(API_KEY, API_SECRET, userInfo);
+  at.ttl = '5m';
+  const grant: VideoGrant = {
+    room: roomName,
+    roomJoin: true,
+    canPublish: true,
+    canPublishData: true,
+    canSubscribe: true,
+  };
+  at.addGrant(grant);
+  return at.toJwt();
+}
+
+function getCookieExpirationTime(): string {
+  var now = new Date();
+  var time = now.getTime();
+  var expireTime = time + 60 * 120 * 1000;
+  now.setTime(expireTime);
+  return now.toUTCString();
+}
+
+
+
+================================================
+FILE: app/api/record/start/route.ts
+================================================
+import { EgressClient, EncodedFileOutput, S3Upload } from 'livekit-server-sdk';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(req: NextRequest) {
+  try {
+    const roomName = req.nextUrl.searchParams.get('roomName');
+
+    /**
+     * CAUTION:
+     * for simplicity this implementation does not authenticate users and therefore allows anyone with knowledge of a roomName
+     * to start/stop recordings for that room.
+     * DO NOT USE THIS FOR PRODUCTION PURPOSES AS IS
+     */
+
+    if (roomName === null) {
+      return new NextResponse('Missing roomName parameter', { status: 403 });
+    }
+
+    const {
+      LIVEKIT_API_KEY,
+      LIVEKIT_API_SECRET,
+      LIVEKIT_URL,
+      S3_KEY_ID,
+      S3_KEY_SECRET,
+      S3_BUCKET,
+      S3_ENDPOINT,
+      S3_REGION,
+    } = process.env;
+
+    const hostURL = new URL(LIVEKIT_URL!);
+    hostURL.protocol = 'https:';
+
+    const egressClient = new EgressClient(hostURL.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+
+    const existingEgresses = await egressClient.listEgress({ roomName });
+    if (existingEgresses.length > 0 && existingEgresses.some((e) => e.status < 2)) {
+      return new NextResponse('Meeting is already being recorded', { status: 409 });
+    }
+
+    const fileOutput = new EncodedFileOutput({
+      filepath: `${new Date(Date.now()).toISOString()}-${roomName}.mp4`,
+      output: {
+        case: 's3',
+        value: new S3Upload({
+          endpoint: S3_ENDPOINT,
+          accessKey: S3_KEY_ID,
+          secret: S3_KEY_SECRET,
+          region: S3_REGION,
+          bucket: S3_BUCKET,
+        }),
+      },
+    });
+
+    await egressClient.startRoomCompositeEgress(
+      roomName,
+      {
+        file: fileOutput,
+      },
+      {
+        layout: 'speaker',
+      },
+    );
+
+    return new NextResponse(null, { status: 200 });
+  } catch (error) {
+    if (error instanceof Error) {
+      return new NextResponse(error.message, { status: 500 });
+    }
+  }
+}
+
+
+
+================================================
+FILE: app/api/record/stop/route.ts
+================================================
+import { EgressClient } from 'livekit-server-sdk';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function GET(req: NextRequest) {
+  try {
+    const roomName = req.nextUrl.searchParams.get('roomName');
+
+    /**
+     * CAUTION:
+     * for simplicity this implementation does not authenticate users and therefore allows anyone with knowledge of a roomName
+     * to start/stop recordings for that room.
+     * DO NOT USE THIS FOR PRODUCTION PURPOSES AS IS
+     */
+
+    if (roomName === null) {
+      return new NextResponse('Missing roomName parameter', { status: 403 });
+    }
+
+    const { LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } = process.env;
+
+    const hostURL = new URL(LIVEKIT_URL!);
+    hostURL.protocol = 'https:';
+
+    const egressClient = new EgressClient(hostURL.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const activeEgresses = (await egressClient.listEgress({ roomName })).filter(
+      (info) => info.status < 2,
+    );
+    if (activeEgresses.length === 0) {
+      return new NextResponse('No active recording found', { status: 404 });
+    }
+    await Promise.all(activeEgresses.map((info) => egressClient.stopEgress(info.egressId)));
+
+    return new NextResponse(null, { status: 200 });
+  } catch (error) {
+    if (error instanceof Error) {
+      return new NextResponse(error.message, { status: 500 });
+    }
+  }
+}
+
+
+
+================================================
+FILE: app/custom/page.tsx
+================================================
+import { videoCodecs } from 'livekit-client';
+import { VideoConferenceClientImpl } from './VideoConferenceClientImpl';
+import { isVideoCodec } from '@/lib/types';
+
+export default async function CustomRoomConnection(props: {
+  searchParams: Promise<{
+    liveKitUrl?: string;
+    token?: string;
+    codec?: string;
+  }>;
+}) {
+  const { liveKitUrl, token, codec } = await props.searchParams;
+  if (typeof liveKitUrl !== 'string') {
+    return <h2>Missing LiveKit URL</h2>;
+  }
+  if (typeof token !== 'string') {
+    return <h2>Missing LiveKit token</h2>;
+  }
+  if (codec !== undefined && !isVideoCodec(codec)) {
+    return <h2>Invalid codec, if defined it has to be [{videoCodecs.join(', ')}].</h2>;
+  }
+
+  return (
+    <main data-lk-theme="default" style={{ height: '100%' }}>
+      <VideoConferenceClientImpl liveKitUrl={liveKitUrl} token={token} codec={codec} />
+    </main>
+  );
+}
+
+
+
+================================================
+FILE: app/custom/VideoConferenceClientImpl.tsx
+================================================
+'use client';
+
+import { formatChatMessageLinks, RoomContext, VideoConference } from '@livekit/components-react';
+import {
+  ExternalE2EEKeyProvider,
+  LogLevel,
+  Room,
+  RoomConnectOptions,
+  RoomOptions,
+  VideoPresets,
+  type VideoCodec,
+} from 'livekit-client';
+import { DebugMode } from '@/lib/Debug';
+import { useEffect, useMemo, useState } from 'react';
+import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
+import { SettingsMenu } from '@/lib/SettingsMenu';
+import { useSetupE2EE } from '@/lib/useSetupE2EE';
+import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
+
+export function VideoConferenceClientImpl(props: {
+  liveKitUrl: string;
+  token: string;
+  codec: VideoCodec | undefined;
+}) {
+  const keyProvider = new ExternalE2EEKeyProvider();
+  const { worker, e2eePassphrase } = useSetupE2EE();
+  const e2eeEnabled = !!(e2eePassphrase && worker);
+
+  const [e2eeSetupComplete, setE2eeSetupComplete] = useState(false);
+
+  const roomOptions = useMemo((): RoomOptions => {
+    return {
+      publishDefaults: {
+        videoSimulcastLayers: [VideoPresets.h540, VideoPresets.h216],
+        red: !e2eeEnabled,
+        videoCodec: props.codec,
+      },
+      adaptiveStream: { pixelDensity: 'screen' },
+      dynacast: true,
+      e2ee: e2eeEnabled
+        ? {
+            keyProvider,
+            worker,
+          }
+        : undefined,
+    };
+  }, [e2eeEnabled, props.codec, keyProvider, worker]);
+
+  const room = useMemo(() => new Room(roomOptions), [roomOptions]);
+
+  const connectOptions = useMemo((): RoomConnectOptions => {
+    return {
+      autoSubscribe: true,
+    };
+  }, []);
+
+  useEffect(() => {
+    if (e2eeEnabled) {
+      keyProvider.setKey(e2eePassphrase).then(() => {
+        room.setE2EEEnabled(true).then(() => {
+          setE2eeSetupComplete(true);
+        });
+      });
+    } else {
+      setE2eeSetupComplete(true);
+    }
+  }, [e2eeEnabled, e2eePassphrase, keyProvider, room, setE2eeSetupComplete]);
+
+  useEffect(() => {
+    if (e2eeSetupComplete) {
+      room.connect(props.liveKitUrl, props.token, connectOptions).catch((error) => {
+        console.error(error);
+      });
+      room.localParticipant.enableCameraAndMicrophone().catch((error) => {
+        console.error(error);
+      });
+    }
+  }, [room, props.liveKitUrl, props.token, connectOptions, e2eeSetupComplete]);
+
+  useLowCPUOptimizer(room);
+
+  return (
+    <div className="lk-room-container">
+      <RoomContext.Provider value={room}>
+        <KeyboardShortcuts />
+        <VideoConference
+          chatMessageFormatter={formatChatMessageLinks}
+          SettingsComponent={
+            process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' ? SettingsMenu : undefined
+          }
+        />
+        <DebugMode logLevel={LogLevel.debug} />
+      </RoomContext.Provider>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: app/rooms/[roomName]/page.tsx
+================================================
+import * as React from 'react';
+import { PageClientImpl } from './PageClientImpl';
+import { isVideoCodec } from '@/lib/types';
+
+export default async function Page({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ roomName: string }>;
+  searchParams: Promise<{
+    // FIXME: We should not allow values for regions if in playground mode.
+    region?: string;
+    hq?: string;
+    codec?: string;
+  }>;
+}) {
+  const _params = await params;
+  const _searchParams = await searchParams;
+  const codec =
+    typeof _searchParams.codec === 'string' && isVideoCodec(_searchParams.codec)
+      ? _searchParams.codec
+      : 'vp9';
+  const hq = _searchParams.hq === 'true' ? true : false;
+
+  return (
+    <PageClientImpl
+      roomName={_params.roomName}
+      region={_searchParams.region}
+      hq={hq}
+      codec={codec}
+    />
+  );
+}
+
+
+
+================================================
+FILE: app/rooms/[roomName]/PageClientImpl.tsx
+================================================
+'use client';
+
+import React from 'react';
+import { decodePassphrase } from '@/lib/client-utils';
+import { DebugMode } from '@/lib/Debug';
+import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
+import { RecordingIndicator } from '@/lib/RecordingIndicator';
+import { SettingsMenu } from '@/lib/SettingsMenu';
+import { ConnectionDetails } from '@/lib/types';
+import {
+  formatChatMessageLinks,
+  LocalUserChoices,
+  PreJoin,
+  RoomContext,
+  VideoConference,
+} from '@livekit/components-react';
+import {
+  ExternalE2EEKeyProvider,
+  RoomOptions,
+  VideoCodec,
+  VideoPresets,
+  Room,
+  DeviceUnsupportedError,
+  RoomConnectOptions,
+  RoomEvent,
+  TrackPublishDefaults,
+  VideoCaptureOptions,
+} from 'livekit-client';
+import { useRouter } from 'next/navigation';
+import { useSetupE2EE } from '@/lib/useSetupE2EE';
+import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
+
+const CONN_DETAILS_ENDPOINT =
+  process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
+const SHOW_SETTINGS_MENU = process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU == 'true';
+
+export function PageClientImpl(props: {
+  roomName: string;
+  region?: string;
+  hq: boolean;
+  codec: VideoCodec;
+}) {
+  const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
+    undefined,
+  );
+  const preJoinDefaults = React.useMemo(() => {
+    return {
+      username: '',
+      videoEnabled: true,
+      audioEnabled: true,
+    };
+  }, []);
+  const [connectionDetails, setConnectionDetails] = React.useState<ConnectionDetails | undefined>(
+    undefined,
+  );
+
+  const handlePreJoinSubmit = React.useCallback(async (values: LocalUserChoices) => {
+    setPreJoinChoices(values);
+    const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
+    url.searchParams.append('roomName', props.roomName);
+    url.searchParams.append('participantName', values.username);
+    if (props.region) {
+      url.searchParams.append('region', props.region);
+    }
+    const connectionDetailsResp = await fetch(url.toString());
+    const connectionDetailsData = await connectionDetailsResp.json();
+    setConnectionDetails(connectionDetailsData);
+  }, []);
+  const handlePreJoinError = React.useCallback((e: any) => console.error(e), []);
+
+  return (
+    <main data-lk-theme="default" style={{ height: '100%' }}>
+      {connectionDetails === undefined || preJoinChoices === undefined ? (
+        <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
+          <PreJoin
+            defaults={preJoinDefaults}
+            onSubmit={handlePreJoinSubmit}
+            onError={handlePreJoinError}
+          />
+        </div>
+      ) : (
+        <VideoConferenceComponent
+          connectionDetails={connectionDetails}
+          userChoices={preJoinChoices}
+          options={{ codec: props.codec, hq: props.hq }}
+        />
+      )}
+    </main>
+  );
+}
+
+function VideoConferenceComponent(props: {
+  userChoices: LocalUserChoices;
+  connectionDetails: ConnectionDetails;
+  options: {
+    hq: boolean;
+    codec: VideoCodec;
+  };
+}) {
+  const keyProvider = new ExternalE2EEKeyProvider();
+  const { worker, e2eePassphrase } = useSetupE2EE();
+  const e2eeEnabled = !!(e2eePassphrase && worker);
+
+  const [e2eeSetupComplete, setE2eeSetupComplete] = React.useState(false);
+
+  const roomOptions = React.useMemo((): RoomOptions => {
+    let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
+    if (e2eeEnabled && (videoCodec === 'av1' || videoCodec === 'vp9')) {
+      videoCodec = undefined;
+    }
+    const videoCaptureDefaults: VideoCaptureOptions = {
+      deviceId: props.userChoices.videoDeviceId ?? undefined,
+      resolution: props.options.hq ? VideoPresets.h2160 : VideoPresets.h720,
+    };
+    const publishDefaults: TrackPublishDefaults = {
+      dtx: false,
+      videoSimulcastLayers: props.options.hq
+        ? [VideoPresets.h1080, VideoPresets.h720]
+        : [VideoPresets.h540, VideoPresets.h216],
+      red: !e2eeEnabled,
+      videoCodec,
+    };
+    return {
+      videoCaptureDefaults: videoCaptureDefaults,
+      publishDefaults: publishDefaults,
+      audioCaptureDefaults: {
+        deviceId: props.userChoices.audioDeviceId ?? undefined,
+      },
+      adaptiveStream: true,
+      dynacast: true,
+      e2ee: keyProvider && worker && e2eeEnabled ? { keyProvider, worker } : undefined,
+    };
+  }, [props.userChoices, props.options.hq, props.options.codec]);
+
+  const room = React.useMemo(() => new Room(roomOptions), []);
+
+  React.useEffect(() => {
+    if (e2eeEnabled) {
+      keyProvider
+        .setKey(decodePassphrase(e2eePassphrase))
+        .then(() => {
+          room.setE2EEEnabled(true).catch((e) => {
+            if (e instanceof DeviceUnsupportedError) {
+              alert(
+                `You're trying to join an encrypted meeting, but your browser does not support it. Please update it to the latest version and try again.`,
+              );
+              console.error(e);
+            } else {
+              throw e;
+            }
+          });
+        })
+        .then(() => setE2eeSetupComplete(true));
+    } else {
+      setE2eeSetupComplete(true);
+    }
+  }, [e2eeEnabled, room, e2eePassphrase]);
+
+  const connectOptions = React.useMemo((): RoomConnectOptions => {
+    return {
+      autoSubscribe: true,
+    };
+  }, []);
+
+  React.useEffect(() => {
+    room.on(RoomEvent.Disconnected, handleOnLeave);
+    room.on(RoomEvent.EncryptionError, handleEncryptionError);
+    room.on(RoomEvent.MediaDevicesError, handleError);
+
+    if (e2eeSetupComplete) {
+      room
+        .connect(
+          props.connectionDetails.serverUrl,
+          props.connectionDetails.participantToken,
+          connectOptions,
+        )
+        .catch((error) => {
+          handleError(error);
+        });
+      if (props.userChoices.videoEnabled) {
+        room.localParticipant.setCameraEnabled(true).catch((error) => {
+          handleError(error);
+        });
+      }
+      if (props.userChoices.audioEnabled) {
+        room.localParticipant.setMicrophoneEnabled(true).catch((error) => {
+          handleError(error);
+        });
+      }
+    }
+    return () => {
+      room.off(RoomEvent.Disconnected, handleOnLeave);
+      room.off(RoomEvent.EncryptionError, handleEncryptionError);
+      room.off(RoomEvent.MediaDevicesError, handleError);
+    };
+  }, [e2eeSetupComplete, room, props.connectionDetails, props.userChoices]);
+
+  const lowPowerMode = useLowCPUOptimizer(room);
+
+  const router = useRouter();
+  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const handleError = React.useCallback((error: Error) => {
+    console.error(error);
+    alert(`Encountered an unexpected error, check the console logs for details: ${error.message}`);
+  }, []);
+  const handleEncryptionError = React.useCallback((error: Error) => {
+    console.error(error);
+    alert(
+      `Encountered an unexpected encryption error, check the console logs for details: ${error.message}`,
+    );
+  }, []);
+
+  React.useEffect(() => {
+    if (lowPowerMode) {
+      console.warn('Low power mode enabled');
+    }
+  }, [lowPowerMode]);
+
+  return (
+    <div className="lk-room-container">
+      <RoomContext.Provider value={room}>
+        <KeyboardShortcuts />
+        <VideoConference
+          chatMessageFormatter={formatChatMessageLinks}
+          SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+        />
+        <DebugMode />
+        <RecordingIndicator />
+      </RoomContext.Provider>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: lib/CameraSettings.tsx
+================================================
+import React from 'react';
+import {
+  MediaDeviceMenu,
+  TrackReference,
+  TrackToggle,
+  useLocalParticipant,
+  VideoTrack,
+} from '@livekit/components-react';
+import { BackgroundBlur, VirtualBackground } from '@livekit/track-processors';
+import { isLocalTrack, LocalTrackPublication, Track } from 'livekit-client';
+import Desk from '../public/background-images/samantha-gades-BlIhVfXbi9s-unsplash.jpg';
+import Nature from '../public/background-images/ali-kazal-tbw_KQE3Cbg-unsplash.jpg';
+
+// Background image paths
+const BACKGROUND_IMAGES = [
+  { name: 'Desk', path: Desk },
+  { name: 'Nature', path: Nature },
+];
+
+// Background options
+type BackgroundType = 'none' | 'blur' | 'image';
+
+export function CameraSettings() {
+  const { cameraTrack, localParticipant } = useLocalParticipant();
+  const [backgroundType, setBackgroundType] = React.useState<BackgroundType>(
+    (cameraTrack as LocalTrackPublication)?.track?.getProcessor()?.name === 'background-blur'
+      ? 'blur'
+      : (cameraTrack as LocalTrackPublication)?.track?.getProcessor()?.name === 'virtual-background'
+        ? 'image'
+        : 'none',
+  );
+
+  const [virtualBackgroundImagePath, setVirtualBackgroundImagePath] = React.useState<string | null>(
+    null,
+  );
+
+  const camTrackRef: TrackReference | undefined = React.useMemo(() => {
+    return cameraTrack
+      ? { participant: localParticipant, publication: cameraTrack, source: Track.Source.Camera }
+      : undefined;
+  }, [localParticipant, cameraTrack]);
+
+  const selectBackground = (type: BackgroundType, imagePath?: string) => {
+    setBackgroundType(type);
+    if (type === 'image' && imagePath) {
+      setVirtualBackgroundImagePath(imagePath);
+    } else if (type !== 'image') {
+      setVirtualBackgroundImagePath(null);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isLocalTrack(cameraTrack?.track)) {
+      if (backgroundType === 'blur') {
+        cameraTrack.track?.setProcessor(BackgroundBlur());
+      } else if (backgroundType === 'image' && virtualBackgroundImagePath) {
+        cameraTrack.track?.setProcessor(VirtualBackground(virtualBackgroundImagePath));
+      } else {
+        cameraTrack.track?.stopProcessor();
+      }
+    }
+  }, [cameraTrack, backgroundType, virtualBackgroundImagePath]);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      {camTrackRef && (
+        <VideoTrack
+          style={{
+            maxHeight: '280px',
+            objectFit: 'contain',
+            objectPosition: 'right',
+            transform: 'scaleX(-1)',
+          }}
+          trackRef={camTrackRef}
+        />
+      )}
+
+      <section className="lk-button-group">
+        <TrackToggle source={Track.Source.Camera}>Camera</TrackToggle>
+        <div className="lk-button-group-menu">
+          <MediaDeviceMenu kind="videoinput" />
+        </div>
+      </section>
+
+      <div style={{ marginTop: '10px' }}>
+        <div style={{ marginBottom: '8px' }}>Background Effects</div>
+        <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => selectBackground('none')}
+            className="lk-button"
+            aria-pressed={backgroundType === 'none'}
+            style={{
+              border: backgroundType === 'none' ? '2px solid #0090ff' : '1px solid #d1d1d1',
+              minWidth: '80px',
+            }}
+          >
+            None
+          </button>
+
+          <button
+            onClick={() => selectBackground('blur')}
+            className="lk-button"
+            aria-pressed={backgroundType === 'blur'}
+            style={{
+              border: backgroundType === 'blur' ? '2px solid #0090ff' : '1px solid #d1d1d1',
+              minWidth: '80px',
+              backgroundColor: '#f0f0f0',
+              position: 'relative',
+              overflow: 'hidden',
+              height: '60px',
+            }}
+          >
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                backgroundColor: '#e0e0e0',
+                filter: 'blur(8px)',
+                zIndex: 0,
+              }}
+            />
+            <span
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                backgroundColor: 'rgba(0,0,0,0.6)',
+                padding: '2px 5px',
+                borderRadius: '4px',
+                fontSize: '12px',
+              }}
+            >
+              Blur
+            </span>
+          </button>
+
+          {BACKGROUND_IMAGES.map((image) => (
+            <button
+              key={image.path.src}
+              onClick={() => selectBackground('image', image.path.src)}
+              className="lk-button"
+              aria-pressed={
+                backgroundType === 'image' && virtualBackgroundImagePath === image.path.src
+              }
+              style={{
+                backgroundImage: `url(${image.path.src})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                width: '80px',
+                height: '60px',
+                border:
+                  backgroundType === 'image' && virtualBackgroundImagePath === image.path.src
+                    ? '2px solid #0090ff'
+                    : '1px solid #d1d1d1',
+              }}
+            >
+              <span
+                style={{
+                  backgroundColor: 'rgba(0,0,0,0.6)',
+                  padding: '2px 5px',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                }}
+              >
+                {image.name}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: lib/client-utils.ts
+================================================
+export function encodePassphrase(passphrase: string) {
+  return encodeURIComponent(passphrase);
+}
+
+export function decodePassphrase(base64String: string) {
+  return decodeURIComponent(base64String);
+}
+
+export function generateRoomId(): string {
+  return `${randomString(4)}-${randomString(4)}`;
+}
+
+export function randomString(length: number): string {
+  let result = '';
+  const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  const charactersLength = characters.length;
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+  return result;
+}
+
+export function isLowPowerDevice() {
+  return navigator.hardwareConcurrency < 6;
+}
+
+
+
+================================================
+FILE: lib/Debug.tsx
+================================================
+import * as React from 'react';
+import { useRoomContext } from '@livekit/components-react';
+import { setLogLevel, LogLevel, RemoteTrackPublication, setLogExtension } from 'livekit-client';
+// @ts-ignore
+import { tinykeys } from 'tinykeys';
+import { datadogLogs } from '@datadog/browser-logs';
+
+import styles from '../styles/Debug.module.css';
+
+export const useDebugMode = ({ logLevel }: { logLevel?: LogLevel }) => {
+  const room = useRoomContext();
+
+  React.useEffect(() => {
+    setLogLevel(logLevel ?? 'debug');
+
+    if (process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN && process.env.NEXT_PUBLIC_DATADOG_SITE) {
+      console.log('setting up datadog logs');
+      datadogLogs.init({
+        clientToken: process.env.NEXT_PUBLIC_DATADOG_CLIENT_TOKEN,
+        site: process.env.NEXT_PUBLIC_DATADOG_SITE,
+        forwardErrorsToLogs: true,
+        sessionSampleRate: 100,
+      });
+
+      setLogExtension((level, msg, context) => {
+        switch (level) {
+          case LogLevel.debug:
+            datadogLogs.logger.debug(msg, context);
+            break;
+          case LogLevel.info:
+            datadogLogs.logger.info(msg, context);
+            break;
+          case LogLevel.warn:
+            datadogLogs.logger.warn(msg, context);
+            break;
+          case LogLevel.error:
+            datadogLogs.logger.error(msg, context);
+            break;
+          default:
+            break;
+        }
+      });
+    }
+
+    // @ts-expect-error
+    window.__lk_room = room;
+
+    return () => {
+      // @ts-expect-error
+      window.__lk_room = undefined;
+    };
+  }, [room, logLevel]);
+};
+
+export const DebugMode = ({ logLevel }: { logLevel?: LogLevel }) => {
+  const room = useRoomContext();
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [, setRender] = React.useState({});
+  const [roomSid, setRoomSid] = React.useState('');
+
+  React.useEffect(() => {
+    room.getSid().then(setRoomSid);
+  }, [room]);
+
+  useDebugMode({ logLevel });
+
+  React.useEffect(() => {
+    if (window) {
+      const unsubscribe = tinykeys(window, {
+        'Shift+D': () => {
+          console.log('setting open');
+          setIsOpen((open) => !open);
+        },
+      });
+
+      // timer to re-render
+      const interval = setInterval(() => {
+        setRender({});
+      }, 1000);
+
+      return () => {
+        unsubscribe();
+        clearInterval(interval);
+      };
+    }
+  }, [isOpen]);
+
+  if (typeof window === 'undefined' || !isOpen) {
+    return null;
+  }
+
+  const handleSimulate = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = event.target;
+    if (value == '') {
+      return;
+    }
+    event.target.value = '';
+    let isReconnect = false;
+    switch (value) {
+      case 'signal-reconnect':
+        isReconnect = true;
+
+      // fall through
+      default:
+        // @ts-expect-error
+        room.simulateScenario(value);
+    }
+  };
+
+  const lp = room.localParticipant;
+
+  if (!isOpen) {
+    return <></>;
+  } else {
+    return (
+      <div className={styles.overlay}>
+        <section id="room-info">
+          <h3>
+            Room Info {room.name}: {roomSid}
+          </h3>
+        </section>
+        <details open>
+          <summary>
+            <b>Local Participant: {lp.identity}</b>
+          </summary>
+          <details open className={styles.detailsSection}>
+            <summary>
+              <b>Published tracks</b>
+            </summary>
+            <div>
+              {Array.from(lp.trackPublications.values()).map((t) => (
+                <>
+                  <div>
+                    <i>
+                      {t.source.toString()}
+                      &nbsp;<span>{t.trackSid}</span>
+                    </i>
+                  </div>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td>Kind</td>
+                        <td>
+                          {t.kind}&nbsp;
+                          {t.kind === 'video' && (
+                            <span>
+                              {t.track?.dimensions?.width}x{t.track?.dimensions?.height}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Bitrate</td>
+                        <td>{Math.ceil(t.track!.currentBitrate / 1000)} kbps</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </>
+              ))}
+            </div>
+          </details>
+          <details open className={styles.detailsSection}>
+            <summary>
+              <b>Permissions</b>
+            </summary>
+            <div>
+              <table>
+                <tbody>
+                  {lp.permissions &&
+                    Object.entries(lp.permissions).map(([key, val]) => (
+                      <>
+                        <tr>
+                          <td>{key}</td>
+                          {key !== 'canPublishSources' ? (
+                            <td>{val.toString()}</td>
+                          ) : (
+                            <td> {val.join(', ')} </td>
+                          )}
+                        </tr>
+                      </>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        </details>
+
+        <details>
+          <summary>
+            <b>Remote Participants</b>
+          </summary>
+          {Array.from(room.remoteParticipants.values()).map((p) => (
+            <details key={p.sid} className={styles.detailsSection}>
+              <summary>
+                <b>
+                  {p.identity}
+                  <span></span>
+                </b>
+              </summary>
+              <div>
+                {Array.from(p.trackPublications.values()).map((t) => (
+                  <>
+                    <div>
+                      <i>
+                        {t.source.toString()}
+                        &nbsp;<span>{t.trackSid}</span>
+                      </i>
+                    </div>
+                    <table>
+                      <tbody>
+                        <tr>
+                          <td>Kind</td>
+                          <td>
+                            {t.kind}&nbsp;
+                            {t.kind === 'video' && (
+                              <span>
+                                {t.dimensions?.width}x{t.dimensions?.height}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>Status</td>
+                          <td>{trackStatus(t)}</td>
+                        </tr>
+                        {t.track && (
+                          <tr>
+                            <td>Bitrate</td>
+                            <td>{Math.ceil(t.track.currentBitrate / 1000)} kbps</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </>
+                ))}
+              </div>
+            </details>
+          ))}
+        </details>
+      </div>
+    );
+  }
+};
+
+function trackStatus(t: RemoteTrackPublication): string {
+  if (t.isSubscribed) {
+    return t.isEnabled ? 'enabled' : 'disabled';
+  } else {
+    return 'unsubscribed';
+  }
+}
+
+
+
+================================================
+FILE: lib/getLiveKitURL.test.ts
+================================================
+import { describe, it, expect } from 'vitest';
+import { getLiveKitURL } from './getLiveKitURL';
+
+describe('getLiveKitURL', () => {
+  it('returns the original URL if no region is provided', () => {
+    const url = 'https://myproject.livekit.cloud';
+    expect(getLiveKitURL(url, null)).toBe(url + '/');
+  });
+
+  it('inserts the region into livekit.cloud URLs', () => {
+    const url = 'https://myproject.livekit.cloud';
+    const region = 'eu';
+    expect(getLiveKitURL(url, region)).toBe('https://myproject.eu.production.livekit.cloud/');
+  });
+
+  it('inserts the region into livekit.cloud URLs and preserves the staging environment', () => {
+    const url = 'https://myproject.staging.livekit.cloud';
+    const region = 'eu';
+    expect(getLiveKitURL(url, region)).toBe('https://myproject.eu.staging.livekit.cloud/');
+  });
+
+  it('returns the original URL for non-livekit.cloud hosts, even with region', () => {
+    const url = 'https://example.com';
+    const region = 'us';
+    expect(getLiveKitURL(url, region)).toBe(url + '/');
+  });
+
+  it('handles URLs with paths and query params', () => {
+    const url = 'https://myproject.livekit.cloud/room?foo=bar';
+    const region = 'ap';
+    expect(getLiveKitURL(url, region)).toBe(
+      'https://myproject.ap.production.livekit.cloud/room?foo=bar',
+    );
+  });
+});
+
+
+
+================================================
+FILE: lib/getLiveKitURL.ts
+================================================
+export function getLiveKitURL(projectUrl: string, region: string | null): string {
+  const url = new URL(projectUrl);
+  if (region && url.hostname.includes('livekit.cloud')) {
+    let [projectId, ...hostParts] = url.hostname.split('.');
+    if (hostParts[0] !== 'staging') {
+      hostParts = ['production', ...hostParts];
+    }
+    const regionURL = [projectId, region, ...hostParts].join('.');
+    url.hostname = regionURL;
+  }
+  return url.toString();
+}
+
+
+
+================================================
+FILE: lib/KeyboardShortcuts.tsx
+================================================
+'use client';
+
+import React from 'react';
+import { Track } from 'livekit-client';
+import { useTrackToggle } from '@livekit/components-react';
+
+export function KeyboardShortcuts() {
+  const { toggle: toggleMic } = useTrackToggle({ source: Track.Source.Microphone });
+  const { toggle: toggleCamera } = useTrackToggle({ source: Track.Source.Camera });
+
+  React.useEffect(() => {
+    function handleShortcut(event: KeyboardEvent) {
+      // Toggle microphone: Cmd/Ctrl-Shift-A
+      if (toggleMic && event.key === 'A' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        toggleMic();
+      }
+
+      // Toggle camera: Cmd/Ctrl-Shift-V
+      if (event.key === 'V' && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        toggleCamera();
+      }
+    }
+
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [toggleMic, toggleCamera]);
+
+  return null;
+}
+
+
+
+================================================
+FILE: lib/MicrophoneSettings.tsx
+================================================
+import React from 'react';
+import { useKrispNoiseFilter } from '@livekit/components-react/krisp';
+import { TrackToggle } from '@livekit/components-react';
+import { MediaDeviceMenu } from '@livekit/components-react';
+import { Track } from 'livekit-client';
+import { isLowPowerDevice } from './client-utils';
+
+export function MicrophoneSettings() {
+  const { isNoiseFilterEnabled, setNoiseFilterEnabled, isNoiseFilterPending } = useKrispNoiseFilter(
+    {
+      filterOptions: {
+        bufferOverflowMs: 100,
+        bufferDropMs: 200,
+        quality: isLowPowerDevice() ? 'low' : 'medium',
+        onBufferDrop: () => {
+          console.warn(
+            'krisp buffer dropped, noise filter versions >= 0.3.2 will automatically disable the filter',
+          );
+        },
+      },
+    },
+  );
+
+  React.useEffect(() => {
+    // enable Krisp by default on non-low power devices
+    setNoiseFilterEnabled(!isLowPowerDevice());
+  }, []);
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'row',
+        gap: '10px',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
+      <section className="lk-button-group">
+        <TrackToggle source={Track.Source.Microphone}>Microphone</TrackToggle>
+        <div className="lk-button-group-menu">
+          <MediaDeviceMenu kind="audioinput" />
+        </div>
+      </section>
+
+      <button
+        className="lk-button"
+        onClick={() => setNoiseFilterEnabled(!isNoiseFilterEnabled)}
+        disabled={isNoiseFilterPending}
+        aria-pressed={isNoiseFilterEnabled}
+      >
+        {isNoiseFilterEnabled ? 'Disable' : 'Enable'} Enhanced Noise Cancellation
+      </button>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: lib/RecordingIndicator.tsx
+================================================
+import { useIsRecording } from '@livekit/components-react';
+import * as React from 'react';
+import toast from 'react-hot-toast';
+
+export function RecordingIndicator() {
+  const isRecording = useIsRecording();
+  const [wasRecording, setWasRecording] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isRecording !== wasRecording) {
+      setWasRecording(isRecording);
+      if (isRecording) {
+        toast('This meeting is being recorded', {
+          duration: 3000,
+          icon: '🎥',
+          position: 'top-center',
+          className: 'lk-button',
+          style: {
+            backgroundColor: 'var(--lk-danger3)',
+            color: 'var(--lk-fg)',
+          },
+        });
+      }
+    }
+  }, [isRecording]);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        boxShadow: isRecording ? 'var(--lk-danger3) 0px 0px 0px 3px inset' : 'none',
+        pointerEvents: 'none',
+      }}
+    ></div>
+  );
+}
+
+
+
+================================================
+FILE: lib/SettingsMenu.tsx
+================================================
+'use client';
+import * as React from 'react';
+import { Track } from 'livekit-client';
+import {
+  useMaybeLayoutContext,
+  MediaDeviceMenu,
+  TrackToggle,
+  useRoomContext,
+  useIsRecording,
+} from '@livekit/components-react';
+import styles from '../styles/SettingsMenu.module.css';
+import { CameraSettings } from './CameraSettings';
+import { MicrophoneSettings } from './MicrophoneSettings';
+/**
+ * @alpha
+ */
+export interface SettingsMenuProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+/**
+ * @alpha
+ */
+export function SettingsMenu(props: SettingsMenuProps) {
+  const layoutContext = useMaybeLayoutContext();
+  const room = useRoomContext();
+  const recordingEndpoint = process.env.NEXT_PUBLIC_LK_RECORD_ENDPOINT;
+
+  const settings = React.useMemo(() => {
+    return {
+      media: { camera: true, microphone: true, label: 'Media Devices', speaker: true },
+      recording: recordingEndpoint ? { label: 'Recording' } : undefined,
+    };
+  }, []);
+
+  const tabs = React.useMemo(
+    () => Object.keys(settings).filter((t) => t !== undefined) as Array<keyof typeof settings>,
+    [settings],
+  );
+  const [activeTab, setActiveTab] = React.useState(tabs[0]);
+
+  const isRecording = useIsRecording();
+  const [initialRecStatus, setInitialRecStatus] = React.useState(isRecording);
+  const [processingRecRequest, setProcessingRecRequest] = React.useState(false);
+
+  React.useEffect(() => {
+    if (initialRecStatus !== isRecording) {
+      setProcessingRecRequest(false);
+    }
+  }, [isRecording, initialRecStatus]);
+
+  const toggleRoomRecording = async () => {
+    if (!recordingEndpoint) {
+      throw TypeError('No recording endpoint specified');
+    }
+    if (room.isE2EEEnabled) {
+      throw Error('Recording of encrypted meetings is currently not supported');
+    }
+    setProcessingRecRequest(true);
+    setInitialRecStatus(isRecording);
+    let response: Response;
+    if (isRecording) {
+      response = await fetch(recordingEndpoint + `/stop?roomName=${room.name}`);
+    } else {
+      response = await fetch(recordingEndpoint + `/start?roomName=${room.name}`);
+    }
+    if (response.ok) {
+    } else {
+      console.error(
+        'Error handling recording request, check server logs:',
+        response.status,
+        response.statusText,
+      );
+      setProcessingRecRequest(false);
+    }
+  };
+
+  return (
+    <div className="settings-menu" style={{ width: '100%', position: 'relative' }} {...props}>
+      <div className={styles.tabs}>
+        {tabs.map(
+          (tab) =>
+            settings[tab] && (
+              <button
+                className={`${styles.tab} lk-button`}
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                aria-pressed={tab === activeTab}
+              >
+                {
+                  // @ts-ignore
+                  settings[tab].label
+                }
+              </button>
+            ),
+        )}
+      </div>
+      <div className="tab-content">
+        {activeTab === 'media' && (
+          <>
+            {settings.media && settings.media.camera && (
+              <>
+                <h3>Camera</h3>
+                <section>
+                  <CameraSettings />
+                </section>
+              </>
+            )}
+            {settings.media && settings.media.microphone && (
+              <>
+                <h3>Microphone</h3>
+                <section>
+                  <MicrophoneSettings />
+                </section>
+              </>
+            )}
+            {settings.media && settings.media.speaker && (
+              <>
+                <h3>Speaker & Headphones</h3>
+                <section className="lk-button-group">
+                  <span className="lk-button">Audio Output</span>
+                  <div className="lk-button-group-menu">
+                    <MediaDeviceMenu kind="audiooutput"></MediaDeviceMenu>
+                  </div>
+                </section>
+              </>
+            )}
+          </>
+        )}
+        {activeTab === 'recording' && (
+          <>
+            <h3>Record Meeting</h3>
+            <section>
+              <p>
+                {isRecording
+                  ? 'Meeting is currently being recorded'
+                  : 'No active recordings for this meeting'}
+              </p>
+              <button disabled={processingRecRequest} onClick={() => toggleRoomRecording()}>
+                {isRecording ? 'Stop' : 'Start'} Recording
+              </button>
+            </section>
+          </>
+        )}
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        <button
+          className={`lk-button`}
+          onClick={() => layoutContext?.widget.dispatch?.({ msg: 'toggle_settings' })}
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: lib/types.ts
+================================================
+import { LocalAudioTrack, LocalVideoTrack, videoCodecs } from 'livekit-client';
+import { VideoCodec } from 'livekit-client';
+
+export interface SessionProps {
+  roomName: string;
+  identity: string;
+  audioTrack?: LocalAudioTrack;
+  videoTrack?: LocalVideoTrack;
+  region?: string;
+  turnServer?: RTCIceServer;
+  forceRelay?: boolean;
+}
+
+export interface TokenResult {
+  identity: string;
+  accessToken: string;
+}
+
+export function isVideoCodec(codec: string): codec is VideoCodec {
+  return videoCodecs.includes(codec as VideoCodec);
+}
+
+export type ConnectionDetails = {
+  serverUrl: string;
+  roomName: string;
+  participantName: string;
+  participantToken: string;
+};
+
+
+
+================================================
+FILE: lib/usePerfomanceOptimiser.ts
+================================================
+import {
+  Room,
+  ParticipantEvent,
+  RoomEvent,
+  RemoteTrack,
+  RemoteTrackPublication,
+  VideoQuality,
+  LocalVideoTrack,
+  isVideoTrack,
+} from 'livekit-client';
+import * as React from 'react';
+
+export type LowCPUOptimizerOptions = {
+  reducePublisherVideoQuality: boolean;
+  reduceSubscriberVideoQuality: boolean;
+  disableVideoProcessing: boolean;
+};
+
+const defaultOptions: LowCPUOptimizerOptions = {
+  reducePublisherVideoQuality: true,
+  reduceSubscriberVideoQuality: true,
+  disableVideoProcessing: false,
+} as const;
+
+/**
+ * This hook ensures that on devices with low CPU, the performance is optimised when needed.
+ * This is done by primarily reducing the video quality to low when the CPU is constrained.
+ */
+export function useLowCPUOptimizer(room: Room, options: Partial<LowCPUOptimizerOptions> = {}) {
+  const [lowPowerMode, setLowPowerMode] = React.useState(false);
+  const opts = React.useMemo(() => ({ ...defaultOptions, ...options }), [options]);
+  React.useEffect(() => {
+    const handleCpuConstrained = async (track: LocalVideoTrack) => {
+      setLowPowerMode(true);
+      console.warn('Local track CPU constrained', track);
+      if (opts.reducePublisherVideoQuality) {
+        track.prioritizePerformance();
+      }
+      if (opts.disableVideoProcessing && isVideoTrack(track)) {
+        track.stopProcessor();
+      }
+      if (opts.reduceSubscriberVideoQuality) {
+        room.remoteParticipants.forEach((participant) => {
+          participant.videoTrackPublications.forEach((publication) => {
+            publication.setVideoQuality(VideoQuality.LOW);
+          });
+        });
+      }
+    };
+
+    room.localParticipant.on(ParticipantEvent.LocalTrackCpuConstrained, handleCpuConstrained);
+    return () => {
+      room.localParticipant.off(ParticipantEvent.LocalTrackCpuConstrained, handleCpuConstrained);
+    };
+  }, [room, opts.reducePublisherVideoQuality, opts.reduceSubscriberVideoQuality]);
+
+  React.useEffect(() => {
+    const lowerQuality = (_: RemoteTrack, publication: RemoteTrackPublication) => {
+      publication.setVideoQuality(VideoQuality.LOW);
+    };
+    if (lowPowerMode && opts.reduceSubscriberVideoQuality) {
+      room.on(RoomEvent.TrackSubscribed, lowerQuality);
+    }
+
+    return () => {
+      room.off(RoomEvent.TrackSubscribed, lowerQuality);
+    };
+  }, [lowPowerMode, room, opts.reduceSubscriberVideoQuality]);
+
+  return lowPowerMode;
+}
+
+
+
+================================================
+FILE: lib/useSetupE2EE.ts
+================================================
+import React from 'react';
+import { ExternalE2EEKeyProvider } from 'livekit-client';
+import { decodePassphrase } from './client-utils';
+
+export function useSetupE2EE() {
+  const e2eePassphrase =
+    typeof window !== 'undefined' ? decodePassphrase(location.hash.substring(1)) : undefined;
+
+  const worker: Worker | undefined =
+    typeof window !== 'undefined' && e2eePassphrase
+      ? new Worker(new URL('livekit-client/e2ee-worker', import.meta.url))
+      : undefined;
+
+  return { worker, e2eePassphrase };
+}
+
+
+
+================================================
+FILE: styles/Debug.module.css
+================================================
+.overlay {
+  position: absolute;
+  top: 0;
+  background: rgba(0, 0, 0, 0.6);
+  padding: 1rem;
+  max-height: min(100%, 100vh);
+  overflow-y: auto;
+}
+
+.detailsSection {
+  padding-left: 1rem;
+}
+
+.detailsSection > div {
+  padding-left: 1rem;
+}
+
+
+
+================================================
+FILE: styles/globals.css
+================================================
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+  background-color: #111;
+}
+
+html,
+body {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  margin: 0px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  max-width: 500px;
+  padding-inline: 2rem;
+}
+
+.header > img {
+  display: block;
+  margin: auto;
+  max-width: 100%;
+}
+
+.header > h2 {
+  font-family: 'TWK Everett', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 1.25rem;
+  line-height: 144%;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+footer {
+  width: 100%;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  background-color: var(--lk-bg);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+footer a,
+h2 a {
+  color: #ff6352;
+  text-decoration-color: #a33529;
+  text-underline-offset: 0.125em;
+}
+
+footer a:hover,
+h2 a {
+  text-decoration-color: #ff6352;
+}
+
+h2 a {
+  text-decoration: none;
+}
+
+
+
+================================================
+FILE: styles/Home.module.css
+================================================
+.main {
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  justify-content: center;
+  place-content: center;
+  justify-items: center;
+  overflow: auto;
+  flex-grow: 1;
+}
+
+.tabContainer {
+  width: 100%;
+  max-width: 500px;
+  padding-inline: 2rem;
+}
+
+.tabSelect {
+  display: flex;
+  justify-content: stretch;
+  gap: 0.125rem;
+  padding: 0.125rem;
+  margin: 0 auto 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+}
+
+.tabSelect > * {
+  width: 100%;
+}
+
+.tabContent {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.5rem;
+}
+
+
+
+================================================
+FILE: styles/SettingsMenu.module.css
+================================================
+.tabs {
+  position: relative;
+  display: flex;
+  align-content: space-between;
+}
+
+.tabs > .tab {
+  padding: 0.5rem;
+  border-radius: 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px solid;
+  border-color: var(--bg5);
+}
+
+.tabs > .tab[aria-pressed='true'] {
+  border-color: var(--lk-accent-bg);
+}
+
+
+
+================================================
+FILE: .github/assets/template-dark.webp
+================================================
+[Binary file]
+
+
+================================================
+FILE: .github/assets/template-light.webp
+================================================
+[Binary file]
+
+
+================================================
+FILE: .github/workflows/sync-to-production.yaml
+================================================
+# .github/workflows/sync-to-production.yaml
+name: Sync main to sandbox-production
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: livekit-examples/sandbox-deploy-action@v1
+        with:
+          production_branch: 'sandbox-production'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
+
+================================================
+FILE: .github/workflows/test.yaml
+================================================
+name: Test
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: pnpm/action-setup@v4
+    - name: Use Node.js 22
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install
+
+    - name: ESLint
+      run: pnpm lint
+    
+    - name: Prettier
+      run: pnpm format:check
+
+    - name: Run Tests
+      run: pnpm test
+
+

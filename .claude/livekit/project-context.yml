@@ -1,0 +1,175 @@
+# LiveKit Project Context
+# This file defines our project's relationship with LiveKit examples and patterns
+
+project_foundation:
+  name: "Bayaan Classroom"
+  base_example: "livekit-examples-meet"
+  description: "Extended LiveKit Meet with classroom-specific features"
+
+  important_note: |
+    ⚠️ We BUILD UPON the official LiveKit Meet example
+    - Deviating from core patterns may break our extensions
+    - Always consider compatibility with base example
+    - Our customizations layer on top of example architecture
+
+# Architectural Inheritance
+architectural_decisions:
+  inherited_from_meet_example:
+    routing:
+      - "/rooms/[roomName]/ pattern"
+      - "Server + client component separation"
+      - "API routes for backend operations"
+
+    token_generation:
+      - "JWT-based authentication"
+      - "Environment variable configuration"
+      - "Metadata embedding pattern"
+
+    component_structure:
+      - "PreJoin → Conference flow"
+      - "Settings menu implementation"
+      - "Recording indicator pattern"
+      - "Keyboard shortcuts system"
+
+    state_management:
+      - "URL-based room configuration"
+      - "Cookie identity persistence"
+      - "React hooks for local state"
+
+  our_extensions:
+    classroom_features:
+      - "Teacher/student role system"
+      - "Permission-based token generation"
+      - "Smart PreJoin defaults per role"
+      - "Role badges in UI"
+      - "Graceful permission handling"
+
+    custom_behavior:
+      - "Students join with mic/camera off"
+      - "Teachers have full permissions"
+      - "Listen-only mode for students"
+      - "Chat remains available for all"
+
+# Verification Protocol
+verification_requirements:
+  before_any_change:
+    - "Does this respect Meet example patterns?"
+    - "Will it break our classroom extensions?"
+    - "Is the API current per Context7?"
+    - "Have we tested with both roles?"
+
+  pattern_compliance:
+    must_maintain:
+      - "Route structure compatibility"
+      - "Token generation interface"
+      - "Component prop contracts"
+      - "Event handling patterns"
+
+    can_extend:
+      - "Add new routes following pattern"
+      - "Enhance components with role logic"
+      - "Add classroom-specific features"
+      - "Implement additional UI elements"
+
+# Feature Expansion Possibilities
+future_integrations:
+  from_agents_examples:
+    potential_features:
+      - "AI teaching assistant"
+      - "Automated attendance tracking"
+      - "Voice command controls"
+      - "Intelligent Q&A system"
+
+    implementation_approach:
+      - "Study agent worker pattern"
+      - "Verify Python-JS bridge options"
+      - "Check Context7 for agent SDK"
+      - "Design classroom-specific agents"
+
+  from_translation_example:
+    potential_features:
+      - "Live lecture translation"
+      - "Multi-language classrooms"
+      - "Automated captions"
+      - "Transcript generation"
+
+    implementation_approach:
+      - "Study STT forwarding pattern"
+      - "Verify transcription APIs"
+      - "Design language selection UI"
+      - "Implement caption overlay"
+
+# Concept Application Rules
+concept_usage:
+  allowed:
+    - "✅ Reference architectural patterns"
+    - "✅ Understand design decisions"
+    - "✅ Learn from example structure"
+    - "✅ Adopt proven workflows"
+
+  forbidden:
+    - "❌ Copy code directly"
+    - "❌ Assume API compatibility"
+    - "❌ Trust version numbers"
+    - "❌ Skip Context7 verification"
+
+  required:
+    - "📋 Always check concept-registry.yml"
+    - "📋 Follow concept-implementation-guide.md"
+    - "📋 Verify with Context7"
+    - "📋 Test with classroom features"
+
+# Development Workflow
+development_process:
+  1_identify_need: "What feature/fix is required?"
+  2_check_examples: "Is there a relevant concept?"
+  3_understand_pattern: "What's the architectural approach?"
+  4_verify_current: "What's the current API via Context7?"
+  5_check_compatibility: "Will it work with our classroom features?"
+  6_implement: "Build using current APIs"
+  7_test_roles: "Verify with teacher AND student roles"
+  8_document: "Update relevant documentation"
+
+# Testing Requirements
+testing_checklist:
+  for_any_change:
+    - "Works with base Meet example patterns"
+    - "Teacher role functions correctly"
+    - "Student restrictions enforced"
+    - "Graceful permission failures"
+    - "UI adapts to both roles"
+    - "No regression in core features"
+
+# Documentation Requirements
+documentation_standards:
+  when_implementing_concept:
+    - "Note which example provided concept"
+    - "Document Context7 verification done"
+    - "Explain adaptation for classroom"
+    - "List any deviations and why"
+    - "Update test cases as needed"
+
+# Current Implementation Status
+implementation_status:
+  completed:
+    - "Phase 1: Basic classroom mode"
+    - "Role-based token generation"
+    - "Smart PreJoin defaults"
+    - "Permission differentiation"
+
+  in_progress:
+    - "Testing and refinement"
+    - "Documentation updates"
+
+  planned:
+    - "Phase 2: Enhanced teacher controls"
+    - "Phase 3: Learning analytics"
+    - "Phase 4: AI integration"
+
+# Quick Reference
+quick_checks:
+  before_coding:
+    - "Concept in registry? → Check concept-registry.yml"
+    - "How to implement? → Follow concept-implementation-guide.md"
+    - "Current API? → Verify via Context7"
+    - "Will it break? → Test with both roles"

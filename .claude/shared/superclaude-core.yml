@@ -1,0 +1,253 @@
+# SuperClaude Core Configuration
+# Central configuration file for the SuperClaude framework
+
+framework:
+  name: SuperClaude
+  version: 2.0
+  description: Enhanced Claude Code framework with specialized personas and intelligent routing
+
+# Core Components
+components:
+  personas:
+    enabled: true
+    config_path: ./superclaude-personas.yml
+    default: architect
+
+  routing:
+    enabled: true
+    config_path: ../agent-routing.md
+    strict_mode: true  # Enforce routing rules
+
+  knowledge_bases:
+    - name: livekit
+      path: ../livekit/
+      persona: livekit-architect
+      priority: critical
+
+# Decision Hierarchy
+# Defines precedence rules for persona activation and routing decisions
+decision_hierarchy:
+  # Level 1: Domain-Specific Overrides (Highest Priority)
+  domain_overrides:
+    - domain: livekit
+      description: Real-time WebRTC and LiveKit operations
+      trigger_paths:
+        - /app/rooms/*
+        - /app/api/connection-details/*
+        - /app/api/token/*
+        - /lib/livekit/*
+      trigger_keywords:
+        - livekit
+        - webrtc
+        - track
+        - participant
+        - simulcast
+        - room connection
+      required_persona: livekit-architect
+      override_level: mandatory  # Cannot be overridden
+      rationale: LiveKit requires specialized state machine and event-driven thinking
+
+    - domain: token_generation
+      description: LiveKit token generation (not general auth)
+      trigger_paths:
+        - /app/api/connection-details/*
+        - /app/api/token/*
+      required_persona: livekit-architect
+      override_level: mandatory
+      rationale: Token generation is LiveKit domain, not general authentication
+
+  # Level 2: Operation-Based Routing
+  operation_routing:
+    - operation: webrtc_connection
+      patterns:
+        - room.connect
+        - room.disconnect
+        - track.publish
+        - track.subscribe
+      required_persona: livekit-architect
+      consulting_personas:
+        - frontend  # For UI aspects only
+        - security  # For auth validation only
+
+    - operation: media_handling
+      patterns:
+        - createLocalVideoTrack
+        - createLocalAudioTrack
+        - getUserMedia
+        - screen sharing
+      required_persona: livekit-architect
+      override_level: mandatory
+
+  # Level 3: Integration Points
+  integration_boundaries:
+    - boundary: livekit_to_app
+      description: Where LiveKit meets application logic
+      primary_persona: livekit-architect
+      secondary_personas:
+        - backend  # For persistence only
+        - frontend  # For non-video UI only
+      rules:
+        - LiveKit state management stays with LiveKit Architect
+        - App state synchronization requires LiveKit Architect approval
+        - UI styling can involve Frontend after LiveKit setup
+
+  # Level 4: Fallback Rules
+  fallback_rules:
+    - condition: uncertain_domain
+      action: check_imports
+      logic: |
+        If imports include 'livekit-client' or '@livekit/components-react':
+          Route to livekit-architect
+        Else:
+          Route to default persona
+
+    - condition: mixed_domain
+      action: primary_secondary
+      logic: |
+        Identify primary domain based on core functionality
+        Assign primary persona for main logic
+        Allow consulting personas for specific aspects
+
+# Conflict Resolution
+conflict_resolution:
+  precedence_order:
+    1: domain_overrides      # LiveKit always wins for LiveKit operations
+    2: operation_routing     # Specific operations override general routing
+    3: explicit_flags        # User --persona flags
+    4: integration_boundaries # Collaborative zones
+    5: auto_activation       # Intelligent detection
+    6: fallback_rules       # Default behavior
+
+  conflict_handling:
+    strategy: strict
+    on_conflict: use_highest_precedence
+    log_conflicts: true
+    alert_on_override_attempt: true
+
+# Enforcement Rules
+enforcement:
+  rules:
+    - id: no_generalist_livekit
+      description: Prevent generalist personas from handling LiveKit code
+      condition: operation involves LiveKit
+      enforcement: block_and_redirect_to_livekit_architect
+      severity: critical
+
+    - id: token_generation_protection
+      description: Ensure token generation is handled correctly
+      condition: path matches **/api/token/** or **/api/connection-details/**
+      enforcement: mandatory_livekit_architect
+      severity: critical
+
+    - id: state_machine_protection
+      description: Protect state machine implementations
+      condition: code contains state machine patterns
+      enforcement: require_livekit_architect_review
+      severity: high
+
+# Quality Gates
+quality_gates:
+  livekit_operations:
+    required_checks:
+      - foundation_alignment  # Must follow 00-foundation.md
+      - pattern_compliance    # Must follow 01-patterns.md
+      - integration_safety   # Must respect 02-integration-points.md
+      - routing_compliance   # Must follow agent-routing.md
+
+    validation:
+      pre_implementation:
+        - Verify correct persona assignment
+        - Check mental model alignment
+        - Validate architectural approach
+
+      post_implementation:
+        - Verify state machine completeness
+        - Check event handler coverage
+        - Validate cleanup implementation
+
+# Monitoring and Alerts
+monitoring:
+  track_routing_decisions: true
+  log_persona_activations: true
+  alert_on_violations: true
+
+  violation_alerts:
+    - type: wrong_persona_for_livekit
+      message: "CRITICAL: Non-LiveKit persona attempting LiveKit operation"
+      action: immediate_block_and_reassign
+
+    - type: pattern_violation
+      message: "WARNING: LiveKit pattern violation detected"
+      action: flag_for_review
+
+# Persona Registry
+personas:
+  registered:
+    - name: livekit-architect
+      type: specialist
+      domain: real_time_systems
+      priority: critical_for_livekit
+      knowledge_base: .claude/livekit/
+      activation: mandatory_for_livekit_operations
+
+    - name: frontend
+      type: generalist
+      domain: ui_development
+      restriction: no_livekit_operations
+
+    - name: backend
+      type: generalist
+      domain: server_development
+      restriction: no_livekit_token_generation
+
+    - name: security
+      type: specialist
+      domain: security
+      restriction: no_webrtc_configuration
+
+    - name: architect
+      type: generalist
+      domain: system_design
+      exception: can_consult_on_livekit_architecture
+
+# System Integration
+integration:
+  with_superclau with_superclaude:
+    command_integration:
+      - /implement: Check for LiveKit involvement first
+      - /analyze: Route LiveKit analysis to specialist
+      - /troubleshoot: Use LiveKit troubleshooting guide
+      - /design: Require LiveKit Architect for WebRTC systems
+
+  with_mcp_servers:
+    sequential: Primary for LiveKit state machine analysis
+    context7: LiveKit documentation lookup
+    playwright: WebRTC connection testing
+
+# Documentation References
+documentation:
+  livekit_specific:
+    foundation: .claude/livekit/00-foundation.md
+    patterns: .claude/livekit/01-patterns.md
+    integration: .claude/livekit/02-integration-points.md
+    troubleshooting: .claude/livekit/03-troubleshooting.md
+    routing: .claude/agent-routing.md
+
+  decision_flow:
+    description: |
+      1. Check if operation involves LiveKit/WebRTC
+      2. If yes → LiveKit Architect (mandatory)
+      3. If no → Check general domain
+      4. Apply routing rules from agent-routing.md
+      5. Allow consultation for integration points
+      6. Enforce quality gates before execution
+
+# Configuration Metadata
+metadata:
+  created: 2024-01-10
+  last_modified: 2024-01-10
+  purpose: Establish LiveKit Architect as mandatory for real-time operations
+  critical_note: |
+    LiveKit operations require fundamentally different mental models.
+    Generalist personas applying web development patterns to LiveKit
+    have caused system breakages. This configuration prevents that.

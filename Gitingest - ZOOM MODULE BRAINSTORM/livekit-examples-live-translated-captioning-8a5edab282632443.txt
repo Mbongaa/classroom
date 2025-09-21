@@ -1,0 +1,1886 @@
+Directory structure:
+└── livekit-examples-live-translated-captioning/
+    ├── README.md
+    ├── client/
+    │   └── web/
+    │       ├── README.md
+    │       ├── components.json
+    │       ├── next.config.ts
+    │       ├── package.json
+    │       ├── postcss.config.mjs
+    │       ├── tailwind.config.ts
+    │       ├── tsconfig.json
+    │       ├── .env.example
+    │       ├── .eslintrc.json
+    │       └── src/
+    │           ├── app/
+    │           │   ├── globals.css
+    │           │   ├── layout.tsx
+    │           │   ├── page.tsx
+    │           │   ├── api/
+    │           │   │   └── token/
+    │           │   │       └── route.ts
+    │           │   └── parties/
+    │           │       └── [party_id]/
+    │           │           └── page.tsx
+    │           ├── components/
+    │           │   ├── captions.tsx
+    │           │   ├── circle-visualizer.tsx
+    │           │   ├── host-controls.tsx
+    │           │   ├── listener-controls.tsx
+    │           │   ├── lobby.tsx
+    │           │   ├── party.tsx
+    │           │   ├── controls/
+    │           │   │   ├── captions-toggle.tsx
+    │           │   │   ├── device-selector.tsx
+    │           │   │   ├── language-select.tsx
+    │           │   │   ├── leave-button.tsx
+    │           │   │   └── mic-toggle.tsx
+    │           │   └── ui/
+    │           │       ├── button.tsx
+    │           │       ├── card.tsx
+    │           │       ├── checkbox.tsx
+    │           │       ├── input.tsx
+    │           │       ├── label.tsx
+    │           │       └── select.tsx
+    │           ├── hooks/
+    │           │   └── usePartyState.ts
+    │           └── lib/
+    │               └── utils.ts
+    └── server/
+        ├── main.py
+        ├── requirements.txt
+        └── .env.example
+
+================================================
+FILE: README.md
+================================================
+# Live AI-generated translations example
+
+This is a demo of a LiveKit agent that connects to a live streaming session and automatically transcribes and translates the host's speech into text captions for a target language. Every listener that connects to the session can set their preferred language and receive live captions of the host in that language.
+
+It uses:
+- 🌐 [LiveKit](https://github.com/livekit/livekit) for transport
+- 🤖 [LiveKit Agents](https://github.com/livekit/agents) for the backend
+- 👂 [Deepgram](https://deepgram.com) STT for transcriptions
+- 🌍 [OpenAI GPT-4o](https://platform.openai.com/) for translations
+
+## Under the hood
+
+Here's what's happening in this demo:
+
+1. When a new LiveKit room is created via a user joining a "party", an agent joins the party on the backend and subscribes to the host user's microphone stream. If no host is present, the agent will wait for one to arrive and subscribe to their mic stream.
+2. When the host speaks, the agent receives their speech stream and runs it through a speech-to-text process to transcribe it to text. This demo currently uses Deepgram for transcriptions, but any STT provider can be used.
+3. By default, every user's (including the host's) target language for captions is set to English. Thus, transcriptions coming out of STT will be sent to every user via [STTForwarder](https://docs.livekit.io/agents/voice-agent/transcriptions/#sttsegmentsforwarder).
+4. If there are any users (including the host) connected to this session that have set their target language to a language other than English (currently the demo supports English, French, German, Spanish, and Japanese), the agent will additionally feed transcriptions coming from STT to a [Translator](https://github.com/livekit/live-translated-captioning/blob/aea6bae217a462614252f6b84232a337b7ac0f84/server/main.py#L34) for that target language.
+5. The translator will take the text from STT and pass it as part of a prompt to an LLM, asking the LLM to translate the text to the target language.
+6. The output from the LLM is then sent to users via STTForwarder and rendered by the client application.
+
+## Running the demo
+
+### Run the agent
+1. `cd server`
+2. `python -m venv .venv`
+3. `source .venv/bin/activate`
+4. `pip install -r requirements.txt`
+5. `cp .env.example .env`
+6. add values for keys in `.env`
+7. `python main.py dev`
+
+### Run the client
+1. `cd client/web`
+2. `pnpm i`
+3. `cp .env.example .env.local`
+4. add values for keys in `.env.local`
+5. `pnpm dev`
+6. open a browser and navigate to `http://localhost:3000`
+
+## Notes
+- For this demo, there can only be *one host*.
+- There's a couple known bugs at the moment:
+  -  Sometimes joining as a listener ends up showing the agent as the host and things look broken. A refresh and rejoin should fix it.
+  -  Opening more than one browser window and connecting a host and one-or-more listeners somehow degrades STT performance. Not sure why yet.
+- You can easily extend this demo to support other languages by editing the [list of languages](https://github.com/livekit-examples/live-translated-captioning/blob/2e7acc16e7e482d4c34d7b6673343e5b33f96455/server/main.py#L36) in the agent code.
+
+## Misc
+For a more general overview of LiveKit Agents and the full set of capabilities, documentation is here: [https://docs.livekit.io/agents/](https://docs.livekit.io/agents/)
+
+
+
+================================================
+FILE: client/web/README.md
+================================================
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+
+## Getting Started
+
+First, run the development server:
+
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+
+## Learn More
+
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+
+
+================================================
+FILE: client/web/components.json
+================================================
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "rsc": true,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.ts",
+    "css": "src/app/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": false,
+    "prefix": ""
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils",
+    "ui": "@/components/ui",
+    "lib": "@/lib",
+    "hooks": "@/hooks"
+  },
+  "iconLibrary": "lucide"
+}
+
+
+================================================
+FILE: client/web/next.config.ts
+================================================
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+
+
+================================================
+FILE: client/web/package.json
+================================================
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@livekit/components-react": "^2.6.9",
+    "@radix-ui/react-checkbox": "^1.1.2",
+    "@radix-ui/react-label": "^2.1.0",
+    "@radix-ui/react-select": "^2.1.2",
+    "@radix-ui/react-slot": "^1.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "livekit-client": "^2.7.0",
+    "livekit-server-sdk": "^2.9.1",
+    "lucide-react": "^0.462.0",
+    "next": "15.0.3",
+    "react": "19.0.0-rc-66855b96-20241106",
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-feather": "^2.0.10",
+    "react-icons": "^5.3.0",
+    "tailwind-merge": "^2.5.5",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.0.3",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
+
+
+
+================================================
+FILE: client/web/postcss.config.mjs
+================================================
+/** @type {import('postcss-load-config').Config} */
+const config = {
+  plugins: {
+    tailwindcss: {},
+  },
+};
+
+export default config;
+
+
+
+================================================
+FILE: client/web/tailwind.config.ts
+================================================
+import type { Config } from "tailwindcss";
+
+export default {
+    darkMode: ["class"],
+    content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+  	extend: {
+  		colors: {
+  			background: 'var(--background)',
+  			foreground: 'var(--foreground)'
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		}
+  	}
+  },
+  plugins: [require("tailwindcss-animate")],
+} satisfies Config;
+
+
+
+================================================
+FILE: client/web/tsconfig.json
+================================================
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/components/*": ["src/components/*"],
+      "@/hooks/*": ["src/hooks/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+
+
+================================================
+FILE: client/web/.env.example
+================================================
+LIVEKIT_API_KEY=XXXXXXXX
+LIVEKIT_API_SECRET=XXXXXXXX
+NEXT_PUBLIC_LIVEKIT_URL=XXXXXXXX
+
+
+
+================================================
+FILE: client/web/.eslintrc.json
+================================================
+{
+  "extends": ["next/core-web-vitals", "next/typescript"]
+}
+
+
+
+================================================
+FILE: client/web/src/app/globals.css
+================================================
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  width: 100vw;
+  height: 100vh;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+  }
+}
+
+.lk-audio-bar-visualizer {
+  gap: 12px !important;
+
+  & > .lk-audio-bar {
+    /* aspect-ratio: 1/1; */
+    /* width: auto !important; */
+    width: 64px !important;
+    min-height: 64px !important;
+    background-color: rgba(0, 0, 0, 0.05) !important;
+  }
+
+  &[data-lk-va-state="speaking"] > .lk-audio-bar,
+  & > .lk-audio-bar.lk-highlighted,
+  & > [data-lk-highlighted="true"] {
+    @apply bg-black !important;
+  }
+
+  & > [data-lk-highlighted="false"] {
+    @apply bg-black/10 !important;
+  }
+}
+
+
+
+================================================
+FILE: client/web/src/app/layout.tsx
+================================================
+import type { Metadata } from "next";
+import localFont from "next/font/local";
+import "./globals.css";
+
+const geistSans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-geist-sans",
+  weight: "100 900",
+});
+const geistMono = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-geist-mono",
+  weight: "100 900",
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <div className="w-full h-full">{children}</div>
+      </body>
+    </html>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/app/page.tsx
+================================================
+import { redirect } from "next/navigation";
+
+// Utility to generate a random ID
+function generateRandomId(): string {
+  return Math.random().toString(36).substring(2, 10);
+}
+
+export default function Home() {
+  const randomId = generateRandomId();
+
+  // Redirect to /parties/<party_id>
+  redirect(`/parties/${randomId}`);
+
+  return null; // This will never render because of the redirect
+}
+
+
+
+================================================
+FILE: client/web/src/app/api/token/route.ts
+================================================
+import { NextRequest, NextResponse } from "next/server";
+
+import {
+  AccessTokenOptions,
+  VideoGrant,
+  AccessToken,
+  RoomServiceClient,
+} from "livekit-server-sdk";
+
+export interface TokenResult {
+  identity: string;
+  token: string;
+  serverUrl: string;
+}
+
+const apiKey = process.env.LIVEKIT_API_KEY;
+const apiSecret = process.env.LIVEKIT_API_SECRET;
+const livekitHost = process.env.NEXT_PUBLIC_LIVEKIT_URL!.replace(
+  "wss://",
+  "https://"
+);
+
+const roomService = new RoomServiceClient(livekitHost);
+
+const createToken = (userInfo: AccessTokenOptions, grant: VideoGrant) => {
+  const at = new AccessToken(apiKey, apiSecret, userInfo);
+  at.addGrant(grant);
+  return at.toJwt();
+};
+
+export async function GET(request: NextRequest) {
+  try {
+    if (!apiKey || !apiSecret) {
+      return new Response(
+        JSON.stringify({
+          error: "Environment variables aren't set up correctly",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+    }
+
+    const { searchParams } = request.nextUrl;
+    const partyId = searchParams.get("party_id")!;
+    const userName = searchParams.get("name")!;
+    const host = searchParams.get("host")! === "true";
+
+    const roomName = partyId;
+    const identity = userName;
+
+    const grant: VideoGrant = {
+      room: roomName,
+      roomJoin: true,
+      canPublish: host,
+      canPublishData: true,
+      canSubscribe: true,
+      canUpdateOwnMetadata: true,
+    };
+    const userInfo: AccessTokenOptions = {
+      identity,
+    };
+    const token = await createToken(userInfo, grant);
+
+    const result: TokenResult = {
+      identity,
+      token,
+      serverUrl: process.env.NEXT_PUBLIC_LIVEKIT_URL!,
+    };
+
+    return new Response(JSON.stringify(result), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  } catch (e) {
+    return new Response(
+      JSON.stringify({
+        error: (e as Error).message,
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+  }
+}
+
+
+
+================================================
+FILE: client/web/src/app/parties/[party_id]/page.tsx
+================================================
+"use client";
+
+import React, { useReducer, use } from "react";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import Party from "@/components/party";
+import Lobby from "@/components/lobby";
+import { State, reducer, PartyStateContext } from "@/hooks/usePartyState";
+
+type PartyIdType = { party_id: string };
+
+type PartyPageProps = {
+  params: Promise<PartyIdType>;
+};
+
+// Initial state
+const initialState: State = {
+  token: undefined,
+  serverUrl: "",
+  shouldConnect: false,
+  captionsEnabled: true,
+  captionsLanguage: "en",
+  isHost: false,
+};
+
+// PartyPage component
+export default function PartyPage({ params }: PartyPageProps) {
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { party_id } = use<PartyIdType>(params);
+
+  return (
+    <PartyStateContext.Provider value={{ state, dispatch }}>
+      <LiveKitRoom
+        token={state.token}
+        serverUrl={state.serverUrl}
+        connect={state.shouldConnect}
+        audio={state.isHost}
+        className="w-full h-full"
+      >
+        {state.shouldConnect ? <Party /> : <Lobby partyId={party_id} />}
+      </LiveKitRoom>
+    </PartyStateContext.Provider>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/captions.tsx
+================================================
+import { useRoomContext } from "@livekit/components-react";
+import { useState, useEffect } from "react";
+import {
+  TranscriptionSegment,
+  RoomEvent,
+  TrackPublication,
+  Participant,
+} from "livekit-client";
+import { usePartyState } from "@/hooks/usePartyState";
+
+export default function Captions() {
+  const room = useRoomContext();
+  const { state } = usePartyState();
+  const [transcriptions, setTranscriptions] = useState<{
+    [language: string]: {
+      [id: string]: TranscriptionSegment;
+    };
+  }>({});
+
+  useEffect(() => {
+    const updateTranscriptions = (
+      segments: TranscriptionSegment[],
+      participant?: Participant,
+      publication?: TrackPublication
+    ) => {
+      setTranscriptions((prev) => {
+        // Create a copy of the previous state
+        const newTranscriptions = { ...prev };
+
+        for (const segment of segments) {
+          // Extract the language and id from the segment
+          let { language, id } = segment;
+
+          if (language === "") {
+            language = "en";
+          }
+
+          // Ensure the language group exists
+          if (!newTranscriptions[language]) {
+            newTranscriptions[language] = {};
+          }
+
+          // Update or add the transcription segment in the correct group
+          newTranscriptions[language][id] = segment;
+        }
+
+        return newTranscriptions;
+      });
+    };
+
+    room.on(RoomEvent.TranscriptionReceived, updateTranscriptions);
+    return () => {
+      room.off(RoomEvent.TranscriptionReceived, updateTranscriptions);
+    };
+  }, [room]);
+
+  return (
+    <ul
+      className={`text-center${
+        state.captionsEnabled ? " visible" : " invisible"
+      }`}
+    >
+      {/* Safely access the transcriptions for the selected captionsLanguage */}
+      {Object.values(transcriptions[state.captionsLanguage] || {})
+        .sort((a, b) => a.firstReceivedTime - b.firstReceivedTime)
+        .slice(-2)
+        .map((segment, i, arr) => (
+          <li
+            key={segment.id}
+            className={i === 0 && arr.length > 1 ? "opacity-50" : "opacity-100"}
+          >
+            {segment.text}
+          </li>
+        ))}
+    </ul>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/circle-visualizer.tsx
+================================================
+import { Participant, Track } from "livekit-client";
+import { useTrackVolume } from "@livekit/components-react";
+import { useState, useEffect, useRef } from "react";
+
+export interface CircleVisualizerProps {
+  speaker: Participant;
+}
+
+export default function CircleVisualizer({ speaker }: CircleVisualizerProps) {
+  // Hook to track the current volume
+  const volume = useTrackVolume({
+    publication: speaker.audioTrackPublications.values().next().value!,
+    source: Track.Source.Microphone,
+    participant: speaker,
+  });
+
+  // State to control the smoothed volume, used for rendering
+  const [smoothedVolume, setSmoothedVolume] = useState(0);
+
+  // Ref to persist the latest smoothed volume across renders
+  const lastVolumeRef = useRef(0);
+
+  // Ref to store the most recent raw volume (updated on every volume change)
+  const volumeRef = useRef(0);
+
+  // Smoothing factor to control how aggressively the volume is smoothed
+  const smoothingFactor = 0.1;
+
+  // Update the volumeRef whenever the volume changes
+  useEffect(() => {
+    if (volume !== undefined) {
+      volumeRef.current = volume; // Update ref with the latest volume
+    }
+  }, [volume]);
+
+  // Main smoothing logic using an interval
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const currentVolume = volumeRef.current; // Get the latest volume
+      const newVolume =
+        smoothingFactor * currentVolume +
+        (1 - smoothingFactor) * lastVolumeRef.current;
+
+      lastVolumeRef.current = newVolume; // Update the ref for the next iteration
+      setSmoothedVolume(newVolume); // Update state for rendering
+    }, 25); // Update every 50ms
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, [smoothingFactor]); // Only depends on the smoothing factor
+
+  return (
+    <div
+      style={{
+        width: `${Math.round(100 + smoothedVolume * 200)}px`,
+        height: `${Math.round(100 + smoothedVolume * 200)}px`,
+      }}
+      className="bg-black rounded-full absolute flex items-center justify-center"
+    >
+      <div className="font-bold text-white">{speaker.identity}</div>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/host-controls.tsx
+================================================
+"use client";
+
+import MicToggle from "@/components/controls/mic-toggle";
+import LeaveButton from "@/components/controls/leave-button";
+import CaptionsToggle from "@/components/controls/captions-toggle";
+import LanguageSelect from "@/components/controls/language-select";
+import DeviceSelector from "@/components/controls/device-selector";
+
+export default function HostControls() {
+  return (
+    <div className="flex items-center justify-center gap-4">
+      <DeviceSelector />
+      <MicToggle />
+      <CaptionsToggle />
+      <LanguageSelect />
+      <LeaveButton />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/listener-controls.tsx
+================================================
+import CaptionsToggle from "@/components/controls/captions-toggle";
+import LanguageSelect from "@/components/controls/language-select";
+import LeaveButton from "@/components/controls/leave-button";
+
+export default function ListenerControls() {
+  return (
+    <div className="flex items-center justify-center gap-4">
+      <CaptionsToggle />
+      <LanguageSelect />
+      <LeaveButton />
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/lobby.tsx
+================================================
+import { useState } from "react";
+import { usePartyState } from "@/hooks/usePartyState";
+import { TokenResult } from "@/app/api/token/route";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { CheckedState } from "@radix-ui/react-checkbox";
+
+interface LobbyProps {
+  partyId: string;
+}
+
+export default function Lobby({ partyId }: LobbyProps) {
+  const [name, setName] = useState<string>("");
+  const [isHost, setIsHost] = useState<boolean>(false);
+  const { dispatch } = usePartyState();
+
+  const onJoin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault(); // Prevent the default form submission behavior
+
+    try {
+      // Fetch the token from the /api/token endpoint
+      const response = await fetch(
+        `/api/token?party_id=${encodeURIComponent(
+          partyId
+        )}&name=${encodeURIComponent(name)}&host=${isHost}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch token");
+      }
+
+      const data = (await response.json()) as TokenResult;
+
+      dispatch({ type: "SET_TOKEN", payload: data.token });
+      dispatch({ type: "SET_SERVER_URL", payload: data.serverUrl });
+      dispatch({ type: "SET_IS_HOST", payload: isHost });
+      dispatch({ type: "SET_SHOULD_CONNECT", payload: true });
+    } catch (error) {
+      console.error("Error:", error);
+      // Handle error (e.g., show an error message to the user)
+    }
+  };
+
+  return (
+    <div className="w-full h-full flex items-center justify-center">
+      <Card>
+        <form action="#" onSubmit={onJoin}>
+          <CardHeader>
+            <CardTitle>Join Party</CardTitle>
+            <CardDescription>
+              Join or create a party to chat or listen in
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder="Your display name in the party"
+                onChange={(e) => setName(e.target.value)}
+              />
+            </div>
+            <div className="items-top flex space-x-2">
+              <Checkbox
+                id="host"
+                checked={isHost}
+                onCheckedChange={(checked: CheckedState) =>
+                  setIsHost(checked === "indeterminate" ? false : checked)
+                }
+              />
+              <div className="grid gap-1.5 leading-none">
+                <label
+                  htmlFor="host"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Party host
+                </label>
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Button className="w-full">Join</Button>
+          </CardFooter>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/party.tsx
+================================================
+"use client";
+
+import {
+  useRoomContext,
+  useParticipants,
+  RoomAudioRenderer,
+} from "@livekit/components-react";
+import { Participant } from "livekit-client";
+import { Headphones } from "react-feather";
+import HostControls from "@/components/host-controls";
+import ListenerControls from "@/components/listener-controls";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import CircleVisualizer from "./circle-visualizer";
+import { usePartyState } from "@/hooks/usePartyState";
+import Captions from "@/components/captions";
+
+export default function Party() {
+  const [host, setHost] = useState<Participant | undefined>();
+
+  const room = useRoomContext();
+  const participants = useParticipants();
+  const { state } = usePartyState();
+
+  useEffect(() => {
+    const host = participants.find((p) => {
+      return p.permissions?.canPublish;
+    });
+    if (host) {
+      setHost(host);
+    }
+  }, [participants]);
+
+  return (
+    <div className="w-full h-full p-8 flex flex-col relative">
+      <div className="flex flex-col justify-between h-full w-full">
+        <div className="flex justify-between">
+          <div className="flex flex-col">
+            <p>Listening Party</p>
+            <h1 className="font-bold">Billie Eilish</h1>
+          </div>
+          <div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="uppercase bg-[#E71A32] font-bold text-white"
+              >
+                Live
+              </Button>
+              <Button variant="outline">
+                <Headphones />
+                <p>{participants.length}</p>
+              </Button>
+            </div>
+          </div>
+        </div>
+        {host === room.localParticipant ? (
+          <HostControls />
+        ) : (
+          <ListenerControls />
+        )}
+      </div>
+      <div className="absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%]">
+        {host && (
+          <div className="flex flex-col items-center relative gap-24">
+            {/* Visualizer Container */}
+            <div className="relative flex items-center justify-center w-[125px] h-[125px]">
+              <CircleVisualizer speaker={host} />
+            </div>
+
+            {/* Transcript */}
+            <Captions />
+          </div>
+        )}
+      </div>
+      {/* <RoomAudioRenderer /> */}
+    </div>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/controls/captions-toggle.tsx
+================================================
+import { Button } from "@/components/ui/button";
+import { usePartyState } from "@/hooks/usePartyState";
+import { BiSolidCaptions, BiCaptions } from "react-icons/bi";
+
+export default function CaptionsToggle() {
+  const { state, dispatch } = usePartyState();
+
+  return (
+    <Button
+      variant="outline"
+      className=" flex items-center justify-center"
+      onClick={(e) => {
+        dispatch({
+          type: "SET_CAPTIONS_ENABLED",
+          payload: !state.captionsEnabled,
+        });
+      }}
+    >
+      {state.captionsEnabled ? (
+        <BiSolidCaptions style={{ width: "24px", height: "24px" }} />
+      ) : (
+        <BiCaptions style={{ width: "24px", height: "24px" }} />
+      )}
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/controls/device-selector.tsx
+================================================
+import { useMediaDeviceSelect } from "@livekit/components-react";
+import { useEffect, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
+export default function DeviceSelector() {
+  const deviceSelect = useMediaDeviceSelect({ kind: "audioinput" });
+  const [selectedDeviceName, setSelectedDeviceName] = useState("");
+
+  const handleChange = async (value: string) => {
+    deviceSelect.setActiveMediaDevice(value);
+  };
+
+  useEffect(() => {
+    deviceSelect.devices.forEach((device) => {
+      if (device.deviceId === deviceSelect.activeDeviceId) {
+        setSelectedDeviceName(device.label);
+      }
+    });
+  }, [deviceSelect.activeDeviceId, deviceSelect.devices, selectedDeviceName]);
+
+  return (
+    <Select value={deviceSelect.activeDeviceId} onValueChange={handleChange}>
+      <SelectTrigger className="w-[180px]">
+        <SelectValue placeholder="Active microphone" />
+      </SelectTrigger>
+      <SelectContent>
+        {deviceSelect.devices.map((device) => (
+          <SelectItem key={device.deviceId} value={device.deviceId}>
+            {device.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/controls/language-select.tsx
+================================================
+import React, { useState, useEffect } from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useRoomContext, useVoiceAssistant } from "@livekit/components-react";
+import { usePartyState } from "@/hooks/usePartyState";
+import { ConnectionState } from "livekit-client";
+
+interface Language {
+  code: string;
+  name: string;
+  flag: string;
+}
+
+const LanguageSelect = () => {
+  const room = useRoomContext();
+  const { agent } = useVoiceAssistant();
+  const { state, dispatch } = usePartyState();
+  const [languages, setLanguages] = useState<Language[]>([]);
+
+  const handleChange = async (value: string) => {
+    dispatch({
+      type: "SET_CAPTIONS_LANGUAGE",
+      payload: value,
+    });
+    await room.localParticipant.setAttributes({
+      captions_language: value,
+    });
+  };
+
+  useEffect(() => {
+    async function getLanguages() {
+      try {
+        const response = await room.localParticipant.performRpc({
+          destinationIdentity: "agent",
+          method: "get/languages",
+          payload: "",
+        });
+        const languages = JSON.parse(response);
+        setLanguages(languages);
+      } catch (error) {
+        console.error("RPC call failed: ", error);
+      }
+    }
+
+    if (agent) {
+      getLanguages();
+    }
+  }, [room, agent]);
+
+  return (
+    <div className="flex items-center">
+      <Select
+        value={state.captionsLanguage}
+        onValueChange={handleChange}
+        disabled={!state.captionsEnabled}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Captions language" />
+        </SelectTrigger>
+        <SelectContent>
+          {languages.map((lang) => (
+            <SelectItem key={lang.code} value={lang.code}>
+              {lang.flag} {lang.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+export default LanguageSelect;
+
+
+
+================================================
+FILE: client/web/src/components/controls/leave-button.tsx
+================================================
+import { useRoomContext } from "@livekit/components-react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { X } from "react-feather";
+
+export default function LeaveButton() {
+  const room = useRoomContext();
+  const router = useRouter();
+
+  const onClose = async () => {
+    await room.disconnect();
+    router.push("/");
+  };
+
+  return (
+    <Button
+      variant="outline"
+      className="bg-red-600 flex items-center justify-center hover:bg-red-400"
+      onClick={onClose}
+    >
+      <X size={16} className="text-white" />
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/controls/mic-toggle.tsx
+================================================
+import { useRoomContext } from "@livekit/components-react";
+import { Button } from "@/components/ui/button";
+import { Mic, MicOff } from "react-feather";
+
+export default function MicToggle() {
+  const room = useRoomContext();
+
+  return (
+    <Button
+      variant="outline"
+      onClick={(e) => {
+        room.localParticipant.setMicrophoneEnabled(
+          !room.localParticipant.isMicrophoneEnabled
+        );
+      }}
+    >
+      {room.localParticipant.isMicrophoneEnabled ? (
+        <Mic style={{ width: "16px", height: "16px" }} />
+      ) : (
+        <MicOff style={{ width: "16px", height: "16px" }} />
+      )}
+    </Button>
+  );
+}
+
+
+
+================================================
+FILE: client/web/src/components/ui/button.tsx
+================================================
+import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 dark:focus-visible:ring-neutral-300",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-neutral-900 text-neutral-50 shadow hover:bg-neutral-900/90 dark:bg-neutral-50 dark:text-neutral-900 dark:hover:bg-neutral-50/90",
+        destructive:
+          "bg-red-500 text-neutral-50 shadow-sm hover:bg-red-500/90 dark:bg-red-900 dark:text-neutral-50 dark:hover:bg-red-900/90",
+        outline:
+          "border border-neutral-200 bg-white shadow-sm hover:bg-neutral-100 hover:text-neutral-900 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
+        secondary:
+          "bg-neutral-100 text-neutral-900 shadow-sm hover:bg-neutral-100/80 dark:bg-neutral-800 dark:text-neutral-50 dark:hover:bg-neutral-800/80",
+        ghost: "hover:bg-neutral-100 hover:text-neutral-900 dark:hover:bg-neutral-800 dark:hover:text-neutral-50",
+        link: "text-neutral-900 underline-offset-4 hover:underline dark:text-neutral-50",
+      },
+      size: {
+        default: "h-9 px-4 py-2",
+        sm: "h-8 rounded-md px-3 text-xs",
+        lg: "h-10 rounded-md px-8",
+        icon: "h-9 w-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : "button"
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Button.displayName = "Button"
+
+export { Button, buttonVariants }
+
+
+
+================================================
+FILE: client/web/src/components/ui/card.tsx
+================================================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Card = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "rounded-xl border border-neutral-200 bg-white text-neutral-950 shadow dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-50",
+      className
+    )}
+    {...props}
+  />
+))
+Card.displayName = "Card"
+
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
+    {...props}
+  />
+))
+CardHeader.displayName = "CardHeader"
+
+const CardTitle = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("font-semibold leading-none tracking-tight", className)}
+    {...props}
+  />
+))
+CardTitle.displayName = "CardTitle"
+
+const CardDescription = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm text-neutral-500 dark:text-neutral-400", className)}
+    {...props}
+  />
+))
+CardDescription.displayName = "CardDescription"
+
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+))
+CardContent.displayName = "CardContent"
+
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("flex items-center p-6 pt-0", className)}
+    {...props}
+  />
+))
+CardFooter.displayName = "CardFooter"
+
+export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
+
+
+
+================================================
+FILE: client/web/src/components/ui/checkbox.tsx
+================================================
+"use client"
+
+import * as React from "react"
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox"
+import { Check } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Checkbox = React.forwardRef<
+  React.ElementRef<typeof CheckboxPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <CheckboxPrimitive.Root
+    ref={ref}
+    className={cn(
+      "peer h-4 w-4 shrink-0 rounded-sm border border-neutral-200 border-neutral-900 shadow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-neutral-900 data-[state=checked]:text-neutral-50 dark:border-neutral-800 dark:border-neutral-50 dark:focus-visible:ring-neutral-300 dark:data-[state=checked]:bg-neutral-50 dark:data-[state=checked]:text-neutral-900",
+      className
+    )}
+    {...props}
+  >
+    <CheckboxPrimitive.Indicator
+      className={cn("flex items-center justify-center text-current")}
+    >
+      <Check className="h-4 w-4" />
+    </CheckboxPrimitive.Indicator>
+  </CheckboxPrimitive.Root>
+))
+Checkbox.displayName = CheckboxPrimitive.Root.displayName
+
+export { Checkbox }
+
+
+
+================================================
+FILE: client/web/src/components/ui/input.tsx
+================================================
+import * as React from "react"
+
+import { cn } from "@/lib/utils"
+
+const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
+  ({ className, type, ...props }, ref) => {
+    return (
+      <input
+        type={type}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-neutral-200 bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-neutral-950 placeholder:text-neutral-500 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:border-neutral-800 dark:file:text-neutral-50 dark:placeholder:text-neutral-400 dark:focus-visible:ring-neutral-300",
+          className
+        )}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+Input.displayName = "Input"
+
+export { Input }
+
+
+
+================================================
+FILE: client/web/src/components/ui/label.tsx
+================================================
+"use client"
+
+import * as React from "react"
+import * as LabelPrimitive from "@radix-ui/react-label"
+import { cva, type VariantProps } from "class-variance-authority"
+
+import { cn } from "@/lib/utils"
+
+const labelVariants = cva(
+  "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+)
+
+const Label = React.forwardRef<
+  React.ElementRef<typeof LabelPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root> &
+    VariantProps<typeof labelVariants>
+>(({ className, ...props }, ref) => (
+  <LabelPrimitive.Root
+    ref={ref}
+    className={cn(labelVariants(), className)}
+    {...props}
+  />
+))
+Label.displayName = LabelPrimitive.Root.displayName
+
+export { Label }
+
+
+
+================================================
+FILE: client/web/src/components/ui/select.tsx
+================================================
+"use client"
+
+import * as React from "react"
+import * as SelectPrimitive from "@radix-ui/react-select"
+import { Check, ChevronDown, ChevronUp } from "lucide-react"
+
+import { cn } from "@/lib/utils"
+
+const Select = SelectPrimitive.Root
+
+const SelectGroup = SelectPrimitive.Group
+
+const SelectValue = SelectPrimitive.Value
+
+const SelectTrigger = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Trigger>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Trigger
+    ref={ref}
+    className={cn(
+      "flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-neutral-200 bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-white placeholder:text-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-950 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 dark:border-neutral-800 dark:ring-offset-neutral-950 dark:placeholder:text-neutral-400 dark:focus:ring-neutral-300",
+      className
+    )}
+    {...props}
+  >
+    {children}
+    <SelectPrimitive.Icon asChild>
+      <ChevronDown className="h-4 w-4 opacity-50" />
+    </SelectPrimitive.Icon>
+  </SelectPrimitive.Trigger>
+))
+SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
+
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronUp className="h-4 w-4" />
+  </SelectPrimitive.ScrollUpButton>
+))
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1",
+      className
+    )}
+    {...props}
+  >
+    <ChevronDown className="h-4 w-4" />
+  </SelectPrimitive.ScrollDownButton>
+))
+SelectScrollDownButton.displayName =
+  SelectPrimitive.ScrollDownButton.displayName
+
+const SelectContent = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-neutral-200 bg-white text-neutral-950 shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-50",
+        position === "popper" &&
+          "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectScrollUpButton />
+      <SelectPrimitive.Viewport
+        className={cn(
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+        )}
+      >
+        {children}
+      </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
+SelectContent.displayName = SelectPrimitive.Content.displayName
+
+const SelectLabel = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Label>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Label>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Label
+    ref={ref}
+    className={cn("px-2 py-1.5 text-sm font-semibold", className)}
+    {...props}
+  />
+))
+SelectLabel.displayName = SelectPrimitive.Label.displayName
+
+const SelectItem = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Item>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
+>(({ className, children, ...props }, ref) => (
+  <SelectPrimitive.Item
+    ref={ref}
+    className={cn(
+      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-neutral-100 focus:text-neutral-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 dark:focus:bg-neutral-800 dark:focus:text-neutral-50",
+      className
+    )}
+    {...props}
+  >
+    <span className="absolute right-2 flex h-3.5 w-3.5 items-center justify-center">
+      <SelectPrimitive.ItemIndicator>
+        <Check className="h-4 w-4" />
+      </SelectPrimitive.ItemIndicator>
+    </span>
+    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+  </SelectPrimitive.Item>
+))
+SelectItem.displayName = SelectPrimitive.Item.displayName
+
+const SelectSeparator = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.Separator>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Separator>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.Separator
+    ref={ref}
+    className={cn("-mx-1 my-1 h-px bg-neutral-100 dark:bg-neutral-800", className)}
+    {...props}
+  />
+))
+SelectSeparator.displayName = SelectPrimitive.Separator.displayName
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectLabel,
+  SelectItem,
+  SelectSeparator,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+}
+
+
+
+================================================
+FILE: client/web/src/hooks/usePartyState.ts
+================================================
+import { createContext, useContext } from "react";
+
+// State type
+export type State = {
+  token?: string;
+  serverUrl: string;
+  shouldConnect: boolean;
+  captionsEnabled: boolean;
+  captionsLanguage: string;
+  isHost: boolean;
+};
+
+// Action type
+export type Action =
+  | { type: "SET_TOKEN"; payload: string }
+  | { type: "SET_SERVER_URL"; payload: string }
+  | { type: "SET_SHOULD_CONNECT"; payload: boolean }
+  | { type: "SET_CAPTIONS_ENABLED"; payload: boolean }
+  | { type: "SET_CAPTIONS_LANGUAGE"; payload: string }
+  | { type: "SET_IS_HOST"; payload: boolean };
+
+// Reducer function
+export const reducer = (state: State, action: Action): State => {
+  switch (action.type) {
+    case "SET_TOKEN":
+      return { ...state, token: action.payload };
+    case "SET_SERVER_URL":
+      return { ...state, serverUrl: action.payload };
+    case "SET_SHOULD_CONNECT":
+      return { ...state, shouldConnect: action.payload };
+    case "SET_CAPTIONS_ENABLED":
+      return { ...state, captionsEnabled: action.payload };
+    case "SET_CAPTIONS_LANGUAGE":
+      return { ...state, captionsLanguage: action.payload };
+    case "SET_IS_HOST":
+      return { ...state, isHost: action.payload };
+    default:
+      // Ensure exhaustive check
+      const _: never = action;
+      throw new Error(`Unknown action: ${JSON.stringify(action)}`);
+  }
+};
+
+// Context
+export const PartyStateContext = createContext<{
+  state: State;
+  dispatch: React.Dispatch<Action>;
+} | null>(null);
+
+// Custom hook for using the context
+export const usePartyState = () => {
+  const context = useContext(PartyStateContext);
+  if (!context) {
+    throw new Error("usePartyState must be used within a PartyProvider");
+  }
+  return context;
+};
+
+
+
+================================================
+FILE: client/web/src/lib/utils.ts
+================================================
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+
+
+================================================
+FILE: server/main.py
+================================================
+import asyncio
+import logging
+import json
+
+from enum import Enum
+from dataclasses import dataclass, asdict
+
+from livekit import rtc
+from livekit.agents import (
+    AutoSubscribe,
+    JobContext,
+    JobProcess,
+    JobRequest,
+    WorkerOptions,
+    cli,
+    stt,
+    llm,
+    transcription,
+    utils,
+)
+from livekit.plugins import openai, silero, deepgram
+from dotenv import load_dotenv
+
+load_dotenv()
+
+logger = logging.getLogger("transcriber")
+
+
+@dataclass
+class Language:
+    code: str
+    name: str
+    flag: str
+
+
+languages = {
+    "en": Language(code="en", name="English", flag="🇺🇸"),
+    "es": Language(code="es", name="Spanish", flag="🇪🇸"),
+    "fr": Language(code="fr", name="French", flag="🇫🇷"),
+    "de": Language(code="de", name="German", flag="🇩🇪"),
+    "ja": Language(code="ja", name="Japanese", flag="🇯🇵"),
+}
+
+LanguageCode = Enum(
+    "LanguageCode",  # Name of the Enum
+    {code: lang.name for code, lang in languages.items()},  # Enum entries
+)
+
+
+class Translator:
+    def __init__(self, room: rtc.Room, lang: Enum):
+        self.room = room
+        self.lang = lang
+        self.context = llm.ChatContext().append(
+            role="system",
+            text=(
+                f"You are a translator for language: {lang.value}"
+                f"Your only response should be the exact translation of input text in the {lang.value} language ."
+            ),
+        )
+        self.llm = openai.LLM()
+
+    async def translate(self, message: str, track: rtc.Track):
+        self.context.append(text=message, role="user")
+        stream = self.llm.chat(chat_ctx=self.context)
+
+        translated_message = ""
+        async for chunk in stream:
+            content = chunk.choices[0].delta.content
+            if content is None:
+                break
+            translated_message += content
+
+        segment = rtc.TranscriptionSegment(
+            id=utils.misc.shortuuid("SG_"),
+            text=translated_message,
+            start_time=0,
+            end_time=0,
+            language=self.lang.name,
+            final=True,
+        )
+        transcription = rtc.Transcription(
+            self.room.local_participant.identity, track.sid, [segment]
+        )
+        await self.room.local_participant.publish_transcription(transcription)
+
+        print(
+            f"message: {message}, translated to {self.lang.value}: {translated_message}"
+        )
+
+
+def prewarm(proc: JobProcess):
+    proc.userdata["vad"] = silero.VAD.load()
+
+
+async def entrypoint(job: JobContext):
+    stt_provider = deepgram.STT()
+    tasks = []
+    translators = {}
+
+    async def _forward_transcription(
+        stt_stream: stt.SpeechStream,
+        stt_forwarder: transcription.STTSegmentsForwarder,
+        track: rtc.Track,
+    ):
+        """Forward the transcription and log the transcript in the console"""
+        async for ev in stt_stream:
+            stt_forwarder.update(ev)
+            # log to console
+            if ev.type == stt.SpeechEventType.INTERIM_TRANSCRIPT:
+                print(ev.alternatives[0].text, end="")
+            elif ev.type == stt.SpeechEventType.FINAL_TRANSCRIPT:
+                print("\n")
+                print(" -> ", ev.alternatives[0].text)
+
+                message = ev.alternatives[0].text
+                for translator in translators.values():
+                    asyncio.create_task(translator.translate(message, track))
+
+    async def transcribe_track(participant: rtc.RemoteParticipant, track: rtc.Track):
+        audio_stream = rtc.AudioStream(track)
+        stt_forwarder = transcription.STTSegmentsForwarder(
+            room=job.room, participant=participant, track=track
+        )
+        stt_stream = stt_provider.stream()
+        stt_task = asyncio.create_task(
+            _forward_transcription(stt_stream, stt_forwarder, track)
+        )
+        tasks.append(stt_task)
+
+        async for ev in audio_stream:
+            stt_stream.push_frame(ev.frame)
+
+    @job.room.on("track_subscribed")
+    def on_track_subscribed(
+        track: rtc.Track,
+        publication: rtc.TrackPublication,
+        participant: rtc.RemoteParticipant,
+    ):
+        if track.kind == rtc.TrackKind.KIND_AUDIO:
+            logger.info(f"Adding transcriber for participant: {participant.identity}")
+            tasks.append(asyncio.create_task(transcribe_track(participant, track)))
+
+    @job.room.on("participant_attributes_changed")
+    def on_attributes_changed(
+        changed_attributes: dict[str, str], participant: rtc.Participant
+    ):
+        """
+        When participant attributes change, handle new translation requests.
+        """
+        lang = changed_attributes.get("captions_language", None)
+        if lang and lang != LanguageCode.en.name and lang not in translators:
+            try:
+                # Create a translator for the requested language
+                target_language = LanguageCode[lang].value
+                translators[lang] = Translator(job.room, LanguageCode[lang])
+                logger.info(f"Added translator for language: {target_language}")
+            except KeyError:
+                logger.warning(f"Unsupported language requested: {lang}")
+
+    await job.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+
+    @job.room.local_participant.register_rpc_method("get/languages")
+    async def get_languages(data: rtc.RpcInvocationData):
+        languages_list = [asdict(lang) for lang in languages.values()]
+        return json.dumps(languages_list)
+
+
+async def request_fnc(req: JobRequest):
+    await req.accept(
+        name="agent",
+        identity="agent",
+    )
+
+
+if __name__ == "__main__":
+    cli.run_app(
+        WorkerOptions(
+            entrypoint_fnc=entrypoint, prewarm_fnc=prewarm, request_fnc=request_fnc
+        )
+    )
+
+
+
+================================================
+FILE: server/requirements.txt
+================================================
+livekit-agents
+livekit-plugins-openai
+python-dotenv
+livekit-plugins-deepgram
+livekit-plugins-silero
+
+
+================================================
+FILE: server/.env.example
+================================================
+LIVEKIT_URL=XXXXXXXX
+LIVEKIT_API_KEY=XXXXXXXX
+LIVEKIT_API_SECRET=XXXXXXXX
+
+DEEPGRAM_API_KEY=XXXXXXXX
+OPENAI_API_KEY=XXXXXXXX
+

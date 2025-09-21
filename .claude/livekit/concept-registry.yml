@@ -1,0 +1,182 @@
+# LiveKit Concept Registry
+# This file catalogs CONCEPTS from official LiveKit examples
+# CRITICAL: These are architectural patterns only - ALWAYS verify current APIs via Context7
+
+available_concepts:
+  warning: |
+    ⚠️ THESE ARE CONCEPTS, NOT CODE REFERENCES
+    - NEVER copy code directly from these examples
+    - ALWAYS verify current implementation via Context7
+    - Use these for architectural understanding only
+    - Examples may be outdated - Context7 is source of truth
+
+  # From livekit-examples-meet (Next.js Web Conference App)
+  frontend_patterns:
+    source: "livekit-examples-meet"
+    version_note: "Example versions may differ from our project"
+    concepts:
+      room_architecture:
+        - "Server/client component separation (page.tsx + PageClientImpl.tsx)"
+        - "PreJoin → Conference flow pattern"
+        - "Room name as URL parameter pattern"
+        - "Search params for configuration (region, codec, quality)"
+
+      token_generation:
+        - "API route pattern (/api/connection-details/)"
+        - "Role-based permissions in tokens"
+        - "Metadata encoding in JWT"
+        - "Environment variable management"
+
+      ui_components:
+        - "Settings menu for device selection"
+        - "Recording indicator pattern"
+        - "Keyboard shortcuts implementation"
+        - "Connection error boundaries"
+
+      state_management:
+        - "React hooks for local state"
+        - "URL params for room configuration"
+        - "Cookie-based identity persistence"
+        - "E2EE passphrase encoding"
+
+    verification_required:
+      - "Check @livekit/components-react current version"
+      - "Verify useRoomContext hook API"
+      - "Confirm token structure with livekit-server-sdk"
+      - "Validate component props interfaces"
+
+  # From livekit-agents (Python AI/Backend)
+  ai_agent_patterns:
+    source: "livekit-agents Python framework"
+    version_note: "Python SDK may differ from JS/TS patterns"
+    concepts:
+      voice_agent_architecture:
+        - "Worker-based agent deployment"
+        - "Job/task lifecycle management"
+        - "Agent-room association pattern"
+        - "Participant event handling"
+
+      pipeline_patterns:
+        - "STT → Processing → TTS pipeline"
+        - "Streaming vs batch processing"
+        - "Error recovery in pipelines"
+        - "Multi-modal input handling"
+
+      tool_integration:
+        - "Function calling patterns"
+        - "Tool registration and discovery"
+        - "Async tool execution"
+        - "Result streaming to participants"
+
+      avatar_integrations:
+        - "Third-party avatar services (Anam, Simli, Tavus)"
+        - "Audio-visual synchronization"
+        - "Fallback handling for avatar failures"
+
+    verification_required:
+      - "Python SDK differs from JS - verify separately"
+      - "Check current livekit-agents documentation"
+      - "Confirm worker patterns still valid"
+      - "Validate plugin architecture"
+
+  # From live-translated-captioning (Real-time Processing)
+  real_time_processing:
+    source: "live-translated-captioning example"
+    version_note: "Specific to transcription/translation use case"
+    concepts:
+      transcription_architecture:
+        - "Host/listener role separation"
+        - "Single speaker focus pattern"
+        - "STT forwarding to all participants"
+        - "Selective processing based on role"
+
+      translation_pipeline:
+        - "STT → LLM translation pattern"
+        - "Language-specific agent spawning"
+        - "Parallel translation streams"
+        - "Caption synchronization"
+
+      client_patterns:
+        - "Caption overlay UI"
+        - "Language selector implementation"
+        - "Real-time text updates"
+        - "Connection state visualization"
+
+    verification_required:
+      - "Check STTForwarder current API"
+      - "Verify transcription event names"
+      - "Confirm data channel patterns"
+      - "Validate caption format structure"
+
+# Concept Application Rules
+concept_application:
+  discovery_protocol:
+    - "Identify which concept category applies"
+    - "Map concept to current project needs"
+    - "Find current API via Context7"
+    - "Adapt pattern to project specifics"
+
+  forbidden_actions:
+    - "❌ NEVER copy code from examples"
+    - "❌ NEVER assume API names from examples"
+    - "❌ NEVER trust example version numbers"
+    - "❌ NEVER skip Context7 verification"
+
+  required_actions:
+    - "✅ ALWAYS verify via Context7 first"
+    - "✅ ALWAYS check our package.json version"
+    - "✅ ALWAYS validate against LiveKit docs"
+    - "✅ ALWAYS test implementation thoroughly"
+
+# Integration with Current Project
+project_specific:
+  our_foundation: "Based on livekit-examples-meet"
+  our_extensions:
+    - "Classroom mode (teacher/student roles)"
+    - "Smart PreJoin defaults per role"
+    - "Permission-based token generation"
+    - "Role badges and UI adaptations"
+
+  inherited_patterns:
+    from_meet_example:
+      - "Basic room architecture"
+      - "Token endpoint structure"
+      - "Component organization"
+      - "Route structure"
+
+    our_modifications:
+      - "Added role-based permissions"
+      - "Extended token metadata"
+      - "Customized PreJoin behavior"
+      - "Added classroom-specific UI"
+
+  future_possibilities:
+    from_agents_examples:
+      - "Could add: AI teaching assistant"
+      - "Could add: Automated transcription"
+      - "Could add: Student engagement tracking"
+
+    from_translation_example:
+      - "Could add: Multi-language classroom"
+      - "Could add: Real-time captions"
+      - "Could add: Translation for international students"
+
+# Concept Verification Checklist
+verification_checklist:
+  before_using_concept:
+    - "Which example demonstrates this?"
+    - "What's the architectural pattern?"
+    - "Is this pattern still recommended?"
+    - "What's the current API?"
+
+  during_implementation:
+    - "Am I following the concept, not the code?"
+    - "Have I verified with Context7?"
+    - "Does this fit our project structure?"
+    - "Am I handling all edge cases?"
+
+  after_implementation:
+    - "Does it follow LiveKit best practices?"
+    - "Is it compatible with our classroom features?"
+    - "Have I tested all scenarios?"
+    - "Is the pattern maintainable?"
