@@ -8,6 +8,7 @@ import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { ConnectionDetails } from '@/lib/types';
+import { ClassroomClientImpl } from './ClassroomClientImpl';
 import {
   formatChatMessageLinks,
   LocalUserChoices,
@@ -50,14 +51,19 @@ export function PageClientImpl(props: {
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
   const [checkingPin, setCheckingPin] = React.useState(false);
 
-  // Check classroom role from URL
-  const classroomInfo = React.useMemo(() => {
-    if (typeof window === 'undefined') return null;
+  // Check classroom role from URL (client-side only to avoid hydration issues)
+  const [classroomInfo, setClassroomInfo] = React.useState<{ role: string; pin: string | null } | null>(null);
+
+  React.useEffect(() => {
+    // Only access window on client side
     const currentUrl = new URL(window.location.href);
     const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
     const role = currentUrl.searchParams.get('role');
     const pin = currentUrl.searchParams.get('pin');
-    return isClassroom ? { role: role || 'student', pin: pin || null } : null;
+
+    if (isClassroom) {
+      setClassroomInfo({ role: role || 'student', pin: pin || null });
+    }
   }, []);
 
   const preJoinDefaults = React.useMemo(() => {
@@ -379,18 +385,18 @@ function VideoConferenceComponent(props: {
     }
   }, [lowPowerMode]);
 
-  // Check if we're in classroom mode
-  const isClassroom = React.useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    const currentUrl = new URL(window.location.href);
-    return currentUrl.searchParams.get('classroom') === 'true';
-  }, []);
+  // Check if we're in classroom mode (client-side only)
+  const [isClassroom, setIsClassroom] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
 
-  // Get user's role for classroom mode
-  const userRole = React.useMemo(() => {
-    if (typeof window === 'undefined') return null;
+  React.useEffect(() => {
+    // Only access window on client side
     const currentUrl = new URL(window.location.href);
-    return currentUrl.searchParams.get('role');
+    const classroomParam = currentUrl.searchParams.get('classroom') === 'true';
+    const roleParam = currentUrl.searchParams.get('role');
+
+    setIsClassroom(classroomParam);
+    setUserRole(roleParam);
   }, []);
 
   return (
@@ -398,10 +404,15 @@ function VideoConferenceComponent(props: {
       <RoomContext.Provider value={room}>
         <LayoutContextProvider>
           <KeyboardShortcuts />
-          <VideoConference
-            chatMessageFormatter={formatChatMessageLinks}
-            SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
-          />
+          {/* Conditionally render ClassroomClientImpl or VideoConference based on classroom mode */}
+          {isClassroom ? (
+            <ClassroomClientImpl userRole={userRole} />
+          ) : (
+            <VideoConference
+              chatMessageFormatter={formatChatMessageLinks}
+              SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+            />
+          )}
           <DebugMode />
           <RecordingIndicator />
           {isClassroom && <CopyStudentLinkButton />}

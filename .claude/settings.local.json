@@ -21,7 +21,12 @@
       "Bash(pnpm install:*)",
       "Bash(yes)",
       "Read(//root/.claude/**)",
-      "Read(//mnt/c/Users/HP/.claude/**)"
+      "Read(//mnt/c/Users/HP/.claude/**)",
+      "Bash(pnpm build:*)",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_install",
+      "mcp__playwright__browser_close",
+      "mcp__playwright__browser_tabs"
     ],
     "deny": [],
     "ask": []
