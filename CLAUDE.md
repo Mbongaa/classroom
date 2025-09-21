@@ -70,13 +70,27 @@ Token structure includes metadata with role information for client-side UI adapt
 
 ### Classroom Feature Implementation
 
-The codebase includes a partially implemented classroom feature (Phase 1 complete):
+The codebase includes classroom features for educational use (Phases 1-2 complete):
 
-**Backend**: Role-based token generation with differentiated permissions
-**Frontend**: Smart PreJoin defaults, role badges, graceful error handling
+**Phase 1 - Role-Based Access**:
+- Token generation with teacher/student permissions
+- Smart PreJoin defaults (students join with mic/camera off)
+- Role badges and graceful error handling
+
+**Phase 2 - Teacher-Shares-Link Flow**:
+- URL shortcuts: `/s/[roomName]` for students, `/t/[roomName]` for teachers
+- Copy Student Link button for teachers (floating top-right in conference)
+- Optional PIN protection (4-6 digits)
+- Enhanced student welcome experience
+
+**Usage**:
+- Teachers: Start classroom → optionally set PIN → share generated link
+- Students: Click teacher's link → enter name → join as listener
+
 **Testing**: Test utilities at `/test-classroom` with role selection UI
 
-See `CLASSROOM_PHASE_1.md` for implementation details and `CLASSROOM_ROADMAP.md` for future phases.
+See `CLASSROOM_PHASE_1.md` and `CLASSROOM_PHASE_2.md` for implementation details.
+See `CLASSROOM_ROADMAP.md` for next phases (Phase 3: Classroom Client ready to start).
 
 ### LiveKit Integration
 

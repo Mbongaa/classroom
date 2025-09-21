@@ -6,6 +6,7 @@ import { DebugMode } from '@/lib/Debug';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
+import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { ConnectionDetails } from '@/lib/types';
 import {
   formatChatMessageLinks,
@@ -44,6 +45,10 @@ export function PageClientImpl(props: {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
   );
+  const [pinVerified, setPinVerified] = React.useState(false);
+  const [enteredPin, setEnteredPin] = React.useState('');
+  const [roomPin, setRoomPin] = React.useState<string | null>(null);
+  const [checkingPin, setCheckingPin] = React.useState(false);
 
   // Check classroom role from URL
   const classroomInfo = React.useMemo(() => {
@@ -51,7 +56,8 @@ export function PageClientImpl(props: {
     const currentUrl = new URL(window.location.href);
     const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
     const role = currentUrl.searchParams.get('role');
-    return isClassroom ? { role: role || 'student' } : null;
+    const pin = currentUrl.searchParams.get('pin');
+    return isClassroom ? { role: role || 'student', pin: pin || null } : null;
   }, []);
 
   const preJoinDefaults = React.useMemo(() => {
@@ -121,7 +127,36 @@ export function PageClientImpl(props: {
                     : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
                 </div>
 
-                {/* Show room code for teachers to share */}
+                {/* Enhanced welcome message for students */}
+                {classroomInfo.role === 'student' && (
+                  <div
+                    style={{
+                      marginBottom: '1.5rem',
+                      padding: '1rem',
+                      background: 'rgba(33, 150, 243, 0.1)',
+                      border: '1px solid rgba(33, 150, 243, 0.3)',
+                      borderRadius: '8px',
+                      fontSize: '0.95rem',
+                    }}
+                  >
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                      📚 Welcome to the Classroom!
+                    </div>
+                    <div style={{ color: '#aaa', lineHeight: '1.5' }}>
+                      You're joining as a student. You'll be able to:
+                      <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+                        <li>Watch and listen to your teacher</li>
+                        <li>Participate via chat</li>
+                        <li>View shared screens and materials</li>
+                      </ul>
+                      <small style={{ opacity: 0.8 }}>
+                        Just enter your name below to join the session.
+                      </small>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show shareable link for teachers */}
                 {classroomInfo.role === 'teacher' && (
                   <div
                     style={{
@@ -134,7 +169,7 @@ export function PageClientImpl(props: {
                     }}
                   >
                     <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                      📋 Share this Room Code with Students:
+                      🔗 Share this Link with Students:
                     </div>
                     <div
                       style={{
@@ -142,24 +177,37 @@ export function PageClientImpl(props: {
                         background: 'rgba(0, 0, 0, 0.2)',
                         borderRadius: '4px',
                         fontFamily: 'monospace',
-                        fontSize: '1.1rem',
+                        fontSize: '0.9rem',
                         textAlign: 'center',
                         userSelect: 'all',
                         cursor: 'pointer',
+                        wordBreak: 'break-all',
                       }}
                       onClick={(e) => {
-                        const target = e.currentTarget;
-                        const selection = window.getSelection();
-                        const range = document.createRange();
-                        range.selectNodeContents(target);
-                        selection?.removeAllRanges();
-                        selection?.addRange(range);
+                        let studentLink = `${window.location.origin}/s/${props.roomName}`;
+                        if (classroomInfo.pin) {
+                          studentLink += `?pin=${classroomInfo.pin}`;
+                        }
+                        navigator.clipboard.writeText(studentLink);
+                        alert('Student link copied to clipboard!');
                       }}
+                      title="Click to copy student link"
                     >
-                      {props.roomName}
+                      {`${window.location.origin}/s/${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
                     </div>
+                    {classroomInfo.pin && (
+                      <div style={{
+                        fontSize: '0.9rem',
+                        color: '#4CAF50',
+                        marginTop: '0.5rem',
+                        fontWeight: 'bold'
+                      }}>
+                        🔒 Classroom PIN: {classroomInfo.pin}
+                      </div>
+                    )}
                     <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>
-                      Click to select • Students can join from the homepage
+                      Click to copy • Students will join directly as listeners
+                      {classroomInfo.pin && ' • PIN included in link'}
                     </div>
                   </div>
                 )}
@@ -356,6 +404,7 @@ function VideoConferenceComponent(props: {
           />
           <DebugMode />
           <RecordingIndicator />
+          {isClassroom && <CopyStudentLinkButton />}
         </LayoutContextProvider>
       </RoomContext.Provider>
     </div>

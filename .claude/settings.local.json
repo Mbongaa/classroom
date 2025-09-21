@@ -19,7 +19,9 @@
       "Read(//mnt/c/Users/HP/Desktop/**)",
       "Bash(pnpm add:*)",
       "Bash(pnpm install:*)",
-      "Bash(yes)"
+      "Bash(yes)",
+      "Read(//root/.claude/**)",
+      "Read(//mnt/c/Users/HP/.claude/**)"
     ],
     "deny": [],
     "ask": []
