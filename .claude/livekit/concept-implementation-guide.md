@@ -25,6 +25,7 @@ User Request → Concept Mapping:
 ### Step 2: Reference Concept, Not Code
 
 #### ✅ CORRECT Approach:
+
 ```typescript
 // User: "Implement token generation like in the examples"
 
@@ -36,13 +37,14 @@ User Request → Concept Mapping:
 const docs = await context7.getLibraryDocs({
   context7CompatibleLibraryID: '/livekit/livekit-server-sdk-js',
   topic: 'access token generation',
-  tokens: 5000
+  tokens: 5000,
 });
 
 // Implement using CURRENT API from Context7, following the PATTERN from example
 ```
 
 #### ❌ WRONG Approach:
+
 ```typescript
 // WRONG: Copying from example
 // "Here's the code from the example:
@@ -62,7 +64,7 @@ async function verifyConceptImplementation(concept: string) {
   const docs = await context7.getLibraryDocs({
     context7CompatibleLibraryID: '/livekit/livekit-client',
     topic: concept,
-    tokens: 5000
+    tokens: 5000,
   });
 
   // 3. Verify the API exists and matches
@@ -90,13 +92,14 @@ graph TD
 ### Frontend Patterns (from Meet Example)
 
 #### Room Connection Concept
+
 ```typescript
 // CONCEPT: Server/client component separation
 // VERIFICATION REQUIRED:
 const docs = await context7.getLibraryDocs({
   context7CompatibleLibraryID: '/livekit/components-react',
   topic: 'room connection hooks',
-  tokens: 5000
+  tokens: 5000,
 });
 
 // IMPLEMENTATION APPROACH:
@@ -107,13 +110,14 @@ const docs = await context7.getLibraryDocs({
 ```
 
 #### Token Generation Concept
+
 ```typescript
 // CONCEPT: API route with role-based permissions
 // VERIFICATION REQUIRED:
 const docs = await context7.getLibraryDocs({
   context7CompatibleLibraryID: '/livekit/livekit-server-sdk-js',
   topic: 'access token video grants',
-  tokens: 5000
+  tokens: 5000,
 });
 
 // IMPLEMENTATION APPROACH:
@@ -126,6 +130,7 @@ const docs = await context7.getLibraryDocs({
 ### AI Agent Patterns (from Python Examples)
 
 #### Voice Agent Concept
+
 ```python
 # CONCEPT: Worker-based agent deployment
 # VERIFICATION REQUIRED:
@@ -145,13 +150,14 @@ docs = await context7.getLibraryDocs({
 ### Real-Time Processing (from Translation Example)
 
 #### STT Forwarding Concept
+
 ```typescript
 // CONCEPT: Transcription forwarding to all participants
 // VERIFICATION REQUIRED:
 const docs = await context7.getLibraryDocs({
   context7CompatibleLibraryID: '/livekit/livekit-client',
   topic: 'data channel transcription events',
-  tokens: 5000
+  tokens: 5000,
 });
 
 // IMPLEMENTATION APPROACH:
@@ -164,6 +170,7 @@ const docs = await context7.getLibraryDocs({
 ## Common Pitfalls to Avoid
 
 ### 1. Version Mismatch
+
 ```typescript
 // ❌ WRONG: Assuming example uses same version
 import { SomeAPI } from 'livekit-client'; // Might not exist!
@@ -173,6 +180,7 @@ import { SomeAPI } from 'livekit-client'; // Might not exist!
 ```
 
 ### 2. API Name Changes
+
 ```typescript
 // ❌ WRONG: Using example's API names
 room.on('participant-connected', ...); // Might be wrong event name!
@@ -182,6 +190,7 @@ room.on('participant-connected', ...); // Might be wrong event name!
 ```
 
 ### 3. Deprecated Patterns
+
 ```typescript
 // ❌ WRONG: Following old patterns blindly
 // Example might use deprecated approach
@@ -216,13 +225,16 @@ Is it in our examples?
 ## Integration with Our Project
 
 ### Our Classroom Features
+
 When implementing concepts, always consider:
+
 1. How does this interact with teacher/student roles?
 2. Does it respect our permission model?
 3. Will it work with our PreJoin flow?
 4. Is it compatible with our UI customizations?
 
 ### Adaptation Checklist
+
 - [ ] Concept identified from examples
 - [ ] Current API verified via Context7
 - [ ] Adapted for classroom mode
@@ -234,6 +246,7 @@ When implementing concepts, always consider:
 ## Emergency Protocols
 
 ### When Context7 Fails
+
 ```typescript
 // Fallback approach when Context7 is unavailable:
 // 1. Check node_modules for TypeScript definitions
@@ -245,6 +258,7 @@ When implementing concepts, always consider:
 ```
 
 ### When Concept Conflicts with Current API
+
 ```typescript
 // If example pattern no longer valid:
 // 1. Understand the intent behind the pattern
