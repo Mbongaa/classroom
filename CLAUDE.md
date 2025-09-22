@@ -70,7 +70,7 @@ Token structure includes metadata with role information for client-side UI adapt
 
 ### Classroom Feature Implementation
 
-The codebase includes classroom features for educational use (Phases 1-2 complete):
+The codebase includes classroom features for educational use (Phases 1-4 complete):
 
 **Phase 1 - Role-Based Access**:
 - Token generation with teacher/student permissions
@@ -83,14 +83,27 @@ The codebase includes classroom features for educational use (Phases 1-2 complet
 - Optional PIN protection (4-6 digits)
 - Enhanced student welcome experience
 
+**Phase 3 - Classroom Client UI**:
+- Custom classroom layout with teacher spotlight and student grid
+- Role-based UI with visual badges
+- Translation sidebar for students
+- Chat integration with LiveKit patterns
+
+**Phase 4 - UI Enhancements & Bug Fixes**:
+- Fixed audio routing and duplicate sections
+- Speaking indicator for teacher
+- Resizable sidebars (translation and chat)
+- Unified dark theme
+- LiveKit-compliant implementations
+
 **Usage**:
 - Teachers: Start classroom → optionally set PIN → share generated link
 - Students: Click teacher's link → enter name → join as listener
 
 **Testing**: Test utilities at `/test-classroom` with role selection UI
 
-See `CLASSROOM_PHASE_1.md` and `CLASSROOM_PHASE_2.md` for implementation details.
-See `CLASSROOM_ROADMAP.md` for next phases (Phase 3: Classroom Client ready to start).
+See `CLASSROOM_PHASE_1.md`, `CLASSROOM_PHASE_2.md`, `CLASSROOM_PHASE_3.md`, and `CLASSROOM_PHASE_4.md` for implementation details.
+See `CLASSROOM_ROADMAP.md` for next phases (Phase 5: Teacher Controls Component ready to start).
 
 ### LiveKit Integration
 

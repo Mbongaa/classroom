@@ -1,23 +1,26 @@
 # LiveKit Meet Classroom Feature Roadmap
 
-## 🎯 PHASE 3 COMPLETED - READY FOR PHASE 4
+## 🎯 PHASE 4 COMPLETED - READY FOR PHASE 5
 
 ### Quick Start for Next Developer/Session
 
-**Current Status**: Phases 1-3 complete, ready to implement Phase 4 - Custom Video Conference Component
+**Current Status**: Phases 1-4 complete, ready to implement Phase 5 - Teacher Controls Component
 
-**Last Completed**: Phase 3 - Classroom Client Implementation with:
-- Role-based UI layouts (teacher spotlight + student grid)
-- Chat integration with proper LiveKit patterns
-- Translation feature for students (toggleable sidebar)
-- Role-based control bar (teachers get full controls, students get chat/leave only)
-- Visual role indicators and badges
+**Last Completed**: Phase 4 - UI Enhancements & Bug Fixes with:
+- Fixed audio routing for teacher's microphone
+- Resolved duplicate teacher section bug
+- Added speaking indicator for teacher
+- Fixed chat message persistence issue
+- Implemented resizable translation sidebar for students
+- Added resizable chat sidebar
+- Unified dark theme across all components
+- Fixed visual alignment issues
 
-**Phase 4 Goal**: Create enhanced video conference component with education-specific features:
-- Advanced layout modes (speaker view, grid view, focus mode)
-- Improved screen share handling
-- Better participant management UI
-- Performance optimizations for large classes
+**Phase 5 Goal**: Create teacher moderation and control features:
+- Build TeacherControls.tsx component
+- Implement student management features (mute/unmute)
+- Add classroom moderation tools
+- Create quick actions panel for teachers
 
 **Key Files to Enhance**:
 1. Create `/app/rooms/[roomName]/ClassroomVideoConference.tsx` - Enhanced conference component
@@ -83,11 +86,31 @@
 
 ---
 
-### 📙 Phase 4: Create Custom Classroom Video Conference Component
+### ✅ Phase 4: UI Enhancements & Bug Fixes (COMPLETED)
 
-**Status**: Not Started
-**Priority**: Medium
-**Estimated Effort**: 4-5 days
+**Status**: Completed
+**Priority**: High
+**Documentation**: See `CLASSROOM_PHASE_4.md`
+
+#### Completed Features:
+
+- Fixed audio routing issue - teacher's microphone now works properly
+- Resolved duplicate teacher section bug when enabling microphone
+- Implemented speaking indicator for teacher using ParticipantTile
+- Fixed chat message persistence when toggling visibility
+- Added resizable translation sidebar with visual resize handle
+- Implemented resizable chat sidebar with LiveKit-compliant approach
+- Unified dark theme using LiveKit theme variables
+- Fixed visual alignment between components
+- All features maintain LiveKit component integrity
+
+---
+
+### 📕 Phase 5: Create Teacher Controls Component
+
+**Status**: Not Started → NEXT TO IMPLEMENT
+**Priority**: High
+**Estimated Effort**: 3-4 days
 
 #### Objectives:
 
@@ -411,4 +434,4 @@ gantt
 ---
 
 _This roadmap is a living document and will be updated as development progresses._
-_Last Updated: After Phase 3 Completion - Classroom Client UI Implemented_
+_Last Updated: After Phase 4 Completion - UI Enhancements & Bug Fixes Complete_

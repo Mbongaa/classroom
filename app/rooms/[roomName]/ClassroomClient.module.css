@@ -430,15 +430,82 @@
   font-size: 0.9rem;
 }
 
+/* Chat wrapper for resize functionality */
+.chatWrapper {
+  height: 100%;
+  position: relative;
+  flex-shrink: 0;
+}
+
 /* Chat Sidebar - LiveKit Chat component */
 .chatSidebar {
-  width: 320px;
-  background: var(--lk-background-2);
-  border-left: 1px solid var(--lk-border);
-  display: flex;
-  flex-direction: column;
+  width: 100%;
   height: 100%;
-  flex-shrink: 0;
+}
+
+/* Chat Resize Handle - positioned at bottom-left corner */
+.chatResizeHandle {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 30px;
+  height: 30px;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chatResizeHandle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chatResizeHandle:hover .chatResizeGrip {
+  transform: scale(1.05);
+}
+
+.chatResizeGrip {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  opacity: 1;
+  transition: transform 0.2s ease;
+}
+
+/* Create a white corner triangle on the left side */
+.chatResizeGrip::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 18px 18px;
+  border-color: transparent transparent white transparent;
+}
+
+/* Grip lines on the triangle */
+.chatResizeGrip::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  width: 12px;
+  height: 12px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.3) 2px,
+    rgba(0, 0, 0, 0.3) 3px,
+    transparent 3px,
+    transparent 5px
+  );
 }
 
 /* Let LiveKit Chat component use its native styling completely */
@@ -505,6 +572,10 @@
     width: 100%;
     max-width: 100%;
     z-index: 100;
+  }
+
+  .chatResizeHandle {
+    display: none; /* Hide resize handle on mobile */
   }
 }
 

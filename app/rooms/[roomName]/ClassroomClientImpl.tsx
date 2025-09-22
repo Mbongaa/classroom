@@ -45,6 +45,10 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
   const [isResizing, setIsResizing] = React.useState(false);
   const translationRef = React.useRef<HTMLDivElement>(null);
 
+  // State for chat sidebar width
+  const [chatWidth, setChatWidth] = React.useState(320);
+  const [isResizingChat, setIsResizingChat] = React.useState(false);
+
   // Separate teacher and students based on metadata
   const { teacher, students } = React.useMemo(() => {
     let teacherParticipant: Participant | undefined;
@@ -91,7 +95,7 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
     };
   }, [room, handleOnLeave]);
 
-  // Handle resize functionality
+  // Handle translation resize functionality
   const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     setIsResizing(true);
@@ -111,6 +115,26 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
     setIsResizing(false);
   }, []);
 
+  // Handle chat resize functionality
+  const handleChatMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingChat(true);
+  }, []);
+
+  const handleChatMouseMove = React.useCallback((e: MouseEvent) => {
+    if (!isResizingChat) return;
+
+    const newWidth = window.innerWidth - e.clientX;
+    // Constrain width between 250px and 600px
+    if (newWidth >= 250 && newWidth <= 600) {
+      setChatWidth(newWidth);
+    }
+  }, [isResizingChat]);
+
+  const handleChatMouseUp = React.useCallback(() => {
+    setIsResizingChat(false);
+  }, []);
+
   React.useEffect(() => {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -127,6 +151,23 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
       };
     }
   }, [isResizing, handleMouseMove, handleMouseUp]);
+
+  React.useEffect(() => {
+    if (isResizingChat) {
+      document.addEventListener('mousemove', handleChatMouseMove);
+      document.addEventListener('mouseup', handleChatMouseUp);
+      // Add no-select class to body during resize
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+
+      return () => {
+        document.removeEventListener('mousemove', handleChatMouseMove);
+        document.removeEventListener('mouseup', handleChatMouseUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      };
+    }
+  }, [isResizingChat, handleChatMouseMove, handleChatMouseUp]);
 
   const isTeacher = userRole === 'teacher';
 
@@ -222,11 +263,25 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
             )}
           </div>
 
-          {/* Chat sidebar - always rendered but visibility controlled by CSS */}
-          <Chat
-            className={styles.chatSidebar}
-            style={{ display: widget.state?.showChat ? '' : 'none' }}
-          />
+          {/* Chat sidebar - wrapped for resize but no forced layout */}
+          <div
+            className={styles.chatWrapper}
+            style={{
+              display: widget.state?.showChat ? '' : 'none',
+              width: `${chatWidth}px`,
+              position: 'relative'
+            }}
+          >
+            {/* Resize handle on the left edge */}
+            <div
+              className={styles.chatResizeHandle}
+              onMouseDown={handleChatMouseDown}
+              title="Drag to resize"
+            >
+              <div className={styles.chatResizeGrip} />
+            </div>
+            <Chat className={styles.chatSidebar} style={{ width: '100%', height: '100%' }} />
+          </div>
         </div>
 
         {/* Students grid section - Fixed at bottom */}
