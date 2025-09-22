@@ -30,6 +30,42 @@
   min-height: 0; /* Allow shrinking */
 }
 
+/* Main Video Section - Teacher and Speaking Students */
+.mainVideoSection {
+  flex: 1;
+  background: var(--lk-background-2);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 1rem 1rem 0 1rem; /* Remove bottom margin to fix alignment */
+  min-height: 0; /* Allow shrinking */
+}
+
+/* Grid layout for teacher and speaking students */
+.mainVideoGrid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  /* Dynamic grid based on number of participants */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-auto-rows: 1fr;
+}
+
+/* Adjust grid for 2 participants (side by side) */
+.mainVideoGrid:has(> :nth-child(2):last-child) {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Adjust grid for 3+ participants */
+.mainVideoGrid:has(> :nth-child(3)) {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
 /* Teacher Section - Large Video */
 .teacherSection {
   flex: 1;
@@ -44,13 +80,20 @@
   min-height: 0; /* Allow shrinking */
 }
 
-.teacherVideo {
+.teacherVideo, .speakingStudentVideo {
   width: 100%;
   height: 100%;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 6px;
+  background: var(--lk-background);
+}
+
+/* Speaking student video - no special border, LiveKit handles speaking indicator */
+.speakingStudentVideo {
+  /* Using same styling as teacher video, LiveKit will add speaking indicator */
 }
 
 .teacherTrack {
@@ -59,28 +102,14 @@
   position: relative;
 }
 
-.teacherTile {
+.teacherTile, .speakerTile {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
-/* ParticipantTile adds .lk-participant-tile and .lk-speaking classes automatically */
-.teacherTile :global(.lk-participant-tile.lk-speaking) {
-  /* Green glow for speaking teacher */
-  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.6);
-  animation: speaking-pulse 1.5s ease-in-out infinite;
-  border-radius: 8px;
-}
-
-@keyframes speaking-pulse {
-  0%, 100% {
-    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.6);
-  }
-  50% {
-    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0.3);
-  }
-}
+/* LiveKit's native .lk-speaking class will handle the speaking indicator automatically */
+/* No custom override needed - will use LiveKit's default blue indicator */
 
 .videoTrack {
   width: 100%;
@@ -357,32 +386,46 @@
   grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
   gap: 0.5rem;
   overflow-y: auto;
+  overflow-x: visible; /* Allow dropdown to extend horizontally */
   max-height: calc(100% - 50px); /* Account for header */
+  padding-right: 10px; /* Add padding for dropdown space */
 }
 
 .studentTile {
   aspect-ratio: 4/3;
   background: var(--lk-background);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible; /* Changed to visible for dropdown */
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   max-height: 120px; /* Constrain height */
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
 }
+
+/* Speaking student - no special highlighting, using LiveKit's native indicator instead */
 
 .studentBadge {
   position: absolute;
   top: 0.25rem;
-  right: 0.25rem;
+  left: 0.25rem;
   background: rgba(33, 150, 243, 0.9);
   color: white;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.75rem;
-  z-index: 10;
+  z-index: 20;
 }
+
+/* Speaking student badge - shows microphone icon */
+.studentTile.speaking .studentBadge {
+  background: rgba(33, 150, 243, 0.9); /* Blue instead of green */
+  animation: pulse 2s infinite;
+}
+
+/* Removed speaking students section - now using unified grid with highlighting */
 
 .studentVideo {
   width: 100%;
@@ -558,6 +601,8 @@
   .studentTile {
     max-height: 90px;
   }
+
+  /* Speaking students use LiveKit's native indicator on mobile too */
 
   .roleBadge {
     font-size: 0.8rem;

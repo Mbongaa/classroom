@@ -70,7 +70,7 @@ Token structure includes metadata with role information for client-side UI adapt
 
 ### Classroom Feature Implementation
 
-The codebase includes classroom features for educational use (Phases 1-4 complete):
+The codebase includes classroom features for educational use (Phases 1-5 complete, 42% of roadmap):
 
 **Phase 1 - Role-Based Access**:
 - Token generation with teacher/student permissions
@@ -96,14 +96,27 @@ The codebase includes classroom features for educational use (Phases 1-4 complet
 - Unified dark theme
 - LiveKit-compliant implementations
 
+**Phase 5 - Teacher Permission Controls (COMPLETED)**:
+- LiveKit updateParticipant API for dynamic permissions (best practice)
+- Real-time permission updates without reconnection
+- Portal-based dropdown UI (floating above all content)
+- Grant/Revoke speaking permissions
+- Remove participant functionality
+- No token regeneration needed (server-side updates)
+
 **Usage**:
 - Teachers: Start classroom → optionally set PIN → share generated link
 - Students: Click teacher's link → enter name → join as listener
 
 **Testing**: Test utilities at `/test-classroom` with role selection UI
 
-See `CLASSROOM_PHASE_1.md`, `CLASSROOM_PHASE_2.md`, `CLASSROOM_PHASE_3.md`, and `CLASSROOM_PHASE_4.md` for implementation details.
-See `CLASSROOM_ROADMAP.md` for next phases (Phase 5: Teacher Controls Component ready to start).
+See `CLASSROOM_PHASE_1.md` through `CLASSROOM_PHASE_5.md` for implementation details.
+See `CLASSROOM_ROADMAP.md` for next phases (Phase 6: Student Request Button ready to start).
+
+**Important Notes**:
+- Translation sidebar exists but is UI-only (no actual translation functionality)
+- Phase 7 (Permissions API) removed from roadmap as Phase 5 already implements this
+- updateParticipant API confirmed as LiveKit best practice for dynamic permissions
 
 ### LiveKit Integration
 

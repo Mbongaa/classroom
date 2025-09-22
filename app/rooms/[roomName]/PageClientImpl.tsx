@@ -350,7 +350,8 @@ function VideoConferenceComponent(props: {
               });
             }
           } else {
-            console.log('Joined as student - media publishing disabled');
+            console.log('Joined as student - media publishing disabled by token permissions');
+            // Students have canPublish: false in their token, so no need to disable
           }
         })
         .catch((error) => {

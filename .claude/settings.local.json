@@ -26,7 +26,10 @@
       "mcp__playwright__browser_navigate",
       "mcp__playwright__browser_install",
       "mcp__playwright__browser_close",
-      "mcp__playwright__browser_tabs"
+      "mcp__playwright__browser_tabs",
+      "WebSearch",
+      "WebFetch(domain:docs.livekit.io)",
+      "Bash(pnpm list:*)"
     ],
     "deny": [],
     "ask": []

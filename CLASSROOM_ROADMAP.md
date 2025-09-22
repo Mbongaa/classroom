@@ -1,26 +1,22 @@
 # LiveKit Meet Classroom Feature Roadmap
 
-## 🎯 PHASE 4 COMPLETED - READY FOR PHASE 5
+## 🎯 PHASE 5 COMPLETED - READY FOR PHASE 6
 
 ### Quick Start for Next Developer/Session
 
-**Current Status**: Phases 1-4 complete, ready to implement Phase 5 - Teacher Controls Component
+**Current Status**: Phases 1-5 complete (42% of total roadmap), ready to implement Phase 6 - Student Request Button
 
-**Last Completed**: Phase 4 - UI Enhancements & Bug Fixes with:
-- Fixed audio routing for teacher's microphone
-- Resolved duplicate teacher section bug
-- Added speaking indicator for teacher
-- Fixed chat message persistence issue
-- Implemented resizable translation sidebar for students
-- Added resizable chat sidebar
-- Unified dark theme across all components
-- Fixed visual alignment issues
+**Last Completed**: Phase 5 - Teacher Permission Controls with:
+- ✅ Dynamic permission updates using LiveKit's updateParticipant API (Best Practice)
+- ✅ No page reload/reconnection required - permissions update in real-time
+- ✅ Portal-based dropdown menu to avoid UI overflow issues
+- ✅ Native LiveKit speaking indicators (blue) for consistency
+- ✅ Grant/Revoke speaking permissions for students
+- ✅ Remove participant functionality fully working
+- ✅ Agent/bot filtering from UI
+- ✅ Students can enable camera/mic immediately after permission grant
 
-**Phase 5 Goal**: Create teacher moderation and control features:
-- Build TeacherControls.tsx component
-- Implement student management features (mute/unmute)
-- Add classroom moderation tools
-- Create quick actions panel for teachers
+**Phase 5 Achievement**: Full teacher control system using LiveKit's official updateParticipant API pattern, confirmed as best practice per LiveKit documentation. No token regeneration needed.
 
 **Key Files to Enhance**:
 1. Create `/app/rooms/[roomName]/ClassroomVideoConference.tsx` - Enhanced conference component
@@ -106,11 +102,12 @@
 
 ---
 
-### 📕 Phase 5: Create Teacher Controls Component
+### ✅ Phase 5: Teacher Permission Controls (COMPLETED)
 
-**Status**: Not Started → NEXT TO IMPLEMENT
-**Priority**: High
-**Estimated Effort**: 3-4 days
+**Status**: Fully Completed - Production Ready
+**Completion Date**: December 2024
+**Actual Effort**: 2 days
+**Implementation**: Using LiveKit updateParticipant API (Official Best Practice)
 
 #### Objectives:
 
@@ -140,79 +137,119 @@
 
 ---
 
-### 📕 Phase 5: Create Teacher Controls Component
+#### Completed Features:
 
-**Status**: Not Started
+- ✅ Permission dropdown on student avatars (Portal-based for better UI)
+- ✅ Grant/Revoke speaking permissions dynamically
+- ✅ LiveKit updateParticipant API integration (no token regeneration)
+- ✅ Real-time permission updates without page reload
+- ✅ Student notification system for permission changes
+- ✅ Remove participant from classroom functionality
+- ✅ Native LiveKit speaking indicators (blue)
+- ✅ Agent/bot filtering from student grid
+
+#### Technical Implementation:
+
+```typescript
+// Using LiveKit's updateParticipant for dynamic permissions
+await roomService.updateParticipant(
+  roomName,
+  studentIdentity,
+  metadata, // Update role metadata
+  { // Update permissions dynamically
+    canPublish: action === 'grant',
+    canPublishData: true,
+    canSubscribe: true
+  }
+);
+```
+
+#### Key Files:
+- `/lib/PermissionDropdownPortal.tsx` - Portal-based dropdown UI
+- `/app/api/update-student-permission/route.ts` - Permission update API
+- `/app/api/remove-participant/route.ts` - Remove student API
+
+---
+
+### 📓 Phase 6: Student Request System with Voice/Text Options
+
+**Status**: Not Started → NEXT TO IMPLEMENT
 **Priority**: High
 **Estimated Effort**: 3-4 days
 
 #### Objectives:
 
-- Build `TeacherControls.tsx` component
-- Implement student management features
-- Add classroom moderation tools
-- Create quick actions panel
+- Build dual-mode request system (voice and text questions)
+- Implement floating raise hand button for students
+- Add request mode selection modal
+- Create visual indicators and question bubbles
+- Build teacher request queue panel
 
-#### Control Features:
+#### Core Components:
+
+1. **`StudentRequestButton.tsx`** - Floating button (like translation button)
+2. **`RequestModeModal.tsx`** - Choose between voice/text mode
+3. **`RequestIndicator.tsx`** - ✋ icon on student avatar
+4. **`QuestionBubble.tsx`** - Floating text display for questions
+5. **`TeacherRequestPanel.tsx`** - Queue management for teacher
+
+#### User Flow:
+
+**Student Side**:
+1. Click floating raise hand button
+2. Choose mode:
+   - **Voice Mode**: Request to speak → Wait for approval → Join speaker grid
+   - **Text Mode**: Type question → Submit → Question bubble ready
+3. Visual indicator (✋) appears on avatar
+4. For text: Question appears as bubble when clicked
+
+**Teacher Side**:
+1. See request in queue panel (with question text if applicable)
+2. For voice: Grant speaking permission (Phase 5 integration)
+3. For text: Read question, display to class, mark as answered
+4. Auto-cleanup after handling
+
+#### Key Features:
+
+- ✅ Dual-mode request system (voice 🎤 or text 💬)
+- ✅ Floating raise hand button for students
+- ✅ Modal for request type selection
+- ✅ Text input interface for written questions
+- ✅ Visual indicators on avatars (✋ in top-left corner)
+- ✅ Floating question bubbles for text questions
+- ✅ Teacher queue panel with request management
+- ✅ Integration with Phase 5 permission system
+- ✅ Real-time updates via LiveKit Data Channels
+
+#### Data Structure:
 
 ```typescript
-interface TeacherControls {
-  muteAllStudents(): void;
-  grantSpeaking(studentId: string): void;
-  revokeSpeaking(studentId: string): void;
-  kickParticipant(participantId: string): void;
-  lockRoom(): void;
-  startRecording(): void;
-  endClass(): void;
+interface StudentRequest {
+  id: string;
+  studentIdentity: string;
+  studentName: string;
+  type: 'voice' | 'text';
+  question?: string; // For text requests
+  timestamp: number;
+  status: 'pending' | 'approved' | 'answered' | 'declined';
 }
 ```
 
-#### UI Components:
+#### Integration Points:
 
-- Floating control panel
-- Student list with actions
-- Quick mute/unmute all
-- Permission management modal
-- Class session timer
-
----
-
-### 📓 Phase 6: Create Student Request Button
-
-**Status**: Not Started
-**Priority**: Medium
-**Estimated Effort**: 2-3 days
-
-#### Objectives:
-
-- Build `StudentRequestButton.tsx`
-- Implement "raise hand" functionality
-- Add request queue system
-- Create notification system
-
-#### Features:
-
-- Animated raise hand button
-- Request queue display
-- Teacher notifications
-- Auto-lower after speaking
-- Request history
-
-#### Data Flow:
-
-```typescript
-// Using LiveKit Data Channel
-Student → RaiseHand → DataChannel → Teacher → Notification
-Teacher → GrantPermission → API → Token Update → Student
-```
+- LiveKit Data Channels for real-time communication
+- Phase 5 permission system for voice requests
+- Existing student/teacher role detection
+- Current UI layout and styling patterns
 
 ---
 
-### 📔 Phase 7: Create Permissions Update API
+### 📔 Phase 7: ~~Create Permissions Update API~~ (OBSOLETE)
 
-**Status**: Not Started
-**Priority**: High
-**Estimated Effort**: 2 days
+**Status**: Not Needed - Functionality implemented in Phase 5
+**Note**: Phase 5's updateParticipant API already handles all permission updates
+**Priority**: Skip - Consider removing from roadmap
+**Original Estimate**: 2 days (saved)
 
 #### Objectives:
 
@@ -434,4 +471,4 @@ gantt
 ---
 
 _This roadmap is a living document and will be updated as development progresses._
-_Last Updated: After Phase 4 Completion - UI Enhancements & Bug Fixes Complete_
+_Last Updated: After Phase 5 Completion - Teacher Permission Controls with LiveKit updateParticipant API_

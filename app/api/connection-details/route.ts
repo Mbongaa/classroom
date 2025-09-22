@@ -111,11 +111,11 @@ function createParticipantToken(
         roomRecord: true,
       };
     } else {
-      // Students start with limited permissions
+      // Students start without publish capability (will be granted by teacher)
       grant = {
         room: roomName,
         roomJoin: true,
-        canPublish: false, // Cannot publish initially
+        canPublish: false, // Cannot publish audio/video initially
         canPublishData: true, // Can still use chat
         canSubscribe: true,
         canUpdateOwnMetadata: false,

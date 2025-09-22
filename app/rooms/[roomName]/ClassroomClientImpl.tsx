@@ -21,10 +21,14 @@ import {
   Track,
   Participant,
   RoomEvent,
+  DataPacket_Kind,
+  ParticipantKind,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
+import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
+import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
 import styles from './ClassroomClient.module.css';
 
 interface ClassroomClientImplProps {
@@ -49,12 +53,49 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
   const [chatWidth, setChatWidth] = React.useState(320);
   const [isResizingChat, setIsResizingChat] = React.useState(false);
 
+  // State for permission notifications
+  const [permissionNotification, setPermissionNotification] = React.useState<any>(null);
+
+  // Determine if current user is teacher
+  const isTeacher = userRole === 'teacher';
+
+  // Determine if current user can speak based on actual permissions
+  // This will be automatically updated when permissions change
+  const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish ?? false);
+
   // Separate teacher and students based on metadata
-  const { teacher, students } = React.useMemo(() => {
+  const { teacher, allStudents, speakingStudents } = React.useMemo(() => {
     let teacherParticipant: Participant | undefined;
-    const studentParticipants: Participant[] = [];
+    const studentsList: Participant[] = [];
 
     participants.forEach(participant => {
+      // Debug logging to understand participant types
+      console.log('Participant Debug:', {
+        name: participant.name,
+        identity: participant.identity,
+        kind: participant.kind,
+        kindType: typeof participant.kind,
+        metadata: participant.metadata,
+        isLocal: participant === localParticipant,
+        // Log any other potentially relevant properties
+        permissions: participant.permissions,
+      });
+
+      // More comprehensive agent filtering
+      // Check multiple conditions to catch agent participants
+      if (
+        participant.kind === ParticipantKind.Agent ||
+        participant.kind === 'agent' ||
+        participant.kind === 'AGENT' ||
+        // Also check name and identity for agent patterns
+        (participant.name && participant.name.toLowerCase().includes('agent')) ||
+        (participant.identity && participant.identity.toLowerCase().includes('agent')) ||
+        (participant.identity && participant.identity.toLowerCase().includes('bot'))
+      ) {
+        console.log('Filtering out agent participant:', participant.name || participant.identity, 'kind:', participant.kind);
+        return; // Skip agent participants - they shouldn't appear in the UI
+      }
+
       // Check participant metadata for role
       const metadata = participant.metadata ? JSON.parse(participant.metadata) : {};
       const participantRole = metadata.role || (participant === localParticipant ? userRole : 'student');
@@ -62,13 +103,20 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
       if (participantRole === 'teacher') {
         teacherParticipant = participant;
       } else {
-        studentParticipants.push(participant);
+        studentsList.push(participant);
       }
+    });
+
+    // Filter speaking students for main video area
+    const speakingStudentsList = studentsList.filter(s => {
+      const meta = s.metadata ? JSON.parse(s.metadata) : {};
+      return meta.role === 'student_speaker';
     });
 
     return {
       teacher: teacherParticipant,
-      students: studentParticipants,
+      allStudents: studentsList, // All students for bottom section
+      speakingStudents: speakingStudentsList, // Only speaking students for main video
     };
   }, [participants, localParticipant, userRole]);
 
@@ -78,22 +126,99 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
     teacher ? { participant: teacher } : undefined
   );
 
-  // Get tracks for students
+  // Get tracks for all students
   const studentTracks = useTracks(
     [Track.Source.Camera, Track.Source.Microphone],
-    { participants: students }
+    { participants: allStudents }
   );
 
   const handleOnLeave = React.useCallback(() => {
     router.push('/');
   }, [router]);
 
+  // Handle permission update from teacher (for teachers sending updates)
+  const handlePermissionUpdate = React.useCallback((participantIdentity: string, action: 'grant' | 'revoke') => {
+    // Send data channel message to notify the student
+    const message = {
+      type: 'permission_update',
+      action,
+      targetParticipant: participantIdentity,
+      timestamp: Date.now(),
+    };
+
+    const encoder = new TextEncoder();
+    room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(message)),
+      DataPacket_Kind.RELIABLE
+    );
+  }, [room]);
+
+  // Handle receiving permission updates (for students)
+  const handleDataReceived = React.useCallback((data: Uint8Array, participant?: Participant) => {
+    try {
+      const decoder = new TextDecoder();
+      const message = JSON.parse(decoder.decode(data));
+
+      if (message.type === 'permission_update' && message.targetParticipant === localParticipant.identity) {
+        // Show notification to student about permission change
+        // No need to fetch token or reconnect - LiveKit handles permissions automatically
+        setPermissionNotification({
+          type: message.action,
+          message: message.action === 'grant'
+            ? 'Your teacher has granted you speaking permission. You can now use your microphone and camera.'
+            : 'Your speaking permission has been revoked.',
+        });
+      }
+    } catch (error) {
+      console.error('Error parsing data channel message:', error);
+    }
+  }, [localParticipant]);
+
+  // Handle accepting permission grant (for students)
+  const handleAcceptPermission = React.useCallback(() => {
+    // No reconnection needed! Just close the notification
+    // LiveKit has already updated the permissions server-side
+    setPermissionNotification(null);
+
+    // The ControlBar will automatically show/hide based on updated permissions
+    // which LiveKit handles through the ParticipantPermissionChanged event
+    console.log('Permission update acknowledged');
+  }, []);
+
+  // Handle declining permission grant
+  const handleDeclinePermission = React.useCallback(() => {
+    setPermissionNotification(null);
+  }, []);
+
+  // Handle dismissing notification
+  const handleDismissNotification = React.useCallback(() => {
+    setPermissionNotification(null);
+  }, []);
+
+  // Handle when permissions change (LiveKit automatically updates)
+  const handlePermissionChanged = React.useCallback(() => {
+    // The canSpeak variable will automatically update since it reads from localParticipant.permissions
+    // This will trigger a re-render and update the ControlBar
+    console.log('Permissions changed:', localParticipant?.permissions);
+
+    // Force a re-render to update the UI
+    // The ControlBar will automatically show/hide controls based on new permissions
+  }, [localParticipant]);
+
   React.useEffect(() => {
     room.on(RoomEvent.Disconnected, handleOnLeave);
+    room.on(RoomEvent.DataReceived, handleDataReceived);
+    room.on(RoomEvent.ParticipantPermissionsChanged, handlePermissionChanged);
+
+    // Note: Student media is disabled in PageClientImpl right after room connection
+    // This ensures it's disabled before the UI renders
+
     return () => {
       room.off(RoomEvent.Disconnected, handleOnLeave);
+      room.off(RoomEvent.DataReceived, handleDataReceived);
+      room.off(RoomEvent.ParticipantPermissionsChanged, handlePermissionChanged);
     };
-  }, [room, handleOnLeave]);
+  }, [room, handleOnLeave, handleDataReceived, handlePermissionChanged]);
 
   // Handle translation resize functionality
   const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
@@ -169,7 +294,16 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
     }
   }, [isResizingChat, handleChatMouseMove, handleChatMouseUp]);
 
-  const isTeacher = userRole === 'teacher';
+  // Generate a simple teacher authentication token for API calls
+  // In production, this should be a proper JWT token from your authentication system
+  const teacherAuthToken = React.useMemo(() => {
+    if (isTeacher && localParticipant) {
+      // For now, we'll use a placeholder token that includes the room name and teacher identity
+      // The API endpoint will need to be updated to handle this appropriately
+      return `teacher_${room.name}_${localParticipant.identity}`;
+    }
+    return null;
+  }, [isTeacher, localParticipant, room.name]);
 
   return (
     <div className={styles.classroomContainer} data-lk-theme="default">
@@ -222,43 +356,106 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
             </div>
           )}
 
-          {/* Teacher video section - large display */}
-          <div className={styles.teacherSection}>
-            {teacher ? (
-              <div className={styles.teacherVideo}>
-                {/* Teacher role badge */}
-                <div className={styles.roleBadge}>
-                  👨‍🏫 Teacher
-                </div>
-
-                {/* Use ParticipantTile for automatic speaking indicator */}
-                {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
-                  <ParticipantTile
-                    trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
-                    className={styles.teacherTile}
-                    disableSpeakingIndicator={false}
-                  />
-                ) : (
-                  <div className={styles.noVideoPlaceholder}>
-                    <div className={styles.avatarPlaceholder}>👨‍🏫</div>
-                    <div className={styles.participantName}>
-                      {teacher.name || 'Teacher'}
+          {/* Main video section - Teacher and speaking students grid */}
+          <div className={styles.mainVideoSection}>
+            {teacher || speakingStudents.length > 0 ? (
+              <div className={styles.mainVideoGrid}>
+                {/* Teacher video */}
+                {teacher && (
+                  <div className={styles.teacherVideo}>
+                    {/* Teacher role badge */}
+                    <div className={styles.roleBadge}>
+                      👨‍🏫 Teacher
                     </div>
-                    <div className={styles.noVideoText}>Camera Off</div>
+
+                    {/* Use ParticipantTile for automatic speaking indicator */}
+                    {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
+                      <ParticipantTile
+                        trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
+                        className={styles.teacherTile}
+                        disableSpeakingIndicator={false}
+                      />
+                    ) : (
+                      <div className={styles.noVideoPlaceholder}>
+                        <div className={styles.avatarPlaceholder}>👨‍🏫</div>
+                        <div className={styles.participantName}>
+                          {teacher.name || 'Teacher'}
+                        </div>
+                        <div className={styles.noVideoText}>Camera Off</div>
+                      </div>
+                    )}
+
+                    {/* Render audio tracks invisibly for proper audio playback */}
+                    {teacherTracks
+                      .filter(track => isTrackReference(track) && track.publication.kind === 'audio')
+                      .map((track) => (
+                        <AudioTrack key={track.publication.trackSid} trackRef={track} />
+                      ))}
                   </div>
                 )}
 
-                {/* Render audio tracks invisibly for proper audio playback */}
-                {teacherTracks
-                  .filter(track => isTrackReference(track) && track.publication.kind === 'audio')
-                  .map((track) => (
-                    <AudioTrack key={track.publication.trackSid} trackRef={track} />
-                  ))}
+                {/* Speaking students videos */}
+                {speakingStudents.map((student) => {
+                  const studentTrack = studentTracks.find(
+                    track => isTrackReference(track) &&
+                    track.participant === student &&
+                    track.publication.kind === 'video'
+                  );
+                  const audioTrack = studentTracks.find(
+                    track => isTrackReference(track) &&
+                    track.participant === student &&
+                    track.publication.kind === 'audio'
+                  );
+
+                  const metadata = student.metadata ? JSON.parse(student.metadata) : {};
+
+                  return (
+                    <div key={student.identity} className={styles.speakingStudentVideo}>
+                      {/* Speaking student badge */}
+                      <div className={styles.roleBadge}>
+                        🎤 Speaker
+                      </div>
+
+                      {/* Permission dropdown for teachers */}
+                      {isTeacher && teacherAuthToken && (
+                        <PermissionDropdownPortal
+                          participant={student}
+                          roomName={room.name}
+                          teacherToken={teacherAuthToken}
+                          onPermissionUpdate={handlePermissionUpdate}
+                          currentRole={metadata.role || 'student_speaker'}
+                        />
+                      )}
+
+                      {/* Video or placeholder */}
+                      {studentTrack ? (
+                        <ParticipantTile
+                          trackRef={studentTrack}
+                          className={styles.speakerTile}
+                          disableSpeakingIndicator={false}
+                        />
+                      ) : (
+                        <div className={styles.noVideoPlaceholder}>
+                          <div className={styles.avatarPlaceholder}>🎤</div>
+                          <div className={styles.participantName}>
+                            {student.name || 'Student'}
+                          </div>
+                          <div className={styles.noVideoText}>Camera Off</div>
+                        </div>
+                      )}
+
+                      {/* Audio track */}
+                      {audioTrack && (
+                        <AudioTrack trackRef={audioTrack} />
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className={styles.waitingForTeacher}>
                 <div className={styles.waitingIcon}>⏳</div>
-                <div className={styles.waitingText}>Waiting for teacher to join...</div>
+                <div className={styles.waitingText}>Waiting for participants...</div>
               </div>
             )}
           </div>
@@ -284,34 +481,45 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
           </div>
         </div>
 
-        {/* Students grid section - Fixed at bottom */}
+        {/* All Students section - Fixed at bottom */}
         <div className={styles.studentsSection}>
           <div className={styles.sectionHeader}>
-            <h3>Students ({students.length})</h3>
+            <h3>All Students ({allStudents.length})</h3>
           </div>
 
           <div className={styles.studentsGrid}>
-            {students.length > 0 ? (
-              students.map((student) => {
-                const studentTrack = studentTracks.find(
-                  track => isTrackReference(track) && track.participant === student
-                );
+            {allStudents.length > 0 ? (
+              allStudents.map((student) => {
+                const metadata = student.metadata ? JSON.parse(student.metadata) : {};
+                const isSpeaking = metadata.role === 'student_speaker';
 
                 return (
-                  <div key={student.identity} className={styles.studentTile}>
-                    {/* Student role badge */}
-                    <div className={styles.studentBadge}>👨‍🎓</div>
+                  <div
+                    key={student.identity}
+                    className={`${styles.studentTile} ${isSpeaking ? styles.speaking : ''}`}
+                  >
+                    {/* Student badge - microphone for speakers, student for listeners */}
+                    <div className={styles.studentBadge}>
+                      {isSpeaking ? '🎤' : '👨‍🎓'}
+                    </div>
 
-                    {studentTrack && isTrackReference(studentTrack) && studentTrack.publication.kind === 'video' ? (
-                      <VideoTrack
-                        trackRef={studentTrack}
-                        className={styles.studentVideo}
+                    {/* Permission dropdown for teachers */}
+                    {isTeacher && teacherAuthToken && (
+                      <PermissionDropdownPortal
+                        participant={student}
+                        roomName={room.name}
+                        teacherToken={teacherAuthToken}
+                        onPermissionUpdate={handlePermissionUpdate}
+                        currentRole={metadata.role || 'student'}
                       />
-                    ) : (
-                      <div className={styles.studentNoVideo}>
-                        <div className={styles.studentAvatar}>👨‍🎓</div>
-                      </div>
                     )}
+
+                    {/* Student avatar */}
+                    <div className={styles.studentNoVideo}>
+                      <div className={styles.studentAvatar}>
+                        {isSpeaking ? '🎤' : '👨‍🎓'}
+                      </div>
+                    </div>
 
                     <div className={styles.studentName}>
                       {student.name || 'Student'}
@@ -321,7 +529,7 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
               })
             ) : (
               <div className={styles.noStudents}>
-                <p>No students have joined yet</p>
+                <p>No students in the classroom</p>
               </div>
             )}
           </div>
@@ -333,8 +541,8 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
         <ControlBar
           variation="minimal"
           controls={{
-            microphone: isTeacher,
-            camera: isTeacher,
+            microphone: canSpeak, // Only show if teacher or speaking student
+            camera: canSpeak, // Only show if teacher or speaking student
             chat: true,
             screenShare: isTeacher,
             leave: true
@@ -357,6 +565,17 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
       {/* Additional UI elements */}
       {isTeacher && <CopyStudentLinkButton />}
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
+
+      {/* Permission notification for students */}
+      {!isTeacher && (
+        <StudentPermissionNotification
+          notification={permissionNotification}
+          room={room}
+          onAccept={handleAcceptPermission}
+          onDecline={handleDeclinePermission}
+          onDismiss={handleDismissNotification}
+        />
+      )}
     </div>
   );
 }
