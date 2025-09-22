@@ -15,6 +15,7 @@ import {
   useConnectionState,
   isTrackReference,
   useLayoutContext,
+  ParticipantTile,
 } from '@livekit/components-react';
 import {
   Track,
@@ -38,8 +39,11 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
   const participants = useParticipants();
   const { widget } = useLayoutContext(); // Get widget state for chat visibility
 
-  // State for translation panel visibility (only for students)
+  // State for translation panel visibility and width (only for students)
   const [showTranslation, setShowTranslation] = React.useState(false);
+  const [translationWidth, setTranslationWidth] = React.useState(320);
+  const [isResizing, setIsResizing] = React.useState(false);
+  const translationRef = React.useRef<HTMLDivElement>(null);
 
   // Separate teacher and students based on metadata
   const { teacher, students } = React.useMemo(() => {
@@ -66,7 +70,7 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
 
   // Get video and audio tracks for the teacher
   const teacherTracks = useTracks(
-    [Track.Source.Camera, Track.Source.ScreenShare],
+    [Track.Source.Camera, Track.Source.Microphone, Track.Source.ScreenShare],
     teacher ? { participant: teacher } : undefined
   );
 
@@ -87,6 +91,43 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
     };
   }, [room, handleOnLeave]);
 
+  // Handle resize functionality
+  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+  }, []);
+
+  const handleMouseMove = React.useCallback((e: MouseEvent) => {
+    if (!isResizing) return;
+
+    const newWidth = e.clientX;
+    // Constrain width between 250px and 600px
+    if (newWidth >= 250 && newWidth <= 600) {
+      setTranslationWidth(newWidth);
+    }
+  }, [isResizing]);
+
+  const handleMouseUp = React.useCallback(() => {
+    setIsResizing(false);
+  }, []);
+
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      // Add no-select class to body during resize
+      document.body.style.userSelect = 'none';
+      document.body.style.cursor = 'ew-resize';
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+      };
+    }
+  }, [isResizing, handleMouseMove, handleMouseUp]);
+
   const isTeacher = userRole === 'teacher';
 
   return (
@@ -94,138 +135,142 @@ export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
       {/* Connection state notification */}
       <ConnectionStateToast />
 
-      {/* Main container that will have translation, video, and chat */}
+      {/* Main container with column layout */}
       <div className={styles.mainContainer}>
-        {/* Translation sidebar - only for students, toggleable from left */}
-        {!isTeacher && (
-          <div
-            className={styles.translationSidebar}
-            style={{ display: showTranslation ? 'flex' : 'none' }}
-          >
-            <div className={styles.translationHeader}>
-              <h3 className={styles.translationTitle}>🌐 Live Translation</h3>
-              <button
-                className={styles.translationCloseButton}
-                onClick={() => setShowTranslation(false)}
-                aria-label="Close translation"
+        {/* Video area - contains teacher video and sidebars */}
+        <div className={styles.videoArea}>
+          {/* Translation sidebar - only for students, toggleable from left */}
+          {!isTeacher && (
+            <div
+              ref={translationRef}
+              className={styles.translationSidebar}
+              style={{
+                display: showTranslation ? 'flex' : 'none',
+                width: `${translationWidth}px`
+              }}
+            >
+              <div className={styles.translationHeader}>
+                <h3 className={styles.translationTitle}>🌐 Live Translation</h3>
+                <button
+                  className={styles.translationCloseButton}
+                  onClick={() => setShowTranslation(false)}
+                  aria-label="Close translation"
+                >
+                  ×
+                </button>
+              </div>
+              <div className={styles.translationContent}>
+                <div className={styles.translationPlaceholder}>
+                  <div className={styles.translationEmptyIcon}>📝</div>
+                  <p className={styles.translationEmptyText}>
+                    Real-time transcription and translation will appear here
+                  </p>
+                  <p className={styles.translationComingSoon}>
+                    Feature coming soon...
+                  </p>
+                </div>
+              </div>
+              {/* Resize handle at bottom-right corner */}
+              <div
+                className={styles.resizeHandle}
+                onMouseDown={handleMouseDown}
+                title="Drag to resize"
               >
-                ×
-              </button>
-            </div>
-            <div className={styles.translationContent}>
-              <div className={styles.translationPlaceholder}>
-                <div className={styles.translationEmptyIcon}>📝</div>
-                <p className={styles.translationEmptyText}>
-                  Real-time transcription and translation will appear here
-                </p>
-                <p className={styles.translationComingSoon}>
-                  Feature coming soon...
-                </p>
+                <div className={styles.resizeGrip} />
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Main classroom layout */}
-        <div className={styles.classroomLayout}>
-            {/* Teacher video section - large display */}
-            <div className={styles.teacherSection}>
-              {teacher ? (
-                <div className={styles.teacherVideo}>
-                  {/* Teacher role badge */}
-                  <div className={styles.roleBadge}>
-                    👨‍🏫 Teacher
-                  </div>
-
-                  {/* Render teacher video/screen share */}
-                  {teacherTracks.length > 0 ? (
-                    teacherTracks.map((track) => {
-                      if (!isTrackReference(track)) return null;
-
-                      return (
-                        <div key={track.publication.trackSid} className={styles.teacherTrack}>
-                          {track.publication.kind === 'video' ? (
-                            <VideoTrack
-                              trackRef={track}
-                              className={styles.videoTrack}
-                            />
-                          ) : null}
-                          {track.publication.kind === 'audio' && (
-                            <AudioTrack trackRef={track} />
-                          )}
-                          <div className={styles.participantName}>
-                            {track.participant.name || 'Teacher'}
-                          </div>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <div className={styles.noVideoPlaceholder}>
-                      <div className={styles.avatarPlaceholder}>👨‍🏫</div>
-                      <div className={styles.participantName}>
-                        {teacher.name || 'Teacher'}
-                      </div>
-                      <div className={styles.noVideoText}>Camera Off</div>
-                    </div>
-                  )}
+          {/* Teacher video section - large display */}
+          <div className={styles.teacherSection}>
+            {teacher ? (
+              <div className={styles.teacherVideo}>
+                {/* Teacher role badge */}
+                <div className={styles.roleBadge}>
+                  👨‍🏫 Teacher
                 </div>
-              ) : (
-                <div className={styles.waitingForTeacher}>
-                  <div className={styles.waitingIcon}>⏳</div>
-                  <div className={styles.waitingText}>Waiting for teacher to join...</div>
-                </div>
-              )}
-            </div>
 
-            {/* Students grid section */}
-            <div className={styles.studentsSection}>
-              <div className={styles.sectionHeader}>
-                <h3>Students ({students.length})</h3>
-              </div>
-
-              <div className={styles.studentsGrid}>
-                {students.length > 0 ? (
-                  students.map((student) => {
-                    const studentTrack = studentTracks.find(
-                      track => isTrackReference(track) && track.participant === student
-                    );
-
-                    return (
-                      <div key={student.identity} className={styles.studentTile}>
-                        {/* Student role badge */}
-                        <div className={styles.studentBadge}>👨‍🎓</div>
-
-                        {studentTrack && isTrackReference(studentTrack) && studentTrack.publication.kind === 'video' ? (
-                          <VideoTrack
-                            trackRef={studentTrack}
-                            className={styles.studentVideo}
-                          />
-                        ) : (
-                          <div className={styles.studentNoVideo}>
-                            <div className={styles.studentAvatar}>👨‍🎓</div>
-                          </div>
-                        )}
-
-                        <div className={styles.studentName}>
-                          {student.name || 'Student'}
-                        </div>
-                      </div>
-                    );
-                  })
+                {/* Use ParticipantTile for automatic speaking indicator */}
+                {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
+                  <ParticipantTile
+                    trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
+                    className={styles.teacherTile}
+                    disableSpeakingIndicator={false}
+                  />
                 ) : (
-                  <div className={styles.noStudents}>
-                    <p>No students have joined yet</p>
+                  <div className={styles.noVideoPlaceholder}>
+                    <div className={styles.avatarPlaceholder}>👨‍🏫</div>
+                    <div className={styles.participantName}>
+                      {teacher.name || 'Teacher'}
+                    </div>
+                    <div className={styles.noVideoText}>Camera Off</div>
                   </div>
                 )}
+
+                {/* Render audio tracks invisibly for proper audio playback */}
+                {teacherTracks
+                  .filter(track => isTrackReference(track) && track.publication.kind === 'audio')
+                  .map((track) => (
+                    <AudioTrack key={track.publication.trackSid} trackRef={track} />
+                  ))}
               </div>
-            </div>
+            ) : (
+              <div className={styles.waitingForTeacher}>
+                <div className={styles.waitingIcon}>⏳</div>
+                <div className={styles.waitingText}>Waiting for teacher to join...</div>
+              </div>
+            )}
           </div>
 
-        {/* Chat sidebar - will be toggled by ControlBar */}
-        <Chat
-          className={styles.chatSidebar}
-          style={{ display: widget.state?.showChat ? 'flex' : 'none' }}
-        />
+          {/* Chat sidebar - always rendered but visibility controlled by CSS */}
+          <Chat
+            className={styles.chatSidebar}
+            style={{ display: widget.state?.showChat ? '' : 'none' }}
+          />
+        </div>
+
+        {/* Students grid section - Fixed at bottom */}
+        <div className={styles.studentsSection}>
+          <div className={styles.sectionHeader}>
+            <h3>Students ({students.length})</h3>
+          </div>
+
+          <div className={styles.studentsGrid}>
+            {students.length > 0 ? (
+              students.map((student) => {
+                const studentTrack = studentTracks.find(
+                  track => isTrackReference(track) && track.participant === student
+                );
+
+                return (
+                  <div key={student.identity} className={styles.studentTile}>
+                    {/* Student role badge */}
+                    <div className={styles.studentBadge}>👨‍🎓</div>
+
+                    {studentTrack && isTrackReference(studentTrack) && studentTrack.publication.kind === 'video' ? (
+                      <VideoTrack
+                        trackRef={studentTrack}
+                        className={styles.studentVideo}
+                      />
+                    ) : (
+                      <div className={styles.studentNoVideo}>
+                        <div className={styles.studentAvatar}>👨‍🎓</div>
+                      </div>
+                    )}
+
+                    <div className={styles.studentName}>
+                      {student.name || 'Student'}
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className={styles.noStudents}>
+                <p>No students have joined yet</p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Control bar at the bottom with chat toggle */}

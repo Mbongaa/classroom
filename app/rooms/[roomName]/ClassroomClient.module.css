@@ -6,23 +6,28 @@
   position: relative;
 }
 
-/* Main container that holds both video layout and chat */
+/* Override LiveKit theme variables to unify the color scheme */
+.classroomContainer[data-lk-theme="default"] {
+  --lk-bg2: var(--lk-background); /* Make secondary background use the same dark color */
+}
+
+/* Main container with column layout */
 .mainContainer {
   flex: 1;
   display: flex;
+  flex-direction: column;
   overflow: hidden;
   position: relative;
 }
 
-/* Video layout area that shrinks when chat opens */
-.classroomLayout {
+/* Video area - contains teacher video and sidebars */
+.videoArea {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
+  flex-direction: row;
   overflow: hidden;
-  transition: all 0.3s ease;
+  position: relative;
+  min-height: 0; /* Allow shrinking */
 }
 
 /* Teacher Section - Large Video */
@@ -35,6 +40,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 1rem 1rem 0 1rem; /* Remove bottom margin to fix alignment */
   min-height: 0; /* Allow shrinking */
 }
 
@@ -51,6 +57,29 @@
   width: 100%;
   height: 100%;
   position: relative;
+}
+
+.teacherTile {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+/* ParticipantTile adds .lk-participant-tile and .lk-speaking classes automatically */
+.teacherTile :global(.lk-participant-tile.lk-speaking) {
+  /* Green glow for speaking teacher */
+  box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.6);
+  animation: speaking-pulse 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+@keyframes speaking-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0.3);
+  }
 }
 
 .videoTrack {
@@ -125,12 +154,15 @@
 
 /* Translation Sidebar - Similar to chat but on left side */
 .translationSidebar {
-  width: 320px;
+  min-width: 250px;
+  max-width: 600px;
   background: var(--lk-background-2);
   border-right: 1px solid var(--lk-border);
   flex-direction: column;
   height: 100%;
   flex-shrink: 0;
+  position: relative;
+  transition: width 0.1s ease-out;
 }
 
 .translationHeader {
@@ -201,6 +233,70 @@
   font-style: italic;
 }
 
+/* Resize Handle - positioned at bottom-right corner */
+.resizeHandle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 30px;
+  height: 30px;
+  cursor: ew-resize;
+  background: transparent;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resizeHandle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.resizeHandle:hover .resizeGrip {
+  transform: scale(1.05);
+}
+
+.resizeGrip {
+  width: 24px;
+  height: 24px;
+  position: relative;
+  opacity: 1; /* Fully visible */
+  transition: transform 0.2s ease;
+}
+
+/* Create a simple white corner triangle */
+.resizeGrip::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 0 18px 18px;
+  border-color: transparent transparent white transparent;
+  opacity: 1;
+}
+
+/* Simple white grip lines on the triangle */
+.resizeGrip::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 12px;
+  height: 12px;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.3) 2px,
+    rgba(0, 0, 0, 0.3) 3px,
+    transparent 3px,
+    transparent 5px
+  );
+}
+
 /* Translation Toggle Button - floating button for students */
 .translationToggleButton {
   position: fixed;
@@ -234,14 +330,14 @@
   transform: scale(1.05);
 }
 
-/* Students Section - Grid */
+/* Students Section - Fixed at bottom */
 .studentsSection {
-  flex-shrink: 0; /* Don't shrink */
+  height: 200px; /* Fixed height */
   background: var(--lk-background-2);
-  border-radius: 8px;
+  border-top: 1px solid var(--lk-border);
   padding: 1rem;
   overflow-y: auto;
-  max-height: 250px; /* Limit height */
+  flex-shrink: 0; /* Don't shrink */
 }
 
 .sectionHeader {
@@ -258,10 +354,10 @@
 
 .studentsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 0.75rem;
-  max-height: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.5rem;
   overflow-y: auto;
+  max-height: calc(100% - 50px); /* Account for header */
 }
 
 .studentTile {
@@ -273,6 +369,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  max-height: 120px; /* Constrain height */
 }
 
 .studentBadge {
@@ -338,17 +435,13 @@
   width: 320px;
   background: var(--lk-background-2);
   border-left: 1px solid var(--lk-border);
+  display: flex;
   flex-direction: column;
   height: 100%;
   flex-shrink: 0;
 }
 
-/* Ensure the chat component fills its container */
-.chatSidebar :global(.lk-chat) {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+/* Let LiveKit Chat component use its native styling completely */
 
 /* Control Bar */
 .controlBar {
@@ -361,9 +454,12 @@
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .classroomLayout {
-    gap: 0.5rem;
-    padding: 0.5rem;
+  .videoArea {
+    min-height: 0;
+  }
+
+  .teacherSection {
+    margin: 0.5rem;
   }
 
   .translationSidebar {
@@ -385,11 +481,15 @@
   }
 
   .studentsSection {
-    max-height: 150px;
+    height: 150px; /* Smaller fixed height on mobile */
   }
 
   .studentsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .studentTile {
+    max-height: 90px;
   }
 
   .roleBadge {
