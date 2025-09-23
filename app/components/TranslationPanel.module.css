@@ -1,0 +1,351 @@
+/* Container and layout */
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerIcon {
+  font-size: 20px;
+}
+
+.headerTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.languageBadge {
+  padding: 4px 12px;
+  background: rgba(74, 144, 226, 0.2);
+  color: #4a90e2;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(74, 144, 226, 0.3);
+}
+
+.liveIndicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 59, 48, 0.1);
+  color: #ff3b30;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  background: #ff3b30;
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+/* Translation list */
+.translationList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Scrollbar styling */
+.translationList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.translationList::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+}
+
+.translationList::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.translationList::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Translation items */
+.translationItem {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  border-left: 3px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  animation: slideIn 0.3s ease-out;
+}
+
+.translationItem:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(2px);
+}
+
+.translationItem.latest {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1) 0%, rgba(74, 144, 226, 0.05) 100%);
+  border-left-color: #4a90e2;
+  box-shadow: 0 2px 8px rgba(74, 144, 226, 0.2);
+}
+
+.translationHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.speaker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.speakerIcon {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.timestamp {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.translationText {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e5e7eb;
+  word-wrap: break-word;
+  margin-top: 4px;
+}
+
+.latest .translationText {
+  color: #ffffff;
+  font-weight: 400;
+}
+
+.latestIndicator {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+}
+
+.latestBadge {
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #4a90e2 0%, #357abd 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Status bar */
+.statusBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.4);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+
+.statusLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.statusIcon {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.statusText {
+  color: #9ca3af;
+}
+
+.statusRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.messageCount {
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+/* Empty state */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  text-align: center;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.emptyIcon {
+  position: relative;
+  margin-bottom: 24px;
+}
+
+.globeIcon {
+  font-size: 64px;
+  display: block;
+  animation: float 3s ease-in-out infinite;
+}
+
+.pulseRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(74, 144, 226, 0.4);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: pulseRing 2s ease-out infinite;
+}
+
+.emptyTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 8px;
+}
+
+.emptyDescription {
+  font-size: 14px;
+  color: #9ca3af;
+  margin-bottom: 24px;
+}
+
+.languageIndicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+}
+
+.languageLabel {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulseRing {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+}
+
+/* Responsive design */
+@media (max-width: 480px) {
+  .header {
+    padding: 12px 16px;
+  }
+
+  .translationList {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .translationItem {
+    padding: 12px;
+  }
+
+  .statusBar {
+    padding: 10px 16px;
+  }
+}

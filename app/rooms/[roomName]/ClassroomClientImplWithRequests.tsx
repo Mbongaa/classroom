@@ -29,40 +29,37 @@ import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
-import { PartyStateProvider, usePartyState } from '@/hooks/usePartyState';
-import LanguageSelect from '@/app/components/LanguageSelect';
-import Captions from '@/app/components/Captions';
+import { StudentRequestButton } from '@/lib/StudentRequestButton';
+import { TeacherRequestPanel } from '@/lib/TeacherRequestPanel';
+import { RequestIndicator } from '@/lib/RequestIndicator';
+import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
+import {
+  StudentRequest,
+  StudentRequestMessage,
+  RequestUpdateMessage,
+  RequestDisplayMessage
+} from '@/lib/types/StudentRequest';
 import styles from './ClassroomClient.module.css';
 
-interface ClassroomClientImplProps {
+interface ClassroomClientImplWithRequestsProps {
   userRole?: string | null;
 }
 
-// Wrapper component to provide state context
-export function ClassroomClientImpl({ userRole }: ClassroomClientImplProps) {
-  return (
-    <PartyStateProvider>
-      <ClassroomClientImplInner userRole={userRole} />
-    </PartyStateProvider>
-  );
-}
-
-// Inner component that uses the state context
-function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
+export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
-  const room = useRoomContext(); // Get room from context instead of props
+  const room = useRoomContext();
   const connectionState = useConnectionState();
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
-  const { widget } = useLayoutContext(); // Get widget state for chat visibility
-
-  // Caption state management
-  const { state, dispatch } = usePartyState();
+  const { widget } = useLayoutContext();
 
   // State for translation panel visibility and width (only for students)
   const [showTranslation, setShowTranslation] = React.useState(false);
   const [translationWidth, setTranslationWidth] = React.useState(320);
+
+  // Get the student's selected caption language from attributes
+  const captionsLanguage = localParticipant.attributes?.captions_language || 'en';
   const [isResizing, setIsResizing] = React.useState(false);
   const translationRef = React.useRef<HTMLDivElement>(null);
 
@@ -73,11 +70,15 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
   // State for permission notifications
   const [permissionNotification, setPermissionNotification] = React.useState<any>(null);
 
+  // State for student request system
+  const [requests, setRequests] = React.useState<StudentRequest[]>([]);
+  const [myActiveRequest, setMyActiveRequest] = React.useState<StudentRequest | null>(null);
+  const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(new Map());
+
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
 
   // Determine if current user can speak based on actual permissions
-  // This will be automatically updated when permissions change
   const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish ?? false);
 
   // Separate teacher and students based on metadata
@@ -86,31 +87,16 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     const studentsList: Participant[] = [];
 
     participants.forEach(participant => {
-      // Debug logging to understand participant types
-      console.log('Participant Debug:', {
-        name: participant.name,
-        identity: participant.identity,
-        kind: participant.kind,
-        kindType: typeof participant.kind,
-        metadata: participant.metadata,
-        isLocal: participant === localParticipant,
-        // Log any other potentially relevant properties
-        permissions: participant.permissions,
-      });
-
-      // More comprehensive agent filtering
-      // Check multiple conditions to catch agent participants
+      // Filter out agents
       if (
         participant.kind === ParticipantKind.Agent ||
         participant.kind === 'agent' ||
         participant.kind === 'AGENT' ||
-        // Also check name and identity for agent patterns
         (participant.name && participant.name.toLowerCase().includes('agent')) ||
         (participant.identity && participant.identity.toLowerCase().includes('agent')) ||
         (participant.identity && participant.identity.toLowerCase().includes('bot'))
       ) {
-        console.log('Filtering out agent participant:', participant.name || participant.identity, 'kind:', participant.kind);
-        return; // Skip agent participants - they shouldn't appear in the UI
+        return;
       }
 
       // Check participant metadata for role
@@ -132,8 +118,8 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
 
     return {
       teacher: teacherParticipant,
-      allStudents: studentsList, // All students for bottom section
-      speakingStudents: speakingStudentsList, // Only speaking students for main video
+      allStudents: studentsList,
+      speakingStudents: speakingStudentsList,
     };
   }, [participants, localParticipant, userRole]);
 
@@ -170,15 +156,169 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     );
   }, [room]);
 
-  // Handle receiving permission updates (for students)
+  // Handle student request submission
+  const handleRequestSubmit = React.useCallback((type: 'voice' | 'text', question?: string) => {
+    const request: StudentRequest = {
+      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      studentIdentity: localParticipant.identity,
+      studentName: localParticipant.name || 'Student',
+      type,
+      question,
+      timestamp: Date.now(),
+      status: 'pending',
+    };
+
+    // Update local state
+    setMyActiveRequest(request);
+    setRequests(prev => [...prev, request]);
+
+    // Send request via data channel
+    const message: StudentRequestMessage = {
+      type: 'STUDENT_REQUEST',
+      payload: request,
+    };
+
+    const encoder = new TextEncoder();
+    room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(message)),
+      DataPacket_Kind.RELIABLE
+    );
+  }, [localParticipant, room]);
+
+  // Handle teacher approving voice request
+  const handleApproveRequest = React.useCallback(async (requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request || request.type !== 'voice') return;
+
+    // Update request status
+    setRequests(prev => prev.map(r =>
+      r.id === requestId ? { ...r, status: 'approved' as const } : r
+    ));
+
+    // For voice requests, use Phase 5 permission system
+    try {
+      const response = await fetch('/api/update-student-permission', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          roomName: room.name,
+          studentIdentity: request.studentIdentity,
+          studentName: request.studentName,
+          action: 'grant',
+          teacherToken: `teacher_${room.name}_${localParticipant.identity}`,
+        }),
+      });
+
+      if (response.ok) {
+        // Send update via data channel
+        const message: RequestUpdateMessage = {
+          type: 'REQUEST_UPDATE',
+          payload: {
+            requestId,
+            status: 'approved',
+          },
+        };
+
+        const encoder = new TextEncoder();
+        room.localParticipant.publishData(
+          encoder.encode(JSON.stringify(message)),
+          DataPacket_Kind.RELIABLE
+        );
+      }
+    } catch (error) {
+      console.error('Failed to approve voice request:', error);
+    }
+  }, [requests, room, localParticipant]);
+
+  // Handle teacher declining request
+  const handleDeclineRequest = React.useCallback((requestId: string) => {
+    // Update request status
+    setRequests(prev => prev.map(r =>
+      r.id === requestId ? { ...r, status: 'declined' as const } : r
+    ));
+
+    // Send update via data channel
+    const message: RequestUpdateMessage = {
+      type: 'REQUEST_UPDATE',
+      payload: {
+        requestId,
+        status: 'declined',
+      },
+    };
+
+    const encoder = new TextEncoder();
+    room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(message)),
+      DataPacket_Kind.RELIABLE
+    );
+  }, [room]);
+
+  // Handle displaying text question to all
+  const handleDisplayQuestion = React.useCallback((requestId: string) => {
+    const request = requests.find(r => r.id === requestId);
+    if (!request || request.type !== 'text') return;
+
+    // Update display state
+    setDisplayedQuestions(prev => new Map(prev).set(requestId, request));
+
+    // Send display message via data channel
+    const message: RequestDisplayMessage = {
+      type: 'REQUEST_DISPLAY',
+      payload: {
+        requestId,
+        question: request.question || '',
+        studentName: request.studentName,
+        display: true,
+      },
+    };
+
+    const encoder = new TextEncoder();
+    room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(message)),
+      DataPacket_Kind.RELIABLE
+    );
+  }, [requests, room]);
+
+  // Handle marking question as answered
+  const handleMarkAnswered = React.useCallback((requestId: string) => {
+    // Update request status
+    setRequests(prev => prev.map(r =>
+      r.id === requestId ? { ...r, status: 'answered' as const } : r
+    ));
+
+    // Remove from displayed questions
+    setDisplayedQuestions(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(requestId);
+      return newMap;
+    });
+
+    // Send update via data channel
+    const message: RequestUpdateMessage = {
+      type: 'REQUEST_UPDATE',
+      payload: {
+        requestId,
+        status: 'answered',
+      },
+    };
+
+    const encoder = new TextEncoder();
+    room.localParticipant.publishData(
+      encoder.encode(JSON.stringify(message)),
+      DataPacket_Kind.RELIABLE
+    );
+  }, [room]);
+
+  // Handle receiving data messages
   const handleDataReceived = React.useCallback((data: Uint8Array, participant?: Participant) => {
     try {
       const decoder = new TextDecoder();
       const message = JSON.parse(decoder.decode(data));
 
+      // Handle permission updates (existing)
       if (message.type === 'permission_update' && message.targetParticipant === localParticipant.identity) {
-        // Show notification to student about permission change
-        // No need to fetch token or reconnect - LiveKit handles permissions automatically
         setPermissionNotification({
           type: message.action,
           message: message.action === 'grant'
@@ -186,20 +326,71 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
             : 'Your speaking permission has been revoked.',
         });
       }
+
+      // Handle student requests
+      if (message.type === 'STUDENT_REQUEST') {
+        const request = message.payload as StudentRequest;
+        setRequests(prev => {
+          // Avoid duplicates
+          if (prev.some(r => r.id === request.id)) return prev;
+          return [...prev, request];
+        });
+      }
+
+      // Handle request updates
+      if (message.type === 'REQUEST_UPDATE') {
+        const { requestId, status } = message.payload;
+        setRequests(prev => prev.map(r =>
+          r.id === requestId ? { ...r, status } : r
+        ));
+
+        // If it's my request and it was approved/declined, update my state
+        if (myActiveRequest?.id === requestId) {
+          if (status === 'approved' || status === 'declined' || status === 'answered') {
+            setTimeout(() => setMyActiveRequest(null), 3000);
+          }
+        }
+      }
+
+      // Handle question display
+      if (message.type === 'REQUEST_DISPLAY') {
+        const { requestId, question, studentName, display } = message.payload;
+        if (display) {
+          const displayRequest: StudentRequest = {
+            id: requestId,
+            studentIdentity: '',
+            studentName,
+            type: 'text',
+            question,
+            timestamp: Date.now(),
+            status: 'displayed',
+          };
+          setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
+
+          // Auto-hide after 30 seconds
+          setTimeout(() => {
+            setDisplayedQuestions(prev => {
+              const newMap = new Map(prev);
+              newMap.delete(requestId);
+              return newMap;
+            });
+          }, 30000);
+        } else {
+          setDisplayedQuestions(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(requestId);
+            return newMap;
+          });
+        }
+      }
     } catch (error) {
       console.error('Error parsing data channel message:', error);
     }
-  }, [localParticipant]);
+  }, [localParticipant, myActiveRequest]);
 
-  // Handle accepting permission grant (for students)
+  // Handle accepting permission grant
   const handleAcceptPermission = React.useCallback(() => {
-    // No reconnection needed! Just close the notification
-    // LiveKit has already updated the permissions server-side
     setPermissionNotification(null);
-
-    // The ControlBar will automatically show/hide based on updated permissions
-    // which LiveKit handles through the ParticipantPermissionChanged event
-    console.log('Permission update acknowledged');
   }, []);
 
   // Handle declining permission grant
@@ -212,23 +403,15 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     setPermissionNotification(null);
   }, []);
 
-  // Handle when permissions change (LiveKit automatically updates)
+  // Handle when permissions change
   const handlePermissionChanged = React.useCallback(() => {
-    // The canSpeak variable will automatically update since it reads from localParticipant.permissions
-    // This will trigger a re-render and update the ControlBar
     console.log('Permissions changed:', localParticipant?.permissions);
-
-    // Force a re-render to update the UI
-    // The ControlBar will automatically show/hide controls based on new permissions
   }, [localParticipant]);
 
   React.useEffect(() => {
     room.on(RoomEvent.Disconnected, handleOnLeave);
     room.on(RoomEvent.DataReceived, handleDataReceived);
     room.on(RoomEvent.ParticipantPermissionsChanged, handlePermissionChanged);
-
-    // Note: Student media is disabled in PageClientImpl right after room connection
-    // This ensures it's disabled before the UI renders
 
     return () => {
       room.off(RoomEvent.Disconnected, handleOnLeave);
@@ -247,7 +430,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     if (!isResizing) return;
 
     const newWidth = e.clientX;
-    // Constrain width between 250px and 600px
     if (newWidth >= 250 && newWidth <= 600) {
       setTranslationWidth(newWidth);
     }
@@ -267,7 +449,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     if (!isResizingChat) return;
 
     const newWidth = window.innerWidth - e.clientX;
-    // Constrain width between 250px and 600px
     if (newWidth >= 250 && newWidth <= 600) {
       setChatWidth(newWidth);
     }
@@ -281,7 +462,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     if (isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
-      // Add no-select class to body during resize
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'ew-resize';
 
@@ -298,7 +478,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     if (isResizingChat) {
       document.addEventListener('mousemove', handleChatMouseMove);
       document.addEventListener('mouseup', handleChatMouseUp);
-      // Add no-select class to body during resize
       document.body.style.userSelect = 'none';
       document.body.style.cursor = 'ew-resize';
 
@@ -311,16 +490,21 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
     }
   }, [isResizingChat, handleChatMouseMove, handleChatMouseUp]);
 
-  // Generate a simple teacher authentication token for API calls
-  // In production, this should be a proper JWT token from your authentication system
+  // Generate teacher auth token
   const teacherAuthToken = React.useMemo(() => {
     if (isTeacher && localParticipant) {
-      // For now, we'll use a placeholder token that includes the room name and teacher identity
-      // The API endpoint will need to be updated to handle this appropriately
       return `teacher_${room.name}_${localParticipant.identity}`;
     }
     return null;
   }, [isTeacher, localParticipant, room.name]);
+
+  // Get active request for a participant
+  const getParticipantRequest = (participantIdentity: string) => {
+    return requests.find(r =>
+      r.studentIdentity === participantIdentity &&
+      r.status === 'pending'
+    );
+  };
 
   return (
     <div className={styles.classroomContainer} data-lk-theme="default">
@@ -352,9 +536,8 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                 </button>
               </div>
               <div className={styles.translationContent}>
-                <TranslationPanel captionsLanguage={state.captionsLanguage} />
+                <TranslationPanel captionsLanguage={captionsLanguage} />
               </div>
-              {/* Resize handle at bottom-right corner */}
               <div
                 className={styles.resizeHandle}
                 onMouseDown={handleMouseDown}
@@ -367,23 +550,15 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
 
           {/* Main video section - Teacher and speaking students grid */}
           <div className={styles.mainVideoSection}>
-            {/* Captions overlay - positioned absolutely over video */}
-            <Captions
-              captionsEnabled={state.captionsEnabled}
-              captionsLanguage={state.captionsLanguage}
-            />
-
             {teacher || speakingStudents.length > 0 ? (
               <div className={styles.mainVideoGrid}>
                 {/* Teacher video */}
                 {teacher && (
                   <div className={styles.teacherVideo}>
-                    {/* Teacher role badge */}
                     <div className={styles.roleBadge}>
                       👨‍🏫 Teacher
                     </div>
 
-                    {/* Use ParticipantTile for automatic speaking indicator */}
                     {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
                       <ParticipantTile
                         trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
@@ -400,7 +575,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                       </div>
                     )}
 
-                    {/* Render audio tracks invisibly for proper audio playback */}
                     {teacherTracks
                       .filter(track => isTrackReference(track) && track.publication.kind === 'audio')
                       .map((track) => (
@@ -423,13 +597,22 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                   );
 
                   const metadata = student.metadata ? JSON.parse(student.metadata) : {};
+                  const request = getParticipantRequest(student.identity);
 
                   return (
                     <div key={student.identity} className={styles.speakingStudentVideo}>
-                      {/* Speaking student badge */}
                       <div className={styles.roleBadge}>
                         🎤 Speaker
                       </div>
+
+                      {/* Request indicator */}
+                      {request && (
+                        <RequestIndicator
+                          request={request}
+                          participantName={student.name || 'Student'}
+                          isTeacher={isTeacher}
+                        />
+                      )}
 
                       {/* Permission dropdown for teachers */}
                       {isTeacher && teacherAuthToken && (
@@ -442,7 +625,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                         />
                       )}
 
-                      {/* Video or placeholder */}
                       {studentTrack ? (
                         <ParticipantTile
                           trackRef={studentTrack}
@@ -459,7 +641,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                         </div>
                       )}
 
-                      {/* Audio track */}
                       {audioTrack && (
                         <AudioTrack trackRef={audioTrack} />
                       )}
@@ -473,9 +654,21 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                 <div className={styles.waitingText}>Waiting for participants...</div>
               </div>
             )}
+
+            {/* Display question bubbles */}
+            {Array.from(displayedQuestions.values()).map(question => (
+              <QuestionBubble
+                key={question.id}
+                question={question.question || ''}
+                studentName={question.studentName}
+                isDisplayedToAll={true}
+                position={{ x: window.innerWidth / 2 - 150, y: 100 }}
+                onClose={() => handleMarkAnswered(question.id)}
+              />
+            ))}
           </div>
 
-          {/* Chat sidebar - wrapped for resize but no forced layout */}
+          {/* Chat sidebar */}
           <div
             className={styles.chatWrapper}
             style={{
@@ -484,7 +677,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
               position: 'relative'
             }}
           >
-            {/* Resize handle on the left edge */}
             <div
               className={styles.chatResizeHandle}
               onMouseDown={handleChatMouseDown}
@@ -507,16 +699,26 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
               allStudents.map((student) => {
                 const metadata = student.metadata ? JSON.parse(student.metadata) : {};
                 const isSpeaking = metadata.role === 'student_speaker';
+                const request = getParticipantRequest(student.identity);
 
                 return (
                   <div
                     key={student.identity}
                     className={`${styles.studentTile} ${isSpeaking ? styles.speaking : ''}`}
                   >
-                    {/* Student badge - microphone for speakers, student for listeners */}
                     <div className={styles.studentBadge}>
                       {isSpeaking ? '🎤' : '👨‍🎓'}
                     </div>
+
+                    {/* Request indicator */}
+                    {request && (
+                      <RequestIndicator
+                        request={request}
+                        participantName={student.name || 'Student'}
+                        isTeacher={isTeacher}
+                        onQuestionDisplay={handleDisplayQuestion}
+                      />
+                    )}
 
                     {/* Permission dropdown for teachers */}
                     {isTeacher && teacherAuthToken && (
@@ -529,7 +731,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
                       />
                     )}
 
-                    {/* Student avatar */}
                     <div className={styles.studentNoVideo}>
                       <div className={styles.studentAvatar}>
                         {isSpeaking ? '🎤' : '👨‍🎓'}
@@ -556,38 +757,13 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
         <ControlBar
           variation="minimal"
           controls={{
-            microphone: canSpeak, // Only show if teacher or speaking student
-            camera: canSpeak, // Only show if teacher or speaking student
+            microphone: canSpeak,
+            camera: canSpeak,
             chat: true,
             screenShare: isTeacher,
             leave: true
           }}
         />
-
-        {/* Caption controls */}
-        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginLeft: '10px' }}>
-          <button
-            onClick={() => dispatch({ type: 'TOGGLE_CAPTIONS' })}
-            className={styles.captionToggleButton}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '4px',
-              border: '1px solid #ccc',
-              background: state.captionsEnabled ? '#4CAF50' : '#f0f0f0',
-              color: state.captionsEnabled ? 'white' : 'black',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            {state.captionsEnabled ? '📝 Captions ON' : '📝 Captions OFF'}
-          </button>
-
-          <LanguageSelect
-            captionsLanguage={state.captionsLanguage}
-            captionsEnabled={state.captionsEnabled}
-            onLanguageChange={(lang) => dispatch({ type: 'SET_CAPTIONS_LANGUAGE', payload: lang })}
-          />
-        </div>
       </div>
 
       {/* Translation toggle button - floating button for students */}
@@ -601,6 +777,23 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
           🌐
         </button>
       )}
+
+      {/* Student Request Button */}
+      <StudentRequestButton
+        onRequestSubmit={handleRequestSubmit}
+        hasActiveRequest={!!myActiveRequest}
+        isStudent={!isTeacher}
+      />
+
+      {/* Teacher Request Panel */}
+      <TeacherRequestPanel
+        requests={requests}
+        onApprove={handleApproveRequest}
+        onDecline={handleDeclineRequest}
+        onDisplay={handleDisplayQuestion}
+        onMarkAnswered={handleMarkAnswered}
+        isTeacher={isTeacher}
+      />
 
       {/* Additional UI elements */}
       {isTeacher && <CopyStudentLinkButton />}

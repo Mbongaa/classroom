@@ -1,0 +1,7 @@
+# Core LiveKit dependencies
+livekit-agents>=1.0
+livekit-plugins-openai[realtime]>=1.0  # Includes realtime API support
+python-dotenv~=1.0
+
+# Optional dependencies for extended functionality
+aiohttp>=3.8.0  # For async HTTP operations

@@ -118,7 +118,7 @@ function createParticipantToken(
         canPublish: false, // Cannot publish audio/video initially
         canPublishData: true, // Can still use chat
         canSubscribe: true,
-        canUpdateOwnMetadata: false,
+        canUpdateOwnMetadata: true, // Allow students to set their language preference
       };
     }
   } else {
@@ -129,6 +129,7 @@ function createParticipantToken(
       canPublish: true,
       canPublishData: true,
       canSubscribe: true,
+      canUpdateOwnMetadata: true, // Allow setting language preferences
     };
   }
 

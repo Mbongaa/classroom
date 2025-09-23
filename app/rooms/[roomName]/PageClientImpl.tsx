@@ -8,7 +8,8 @@ import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { ConnectionDetails } from '@/lib/types';
-import { ClassroomClientImpl } from './ClassroomClientImpl';
+import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
+import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
 import {
   formatChatMessageLinks,
   LocalUserChoices,
@@ -46,6 +47,7 @@ export function PageClientImpl(props: {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
   );
+  const [selectedLanguage, setSelectedLanguage] = React.useState<string>('en'); // Default to English
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
@@ -224,6 +226,22 @@ export function PageClientImpl(props: {
               onSubmit={handlePreJoinSubmit}
               onError={handlePreJoinError}
             />
+            {/* Language selection for students and teachers in classroom mode */}
+            {(classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher') && (
+              <div style={{
+                marginTop: '20px',
+                padding: '15px',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '8px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
+                <PreJoinLanguageSelect
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={setSelectedLanguage}
+                  isTeacher={classroomInfo?.role === 'teacher'}
+                />
+              </div>
+            )}
           </div>
         </div>
       ) : (
@@ -231,6 +249,8 @@ export function PageClientImpl(props: {
           connectionDetails={connectionDetails}
           userChoices={preJoinChoices}
           options={{ codec: props.codec, hq: props.hq }}
+          selectedLanguage={selectedLanguage}
+          classroomRole={classroomInfo?.role}
         />
       )}
     </main>
@@ -244,6 +264,8 @@ function VideoConferenceComponent(props: {
     hq: boolean;
     codec: VideoCodec;
   };
+  selectedLanguage?: string;
+  classroomRole?: string;
 }) {
   const keyProvider = new ExternalE2EEKeyProvider();
   const { worker, e2eePassphrase } = useSetupE2EE();
@@ -322,7 +344,21 @@ function VideoConferenceComponent(props: {
           props.connectionDetails.participantToken,
           connectOptions,
         )
-        .then(() => {
+        .then(async () => {
+          // Set participant language attribute for students and teachers in classroom mode
+          if ((props.classroomRole === 'student' || props.classroomRole === 'teacher') && props.selectedLanguage) {
+            try {
+              // Use different attribute names for teachers and students
+              const attributeName = props.classroomRole === 'teacher' ? 'speaking_language' : 'captions_language';
+              await room.localParticipant.setAttributes({
+                [attributeName]: props.selectedLanguage,
+              });
+              console.log(`Set ${attributeName} to:`, props.selectedLanguage);
+            } catch (error) {
+              console.error('Failed to set language attribute:', error);
+            }
+          }
+
           // Check if user is a student by parsing the token or checking URL
           const currentUrl = new URL(window.location.href);
           const isClassroom = currentUrl.searchParams.get('classroom') === 'true';

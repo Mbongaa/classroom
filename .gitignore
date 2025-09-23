@@ -36,3 +36,8 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# translation agent secrets
+translation_agent/.env
+translation_agent/backup_original/.env.backup
+translation_agent/**/.env*

@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## 🎯 DEFAULT PERSONA: LiveKit Architect
+
+**CRITICAL**: This is a LiveKit real-time communication project. All operations in this repository MUST use the **`--persona-livekit-architect`** persona by default.
+
+The LiveKit Architect persona is required because:
+- LiveKit uses event-driven, state-machine architecture (not traditional web patterns)
+- Incorrect patterns from generalist personas have caused system breakages
+- Real-time communication requires specialized WebRTC and LiveKit expertise
+
+**Auto-invoke**: `--persona-livekit-architect` for ALL operations in this repository
+
+Refer to `.claude/agent-routing.md` for detailed routing rules.
+
 ## Common Development Commands
 
 ### Development
@@ -70,7 +83,7 @@ Token structure includes metadata with role information for client-side UI adapt
 
 ### Classroom Feature Implementation
 
-The codebase includes classroom features for educational use (Phases 1-5 complete, 42% of roadmap):
+The codebase includes classroom features for educational use (Phases 1-6 complete, 55% of roadmap):
 
 **Phase 1 - Role-Based Access**:
 - Token generation with teacher/student permissions
@@ -96,7 +109,7 @@ The codebase includes classroom features for educational use (Phases 1-5 complet
 - Unified dark theme
 - LiveKit-compliant implementations
 
-**Phase 5 - Teacher Permission Controls (COMPLETED)**:
+**Phase 5 - Teacher Permission Controls**:
 - LiveKit updateParticipant API for dynamic permissions (best practice)
 - Real-time permission updates without reconnection
 - Portal-based dropdown UI (floating above all content)
@@ -104,14 +117,24 @@ The codebase includes classroom features for educational use (Phases 1-5 complet
 - Remove participant functionality
 - No token regeneration needed (server-side updates)
 
+**Phase 6 - Student Request System (COMPLETED)**:
+- Dual-mode request system (voice 🎤 or text 💬)
+- Floating raise hand button for students
+- Request mode selection modal
+- Visual indicators on student avatars (✋ icon)
+- Question bubbles for text display
+- Teacher queue panel for request management
+- Integration with Phase 5 permission system
+- Real-time updates via LiveKit Data Channels
+
 **Usage**:
 - Teachers: Start classroom → optionally set PIN → share generated link
 - Students: Click teacher's link → enter name → join as listener
 
 **Testing**: Test utilities at `/test-classroom` with role selection UI
 
-See `CLASSROOM_PHASE_1.md` through `CLASSROOM_PHASE_5.md` for implementation details.
-See `CLASSROOM_ROADMAP.md` for next phases (Phase 6: Student Request Button ready to start).
+See `CLASSROOM_PHASE_1.md` through `CLASSROOM_PHASE_6_COMPLETED.md` for implementation details.
+See `CLASSROOM_ROADMAP.md` for next phases (Phase 8: Interactive Learning Tools ready to start).
 
 **Important Notes**:
 - Translation sidebar exists but is UI-only (no actual translation functionality)
