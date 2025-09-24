@@ -7,6 +7,8 @@ import styles from './TranslationPanel.module.css';
 
 interface TranslationPanelProps {
   captionsLanguage: string;
+  onClose?: () => void;
+  showCloseButton?: boolean;
 }
 
 interface TranslationEntry {
@@ -17,7 +19,7 @@ interface TranslationEntry {
   language: string;
 }
 
-export default function TranslationPanel({ captionsLanguage }: TranslationPanelProps) {
+export default function TranslationPanel({ captionsLanguage, onClose, showCloseButton = false }: TranslationPanelProps) {
   const room = useRoomContext();
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
   const [isReceiving, setIsReceiving] = useState(false);
@@ -146,6 +148,15 @@ export default function TranslationPanel({ captionsLanguage }: TranslationPanelP
               <span className={styles.liveDot}></span>
               LIVE
             </span>
+          )}
+          {showCloseButton && onClose && (
+            <button
+              className={styles.closeButton}
+              onClick={onClose}
+              aria-label="Close translation"
+            >
+              ×
+            </button>
           )}
         </div>
       </div>

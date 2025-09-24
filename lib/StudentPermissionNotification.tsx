@@ -31,13 +31,8 @@ export function StudentPermissionNotification({
   useEffect(() => {
     if (notification) {
       setIsVisible(true);
-      // Auto-dismiss revoke notifications after 5 seconds
-      if (notification.action === 'revoke') {
-        const timer = setTimeout(() => {
-          handleDismiss();
-        }, 5000);
-        return () => clearTimeout(timer);
-      }
+      // Note: Removed auto-dismiss to keep consistent with teacher-side behavior
+      // Students can manually dismiss notifications using the × button
     }
   }, [notification]);
 
@@ -78,10 +73,6 @@ export function StudentPermissionNotification({
   return (
     <div className="permission-notification">
       <div className="notification-content">
-        <div className="notification-icon">
-          {isGrant ? '🎤' : 'ℹ️'}
-        </div>
-
         <div className="notification-text">
           <div className="notification-title">
             {isGrant ? 'Speaking Permission Granted' : 'Speaking Permission Revoked'}
@@ -149,17 +140,12 @@ export function StudentPermissionNotification({
           align-items: center;
           gap: 16px;
           padding: 16px 20px;
-          background-color: var(--lk-background-2);
-          border: 1px solid var(--lk-border-color);
+          background-color: #111;
+          border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 12px;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
           min-width: 400px;
           max-width: 600px;
-        }
-
-        .notification-icon {
-          font-size: 32px;
-          flex-shrink: 0;
         }
 
         .notification-text {
@@ -170,19 +156,19 @@ export function StudentPermissionNotification({
         .notification-title {
           font-weight: 600;
           font-size: 15px;
-          color: var(--lk-text);
+          color: #ffffff;
           margin-bottom: 4px;
         }
 
         .notification-message {
           font-size: 13px;
-          color: var(--lk-text-muted);
+          color: #e5e5e5;
           line-height: 1.4;
         }
 
         .notification-from {
           font-size: 11px;
-          color: var(--lk-text-muted);
+          color: #9ca3af;
           margin-top: 4px;
           font-style: italic;
         }
@@ -205,23 +191,23 @@ export function StudentPermissionNotification({
         }
 
         .notification-accept {
-          background-color: var(--lk-button-bg);
-          color: var(--lk-button-text);
+          background-color: #333333;
+          color: #ffffff;
           border: none;
         }
 
         .notification-accept:hover:not(:disabled) {
-          background-color: var(--lk-button-bg-hover);
+          background-color: #404040;
         }
 
         .notification-decline {
           background-color: transparent;
-          color: var(--lk-text-muted);
-          border: 1px solid var(--lk-border-color);
+          color: #9ca3af;
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .notification-decline:hover:not(:disabled) {
-          background-color: var(--lk-background-hover);
+          background-color: rgba(255, 255, 255, 0.05);
         }
 
         .notification-btn:disabled {
@@ -237,7 +223,7 @@ export function StudentPermissionNotification({
           height: 24px;
           background: none;
           border: none;
-          color: var(--lk-text-muted);
+          color: #9ca3af;
           font-size: 20px;
           line-height: 1;
           cursor: pointer;
@@ -246,6 +232,7 @@ export function StudentPermissionNotification({
         }
 
         .notification-close:hover {
+          color: #ffffff;
           opacity: 1;
         }
 

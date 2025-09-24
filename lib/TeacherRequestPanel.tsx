@@ -31,16 +31,7 @@ export function TeacherRequestPanel({
   useEffect(() => {
     if (requests.length > previousRequestCount.current) {
       setHasNewRequest(true);
-      // Play notification sound if available
-      try {
-        const audio = new Audio('/notification.mp3');
-        audio.volume = 0.3;
-        audio.play().catch(() => {
-          // Ignore audio play errors (user hasn't interacted yet)
-        });
-      } catch (e) {
-        // No audio file available
-      }
+      // Visual notification only - audio removed to prevent 404 errors
       setTimeout(() => setHasNewRequest(false), 3000);
     }
     previousRequestCount.current = requests.length;

@@ -344,11 +344,20 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           r.id === requestId ? { ...r, status } : r
         ));
 
-        // If it's my request and it was approved/declined, update my state
+        // If it's my request and it was answered/declined, clear my active request
         if (myActiveRequest?.id === requestId) {
           if (status === 'approved' || status === 'declined' || status === 'answered') {
-            setTimeout(() => setMyActiveRequest(null), 3000);
+            setMyActiveRequest(null);
           }
+        }
+
+        // Clear displayed questions for ALL students when teacher resolves question
+        if (status === 'answered' || status === 'declined') {
+          setDisplayedQuestions(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(requestId);
+            return newMap;
+          });
         }
       }
 
@@ -367,14 +376,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           };
           setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
 
-          // Auto-hide after 30 seconds
-          setTimeout(() => {
-            setDisplayedQuestions(prev => {
-              const newMap = new Map(prev);
-              newMap.delete(requestId);
-              return newMap;
-            });
-          }, 30000);
+          // Questions now stay visible until teacher manually marks them as answered
         } else {
           setDisplayedQuestions(prev => {
             const newMap = new Map(prev);
@@ -525,19 +527,11 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 width: `${translationWidth}px`
               }}
             >
-              <div className={styles.translationHeader}>
-                <h3 className={styles.translationTitle}>🌐 Live Translation</h3>
-                <button
-                  className={styles.translationCloseButton}
-                  onClick={() => setShowTranslation(false)}
-                  aria-label="Close translation"
-                >
-                  ×
-                </button>
-              </div>
-              <div className={styles.translationContent}>
-                <TranslationPanel captionsLanguage={captionsLanguage} />
-              </div>
+              <TranslationPanel
+                captionsLanguage={captionsLanguage}
+                onClose={() => setShowTranslation(false)}
+                showCloseButton={true}
+              />
               <div
                 className={styles.resizeHandle}
                 onMouseDown={handleMouseDown}

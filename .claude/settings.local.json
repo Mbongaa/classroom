@@ -51,7 +51,12 @@
       "Bash(git config:*)",
       "Bash(git push:*)",
       "Bash(GIT_TERMINAL_PROMPT=0 git push origin main)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(pnpm dlx:*)",
+      "Bash(npx tailwindcss init:*)",
+      "Bash(sudo rm:*)",
+      "Bash(pnpm rebuild:*)",
+      "Bash(pnpm remove:*)"
     ],
     "deny": [],
     "ask": []
