@@ -56,7 +56,15 @@
       "Bash(npx tailwindcss init:*)",
       "Bash(sudo rm:*)",
       "Bash(pnpm rebuild:*)",
-      "Bash(pnpm remove:*)"
+      "Bash(pnpm remove:*)",
+      "Bash(npx shadcn-ui@latest list:*)",
+      "Bash(npx shadcn@latest list:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "WebFetch(domain:v0.app)",
+      "SlashCommand(/sc:select-tool --c7 --context7)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

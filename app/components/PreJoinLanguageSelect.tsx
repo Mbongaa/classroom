@@ -1,16 +1,44 @@
 "use client";
 
-import React from "react";
+import { useId } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-// Hardcoded language options for PreJoin
-// These match the SUPPORTED_LANGUAGES in the Python agent
-const PREJOIN_LANGUAGES = [
-  { code: "en", name: "English", flag: "🇺🇸" },
-  { code: "es", name: "Spanish", flag: "🇪🇸" },
-  { code: "fr", name: "French", flag: "🇫🇷" },
-  { code: "de", name: "German", flag: "🇩🇪" },
-  { code: "ja", name: "Japanese", flag: "🇯🇵" },
-  { code: "ar", name: "Arabic", flag: "🇸🇦" },
+// Language options organized by region
+const LANGUAGES_BY_REGION = [
+  {
+    region: "Americas",
+    items: [
+      { value: "en", label: "English", flag: "🇺🇸" },
+      { value: "es", label: "Español", flag: "🇪🇸" },
+    ],
+  },
+  {
+    region: "Europe",
+    items: [
+      { value: "fr", label: "Français", flag: "🇫🇷" },
+      { value: "de", label: "Deutsch", flag: "🇩🇪" },
+    ],
+  },
+  {
+    region: "Asia",
+    items: [
+      { value: "ja", label: "日本語", flag: "🇯🇵" },
+    ],
+  },
+  {
+    region: "Middle East",
+    items: [
+      { value: "ar", label: "العربية", flag: "🇸🇦" },
+    ],
+  },
 ];
 
 interface PreJoinLanguageSelectProps {
@@ -26,35 +54,29 @@ const PreJoinLanguageSelect: React.FC<PreJoinLanguageSelectProps> = ({
   disabled = false,
   isTeacher = false,
 }) => {
+  const id = useId();
+
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <label
-        htmlFor="prejoin-language-select"
-        className="text-sm font-medium text-gray-300"
-      >
-        {isTeacher ? "Speaking Language" : "Caption Language (for translations)"}
-      </label>
-      <select
-        id="prejoin-language-select"
-        value={selectedLanguage}
-        onChange={(e) => onLanguageChange(e.target.value)}
-        disabled={disabled}
-        className="w-full px-3 py-2 text-sm border border-gray-600 rounded-md
-                 bg-gray-800 text-white focus:outline-none focus:ring-2
-                 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {PREJOIN_LANGUAGES.map((lang) => (
-          <option key={lang.code} value={lang.code}>
-            {lang.flag} {lang.name}
-          </option>
+    <Select value={selectedLanguage} onValueChange={onLanguageChange} disabled={disabled}>
+      <SelectTrigger id={id}>
+        <SelectValue placeholder={isTeacher ? "Select transcription language" : "Select translation language"} />
+      </SelectTrigger>
+      <SelectContent>
+        {LANGUAGES_BY_REGION.map((region) => (
+          <SelectGroup key={region.region}>
+            <SelectLabel>{region.region}</SelectLabel>
+            {region.items.map((item) => (
+              <SelectItem key={item.value} value={item.value}>
+                <span className="flex items-center gap-2">
+                  <span className="text-lg leading-none">{item.flag}</span>
+                  <span className="truncate">{item.label}</span>
+                </span>
+              </SelectItem>
+            ))}
+          </SelectGroup>
         ))}
-      </select>
-      <p className="text-xs text-gray-400">
-        {isTeacher
-          ? "Select the language you'll be speaking in for accurate transcription"
-          : "Teacher's speech will be translated to this language"}
-      </p>
-    </div>
+      </SelectContent>
+    </Select>
   );
 };
 

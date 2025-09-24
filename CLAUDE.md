@@ -166,6 +166,26 @@ For details on using the superior Bayaan server for production, see: `BAYAAN_SER
 
 ## Development Patterns
 
+### LiveKit UI Customization
+
+**CRITICAL**: Before creating ANY UI components, you MUST read and understand:
+- **`LIVEKIT_CUSTOM_UI_INTEGRATION_GUIDE.md`** - Complete guide on proper LiveKit UI integration
+
+**Key Principle**: "We provide the logic, you provide the presentation"
+- **NEVER** override LiveKit CSS classes (`.lk-*`)
+- **ALWAYS** use LiveKit hooks for logic with custom UI components
+- **USE** Shadcn UI components with LiveKit hooks for consistent design
+
+Example of correct pattern:
+```typescript
+// ✅ CORRECT: Use LiveKit hook with Shadcn UI
+import { useTrackToggle } from '@livekit/components-react';
+import { Button } from '@/components/ui/button';
+
+const { toggle, isEnabled } = useTrackToggle({ source: Track.Source.Microphone });
+return <Button onClick={toggle}>{isEnabled ? 'Mute' : 'Unmute'}</Button>;
+```
+
 ### Type Safety
 
 - TypeScript strict mode enabled

@@ -9,7 +9,8 @@ import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
-import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
+import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
+import { Button as StatefulButton } from '@/components/ui/stateful-button';
 import {
   formatChatMessageLinks,
   LocalUserChoices,
@@ -47,7 +48,7 @@ export function PageClientImpl(props: {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
   );
-  const [selectedLanguage, setSelectedLanguage] = React.useState<string>('en'); // Default to English
+  const [selectedLanguage, setSelectedLanguage] = React.useState<string>(''); // Start with no selection
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
@@ -116,24 +117,32 @@ export function PageClientImpl(props: {
     <main data-lk-theme="default" style={{ height: '100%' }}>
       {connectionDetails === undefined || preJoinChoices === undefined ? (
         <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
-          <div style={{ textAlign: 'center' }}>
+          <div style={{
+            textAlign: 'center',
+            width: 'min(100%, 480px)',
+            marginInline: 'auto'
+          }}>
             {classroomInfo && (
               <div>
-                <div
+                <h1
                   style={{
                     marginBottom: '1.5rem',
-                    padding: '0.75rem 1.5rem',
-                    background: classroomInfo.role === 'teacher' ? '#4CAF50' : '#2196F3',
+                    padding: '0.75rem 0.5rem',
+                    background: 'transparent',
                     color: 'white',
                     borderRadius: '8px',
-                    fontSize: '1.1rem',
-                    fontWeight: 'bold',
+                    fontSize: '3.5rem',
+                    fontWeight: '700',
+                    fontFamily: 'var(--font-poppins), Poppins, sans-serif',
+                    textAlign: 'center',
+                    textTransform: 'none',
+                    letterSpacing: '-0.04em',
                   }}
                 >
                   {classroomInfo.role === 'teacher'
-                    ? '👨‍🏫 Joining as Teacher (Full Access)'
-                    : '👨‍🎓 Joining as Student (Listen-Only Mode)'}
-                </div>
+                    ? 'teacher lobby'
+                    : 'student lobby'}
+                </h1>
 
                 {/* Enhanced welcome message for students */}
                 {classroomInfo.role === 'student' && (
@@ -169,79 +178,71 @@ export function PageClientImpl(props: {
                   <div
                     style={{
                       marginBottom: '1.5rem',
-                      padding: '1rem',
-                      background: 'rgba(76, 175, 80, 0.1)',
-                      border: '1px solid rgba(76, 175, 80, 0.3)',
-                      borderRadius: '8px',
                       fontSize: '0.95rem',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
-                      🔗 Share this Link with Students:
+                    {/* Stateful Copy Button */}
+                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+                      <StatefulButton
+                        onClick={() => {
+                          return new Promise((resolve) => {
+                            let studentLink = `${window.location.origin}/s/${props.roomName}`;
+                            if (classroomInfo.pin) {
+                              studentLink += `?pin=${classroomInfo.pin}`;
+                            }
+                            navigator.clipboard.writeText(studentLink);
+                            setTimeout(resolve, 500); // Short delay to show animation
+                          });
+                        }}
+                      >
+                        Copy Student Link
+                      </StatefulButton>
                     </div>
+
+                    {/* Show the link for reference */}
                     <div
                       style={{
                         padding: '0.5rem',
                         background: 'rgba(0, 0, 0, 0.2)',
                         borderRadius: '4px',
                         fontFamily: 'monospace',
-                        fontSize: '0.9rem',
+                        fontSize: '0.8rem',
                         textAlign: 'center',
-                        userSelect: 'all',
-                        cursor: 'pointer',
                         wordBreak: 'break-all',
+                        color: '#888',
                       }}
-                      onClick={(e) => {
-                        let studentLink = `${window.location.origin}/s/${props.roomName}`;
-                        if (classroomInfo.pin) {
-                          studentLink += `?pin=${classroomInfo.pin}`;
-                        }
-                        navigator.clipboard.writeText(studentLink);
-                        alert('Student link copied to clipboard!');
-                      }}
-                      title="Click to copy student link"
                     >
                       {`${window.location.origin}/s/${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
                     </div>
+
                     {classroomInfo.pin && (
                       <div style={{
                         fontSize: '0.9rem',
                         color: '#4CAF50',
                         marginTop: '0.5rem',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        textAlign: 'center'
                       }}>
                         🔒 Classroom PIN: {classroomInfo.pin}
                       </div>
                     )}
-                    <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem' }}>
-                      Click to copy • Students will join directly as listeners
+                    <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', textAlign: 'center' }}>
+                      Students will join directly as listeners
                       {classroomInfo.pin && ' • PIN included in link'}
                     </div>
                   </div>
                 )}
               </div>
             )}
-            <PreJoin
+            <CustomPreJoin
               defaults={preJoinDefaults}
               onSubmit={handlePreJoinSubmit}
               onError={handlePreJoinError}
+              showLanguageSelector={classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher'}
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={setSelectedLanguage}
+              isTeacher={classroomInfo?.role === 'teacher'}
             />
-            {/* Language selection for students and teachers in classroom mode */}
-            {(classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher') && (
-              <div style={{
-                marginTop: '20px',
-                padding: '15px',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.1)'
-              }}>
-                <PreJoinLanguageSelect
-                  selectedLanguage={selectedLanguage}
-                  onLanguageChange={setSelectedLanguage}
-                  isTeacher={classroomInfo?.role === 'teacher'}
-                />
-              </div>
-            )}
           </div>
         </div>
       ) : (

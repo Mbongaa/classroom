@@ -1,0 +1,336 @@
+"use client";
+
+import React from 'react';
+import { Track, createLocalVideoTrack, createLocalAudioTrack } from 'livekit-client';
+import PreJoinLanguageSelect from '../PreJoinLanguageSelect';
+import { Button } from '@/components/ui/moving-border';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Mic, MicOff, Camera, CameraOff, ChevronDown } from 'lucide-react';
+
+interface CustomPreJoinProps {
+  onSubmit: (values: {
+    username: string;
+    videoEnabled: boolean;
+    audioEnabled: boolean;
+  }) => void;
+  onError?: (error: Error) => void;
+  defaults?: {
+    username?: string;
+    videoEnabled?: boolean;
+    audioEnabled?: boolean;
+  };
+  showLanguageSelector?: boolean;
+  selectedLanguage?: string;
+  onLanguageChange?: (language: string) => void;
+  isTeacher?: boolean;
+}
+
+export default function CustomPreJoin({
+  onSubmit,
+  onError,
+  defaults,
+  showLanguageSelector = false,
+  selectedLanguage = '',
+  onLanguageChange,
+  isTeacher = false,
+}: CustomPreJoinProps) {
+  // State management
+  const [username, setUsername] = React.useState(defaults?.username || '');
+  const [videoEnabled, setVideoEnabled] = React.useState(defaults?.videoEnabled !== undefined ? defaults.videoEnabled : true);
+  const [audioEnabled, setAudioEnabled] = React.useState(defaults?.audioEnabled !== undefined ? defaults.audioEnabled : true);
+  const [videoDeviceId, setVideoDeviceId] = React.useState<string>('');
+  const [audioDeviceId, setAudioDeviceId] = React.useState<string>('');
+
+  // Media tracks
+  const [localVideoTrack, setLocalVideoTrack] = React.useState<any>(null);
+  const [localAudioTrack, setLocalAudioTrack] = React.useState<any>(null);
+  const videoEl = React.useRef<HTMLVideoElement>(null);
+
+  // Device lists
+  const [videoDevices, setVideoDevices] = React.useState<MediaDeviceInfo[]>([]);
+  const [audioDevices, setAudioDevices] = React.useState<MediaDeviceInfo[]>([]);
+
+  // Get media devices
+  React.useEffect(() => {
+    const getDevices = async () => {
+      try {
+        // Request permissions first
+        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        const devices = await navigator.mediaDevices.enumerateDevices();
+
+        const videoInputs = devices.filter(device => device.kind === 'videoinput');
+        const audioInputs = devices.filter(device => device.kind === 'audioinput');
+
+        setVideoDevices(videoInputs);
+        setAudioDevices(audioInputs);
+
+        // Set default devices
+        if (videoInputs.length > 0 && !videoDeviceId) {
+          setVideoDeviceId(videoInputs[0].deviceId);
+        }
+        if (audioInputs.length > 0 && !audioDeviceId) {
+          setAudioDeviceId(audioInputs[0].deviceId);
+        }
+      } catch (error) {
+        console.error('Failed to get media devices:', error);
+      }
+    };
+
+    getDevices();
+  }, []);
+
+  // Initialize video track
+  React.useEffect(() => {
+    let track: any = null;
+
+    const initVideoTrack = async () => {
+      if (videoEnabled && videoDeviceId) {
+        try {
+          track = await createLocalVideoTrack({
+            deviceId: videoDeviceId,
+            resolution: { width: 1280, height: 720 }
+          });
+          setLocalVideoTrack(track);
+          if (videoEl.current) {
+            track.attach(videoEl.current);
+          }
+        } catch (error) {
+          console.error('Failed to create video track:', error);
+          setVideoEnabled(false);
+        }
+      } else if (localVideoTrack) {
+        localVideoTrack.stop();
+        setLocalVideoTrack(null);
+      }
+    };
+
+    initVideoTrack();
+
+    return () => {
+      if (track) {
+        track.stop();
+      }
+    };
+  }, [videoEnabled, videoDeviceId]);
+
+  // Initialize audio track
+  React.useEffect(() => {
+    let track: any = null;
+
+    const initAudioTrack = async () => {
+      if (audioEnabled && audioDeviceId) {
+        try {
+          track = await createLocalAudioTrack({
+            deviceId: audioDeviceId,
+          });
+          setLocalAudioTrack(track);
+        } catch (error) {
+          console.error('Failed to create audio track:', error);
+          setAudioEnabled(false);
+        }
+      } else if (localAudioTrack) {
+        localAudioTrack.stop();
+        setLocalAudioTrack(null);
+      }
+    };
+
+    initAudioTrack();
+
+    return () => {
+      if (track) {
+        track.stop();
+      }
+    };
+  }, [audioEnabled, audioDeviceId]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username.trim()) {
+      onError?.(new Error('Please enter your name'));
+      return;
+    }
+
+    // Clean up tracks before submitting
+    if (localVideoTrack) {
+      localVideoTrack.stop();
+    }
+    if (localAudioTrack) {
+      localAudioTrack.stop();
+    }
+
+    onSubmit({
+      username: username.trim(),
+      videoEnabled,
+      audioEnabled,
+    });
+  };
+
+  const toggleVideo = () => {
+    setVideoEnabled(prev => !prev);
+  };
+
+  const toggleAudio = () => {
+    setAudioEnabled(prev => !prev);
+  };
+
+  return (
+    <div className="lk-prejoin" data-lk-theme="default" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Video preview area */}
+      <div className="lk-video-container w-full">
+        {videoEnabled ? (
+          <video
+            ref={videoEl}
+            className="lk-camera-preview"
+            autoPlay
+            playsInline
+            muted
+            style={{
+              width: '100%',
+              height: 'auto',
+              aspectRatio: '16 / 9',
+              borderRadius: '8px',
+              backgroundColor: '#000',
+            }}
+          />
+        ) : (
+          <div className="lk-camera-off-note" style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            aspectRatio: '16 / 9',
+            backgroundColor: '#0a0a0a',
+            borderRadius: '8px',
+            color: '#666',
+          }}>
+            <CameraOff size={48} />
+            <span style={{ marginTop: '0.5rem' }}>Camera is turned off</span>
+          </div>
+        )}
+      </div>
+
+      {/* Media controls */}
+      <div style={{
+        display: 'flex',
+        gap: '0.5rem',
+        marginBottom: '1rem',
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexWrap: 'wrap'
+      }}>
+        {/* Microphone control */}
+        <Select value={audioDeviceId} onValueChange={setAudioDeviceId}>
+          <SelectTrigger className="h-12 w-auto border-transparent hover:border-[#4b5563]/30">
+            <div
+              role="button"
+              tabIndex={0}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleAudio();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  toggleAudio();
+                }
+              }}
+              className="p-1 hover:bg-[#1a1a1a] rounded transition-colors mr-2 cursor-pointer"
+              aria-label={audioEnabled ? 'Mute microphone' : 'Unmute microphone'}
+            >
+              {audioEnabled ? <Mic size={24} className="text-white" /> : <MicOff size={24} className="text-gray-500" />}
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {audioDevices.map((device) => (
+              <SelectItem key={device.deviceId} value={device.deviceId}>
+                {device.label || 'Microphone'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Camera control */}
+        <Select value={videoDeviceId} onValueChange={setVideoDeviceId}>
+          <SelectTrigger className="h-12 w-auto border-transparent hover:border-[#4b5563]/30">
+            <div
+              role="button"
+              tabIndex={0}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleVideo();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  toggleVideo();
+                }
+              }}
+              className="p-1 hover:bg-[#1a1a1a] rounded transition-colors mr-2 cursor-pointer"
+              aria-label={videoEnabled ? 'Turn off camera' : 'Turn on camera'}
+            >
+              {videoEnabled ? <Camera size={24} className="text-white" /> : <CameraOff size={24} className="text-gray-500" />}
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            {videoDevices.map((device) => (
+              <SelectItem key={device.deviceId} value={device.deviceId}>
+                {device.label || 'Camera'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Join form */}
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Username input */}
+        <Input
+          id="username"
+          type="text"
+          placeholder="Enter your name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          autoFocus
+          required
+          style={{
+            backgroundColor: '#000000',
+            borderColor: '#4b5563',
+            color: 'white',
+            '::placeholder': { color: '#6b7280' }
+          }}
+          className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
+        />
+
+        {/* Language selector */}
+        {showLanguageSelector && onLanguageChange && (
+          <PreJoinLanguageSelect
+            selectedLanguage={selectedLanguage}
+            onLanguageChange={onLanguageChange}
+            isTeacher={isTeacher}
+          />
+        )}
+
+        {/* Join button */}
+        <Button
+          as="button"
+          type="submit"
+          disabled={!username.trim()}
+          borderRadius="1.75rem"
+          containerClassName="w-full h-12"
+          className="bg-black text-white border-gray-700 text-lg font-medium"
+          duration={3000}
+        >
+          Join Room
+        </Button>
+      </form>
+    </div>
+  );
+}

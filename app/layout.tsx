@@ -2,7 +2,14 @@ import '../styles/globals.css';
 import '@livekit/components-styles';
 import '@livekit/components-styles/prefabs';
 import type { Metadata, Viewport } from 'next';
-import { Toaster } from 'react-hot-toast';
+import { Poppins } from 'next/font/google';
+import { ToasterProvider } from './components/ToasterProvider';
+
+const poppins = Poppins({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-poppins',
+});
 
 export const metadata: Metadata = {
   title: {
@@ -50,9 +57,9 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body data-lk-theme="default">
-        <Toaster />
+    <html lang="en" className={poppins.variable}>
+      <body data-lk-theme="default" className={poppins.className}>
+        <ToasterProvider />
         {children}
       </body>
     </html>

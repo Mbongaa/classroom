@@ -1,7 +1,4 @@
-
 /* Tailwind directives */
-
-@custom-variant dark (&:is(.dark *));
 
 @tailwind base;
 @tailwind components;
@@ -9,6 +6,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Typography with Poppins font */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
 }
 
 @layer base {
@@ -38,7 +41,7 @@
 
 html {
   color-scheme: dark;
-  background-color: #111;
+  background-color: #000000;
 }
 
 html,
@@ -47,6 +50,7 @@ body {
   width: 100%;
   height: 100%;
   margin: 0px;
+  font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
 }
 
 body {
@@ -212,6 +216,20 @@ h2 a {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: #000000;
+    @apply text-foreground;
   }
+}
+
+/* Override LiveKit theme colors for darker appearance */
+[data-lk-theme=default] {
+  --lk-bg: #000000 !important; /* Pure black background */
+  --lk-bg2: #0a0a0a !important; /* Very dark gray for controls */
+  --lk-bg3: #141414 !important; /* Slightly lighter for hover states */
+  --lk-bg4: #1f1f1f !important; /* Even lighter for active states */
+  --lk-bg5: #2a2a2a !important; /* Lightest dark gray */
+  --lk-control-bg: #0a0a0a !important; /* Control background */
+  --lk-control-hover-bg: #141414 !important; /* Control hover */
+  --lk-control-active-bg: #1f1f1f !important; /* Control active */
+  --lk-control-active-hover-bg: #2a2a2a !important; /* Control active hover */
 }
