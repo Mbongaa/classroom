@@ -16,11 +16,6 @@ export function StudentRequestButton({
   const [showModal, setShowModal] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
 
-  // Only show for students
-  if (!isStudent) {
-    return null;
-  }
-
   const handleButtonClick = useCallback(() => {
     if (!hasActiveRequest) {
       setShowModal(true);
@@ -37,6 +32,11 @@ export function StudentRequestButton({
     onRequestSubmit(type, question);
     setShowModal(false);
   }, [onRequestSubmit]);
+
+  // Only show for students
+  if (!isStudent) {
+    return null;
+  }
 
   return (
     <>

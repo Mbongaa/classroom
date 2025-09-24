@@ -27,11 +27,6 @@ export function TeacherRequestPanel({
   const panelRef = useRef<HTMLDivElement>(null);
   const previousRequestCount = useRef(requests.length);
 
-  // Only show for teachers
-  if (!isTeacher) {
-    return null;
-  }
-
   // Detect new requests for notification
   useEffect(() => {
     if (requests.length > previousRequestCount.current) {
@@ -87,6 +82,11 @@ export function TeacherRequestPanel({
       };
     }
   }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  // Only show for teachers
+  if (!isTeacher) {
+    return null;
+  }
 
   const pendingRequests = requests.filter(r => r.status === 'pending');
 
@@ -157,7 +157,7 @@ export function TeacherRequestPanel({
                     </div>
                   ) : (
                     <div className={styles.requestContent}>
-                      <p className={styles.questionText}>"{request.question}"</p>
+                      <p className={styles.questionText}>&quot;{request.question}&quot;</p>
                     </div>
                   )}
 

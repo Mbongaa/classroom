@@ -151,7 +151,7 @@ export function PageClientImpl(props: {
                       📚 Welcome to the Classroom!
                     </div>
                     <div style={{ color: '#aaa', lineHeight: '1.5' }}>
-                      You're joining as a student. You'll be able to:
+                      You&apos;re joining as a student. You&apos;ll be able to:
                       <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
                         <li>Watch and listen to your teacher</li>
                         <li>Participate via chat</li>

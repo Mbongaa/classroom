@@ -141,6 +141,14 @@ See `CLASSROOM_ROADMAP.md` for next phases (Phase 8: Interactive Learning Tools 
 - Phase 7 (Permissions API) removed from roadmap as Phase 5 already implements this
 - updateParticipant API confirmed as LiveKit best practice for dynamic permissions
 
+### Translation System
+
+The project includes two translation implementations:
+1. **Local Translation Agent** (`translation_agent/`) - Development/testing agent using OpenAI
+2. **Bayaan Server Integration** - Production-grade translation with Speechmatics + OpenAI
+
+For details on using the superior Bayaan server for production, see: `BAYAAN_SERVER_INTEGRATION.md`
+
 ### LiveKit Integration
 
 **Client SDK** (`livekit-client`): Core WebRTC functionality

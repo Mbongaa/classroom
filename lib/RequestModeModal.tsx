@@ -130,8 +130,8 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
             <div className={styles.voiceConfirmation}>
               <div className={styles.voiceIcon}>🎤</div>
               <p className={styles.description}>
-                You're requesting permission to speak. Once approved by the teacher,
-                you'll be able to turn on your microphone and camera to ask your question.
+                You&apos;re requesting permission to speak. Once approved by the teacher,
+                you&apos;ll be able to turn on your microphone and camera to ask your question.
               </p>
               <div className={styles.actions}>
                 <button

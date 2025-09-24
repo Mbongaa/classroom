@@ -40,3 +40,13 @@ Steps to get a local dev setup up and running:
 3. Update the missing environment variables in the newly created `.env.local` file.
 4. Run `pnpm dev` to start the development server and visit [http://localhost:3000](http://localhost:3000) to see the result.
 5. Start development 🎉
+
+## Features
+
+### Classroom Mode
+This project includes a comprehensive classroom mode with teacher/student roles, permission management, and student request system. See `CLASSROOM_ROADMAP.md` for details.
+
+### Translation System
+For real-time translation capabilities, see:
+- Local development agent: `translation_agent/`
+- Production Bayaan server integration: `BAYAAN_SERVER_INTEGRATION.md`
