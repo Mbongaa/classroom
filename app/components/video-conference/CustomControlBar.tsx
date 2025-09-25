@@ -19,6 +19,8 @@ import {
   MessageSquare,
   PhoneOff,
   Settings,
+  Hand,
+  Clock,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -30,10 +32,14 @@ interface CustomControlBarProps {
     chat?: boolean;
     settings?: boolean;
     leave?: boolean;
+    raiseHand?: boolean;
   };
   variation?: 'minimal' | 'verbose' | 'textOnly';
   className?: string;
   onSettingsClick?: () => void;
+  onRaiseHandClick?: () => void;
+  hasActiveRequest?: boolean;
+  isStudent?: boolean;
 }
 
 export function CustomControlBar({
@@ -44,10 +50,14 @@ export function CustomControlBar({
     chat: true,
     settings: false,
     leave: true,
+    raiseHand: false,
   },
   variation = 'minimal',
   className,
   onSettingsClick,
+  onRaiseHandClick,
+  hasActiveRequest = false,
+  isStudent = false,
 }: CustomControlBarProps) {
   // Microphone toggle - using proper 'enabled' property from hook
   const {
@@ -174,6 +184,22 @@ export function CustomControlBar({
         >
           <MessageSquare className="h-5 w-5" />
           {variation !== 'minimal' && 'Chat'}
+        </Button>
+      )}
+
+      {/* Raise Hand Button - Only for Students */}
+      {controls.raiseHand && isStudent && (
+        <Button
+          onClick={onRaiseHandClick}
+          variant={hasActiveRequest ? 'default' : 'secondary'}
+          size="lg"
+          className={clsx(buttonClass, hasActiveRequest && 'animate-pulse')}
+          disabled={hasActiveRequest}
+          aria-label={hasActiveRequest ? 'Request pending' : 'Raise hand'}
+          title={hasActiveRequest ? 'Your request is pending' : 'Ask a question'}
+        >
+          {hasActiveRequest ? <Clock className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
+          {variation !== 'minimal' && (hasActiveRequest ? 'Pending' : 'Raise Hand')}
         </Button>
       )}
 

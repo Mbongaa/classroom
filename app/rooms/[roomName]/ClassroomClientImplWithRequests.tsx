@@ -29,7 +29,7 @@ import { SettingsMenu } from '@/lib/SettingsMenu';
 import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
-import { StudentRequestButton } from '@/lib/StudentRequestButton';
+import { RequestModeModal } from '@/lib/RequestModeModal';
 import { TeacherRequestPanel } from '@/lib/TeacherRequestPanel';
 import { RequestIndicator } from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
@@ -74,6 +74,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   const [requests, setRequests] = React.useState<StudentRequest[]>([]);
   const [myActiveRequest, setMyActiveRequest] = React.useState<StudentRequest | null>(null);
   const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(new Map());
+  const [showRequestModal, setShowRequestModal] = React.useState(false);
 
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
@@ -738,7 +739,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
         </div>
       </div>
 
-      {/* Control bar at the bottom with chat toggle */}
+      {/* Control bar at the bottom with chat toggle and raise hand */}
       <div className={styles.controlBar}>
         <CustomControlBar
           variation="minimal"
@@ -747,8 +748,12 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             camera: canSpeak,
             chat: true,
             screenShare: isTeacher,
-            leave: true
+            leave: true,
+            raiseHand: !isTeacher
           }}
+          onRaiseHandClick={() => setShowRequestModal(true)}
+          hasActiveRequest={!!myActiveRequest}
+          isStudent={!isTeacher}
         />
       </div>
 
@@ -764,12 +769,13 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
         </button>
       )}
 
-      {/* Student Request Button */}
-      <StudentRequestButton
-        onRequestSubmit={handleRequestSubmit}
-        hasActiveRequest={!!myActiveRequest}
-        isStudent={!isTeacher}
-      />
+      {/* Student Request Modal */}
+      {showRequestModal && (
+        <RequestModeModal
+          onClose={() => setShowRequestModal(false)}
+          onSubmit={handleRequestSubmit}
+        />
+      )}
 
       {/* Teacher Request Panel */}
       <TeacherRequestPanel

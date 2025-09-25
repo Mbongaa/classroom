@@ -186,6 +186,41 @@ const { toggle, isEnabled } = useTrackToggle({ source: Track.Source.Microphone }
 return <Button onClick={toggle}>{isEnabled ? 'Mute' : 'Unmute'}</Button>;
 ```
 
+### LiveKit Implementation Patterns
+
+**IMPORTANT**: This codebase uses **valid and correct LiveKit SDK patterns**. There are two equally valid approaches for building LiveKit components:
+
+#### Approach 1: Direct LiveKit Client SDK (Current Implementation ✅)
+- Uses `createLocalVideoTrack()` and `createLocalAudioTrack()` from `livekit-client`
+- Direct track management with proper lifecycle (create, use, cleanup)
+- **This is an official LiveKit pattern** and is functionally correct
+- Used in `/app/components/custom-prejoin/CustomPreJoin.tsx`
+
+```typescript
+// ✅ VALID: Direct SDK approach (current implementation)
+import { createLocalVideoTrack, createLocalAudioTrack } from 'livekit-client';
+const videoTrack = await createLocalVideoTrack({ deviceId, resolution });
+const audioTrack = await createLocalAudioTrack({ deviceId });
+// Proper cleanup: track.stop()
+```
+
+#### Approach 2: LiveKit React Hooks (Alternative)
+- Uses `usePreviewTracks()` or `useTrackToggle()` from `@livekit/components-react`
+- Higher-level abstraction with built-in state management
+- Convenient for customizing pre-built LiveKit components
+
+```typescript
+// ✅ ALSO VALID: React hooks approach (alternative)
+import { usePreviewTracks } from '@livekit/components-react';
+const tracks = usePreviewTracks(options, onError);
+```
+
+#### When to Use Each Approach:
+- **Direct SDK**: For fully custom components where you need fine control (current PreJoin)
+- **React Hooks**: When customizing pre-built LiveKit components or preferring hooks abstraction
+
+**Current Implementation Status**: The custom PreJoin component correctly uses the Direct SDK approach with proper resource management. This is a valid LiveKit pattern and does not require refactoring.
+
 ### Type Safety
 
 - TypeScript strict mode enabled
