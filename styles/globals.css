@@ -224,7 +224,7 @@ h2 a {
 /* Override LiveKit theme colors for darker appearance */
 [data-lk-theme=default] {
   --lk-bg: #000000 !important; /* Pure black background */
-  --lk-bg2: #0a0a0a !important; /* Very dark gray for controls */
+  --lk-bg2: #000000 !important; /* Pure black for chat and controls */
   --lk-bg3: #141414 !important; /* Slightly lighter for hover states */
   --lk-bg4: #1f1f1f !important; /* Even lighter for active states */
   --lk-bg5: #2a2a2a !important; /* Lightest dark gray */

@@ -16,9 +16,9 @@ import {
   LocalUserChoices,
   PreJoin,
   RoomContext,
-  VideoConference,
   LayoutContextProvider,
 } from '@livekit/components-react';
+import { CustomVideoConference } from '@/app/components/video-conference/CustomVideoConference';
 import {
   ExternalE2EEKeyProvider,
   RoomOptions,
@@ -442,13 +442,15 @@ function VideoConferenceComponent(props: {
       <RoomContext.Provider value={room}>
         <LayoutContextProvider>
           <KeyboardShortcuts />
-          {/* Conditionally render ClassroomClientImpl or VideoConference based on classroom mode */}
+          {/* Conditionally render ClassroomClientImpl or CustomVideoConference based on classroom mode */}
           {isClassroom ? (
             <ClassroomClientImpl userRole={userRole} />
           ) : (
-            <VideoConference
+            <CustomVideoConference
               chatMessageFormatter={formatChatMessageLinks}
               SettingsComponent={SHOW_SETTINGS_MENU ? SettingsMenu : undefined}
+              showLayoutSwitcher={true}
+              defaultLayout="grid"
             />
           )}
           <DebugMode />

@@ -8,15 +8,15 @@ import {
   useParticipants,
   useRoomContext,
   useLocalParticipant,
-  ControlBar,
   Chat,
   ConnectionStateToast,
   TrackReference,
   useConnectionState,
   isTrackReference,
   useLayoutContext,
-  ParticipantTile,
 } from '@livekit/components-react';
+import { CustomControlBar } from '@/app/components/video-conference/CustomControlBar';
+import { CustomParticipantTile } from '@/app/components/video-conference/CustomParticipantTile';
 import {
   Track,
   Participant,
@@ -549,15 +549,11 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 {/* Teacher video */}
                 {teacher && (
                   <div className={styles.teacherVideo}>
-                    <div className={styles.roleBadge}>
-                      👨‍🏫 Teacher
-                    </div>
-
                     {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
-                      <ParticipantTile
+                      <CustomParticipantTile
                         trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
                         className={styles.teacherTile}
-                        disableSpeakingIndicator={false}
+                        showSpeakingIndicator={true}
                       />
                     ) : (
                       <div className={styles.noVideoPlaceholder}>
@@ -595,10 +591,6 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
                   return (
                     <div key={student.identity} className={styles.speakingStudentVideo}>
-                      <div className={styles.roleBadge}>
-                        🎤 Speaker
-                      </div>
-
                       {/* Request indicator */}
                       {request && (
                         <RequestIndicator
@@ -620,10 +612,10 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                       )}
 
                       {studentTrack ? (
-                        <ParticipantTile
+                        <CustomParticipantTile
                           trackRef={studentTrack}
                           className={styles.speakerTile}
-                          disableSpeakingIndicator={false}
+                          showSpeakingIndicator={true}
                         />
                       ) : (
                         <div className={styles.noVideoPlaceholder}>
@@ -748,7 +740,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
       {/* Control bar at the bottom with chat toggle */}
       <div className={styles.controlBar}>
-        <ControlBar
+        <CustomControlBar
           variation="minimal"
           controls={{
             microphone: canSpeak,
