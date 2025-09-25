@@ -6,7 +6,6 @@ import { DebugMode } from '@/lib/Debug';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
@@ -455,7 +454,6 @@ function VideoConferenceComponent(props: {
           )}
           <DebugMode />
           <RecordingIndicator />
-          {isClassroom && <CopyStudentLinkButton />}
         </LayoutContextProvider>
       </RoomContext.Provider>
     </div>

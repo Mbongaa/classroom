@@ -11,13 +11,102 @@
   --lk-bg2: var(--lk-background); /* Make secondary background use the same dark color */
 }
 
-/* Main container with column layout */
+/* Fixed header at the top */
+.header {
+  height: 56px;
+  background: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.headerContent {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.roomInfo {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: white;
+}
+
+.roomName {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.03rem;
+}
+
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.copyLinkButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000000;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+}
+
+.copyLinkButton:hover {
+  background: #1a1a1a;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.copyLinkButton:focus,
+.copyLinkButton:focus-visible {
+  box-shadow:
+    0 0 0 1px #b8b2b2,
+    0 0 0 5px #434549;
+}
+
+.copyLinkButton:active {
+  transform: translateY(0);
+  background: #0a0a0a;
+}
+
+.copyLinkButton.copied {
+  background: #000000;
+  border-color: #6b7280;
+  animation: copySuccess 0.3s ease;
+  box-shadow:
+    0 0 0 1px #b8b2b2,
+    0 0 0 5px #434549;
+}
+
+@keyframes copySuccess {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Main container with column layout - adjusted for header */
 .mainContainer {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
+  height: calc(100vh - 56px); /* Account for header height */
 }
 
 /* Video area - contains teacher video and sidebars */
@@ -40,7 +129,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 1rem 1rem 0 1rem; /* Remove bottom margin to fix alignment */
+  margin: 0.5rem 1rem 0 1rem; /* Reduced top margin due to header */
   min-height: 0; /* Allow shrinking */
 }
 

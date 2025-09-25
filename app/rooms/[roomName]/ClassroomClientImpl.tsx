@@ -26,7 +26,6 @@ import {
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
 import { PartyStateProvider, usePartyState } from '@/hooks/usePartyState';
@@ -603,7 +602,6 @@ function ClassroomClientImplInner({ userRole }: ClassroomClientImplProps) {
       )}
 
       {/* Additional UI elements */}
-      {isTeacher && <CopyStudentLinkButton />}
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
 
       {/* Permission notification for students */}

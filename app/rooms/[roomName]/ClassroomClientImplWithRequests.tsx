@@ -25,12 +25,14 @@ import {
   ParticipantKind,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
+import { Clipboard, Check } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { CopyStudentLinkButton } from '@/lib/CopyStudentLinkButton';
 import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
 import { RequestModeModal } from '@/lib/RequestModeModal';
 import { TeacherRequestPanel } from '@/lib/TeacherRequestPanel';
+import { HeaderRequestDropdown } from '@/lib/HeaderRequestDropdown';
 import { RequestIndicator } from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
@@ -54,6 +56,28 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   const participants = useParticipants();
   const { widget } = useLayoutContext();
 
+  // Extract initials from participant name
+  const getInitials = (name: string | undefined) => {
+    if (!name || name.trim() === '') {
+      return 'ST'; // Default for Student
+    }
+
+    const cleanName = name.trim();
+    const parts = cleanName.split(/\s+/).filter(part => part.length > 0);
+
+    if (parts.length === 0) {
+      return 'ST';
+    }
+
+    if (parts.length === 1) {
+      // For single word names, take first two letters
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    // For multiple word names, take first letter of first and last word
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   // State for translation panel visibility and width (only for students)
   const [showTranslation, setShowTranslation] = React.useState(false);
   const [translationWidth, setTranslationWidth] = React.useState(320);
@@ -75,6 +99,9 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   const [myActiveRequest, setMyActiveRequest] = React.useState<StudentRequest | null>(null);
   const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(new Map());
   const [showRequestModal, setShowRequestModal] = React.useState(false);
+
+  // State for copy link feedback
+  const [linkCopied, setLinkCopied] = React.useState(false);
 
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
@@ -511,6 +538,44 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
   return (
     <div className={styles.classroomContainer} data-lk-theme="default">
+      {/* Fixed header with room info and request dropdown */}
+      <div className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.roomInfo}>
+            <span className={styles.roomName}>bayaan.ai</span>
+          </div>
+
+          {/* Teacher controls */}
+          {isTeacher && (
+            <div className={styles.headerControls}>
+              {/* Copy student link button */}
+              <button
+                className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
+                onClick={() => {
+                  const studentLink = `${window.location.origin}/s/${room.name}`;
+                  navigator.clipboard.writeText(studentLink);
+                  setLinkCopied(true);
+                  setTimeout(() => setLinkCopied(false), 2000);
+                }}
+                title={linkCopied ? "Link copied!" : "Copy student link"}
+                aria-label="Copy student link to clipboard"
+              >
+                {linkCopied ? <Check size={18} /> : <Clipboard size={18} />}
+              </button>
+
+              {/* Request Dropdown */}
+              <HeaderRequestDropdown
+                requests={requests}
+                onApprove={handleApproveRequest}
+                onDecline={handleDeclineRequest}
+                onDisplay={handleDisplayQuestion}
+                onMarkAnswered={handleMarkAnswered}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Connection state notification */}
       <ConnectionStateToast />
 
@@ -693,10 +758,6 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                     key={student.identity}
                     className={`${styles.studentTile} ${isSpeaking ? styles.speaking : ''}`}
                   >
-                    <div className={styles.studentBadge}>
-                      {isSpeaking ? '🎤' : '👨‍🎓'}
-                    </div>
-
                     {/* Request indicator */}
                     {request && (
                       <RequestIndicator
@@ -719,9 +780,11 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                     )}
 
                     <div className={styles.studentNoVideo}>
-                      <div className={styles.studentAvatar}>
-                        {isSpeaking ? '🎤' : '👨‍🎓'}
-                      </div>
+                      <Avatar className="w-16 h-16 mx-auto border-2 border-gray-700">
+                        <AvatarFallback className="bg-black text-white text-xl font-semibold">
+                          {getInitials(student.name || 'Student')}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
 
                     <div className={styles.studentName}>
@@ -777,18 +840,9 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
         />
       )}
 
-      {/* Teacher Request Panel */}
-      <TeacherRequestPanel
-        requests={requests}
-        onApprove={handleApproveRequest}
-        onDecline={handleDeclineRequest}
-        onDisplay={handleDisplayQuestion}
-        onMarkAnswered={handleMarkAnswered}
-        isTeacher={isTeacher}
-      />
+      {/* Teacher Request Panel - Removed, now using HeaderRequestDropdown */}
 
       {/* Additional UI elements */}
-      {isTeacher && <CopyStudentLinkButton />}
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
 
       {/* Permission notification for students */}

@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow hover:bg-primary/90",
+          "bg-[#000000] text-white border border-transparent hover:bg-[#1a1a1a] focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
+          "bg-[#000000] text-white/70 border border-transparent hover:bg-[#1a1a1a] hover:text-white focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",
-        glow: "bg-[#000000] text-white border border-[#4b5563] hover:bg-[#1a1a1a] hover:border-[#6b7280] focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2]",
-        glowActive: "bg-[#1a1a1a] text-white border border-[#6b7280] ring-4 ring-[#434549] ring-offset-1 ring-offset-[#b8b2b2]",
+        glow: "bg-[#000000] text-white border border-transparent hover:bg-[#1a1a1a] focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
+        glowActive: "bg-[#1a1a1a] text-white border border-transparent shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]",
       },
       size: {
         default: "h-9 px-4 py-2",

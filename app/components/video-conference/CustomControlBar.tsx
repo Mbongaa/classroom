@@ -102,7 +102,6 @@ export function CustomControlBar({
     'transition-all duration-200',
     'text-white font-medium',
     'hover:scale-105 active:scale-95',
-    'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black',
   );
 
   const getButtonVariant = (isEnabled: boolean, isDanger: boolean = false) => {

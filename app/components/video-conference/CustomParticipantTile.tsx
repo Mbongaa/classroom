@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 interface CustomParticipantTileProps {
   trackRef: TrackReference;
@@ -112,6 +113,28 @@ export function CustomParticipantTile({
     }
   };
 
+  // Extract initials from participant name
+  const getInitials = (name: string | undefined) => {
+    if (!name || name.trim() === '') {
+      return 'UN'; // Unknown
+    }
+
+    const cleanName = name.trim();
+    const parts = cleanName.split(/\s+/).filter(part => part.length > 0);
+
+    if (parts.length === 0) {
+      return 'UN';
+    }
+
+    if (parts.length === 1) {
+      // For single word names, take first two letters
+      return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    // For multiple word names, take first letter of first and last word
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
   return (
     <VideoErrorBoundary fallbackMessage={`Error loading video for ${participant.name || participant.identity}`}>
       <div
@@ -132,15 +155,19 @@ export function CustomParticipantTile({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
             <div className="text-center">
               {isScreenShare ? (
                 <ScreenShare className="w-16 h-16 text-gray-600 mx-auto mb-2" />
               ) : (
-                <User className="w-16 h-16 text-gray-600 mx-auto mb-2" />
+                <Avatar className="w-20 h-20 mx-auto mb-2 border-2 border-gray-700">
+                  <AvatarFallback className="bg-black text-white text-2xl font-semibold">
+                    {getInitials(participant.name || participant.identity)}
+                  </AvatarFallback>
+                </Avatar>
               )}
               <p className="text-gray-400 text-sm">
-                {isScreenShare ? 'Screen Share' : 'Camera Off'}
+                {isScreenShare ? 'Screen Share' : (participant.name || participant.identity)}
               </p>
             </div>
           </div>
