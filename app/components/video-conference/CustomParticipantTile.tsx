@@ -62,7 +62,7 @@ export function CustomParticipantTile({
   // Get video and audio tracks
   const videoTrack = trackRef.publication?.track;
   const isVideoEnabled = trackRef.publication?.isSubscribed &&
-    trackRef.source === Track.Source.Camera &&
+    (trackRef.source === Track.Source.Camera || trackRef.source === Track.Source.ScreenShare) &&
     !trackRef.publication?.isMuted;
   const isScreenShare = trackRef.source === Track.Source.ScreenShare;
 

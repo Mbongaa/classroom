@@ -13,7 +13,7 @@
   background: var(--lk-bg);
   border: 1px solid transparent;
   border-radius: 8px;
-  color: white;
+  color: var(--lk-text1, white);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
@@ -24,7 +24,7 @@
 }
 
 .dropdownButton:hover:not(:disabled) {
-  background: #1a1a1a;
+  background: var(--lk-bg2);
   border-color: transparent;
   transform: translateY(-1px);
 }
@@ -32,13 +32,13 @@
 .dropdownButton:focus,
 .dropdownButton:focus-visible {
   box-shadow:
-    0 0 0 1px #b8b2b2,
-    0 0 0 5px #434549;
+    0 0 0 1px var(--lk-text2, #b8b2b2),
+    0 0 0 5px var(--lk-bg4, #434549);
 }
 
 .dropdownButton:active:not(:disabled) {
   transform: translateY(0);
-  background: #0a0a0a;
+  background: var(--lk-bg3);
 }
 
 .dropdownButton:disabled {
@@ -115,7 +115,7 @@
 
 .panelHeader {
   padding: 12px 16px;
-  background: #0a0a0a;
+  background: var(--lk-bg3);
   border-bottom: 1px solid #4b5563;
   display: flex;
   justify-content: space-between;
@@ -148,7 +148,7 @@
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  color: white;
+  color: var(--lk-text1, white);
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 8px;
@@ -235,7 +235,7 @@
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
-  color: white;
+  color: var(--lk-text1, white);
   font-size: 14px;
   resize: vertical;
   outline: none;
@@ -283,7 +283,7 @@
 
 .cancelButton:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: white;
+  color: var(--lk-text1, white);
 }
 
 .submitButton {
@@ -291,7 +291,7 @@
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 6px;
-  color: white;
+  color: var(--lk-text1, white);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;

@@ -177,7 +177,15 @@ export default function CustomPreJoin({
   return (
     <div className="lk-prejoin" data-lk-theme="default" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Video preview area */}
-      <div className="lk-video-container w-full">
+      <div
+        className="lk-video-container w-full"
+        style={{
+          overflow: 'hidden',
+          borderRadius: '8px',
+          lineHeight: 0, // Eliminates any text baseline spacing
+          backgroundColor: 'transparent',
+        }}
+      >
         {videoEnabled ? (
           <video
             ref={videoEl}
@@ -190,7 +198,9 @@ export default function CustomPreJoin({
               height: 'auto',
               aspectRatio: '16 / 9',
               borderRadius: '8px',
-              backgroundColor: '#000',
+              backgroundColor: 'transparent',
+              display: 'block',
+              objectFit: 'cover',
             }}
           />
         ) : (
@@ -201,7 +211,7 @@ export default function CustomPreJoin({
             justifyContent: 'center',
             width: '100%',
             aspectRatio: '16 / 9',
-            backgroundColor: 'var(--lk-bg2, var(--lk-bg))',
+            backgroundColor: 'transparent',
             borderRadius: '8px',
             color: '#666',
           }}>
@@ -239,10 +249,22 @@ export default function CustomPreJoin({
                   toggleAudio();
                 }
               }}
-              className="p-1 hover:bg-[#1a1a1a] rounded transition-colors mr-2 cursor-pointer"
+              className="p-1 rounded transition-colors mr-2 cursor-pointer"
+              style={{
+                '--hover-bg': 'var(--lk-bg3)',
+              } as React.CSSProperties}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--lk-bg3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
               aria-label={audioEnabled ? 'Mute microphone' : 'Unmute microphone'}
             >
-              {audioEnabled ? <Mic size={24} className="text-white" /> : <MicOff size={24} className="text-gray-500" />}
+              {audioEnabled ?
+                <Mic size={24} style={{ color: 'var(--lk-text1, white)' }} /> :
+                <MicOff size={24} style={{ color: 'var(--lk-text2, #6b7280)' }} />
+              }
             </div>
           </SelectTrigger>
           <SelectContent>
@@ -273,10 +295,22 @@ export default function CustomPreJoin({
                   toggleVideo();
                 }
               }}
-              className="p-1 hover:bg-[#1a1a1a] rounded transition-colors mr-2 cursor-pointer"
+              className="p-1 rounded transition-colors mr-2 cursor-pointer"
+              style={{
+                '--hover-bg': 'var(--lk-bg3)',
+              } as React.CSSProperties}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--lk-bg3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
               aria-label={videoEnabled ? 'Turn off camera' : 'Turn on camera'}
             >
-              {videoEnabled ? <Camera size={24} className="text-white" /> : <CameraOff size={24} className="text-gray-500" />}
+              {videoEnabled ?
+                <Camera size={24} style={{ color: 'var(--lk-text1, white)' }} /> :
+                <CameraOff size={24} style={{ color: 'var(--lk-text2, #6b7280)' }} />
+              }
             </div>
           </SelectTrigger>
           <SelectContent>
@@ -300,12 +334,6 @@ export default function CustomPreJoin({
           onChange={(e) => setUsername(e.target.value)}
           autoFocus
           required
-          style={{
-            backgroundColor: 'var(--lk-bg)',
-            borderColor: '#4b5563',
-            color: 'white',
-            '::placeholder': { color: '#6b7280' }
-          }}
           className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
         />
 

@@ -81,13 +81,13 @@ export function CopyStudentLinkButton() {
         background: copied
           ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
           : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-        color: 'white',
+        color: 'white', // Keep white text on gradient backgrounds for good contrast
         border: 'none',
         padding: '0.75rem 1.25rem',
         borderRadius: '8px',
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1)',
         fontSize: '0.95rem',
         fontWeight: 'bold',
       }}

@@ -2,8 +2,8 @@
   position: fixed;
   width: 320px;
   max-height: 500px;
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg2);
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.1));
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   z-index: 999;
@@ -26,8 +26,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg3);
+  border-bottom: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.1));
   cursor: move;
   user-select: none;
 }
@@ -49,8 +49,8 @@
   width: 24px;
   height: 24px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--lk-bg3);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.6));
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -60,7 +60,7 @@
 }
 
 .toggleButton:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--lk-bg4);
   color: white;
 }
 
@@ -86,7 +86,7 @@
 }
 
 .emptyText {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.5));
   font-size: 14px;
 }
 
@@ -97,8 +97,8 @@
 }
 
 .request {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg3);
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.1));
   border-radius: 8px;
   padding: 12px;
   transition: all 0.2s ease;
@@ -128,7 +128,7 @@
 }
 
 .time {
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.5));
   font-size: 12px;
 }
 
@@ -138,13 +138,13 @@
 }
 
 .requestType {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.7));
   font-size: 13px;
   font-style: italic;
 }
 
 .questionText {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--lk-text1, rgba(255, 255, 255, 0.9));
   font-size: 13px;
   line-height: 1.4;
   margin: 0;
@@ -213,12 +213,12 @@
 }
 
 .content::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lk-bg3);
   border-radius: 3px;
 }
 
 .content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--lk-bg4);
   border-radius: 3px;
 }
 

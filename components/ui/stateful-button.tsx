@@ -85,7 +85,7 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
       layoutId="button"
       ref={scope}
       className={cn(
-        "flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-white px-4 py-2 font-medium text-black ring-offset-2 transition duration-200 hover:ring-2 hover:ring-white dark:ring-offset-black",
+        "flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-white dark:ring-offset-black",
         className,
       )}
       {...buttonProps}
@@ -129,7 +129,7 @@ const Loader = () => {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="loader text-black"
+      className="loader text-white dark:text-black"
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 3a9 9 0 1 0 9 9" />
@@ -158,7 +158,7 @@ const CheckIcon = () => {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="check text-black"
+      className="check text-white dark:text-black"
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />

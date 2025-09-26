@@ -136,7 +136,7 @@ export function PageClientImpl(props: {
             }}>
               bayaan.ai
             </span>
-            <ThemeToggleButton />
+            <ThemeToggleButton start="top-right" />
           </div>
 
           {/* Main content area */}
@@ -153,7 +153,7 @@ export function PageClientImpl(props: {
                     marginBottom: '1.5rem',
                     padding: '0.75rem 0.5rem',
                     background: 'transparent',
-                    color: 'white',
+                    color: 'var(--lk-text1, white)',
                     borderRadius: '8px',
                     fontSize: '3.5rem',
                     fontWeight: '700',
@@ -174,23 +174,23 @@ export function PageClientImpl(props: {
                     style={{
                       marginBottom: '1.5rem',
                       padding: '1rem',
-                      background: 'rgba(33, 150, 243, 0.1)',
-                      border: '1px solid rgba(33, 150, 243, 0.3)',
+                      background: 'transparent',
+                      border: 'none',
                       borderRadius: '8px',
                       fontSize: '0.95rem',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--lk-text1, white)' }}>
                       📚 Welcome to the Classroom!
                     </div>
-                    <div style={{ color: '#aaa', lineHeight: '1.5' }}>
+                    <div style={{ color: 'var(--lk-text2, #aaa)', lineHeight: '1.5' }}>
                       You&apos;re joining as a student. You&apos;ll be able to:
                       <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
                         <li>Watch and listen to your teacher</li>
                         <li>Participate via chat</li>
                         <li>View shared screens and materials</li>
                       </ul>
-                      <small style={{ opacity: 0.8 }}>
+                      <small style={{ opacity: 0.8, color: 'var(--lk-text2, #aaa)' }}>
                         Just enter your name below to join the session.
                       </small>
                     </div>
@@ -227,13 +227,13 @@ export function PageClientImpl(props: {
                     <div
                       style={{
                         padding: '0.5rem',
-                        background: 'rgba(0, 0, 0, 0.2)',
+                        backgroundColor: 'transparent',
                         borderRadius: '4px',
                         fontFamily: 'monospace',
                         fontSize: '0.8rem',
                         textAlign: 'center',
                         wordBreak: 'break-all',
-                        color: '#888',
+                        color: 'var(--lk-text2, #888)',
                       }}
                     >
                       {`${window.location.origin}/s/${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}

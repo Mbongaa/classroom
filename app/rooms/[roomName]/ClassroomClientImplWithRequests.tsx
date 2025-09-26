@@ -545,9 +545,6 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           </div>
 
           <div className={styles.headerControls}>
-            {/* Theme toggle - available for all users */}
-            <ThemeToggleButton />
-
             {/* Teacher controls */}
             {isTeacher && (<>
               {/* Copy student link button */}
@@ -583,6 +580,9 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 onSubmit={handleRequestSubmit}
               />
             )}
+
+            {/* Theme toggle - rightmost for all users */}
+            <ThemeToggleButton start="top-right" />
           </div>
         </div>
       </div>
