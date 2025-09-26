@@ -69,20 +69,16 @@ export const useThemeToggle = ({
 
     if (typeof window === "undefined") return;
 
-    // Small delay to allow framer-motion to start animating
-    // before View Transitions captures the snapshot
-    setTimeout(() => {
-      const switchTheme = () => {
-        setTheme(newTheme);
-      };
+    const switchTheme = () => {
+      setTheme(newTheme);
+    };
 
-      if (!document.startViewTransition) {
-        switchTheme();
-        return;
-      }
+    if (!document.startViewTransition) {
+      switchTheme();
+      return;
+    }
 
-      document.startViewTransition(switchTheme);
-    }, 50); // 50ms delay to let framer-motion start
+    document.startViewTransition(switchTheme);
   }, [
     theme,
     setTheme,
@@ -102,19 +98,16 @@ export const useThemeToggle = ({
 
     if (typeof window === "undefined") return;
 
-    // Small delay to allow framer-motion to start animating
-    setTimeout(() => {
-      const switchTheme = () => {
-        setTheme("light");
-      };
+    const switchTheme = () => {
+      setTheme("light");
+    };
 
-      if (!document.startViewTransition) {
-        switchTheme();
-        return;
-      }
+    if (!document.startViewTransition) {
+      switchTheme();
+      return;
+    }
 
-      document.startViewTransition(switchTheme);
-    }, 50);
+    document.startViewTransition(switchTheme);
   }, [setTheme, variant, start, blur, gifUrl, updateStyles, setIsDark]);
 
   const setCrazyDarkTheme = useCallback(() => {
@@ -125,19 +118,16 @@ export const useThemeToggle = ({
 
     if (typeof window === "undefined") return;
 
-    // Small delay to allow framer-motion to start animating
-    setTimeout(() => {
-      const switchTheme = () => {
-        setTheme("dark");
-      };
+    const switchTheme = () => {
+      setTheme("dark");
+    };
 
-      if (!document.startViewTransition) {
-        switchTheme();
-        return;
-      }
+    if (!document.startViewTransition) {
+      switchTheme();
+      return;
+    }
 
-      document.startViewTransition(switchTheme);
-    }, 50);
+    document.startViewTransition(switchTheme);
   }, [setTheme, variant, start, blur, gifUrl, updateStyles, setIsDark]);
 
   return {
