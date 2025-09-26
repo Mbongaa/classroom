@@ -156,6 +156,7 @@ export function CustomParticipantTile({
         {isVideoEnabled && videoTrack ? (
           <VideoTrack
             trackRef={trackRef}
+            manageSubscription={isScreenShare}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (

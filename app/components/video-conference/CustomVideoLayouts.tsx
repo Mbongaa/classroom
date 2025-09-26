@@ -426,7 +426,7 @@ export function CustomVideoLayouts({
 }: CustomVideoLayoutProps) {
   const tracks = useTracks(
     [Track.Source.Camera, Track.Source.ScreenShare],
-    { onlySubscribed: false }
+    { onlySubscribed: true }
   );
 
   const renderLayout = () => {

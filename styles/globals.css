@@ -280,3 +280,32 @@ h2 a {
   --lk-speaking-thickness: 8px !important; /* Thicker for light mode visibility */
   --lk-shadow: rgba(0, 0, 0, 0.3) !important; /* Black shadow for light mode */
 }
+
+/* Light mode chat override - force white background and theme-responsive text */
+.light [data-lk-theme=default] .lk-chat {
+  background: white !important;
+  border-left: 1px solid var(--lk-bg3) !important;
+}
+
+.light [data-lk-theme=default] .lk-chat-header {
+  color: var(--lk-text1, black) !important;
+}
+
+.light [data-lk-theme=default] .lk-close-button,
+.light [data-lk-theme=default] .lk-chat-toggle {
+  color: var(--lk-text1, black) !important;
+}
+
+.light [data-lk-theme=default] .lk-close-button svg,
+.light [data-lk-theme=default] .lk-chat-toggle svg {
+  fill: var(--lk-text1, black) !important;
+}
+
+/* Override browser autocomplete styling to maintain theme responsiveness */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px var(--lk-bg) inset !important;
+  -webkit-text-fill-color: var(--lk-text1, white) !important;
+}
