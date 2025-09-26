@@ -3,8 +3,8 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--lk-bg); /* Pure black background */
-  color: #e0e0e0;
+  background: var(--lk-bg);
+  color: var(--lk-text1, white);
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
@@ -15,8 +15,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: var(--lk-bg); /* Pure black */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg2);
+  border-bottom: 1px solid var(--lk-bg3);
 }
 
 .headerLeft {
@@ -32,7 +32,7 @@
 .headerTitle {
   font-size: 16px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--lk-text1, white);
 }
 
 .headerRight {
@@ -43,12 +43,12 @@
 
 .languageBadge {
   padding: 4px 12px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #e5e5e5;
+  background: var(--lk-bg3);
+  color: var(--lk-text1, white);
   border-radius: 16px;
   font-size: 12px;
   font-weight: 500;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid var(--lk-bg4);
 }
 
 .liveIndicator {
@@ -67,7 +67,7 @@
 .closeButton {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: var(--lk-text2, #6b7280);
   font-size: 20px;
   font-weight: 300;
   cursor: pointer;
@@ -82,8 +82,8 @@
 }
 
 .closeButton:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--lk-bg3);
+  color: var(--lk-text1, white);
 }
 
 .liveDot {
@@ -130,14 +130,14 @@
 }
 
 .translationItem:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lk-bg3);
   transform: translateX(2px);
 }
 
 .translationItem.latest {
-  background: rgba(255, 255, 255, 0.08);
-  border-left-color: #ffffff;
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg4);
+  border-left-color: var(--lk-text1, white);
+  box-shadow: 0 2px 8px var(--lk-bg4);
 }
 
 .translationHeader {
@@ -152,7 +152,7 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--lk-text2, #6b7280);
   font-weight: 500;
 }
 
@@ -163,19 +163,19 @@
 
 .timestamp {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--lk-text2, #6b7280);
 }
 
 .translationText {
   font-size: 20px;
   line-height: 1.6;
-  color: #e5e7eb;
+  color: var(--lk-text1, white);
   word-wrap: break-word;
   margin-top: 4px;
 }
 
 .latest .translationText {
-  color: #ffffff;
+  color: var(--lk-text1, white);
   font-weight: 400;
 }
 
@@ -202,8 +202,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: var(--lk-bg); /* Pure black */
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--lk-bg2);
+  border-top: 1px solid var(--lk-bg3);
   font-size: 12px;
 }
 
@@ -219,7 +219,7 @@
 }
 
 .statusText {
-  color: #9ca3af;
+  color: var(--lk-text2, #6b7280);
 }
 
 .statusRight {
@@ -229,8 +229,8 @@
 }
 
 .messageCount {
-  color: #6b7280;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--lk-text2, #6b7280);
+  background: var(--lk-bg3);
   padding: 2px 8px;
   border-radius: 10px;
 }
@@ -244,7 +244,7 @@
   height: 100%;
   padding: 32px;
   text-align: center;
-  background: var(--lk-bg); /* Pure black background */
+  background: var(--lk-bg);
 }
 
 .emptyIcon {
@@ -273,13 +273,13 @@
 .emptyTitle {
   font-size: 18px;
   font-weight: 600;
-  color: #ffffff;
+  color: var(--lk-text1, white);
   margin-bottom: 8px;
 }
 
 .emptyDescription {
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--lk-text2, #6b7280);
   margin-bottom: 24px;
 }
 
@@ -288,13 +288,13 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--lk-bg3);
   border-radius: 20px;
 }
 
 .languageLabel {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--lk-text2, #6b7280);
 }
 
 /* Animations */

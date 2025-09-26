@@ -258,6 +258,9 @@ h2 a {
   --lk-control-hover-bg: #141414 !important; /* Control hover */
   --lk-control-active-bg: #1f1f1f !important; /* Control active */
   --lk-control-active-hover-bg: #2a2a2a !important; /* Control active hover */
+  --lk-speaking-border: white !important; /* White speaking indicator for dark mode */
+  --lk-speaking-thickness: 6px !important; /* Standard thickness for dark mode */
+  --lk-shadow: rgba(255, 255, 255, 0.3) !important; /* White shadow for dark mode */
 }
 
 /* Light mode overrides for LiveKit */
@@ -273,4 +276,7 @@ h2 a {
   --lk-control-active-hover-bg: #d5d5d5 !important; /* Control active hover */
   --lk-text1: #1a1a1a !important; /* Dark text on light background */
   --lk-text2: #4a4a4a !important; /* Secondary text */
+  --lk-speaking-border: black !important; /* Black speaking indicator for light mode */
+  --lk-speaking-thickness: 8px !important; /* Thicker for light mode visibility */
+  --lk-shadow: rgba(0, 0, 0, 0.3) !important; /* Black shadow for light mode */
 }

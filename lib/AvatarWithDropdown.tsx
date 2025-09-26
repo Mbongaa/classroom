@@ -171,7 +171,13 @@ export function AvatarWithDropdown({
         title={isTeacher ? "Click to manage student" : undefined}
       >
         <Avatar className={`w-16 h-16 mx-auto border-2 ${isTeacher ? 'border-gray-700 hover:border-gray-500 transition-colors' : 'border-gray-700'}`}>
-          <AvatarFallback className="bg-black text-white text-xl font-semibold">
+          <AvatarFallback
+            className="text-xl font-semibold"
+            style={{
+              backgroundColor: 'transparent',
+              color: 'var(--lk-text1, white)'
+            }}
+          >
             {getInitials(participant.name || 'Student')}
           </AvatarFallback>
         </Avatar>

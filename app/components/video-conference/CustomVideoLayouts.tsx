@@ -170,7 +170,8 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
             {participantTracks.map((track) => (
               <div
                 key={`${track.participant.identity}_${track.source}`}
-                className="relative w-full h-full min-h-[140px] sm:min-h-[160px] md:min-h-[180px] lg:min-h-[200px] max-h-[400px] aspect-video bg-gray-900 rounded-lg overflow-hidden"
+                className="relative w-full h-full min-h-[140px] sm:min-h-[160px] md:min-h-[180px] lg:min-h-[200px] max-h-[400px] aspect-video rounded-lg overflow-hidden"
+                style={{ backgroundColor: 'var(--lk-bg3)' }}
               >
                 <CustomParticipantTile
                   trackRef={track}
@@ -197,7 +198,7 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
             <div
               key={`${track.participant.identity}_${track.source}`}
               className={clsx(
-                "relative w-full h-full bg-gray-900 rounded-lg overflow-hidden",
+                "relative w-full h-full rounded-lg overflow-hidden",
                 // Enhanced minimum heights for better mobile visibility
                 count === 2 && isMobilePortrait && "min-h-[250px] min-w-[250px]", // Square-ish for 2 on mobile portrait
                 count === 2 && !isMobilePortrait && "min-h-[280px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px]", // Larger for 2
@@ -206,6 +207,7 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
                 count > 6 && "min-h-[120px] sm:min-h-[140px] md:min-h-[160px]", // Standard for 7+
                 !isMobilePortrait && "aspect-video"
               )}
+              style={{ backgroundColor: 'var(--lk-bg3)' }}
             >
               <CustomParticipantTile
                 trackRef={track}
@@ -278,12 +280,16 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
 
       {/* Thumbnails row - responsive height and sizing */}
       {otherTracks.length > 0 && (
-        <div className="h-20 md:h-28 lg:h-32 border-t border-gray-800 bg-black/50 flex-shrink-0">
+        <div
+          className="h-20 md:h-28 lg:h-32 border-t flex-shrink-0"
+          style={{ borderColor: 'var(--lk-bg3)', backgroundColor: 'var(--lk-bg2)' }}
+        >
           <div className="flex gap-1 md:gap-2 p-1 md:p-2 h-full overflow-x-auto scrollbar-thin">
             {otherTracks.map((track) => (
               <div
                 key={`${track.participant.identity}_${track.source}`}
-                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 flex-shrink-0 cursor-pointer rounded-md overflow-hidden bg-gray-900 hover:ring-2 hover:ring-blue-500"
+                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 flex-shrink-0 cursor-pointer rounded-md overflow-hidden hover:ring-2 hover:ring-blue-500"
+                style={{ backgroundColor: 'var(--lk-bg3)' }}
                 onClick={() => setFocusedTrack(track)}
               >
                 <CustomParticipantTile
@@ -359,12 +365,13 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
           "h-32 md:h-40 lg:h-full",
           "w-full lg:w-72 xl:w-80",
           // Border positioning
-          "border-t lg:border-t-0 lg:border-l border-gray-800",
-          "bg-black/50",
+          "border-t lg:border-t-0 lg:border-l",
           // Scroll behavior
           "overflow-x-auto lg:overflow-x-visible",
           "overflow-y-hidden lg:overflow-y-auto"
-        )}>
+        )}
+        style={{ borderColor: 'var(--lk-bg3)', backgroundColor: 'var(--lk-bg2)' }}
+      >
           {/* Mobile: horizontal layout, Desktop: vertical layout */}
           <div className="flex lg:block h-full lg:h-auto">
             {/* Mobile layout */}

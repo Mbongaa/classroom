@@ -140,12 +140,17 @@ export function CustomParticipantTile({
       <div
         {...elementProps}
         className={clsx(
-          'relative overflow-hidden rounded-3xl bg-gray-900',
-          isSpeaking && showSpeakingIndicator && 'ring-[6px] ring-white ring-opacity-75',
+          'relative overflow-hidden rounded-3xl',
           'w-full h-full',
           getAspectRatioClass(), // Apply the aspect ratio class
           className
         )}
+        style={{
+          backgroundColor: 'var(--lk-bg3)',
+          ...(isSpeaking && showSpeakingIndicator && {
+            boxShadow: `0 0 0 var(--lk-speaking-thickness, 6px) var(--lk-speaking-border, white)`
+          })
+        }}
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
@@ -154,18 +159,33 @@ export function CustomParticipantTile({
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ backgroundColor: 'transparent' }}
+          >
             <div className="text-center">
               {isScreenShare ? (
-                <ScreenShare className="w-16 h-16 text-gray-600 mx-auto mb-2" />
+                <ScreenShare
+                  className="w-16 h-16 mx-auto mb-2"
+                  style={{ color: 'var(--lk-text2, #6b7280)' }}
+                />
               ) : (
-                <Avatar className="w-20 h-20 mx-auto mb-2 border-2 border-gray-700">
-                  <AvatarFallback className="bg-black text-white text-2xl font-semibold">
+                <Avatar
+                  className="w-20 h-20 mx-auto mb-2 border-2"
+                  style={{ borderColor: 'var(--lk-bg4)' }}
+                >
+                  <AvatarFallback
+                    className="text-2xl font-semibold"
+                    style={{
+                      backgroundColor: 'transparent',
+                      color: 'var(--lk-text1, white)'
+                    }}
+                  >
                     {getInitials(participant.name || participant.identity)}
                   </AvatarFallback>
                 </Avatar>
               )}
-              <p className="text-gray-400 text-sm">
+              <p className="text-sm" style={{ color: 'var(--lk-text2, #6b7280)' }}>
                 {isScreenShare ? 'Screen Share' : (participant.name || participant.identity)}
               </p>
             </div>
@@ -186,7 +206,7 @@ export function CustomParticipantTile({
       {/* Overlay Information */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent dark:from-white/70">
           <div className="flex items-center justify-between">
             {/* Participant Name and Role */}
             <div className="flex items-center gap-2">
@@ -195,7 +215,10 @@ export function CustomParticipantTile({
                   {getRoleBadge()}
                 </span>
               )}
-              <span className="text-white text-sm font-medium truncate max-w-[150px]">
+              <span
+                className="text-sm font-medium truncate max-w-[150px]"
+                style={{ color: 'var(--lk-text1, white)' }}
+              >
                 {participant.name || participant.identity}
               </span>
             </div>
@@ -211,32 +234,38 @@ export function CustomParticipantTile({
             <div className="flex items-center gap-2">
               {/* Microphone Status */}
               <div
-                className={clsx(
-                  'p-1.5 rounded-full',
-                  isAudioEnabled ? 'bg-gray-800/50' : 'bg-red-600/80'
-                )}
+                className="p-1.5 rounded-full"
+                style={{
+                  backgroundColor: isAudioEnabled ? 'var(--lk-bg3)' : '#ef4444'
+                }}
                 title={isAudioEnabled ? 'Microphone on' : 'Microphone off'}
               >
                 {isAudioEnabled ? (
-                  <Mic className="w-3.5 h-3.5 text-white" />
+                  <Mic
+                    className="w-3.5 h-3.5"
+                    style={{ color: 'var(--lk-text1, white)' }}
+                  />
                 ) : (
-                  <MicOff className="w-3.5 h-3.5 text-white" />
+                  <MicOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
                 )}
               </div>
 
               {/* Camera Status (only if not screen share) */}
               {!isScreenShare && (
                 <div
-                  className={clsx(
-                    'p-1.5 rounded-full',
-                    isVideoEnabled ? 'bg-gray-800/50' : 'bg-red-600/80'
-                  )}
+                  className="p-1.5 rounded-full"
+                  style={{
+                    backgroundColor: isVideoEnabled ? 'var(--lk-bg3)' : '#ef4444'
+                  }}
                   title={isVideoEnabled ? 'Camera on' : 'Camera off'}
                 >
                   {isVideoEnabled ? (
-                    <Video className="w-3.5 h-3.5 text-white" />
+                    <Video
+                      className="w-3.5 h-3.5"
+                      style={{ color: 'var(--lk-text1, white)' }}
+                    />
                   ) : (
-                    <VideoOff className="w-3.5 h-3.5 text-white" />
+                    <VideoOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
                   )}
                 </div>
               )}
@@ -248,8 +277,9 @@ export function CustomParticipantTile({
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-1 h-3 bg-white rounded-full animate-pulse"
+                    className="w-1 h-3 rounded-full animate-pulse"
                     style={{
+                      backgroundColor: 'var(--lk-text1, white)',
                       animationDelay: `${i * 100}ms`,
                     }}
                   />
@@ -261,7 +291,13 @@ export function CustomParticipantTile({
 
         {/* Additional Metadata */}
         {showMetadata && metadata.additionalInfo && (
-          <div className="absolute top-12 left-2 right-2 text-white text-xs bg-black/50 rounded px-2 py-1">
+          <div
+            className="absolute top-12 left-2 right-2 text-xs rounded px-2 py-1"
+            style={{
+              color: 'var(--lk-text1, white)',
+              backgroundColor: 'var(--lk-bg2)'
+            }}
+          >
             {metadata.additionalInfo}
           </div>
         )}

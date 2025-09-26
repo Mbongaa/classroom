@@ -98,7 +98,7 @@ export function CustomControlBar({
   const buttonClass = clsx(
     'relative inline-flex items-center justify-center',
     'h-12 px-4 rounded-lg',
-    'text-white font-medium',
+    'font-medium',
   );
 
   const getButtonVariant = (isEnabled: boolean, isDanger: boolean = false) => {
@@ -116,10 +116,13 @@ export function CustomControlBar({
     <div
       className={clsx(
         'flex items-center justify-center gap-2 p-4',
-        'bg-black/80 backdrop-blur-sm',
-        'border-t border-gray-800',
+        'backdrop-blur-sm border-t',
         className
       )}
+      style={{
+        backgroundColor: 'var(--lk-bg)',
+        borderColor: 'var(--lk-bg3)',
+      }}
     >
       {/* Microphone Button */}
       {controls.microphone && (
@@ -129,8 +132,17 @@ export function CustomControlBar({
           size="lg"
           className={buttonClass}
           disabled={micPending}
+          style={{
+            backgroundColor: micEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          {micEnabled ? <Mic className="h-5 w-5" /> : <MicOff className="h-5 w-5" />}
+          {micEnabled ? (
+            <Mic className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          ) : (
+            <MicOff className="h-5 w-5" style={{ color: 'var(--lk-text2, #6b7280)' }} />
+          )}
           {getButtonLabel('Mic', micEnabled, variation)}
         </Button>
       )}
@@ -143,8 +155,17 @@ export function CustomControlBar({
           size="lg"
           className={buttonClass}
           disabled={cameraPending}
+          style={{
+            backgroundColor: cameraEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          {cameraEnabled ? <Video className="h-5 w-5" /> : <VideoOff className="h-5 w-5" />}
+          {cameraEnabled ? (
+            <Video className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          ) : (
+            <VideoOff className="h-5 w-5" style={{ color: 'var(--lk-text2, #6b7280)' }} />
+          )}
           {getButtonLabel('Camera', cameraEnabled, variation)}
         </Button>
       )}
@@ -157,8 +178,17 @@ export function CustomControlBar({
           size="lg"
           className={buttonClass}
           disabled={screenPending}
+          style={{
+            backgroundColor: screenEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          {screenEnabled ? <MonitorOff className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}
+          {screenEnabled ? (
+            <MonitorOff className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          ) : (
+            <Monitor className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          )}
           {getButtonLabel('Share', screenEnabled, variation)}
         </Button>
       )}
@@ -166,7 +196,10 @@ export function CustomControlBar({
       {/* Divider */}
       {(controls.microphone || controls.camera || controls.screenShare) &&
        (controls.chat || controls.settings || controls.leave) && (
-        <div className="w-px h-8 bg-gray-700 mx-2" />
+        <div
+          className="w-px h-8 mx-2"
+          style={{ backgroundColor: 'var(--lk-bg3)' }}
+        />
       )}
 
       {/* Chat Button */}
@@ -177,8 +210,16 @@ export function CustomControlBar({
           size="lg"
           className={buttonClass}
           aria-label={layoutContext.widget.state?.showChat ? 'Hide chat' : 'Show chat'}
+          style={{
+            backgroundColor: layoutContext.widget.state?.showChat ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          <MessageSquare className="h-5 w-5" />
+          <MessageSquare
+            className="h-5 w-5"
+            style={{ color: 'var(--lk-text1, white)' }}
+          />
           {variation !== 'minimal' && 'Chat'}
         </Button>
       )}
@@ -192,8 +233,16 @@ export function CustomControlBar({
           className={buttonClass}
           aria-label={showTranslation ? 'Hide translation' : 'Show translation'}
           title={showTranslation ? 'Hide translation panel' : 'Show translation panel'}
+          style={{
+            backgroundColor: showTranslation ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          <Languages className="h-5 w-5" />
+          <Languages
+            className="h-5 w-5"
+            style={{ color: 'var(--lk-text1, white)' }}
+          />
           {variation !== 'minimal' && 'Translation'}
         </Button>
       )}
@@ -206,8 +255,16 @@ export function CustomControlBar({
           size="lg"
           className={buttonClass}
           aria-label="Settings"
+          style={{
+            backgroundColor: 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: 'var(--lk-bg3)',
+          }}
         >
-          <Settings className="h-5 w-5" />
+          <Settings
+            className="h-5 w-5"
+            style={{ color: 'var(--lk-text1, white)' }}
+          />
           {variation !== 'minimal' && 'Settings'}
         </Button>
       )}
@@ -220,8 +277,13 @@ export function CustomControlBar({
           size="lg"
           className={clsx(buttonClass, 'ml-4')}
           aria-label="Leave meeting"
+          style={{
+            backgroundColor: '#ef4444',
+            color: 'white',
+            borderColor: '#dc2626',
+          }}
         >
-          <PhoneOff className="h-5 w-5" />
+          <PhoneOff className="h-5 w-5" style={{ color: 'white' }} />
           {variation !== 'minimal' && 'Leave'}
         </Button>
       )}

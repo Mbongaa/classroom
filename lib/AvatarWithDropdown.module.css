@@ -12,7 +12,7 @@
   background: var(--lk-bg);
   border: 1px solid #4b5563;
   border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 10px 40px var(--lk-shadow, rgba(0, 0, 0, 0.9));
   overflow: hidden;
   animation: slideDown 0.2s ease;
 }
@@ -32,9 +32,9 @@
   padding: 12px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.8));
   border-bottom: 1px solid #4b5563;
-  background: #0a0a0a;
+  background: var(--lk-bg3);
 }
 
 .menuItem {
@@ -46,7 +46,7 @@
   padding: 12px 16px;
   background: transparent;
   border: none;
-  color: white;
+  color: var(--lk-text1, white);
   font-size: 13px;
   font-weight: 500;
   text-align: left;
@@ -110,12 +110,12 @@
 
 .cancelButton {
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.6));
 }
 
 .cancelButton:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
+  background: var(--lk-bg3);
+  color: var(--lk-text2, rgba(255, 255, 255, 0.8));
 }
 
 .loadingIcon {
