@@ -188,7 +188,7 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
   // Standard grid for smaller groups (better control)
   return (
     <div className={clsx(
-      "h-full w-full flex items-center justify-center transition-all duration-300",
+      "h-full w-full flex items-center justify-center",
       isMobilePortrait ? "p-2" : "p-2 md:p-4"
     )}>
       <div className="w-full h-full max-w-7xl">
@@ -197,7 +197,7 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
             <div
               key={`${track.participant.identity}_${track.source}`}
               className={clsx(
-                "relative w-full h-full bg-gray-900 rounded-lg overflow-hidden transition-all duration-300",
+                "relative w-full h-full bg-gray-900 rounded-lg overflow-hidden",
                 // Enhanced minimum heights for better mobile visibility
                 count === 2 && isMobilePortrait && "min-h-[250px] min-w-[250px]", // Square-ish for 2 on mobile portrait
                 count === 2 && !isMobilePortrait && "min-h-[280px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px]", // Larger for 2
@@ -266,7 +266,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
       {/* Main focused video - responsive padding */}
       <div className="flex-1 p-1 md:p-2 min-h-0">
         {focusedTrack && (
-          <div className="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden transition-all duration-300">
+          <div className="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden">
             <CustomParticipantTile
               trackRef={focusedTrack}
               className="absolute inset-0"
@@ -283,7 +283,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
             {otherTracks.map((track) => (
               <div
                 key={`${track.participant.identity}_${track.source}`}
-                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 flex-shrink-0 cursor-pointer rounded-md overflow-hidden bg-gray-900 hover:ring-2 hover:ring-blue-500 transition-all"
+                className="w-16 h-16 md:w-24 md:h-24 lg:w-28 lg:h-28 flex-shrink-0 cursor-pointer rounded-md overflow-hidden bg-gray-900 hover:ring-2 hover:ring-blue-500"
                 onClick={() => setFocusedTrack(track)}
               >
                 <CustomParticipantTile
@@ -341,7 +341,7 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
       {/* Main presenter area - full width on mobile, flex-1 on desktop */}
       <div className="flex-1 p-1 md:p-2 min-h-[50%] lg:min-h-0">
         {presenterTrack && (
-          <div className="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden transition-all duration-300">
+          <div className="relative w-full h-full bg-gray-900 rounded-lg overflow-hidden">
             <CustomParticipantTile
               trackRef={presenterTrack}
               className="absolute inset-0"

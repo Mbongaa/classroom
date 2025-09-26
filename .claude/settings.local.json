@@ -68,7 +68,11 @@
       "WebFetch(domain:github.com)",
       "Bash(python3:*)",
       "Bash(netstat:*)",
-      "Bash(ss:*)"
+      "Bash(ss:*)",
+      "Bash(awk:*)",
+      "Bash(xargs -r kill -9)",
+      "Bash(pnpm store prune:*)",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

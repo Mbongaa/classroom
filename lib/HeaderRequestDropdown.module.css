@@ -8,7 +8,7 @@
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #000000;
+  background: var(--lk-bg);
   border: 1px solid transparent;
   border-radius: 8px;
   color: white;
@@ -95,7 +95,7 @@
   right: 0;
   width: 360px;
   max-height: 500px;
-  background: #000000;
+  background: var(--lk-bg);
   border: 1px solid #4b5563;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.9);

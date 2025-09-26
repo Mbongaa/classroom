@@ -14,7 +14,7 @@
 /* Fixed header at the top */
 .header {
   height: 56px;
-  background: #000000;
+  background: var(--lk-bg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
@@ -56,7 +56,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #000000;
+  background: var(--lk-bg);
   border: 1px solid transparent;
   border-radius: 8px;
   color: white;
@@ -85,7 +85,7 @@
 }
 
 .copyLinkButton.copied {
-  background: #000000;
+  background: var(--lk-bg);
   border-color: #6b7280;
   animation: copySuccess 0.3s ease;
   box-shadow:
@@ -97,6 +97,64 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* Raise hand button in header - same style as copyLinkButton */
+.raiseHandButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--lk-bg);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+}
+
+.raiseHandButton:hover:not(:disabled) {
+  background: #1a1a1a;
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.raiseHandButton:focus,
+.raiseHandButton:focus-visible {
+  box-shadow:
+    0 0 0 1px #b8b2b2,
+    0 0 0 5px #434549;
+}
+
+.raiseHandButton:active:not(:disabled) {
+  transform: translateY(0);
+  background: #0a0a0a;
+}
+
+.raiseHandButton.active {
+  background: var(--lk-bg);
+  border-color: #6b7280;
+  box-shadow:
+    0 0 0 1px #b8b2b2,
+    0 0 0 5px #434549;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.raiseHandButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.7;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Main container with column layout - adjusted for header */
@@ -203,7 +261,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
+  border-radius: 24px;
   background: var(--lk-background);
 }
 
@@ -378,116 +436,51 @@
   font-style: italic;
 }
 
-/* Resize Handle - positioned at bottom-right corner */
+/* Resize Handle - positioned at middle of right edge */
 .resizeHandle {
   position: absolute;
-  bottom: 0;
+  top: 50%;
   right: 0;
-  width: 30px;
-  height: 30px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
   cursor: ew-resize;
   background: transparent;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px 0 0 4px;
+  transition: background 0.2s ease;
 }
 
 .resizeHandle:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.resizeHandle:hover .resizeGrip {
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .resizeGrip {
-  width: 24px;
-  height: 24px;
-  position: relative;
-  opacity: 1; /* Fully visible */
-  transition: transform 0.2s ease;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s ease;
 }
 
-/* Create a simple white corner triangle */
-.resizeGrip::before {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 18px 18px;
-  border-color: transparent transparent white transparent;
-  opacity: 1;
+.resizeHandle:hover .resizeGrip {
+  color: rgba(255, 255, 255, 0.7);
 }
 
-/* Simple white grip lines on the triangle */
-.resizeGrip::after {
-  content: '';
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  width: 12px;
-  height: 12px;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.3) 2px,
-    rgba(0, 0, 0, 0.3) 3px,
-    transparent 3px,
-    transparent 5px
-  );
-}
-
-/* Translation Toggle Button - floating button for students */
-.translationToggleButton {
-  position: fixed;
-  left: 20px;
-  bottom: 20px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.8rem;
-  transition: all 0.3s ease;
-  z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-}
-
-.translationToggleButton:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-  transform: scale(1.1);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.translationToggleButton[aria-pressed="true"] {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  color: white;
-  transform: scale(1.05);
-}
 
 /* Students Section - Fixed at bottom */
 .studentsSection {
-  height: 200px; /* Fixed height */
+  height: 128px; /* Sweet spot - compact without scrollbar */
   background: var(--lk-background-2);
   border-top: 1px solid var(--lk-border);
-  padding: 1rem;
-  overflow-y: auto;
+  padding: 0.5rem; /* Reduced padding */
+  overflow: hidden; /* Hide overflow to prevent double scroll */
   flex-shrink: 0; /* Don't shrink */
 }
 
 .sectionHeader {
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
+  margin-bottom: 0.5rem; /* Reduced margin */
+  padding-bottom: 0.25rem; /* Reduced padding */
   border-bottom: 1px solid var(--lk-border);
 }
 
@@ -499,24 +492,24 @@
 
 .studentsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* Smaller minimum width */
   gap: 0.5rem;
   overflow-y: auto;
-  overflow-x: visible; /* Allow dropdown to extend horizontally */
-  max-height: calc(100% - 50px); /* Account for header */
-  padding-right: 10px; /* Add padding for dropdown space */
+  overflow-x: hidden; /* Hide horizontal overflow */
+  max-height: calc(100% - 30px); /* Account for smaller header */
+  padding-right: 10px; /* Add padding for scrollbar */
 }
 
 .studentTile {
-  aspect-ratio: 4/3;
+  aspect-ratio: 1; /* Square for avatar */
   background: var(--lk-background);
   border-radius: 6px;
-  overflow: visible; /* Changed to visible for dropdown */
+  overflow: hidden; /* Prevent content overflow - dropdown uses portal */
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  max-height: 120px; /* Constrain height */
+  max-height: 80px; /* Reduced height */
   transition: all 0.3s ease;
   border: 2px solid transparent;
 }
@@ -556,6 +549,7 @@
   justify-content: center;
   width: 100%;
   height: 100%;
+  padding: 0; /* Remove padding */
   background: var(--lk-background);
 }
 
@@ -584,7 +578,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100px;
+  height: 100%; /* Fill available space without overflow */
   color: var(--lk-text-muted);
   font-size: 0.9rem;
 }
@@ -602,69 +596,35 @@
   height: 100%;
 }
 
-/* Chat Resize Handle - positioned at bottom-left corner */
+/* Chat Resize Handle - positioned at middle of left edge */
 .chatResizeHandle {
   position: absolute;
+  top: 50%;
   left: 0;
-  bottom: 0;
-  width: 30px;
-  height: 30px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
   cursor: ew-resize;
   background: transparent;
   z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 0 4px 4px 0;
+  transition: background 0.2s ease;
 }
 
 .chatResizeHandle:hover {
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.chatResizeHandle:hover .chatResizeGrip {
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .chatResizeGrip {
-  width: 24px;
-  height: 24px;
-  position: relative;
-  opacity: 1;
-  transition: transform 0.2s ease;
+  color: rgba(255, 255, 255, 0.4);
+  transition: color 0.2s ease;
 }
 
-/* Create a white corner triangle on the left side */
-.chatResizeGrip::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 0 0 18px 18px;
-  border-color: transparent transparent white transparent;
-}
-
-/* Grip lines on the triangle */
-.chatResizeGrip::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
-  width: 12px;
-  height: 12px;
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 2px,
-    rgba(0, 0, 0, 0.3) 2px,
-    rgba(0, 0, 0, 0.3) 3px,
-    transparent 3px,
-    transparent 5px
-  );
+.chatResizeHandle:hover .chatResizeGrip {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Let LiveKit Chat component use its native styling completely */
@@ -722,16 +682,9 @@
     z-index: 100;
   }
 
-  .translationToggleButton {
-    width: 48px;
-    height: 48px;
-    font-size: 1.5rem;
-    bottom: 15px;
-    left: 15px;
-  }
 
   .studentsSection {
-    height: 150px; /* Smaller fixed height on mobile */
+    height: 110px; /* Compact on mobile */
   }
 
   .studentsGrid {
@@ -739,7 +692,7 @@
   }
 
   .studentTile {
-    max-height: 90px;
+    max-height: 60px; /* Smaller on mobile */
   }
 
   /* Speaking students use LiveKit's native indicator on mobile too */

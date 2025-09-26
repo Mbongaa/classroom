@@ -9,6 +9,7 @@ import { SettingsMenu } from '@/lib/SettingsMenu';
 import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
+import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
 import {
   formatChatMessageLinks,
@@ -115,12 +116,36 @@ export function PageClientImpl(props: {
   return (
     <main data-lk-theme="default" style={{ height: '100%' }}>
       {connectionDetails === undefined || preJoinChoices === undefined ? (
-        <div style={{ display: 'grid', placeItems: 'center', height: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Header with Bayaan logo - placed outside the centered content */}
           <div style={{
-            textAlign: 'center',
-            width: 'min(100%, 480px)',
-            marginInline: 'auto'
+            height: '56px',
+            background: 'var(--lk-bg, #000000)',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 20px',
+            flexShrink: 0
           }}>
+            <span style={{
+              fontSize: '20px',
+              fontWeight: 700,
+              color: 'var(--foreground)',
+              letterSpacing: '-0.03rem'
+            }}>
+              bayaan.ai
+            </span>
+            <ThemeToggleButton />
+          </div>
+
+          {/* Main content area */}
+          <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
+            <div style={{
+              textAlign: 'center',
+              width: 'min(100%, 480px)',
+              marginInline: 'auto'
+            }}>
             {classroomInfo && (
               <div>
                 <h1
@@ -242,6 +267,7 @@ export function PageClientImpl(props: {
               onLanguageChange={setSelectedLanguage}
               isTeacher={classroomInfo?.role === 'teacher'}
             />
+            </div>
           </div>
         </div>
       ) : (

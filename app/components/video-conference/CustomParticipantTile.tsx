@@ -67,10 +67,10 @@ export function CustomParticipantTile({
   const isScreenShare = trackRef.source === Track.Source.ScreenShare;
 
   // Check audio status - use reactive state for local participant
-  const audioTrack = participant.audioTracks?.get(Track.Source.Microphone);
+  const audioPublication = participant.getTrackPublication(Track.Source.Microphone);
   const isAudioEnabled = isLocalParticipant
     ? microphoneTrack?.track && !microphoneTrack.track.isMuted
-    : audioTrack?.isSubscribed && !audioTrack?.isMuted;
+    : audioPublication?.track && !audioPublication?.isMuted;
 
   // Parse metadata if available
   const metadata = participant.metadata ? JSON.parse(participant.metadata) : {};
@@ -140,9 +140,8 @@ export function CustomParticipantTile({
       <div
         {...elementProps}
         className={clsx(
-          'relative overflow-hidden rounded-lg bg-gray-900',
-          'transition-all duration-300',
-          isSpeaking && showSpeakingIndicator && 'ring-2 ring-white ring-opacity-75',
+          'relative overflow-hidden rounded-3xl bg-gray-900',
+          isSpeaking && showSpeakingIndicator && 'ring-[6px] ring-white ring-opacity-75',
           'w-full h-full',
           getAspectRatioClass(), // Apply the aspect ratio class
           className
@@ -174,12 +173,12 @@ export function CustomParticipantTile({
         )}
 
       {/* Audio Track (invisible but necessary for audio playback) */}
-      {audioTrack && audioTrack.track && (
+      {audioPublication && audioPublication.track && (
         <AudioTrack
           trackRef={{
             participant,
             source: Track.Source.Microphone,
-            publication: audioTrack,
+            publication: audioPublication,
           }}
         />
       )}

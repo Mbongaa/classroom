@@ -25,17 +25,17 @@ import {
   ParticipantKind,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { Clipboard, Check } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Clipboard, Check, GripVertical } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { PermissionDropdownPortal } from '@/lib/PermissionDropdownPortal';
+import { AvatarWithDropdown } from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
-import { RequestModeModal } from '@/lib/RequestModeModal';
 import { TeacherRequestPanel } from '@/lib/TeacherRequestPanel';
 import { HeaderRequestDropdown } from '@/lib/HeaderRequestDropdown';
+import { StudentRequestDropdown } from '@/lib/StudentRequestDropdown';
 import { RequestIndicator } from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
+import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import {
   StudentRequest,
   StudentRequestMessage,
@@ -98,7 +98,6 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   const [requests, setRequests] = React.useState<StudentRequest[]>([]);
   const [myActiveRequest, setMyActiveRequest] = React.useState<StudentRequest | null>(null);
   const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(new Map());
-  const [showRequestModal, setShowRequestModal] = React.useState(false);
 
   // State for copy link feedback
   const [linkCopied, setLinkCopied] = React.useState(false);
@@ -545,9 +544,12 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             <span className={styles.roomName}>bayaan.ai</span>
           </div>
 
-          {/* Teacher controls */}
-          {isTeacher && (
-            <div className={styles.headerControls}>
+          <div className={styles.headerControls}>
+            {/* Theme toggle - available for all users */}
+            <ThemeToggleButton />
+
+            {/* Teacher controls */}
+            {isTeacher && (<>
               {/* Copy student link button */}
               <button
                 className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
@@ -571,8 +573,17 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 onDisplay={handleDisplayQuestion}
                 onMarkAnswered={handleMarkAnswered}
               />
-            </div>
-          )}
+            </>)}
+
+            {/* Student controls */}
+            {!isTeacher && (
+              /* Student Request Dropdown */
+              <StudentRequestDropdown
+                activeRequest={myActiveRequest}
+                onSubmit={handleRequestSubmit}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -603,7 +614,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 onMouseDown={handleMouseDown}
                 title="Drag to resize"
               >
-                <div className={styles.resizeGrip} />
+                <GripVertical className={styles.resizeGrip} size={24} />
               </div>
             </div>
           )}
@@ -666,16 +677,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                         />
                       )}
 
-                      {/* Permission dropdown for teachers */}
-                      {isTeacher && teacherAuthToken && (
-                        <PermissionDropdownPortal
-                          participant={student}
-                          roomName={room.name}
-                          teacherToken={teacherAuthToken}
-                          onPermissionUpdate={handlePermissionUpdate}
-                          currentRole={metadata.role || 'student_speaker'}
-                        />
-                      )}
+                      {/* Permission dropdown integrated in avatar for student speaker */}
 
                       {studentTrack ? (
                         <CustomParticipantTile
@@ -685,7 +687,15 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                         />
                       ) : (
                         <div className={styles.noVideoPlaceholder}>
-                          <div className={styles.avatarPlaceholder}>🎤</div>
+                          <AvatarWithDropdown
+                            participant={student}
+                            roomName={room.name}
+                            teacherToken={teacherAuthToken || ''}
+                            onPermissionUpdate={handlePermissionUpdate}
+                            currentRole={metadata.role || 'student_speaker'}
+                            isTeacher={isTeacher}
+                            getInitials={getInitials}
+                          />
                           <div className={styles.participantName}>
                             {student.name || 'Student'}
                           </div>
@@ -734,7 +744,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
               onMouseDown={handleChatMouseDown}
               title="Drag to resize"
             >
-              <div className={styles.chatResizeGrip} />
+              <GripVertical className={styles.chatResizeGrip} size={24} />
             </div>
             <Chat className={styles.chatSidebar} style={{ width: '100%', height: '100%' }} />
           </div>
@@ -768,23 +778,16 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                       />
                     )}
 
-                    {/* Permission dropdown for teachers */}
-                    {isTeacher && teacherAuthToken && (
-                      <PermissionDropdownPortal
+                    <div className={styles.studentNoVideo}>
+                      <AvatarWithDropdown
                         participant={student}
                         roomName={room.name}
-                        teacherToken={teacherAuthToken}
+                        teacherToken={teacherAuthToken || ''}
                         onPermissionUpdate={handlePermissionUpdate}
                         currentRole={metadata.role || 'student'}
+                        isTeacher={isTeacher}
+                        getInitials={getInitials}
                       />
-                    )}
-
-                    <div className={styles.studentNoVideo}>
-                      <Avatar className="w-16 h-16 mx-auto border-2 border-gray-700">
-                        <AvatarFallback className="bg-black text-white text-xl font-semibold">
-                          {getInitials(student.name || 'Student')}
-                        </AvatarFallback>
-                      </Avatar>
                     </div>
 
                     <div className={styles.studentName}>
@@ -802,7 +805,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
         </div>
       </div>
 
-      {/* Control bar at the bottom with chat toggle and raise hand */}
+      {/* Control bar at the bottom with chat toggle and translation */}
       <div className={styles.controlBar}>
         <CustomControlBar
           variation="minimal"
@@ -812,33 +815,15 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             chat: true,
             screenShare: isTeacher,
             leave: true,
-            raiseHand: !isTeacher
+            translation: !isTeacher
           }}
-          onRaiseHandClick={() => setShowRequestModal(true)}
-          hasActiveRequest={!!myActiveRequest}
+          onTranslationClick={() => setShowTranslation(!showTranslation)}
+          showTranslation={showTranslation}
           isStudent={!isTeacher}
         />
       </div>
 
-      {/* Translation toggle button - floating button for students */}
-      {!isTeacher && (
-        <button
-          className={styles.translationToggleButton}
-          onClick={() => setShowTranslation(!showTranslation)}
-          aria-pressed={showTranslation ? 'true' : 'false'}
-          aria-label="Toggle translation panel"
-        >
-          🌐
-        </button>
-      )}
 
-      {/* Student Request Modal */}
-      {showRequestModal && (
-        <RequestModeModal
-          onClose={() => setShowRequestModal(false)}
-          onSubmit={handleRequestSubmit}
-        />
-      )}
 
       {/* Teacher Request Panel - Removed, now using HeaderRequestDropdown */}
 

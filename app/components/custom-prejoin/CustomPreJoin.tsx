@@ -201,7 +201,7 @@ export default function CustomPreJoin({
             justifyContent: 'center',
             width: '100%',
             aspectRatio: '16 / 9',
-            backgroundColor: '#0a0a0a',
+            backgroundColor: 'var(--lk-bg2, var(--lk-bg))',
             borderRadius: '8px',
             color: '#666',
           }}>
@@ -301,7 +301,7 @@ export default function CustomPreJoin({
           autoFocus
           required
           style={{
-            backgroundColor: '#000000',
+            backgroundColor: 'var(--lk-bg)',
             borderColor: '#4b5563',
             color: 'white',
             '::placeholder': { color: '#6b7280' }

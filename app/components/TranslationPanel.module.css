@@ -3,7 +3,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #000000; /* Pure black background */
+  background: var(--lk-bg); /* Pure black background */
   color: #e0e0e0;
   font-family:
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -15,7 +15,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background: #1a1a1a;
+  background: var(--lk-bg); /* Pure black */
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -104,23 +104,18 @@
   gap: 12px;
 }
 
-/* Scrollbar styling */
+/* Hide scrollbar while keeping scroll functionality */
 .translationList::-webkit-scrollbar {
-  width: 6px;
+  width: 0;
+  display: none;
 }
 
 .translationList::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 3px;
+  display: none;
 }
 
 .translationList::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-}
-
-.translationList::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
+  display: none;
 }
 
 /* Translation items */
@@ -207,7 +202,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: #1a1a1a;
+  background: var(--lk-bg); /* Pure black */
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 12px;
 }
@@ -249,7 +244,7 @@
   height: 100%;
   padding: 32px;
   text-align: center;
-  background: #000000; /* Pure black background */
+  background: var(--lk-bg); /* Pure black background */
 }
 
 .emptyIcon {

@@ -19,8 +19,7 @@ import {
   MessageSquare,
   PhoneOff,
   Settings,
-  Hand,
-  Clock,
+  Languages,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -32,13 +31,13 @@ interface CustomControlBarProps {
     chat?: boolean;
     settings?: boolean;
     leave?: boolean;
-    raiseHand?: boolean;
+    translation?: boolean;
   };
   variation?: 'minimal' | 'verbose' | 'textOnly';
   className?: string;
   onSettingsClick?: () => void;
-  onRaiseHandClick?: () => void;
-  hasActiveRequest?: boolean;
+  onTranslationClick?: () => void;
+  showTranslation?: boolean;
   isStudent?: boolean;
 }
 
@@ -50,13 +49,13 @@ export function CustomControlBar({
     chat: true,
     settings: false,
     leave: true,
-    raiseHand: false,
+    translation: false,
   },
   variation = 'minimal',
   className,
   onSettingsClick,
-  onRaiseHandClick,
-  hasActiveRequest = false,
+  onTranslationClick,
+  showTranslation = false,
   isStudent = false,
 }: CustomControlBarProps) {
   // Microphone toggle - using proper 'enabled' property from hook
@@ -99,9 +98,7 @@ export function CustomControlBar({
   const buttonClass = clsx(
     'relative inline-flex items-center justify-center',
     'h-12 px-4 rounded-lg',
-    'transition-all duration-200',
     'text-white font-medium',
-    'hover:scale-105 active:scale-95',
   );
 
   const getButtonVariant = (isEnabled: boolean, isDanger: boolean = false) => {
@@ -186,19 +183,18 @@ export function CustomControlBar({
         </Button>
       )}
 
-      {/* Raise Hand Button - Only for Students */}
-      {controls.raiseHand && isStudent && (
+      {/* Translation Button - Only for Students */}
+      {controls.translation && isStudent && (
         <Button
-          onClick={onRaiseHandClick}
-          variant={hasActiveRequest ? 'default' : 'secondary'}
+          onClick={onTranslationClick}
+          variant={showTranslation ? 'default' : 'secondary'}
           size="lg"
-          className={clsx(buttonClass, hasActiveRequest && 'animate-pulse')}
-          disabled={hasActiveRequest}
-          aria-label={hasActiveRequest ? 'Request pending' : 'Raise hand'}
-          title={hasActiveRequest ? 'Your request is pending' : 'Ask a question'}
+          className={buttonClass}
+          aria-label={showTranslation ? 'Hide translation' : 'Show translation'}
+          title={showTranslation ? 'Hide translation panel' : 'Show translation panel'}
         >
-          {hasActiveRequest ? <Clock className="h-5 w-5" /> : <Hand className="h-5 w-5" />}
-          {variation !== 'minimal' && (hasActiveRequest ? 'Pending' : 'Raise Hand')}
+          <Languages className="h-5 w-5" />
+          {variation !== 'minimal' && 'Translation'}
         </Button>
       )}
 

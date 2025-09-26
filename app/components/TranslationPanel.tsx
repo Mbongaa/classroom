@@ -3,6 +3,7 @@
 import { useRoomContext } from "@livekit/components-react";
 import { useState, useEffect, useRef } from "react";
 import { TranscriptionSegment, RoomEvent } from "livekit-client";
+import { Languages } from 'lucide-react';
 import styles from './TranslationPanel.module.css';
 
 interface TranslationPanelProps {
@@ -114,7 +115,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
     return (
       <div className={styles.emptyState}>
         <div className={styles.emptyIcon}>
-          <span className={styles.globeIcon}>🌐</span>
+          <Languages className={styles.globeIcon} size={32} />
           <div className={styles.pulseRing}></div>
         </div>
         <h3 className={styles.emptyTitle}>Waiting for translations...</h3>
@@ -136,19 +137,13 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <span className={styles.headerIcon}>🌐</span>
+          <Languages className={styles.headerIcon} size={20} />
           <span className={styles.headerTitle}>Live Translations</span>
         </div>
         <div className={styles.headerRight}>
           <span className={styles.languageBadge}>
             {getLanguageName(captionsLanguage)}
           </span>
-          {isReceiving && (
-            <span className={styles.liveIndicator}>
-              <span className={styles.liveDot}></span>
-              LIVE
-            </span>
-          )}
           {showCloseButton && onClose && (
             <button
               className={styles.closeButton}

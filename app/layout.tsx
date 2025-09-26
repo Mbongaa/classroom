@@ -4,6 +4,7 @@ import '@livekit/components-styles/prefabs';
 import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 import { ToasterProvider } from './components/ToasterProvider';
+import { Providers } from './providers';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -57,10 +58,12 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={poppins.variable} suppressHydrationWarning>
       <body data-lk-theme="default" className={poppins.className}>
-        <ToasterProvider />
-        {children}
+        <Providers>
+          <ToasterProvider />
+          {children}
+        </Providers>
       </body>
     </html>
   );
