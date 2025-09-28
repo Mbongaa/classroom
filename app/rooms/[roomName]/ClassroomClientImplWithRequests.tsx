@@ -16,7 +16,7 @@ import {
   useLayoutContext,
 } from '@livekit/components-react';
 import { CustomControlBar } from '@/app/components/video-conference/CustomControlBar';
-import { CustomParticipantTile } from '@/app/components/video-conference/CustomParticipantTile';
+import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
 import {
   Track,
   Participant,
@@ -27,11 +27,11 @@ import {
 import { useRouter } from 'next/navigation';
 import { Clipboard, Check, GripVertical } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { AvatarWithDropdown } from '@/lib/AvatarWithDropdown';
+import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
 import { HeaderRequestDropdown } from '@/lib/HeaderRequestDropdown';
 import { StudentRequestDropdown } from '@/lib/StudentRequestDropdown';
-import { RequestIndicator } from '@/lib/RequestIndicator';
+import RequestIndicator from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
@@ -43,7 +43,13 @@ import {
 } from '@/lib/types/StudentRequest';
 import { useResizable } from '@/lib/useResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
+import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtils';
 import styles from './ClassroomClient.module.css';
+
+interface PermissionNotification {
+  type: 'grant' | 'revoke';
+  message: string;
+}
 
 interface ClassroomClientImplWithRequestsProps {
   userRole?: string | null;
@@ -100,7 +106,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   });
 
   // State for permission notifications
-  const [permissionNotification, setPermissionNotification] = React.useState<any>(null);
+  const [permissionNotification, setPermissionNotification] = React.useState<PermissionNotification | null>(null);
 
   // State for student request system
   const [requests, setRequests] = React.useState<StudentRequest[]>([]);
@@ -116,32 +122,31 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   // Determine if current user can speak based on actual permissions
   const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish ?? false);
 
-  // Separate teacher and students based on metadata
+  // Separate teacher and students based on metadata (optimized)
   const { teacher, allStudents, speakingStudents } = React.useMemo(() => {
     let teacherParticipant: Participant | undefined;
     const studentsList: Participant[] = [];
+    const speakingStudentsList: Participant[] = [];
 
+    // Single pass through participants with optimized metadata parsing
     participants.forEach(participant => {
       // Filter out agents
       if (isAgentParticipant(participant)) {
         return;
       }
 
-      // Check participant metadata for role
-      const metadata = participant.metadata ? JSON.parse(participant.metadata) : {};
-      const participantRole = metadata.role || (participant === localParticipant ? userRole : 'student');
+      // Parse metadata safely once per participant
+      const participantRole = getParticipantRole(participant, localParticipant, userRole);
 
       if (participantRole === 'teacher') {
         teacherParticipant = participant;
       } else {
         studentsList.push(participant);
+        // Check if speaking student in same loop
+        if (participantRole === 'student_speaker') {
+          speakingStudentsList.push(participant);
+        }
       }
-    });
-
-    // Filter speaking students for main video area
-    const speakingStudentsList = studentsList.filter(s => {
-      const meta = s.metadata ? JSON.parse(s.metadata) : {};
-      return meta.role === 'student_speaker';
     });
 
     return {
@@ -213,15 +218,17 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     );
   }, [localParticipant, room]);
 
-  // Handle teacher approving voice request
+  // Handle teacher approving voice request (optimized dependencies)
   const handleApproveRequest = React.useCallback(async (requestId: string) => {
-    const request = requests.find(r => r.id === requestId);
-    if (!request || request.type !== 'voice') return;
+    // Use functional update to avoid dependency on requests array
+    let targetRequest: StudentRequest | undefined;
+    setRequests(prev => {
+      targetRequest = prev.find(r => r.id === requestId);
+      if (!targetRequest || targetRequest.type !== 'voice') return prev;
+      return prev.map(r => r.id === requestId ? { ...r, status: 'approved' as const } : r);
+    });
 
-    // Update request status
-    setRequests(prev => prev.map(r =>
-      r.id === requestId ? { ...r, status: 'approved' as const } : r
-    ));
+    if (!targetRequest || targetRequest.type !== 'voice') return;
 
     // For voice requests, use Phase 5 permission system
     try {
@@ -232,8 +239,8 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
         },
         body: JSON.stringify({
           roomName: room.name,
-          studentIdentity: request.studentIdentity,
-          studentName: request.studentName,
+          studentIdentity: targetRequest.studentIdentity,
+          studentName: targetRequest.studentName,
           action: 'grant',
           teacherToken: `teacher_${room.name}_${localParticipant.identity}`,
         }),
@@ -258,7 +265,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     } catch (error) {
       console.error('Failed to approve voice request:', error);
     }
-  }, [requests, room, localParticipant]);
+  }, [room, localParticipant]);
 
   // Handle teacher declining request
   const handleDeclineRequest = React.useCallback((requestId: string) => {
@@ -283,13 +290,19 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     );
   }, [room]);
 
-  // Handle displaying text question to all
+  // Handle displaying text question to all (optimized dependencies)
   const handleDisplayQuestion = React.useCallback((requestId: string) => {
-    const request = requests.find(r => r.id === requestId);
-    if (!request || request.type !== 'text') return;
+    // Use functional update to find request without depending on requests array
+    let targetRequest: StudentRequest | undefined;
+    setRequests(prev => {
+      targetRequest = prev.find(r => r.id === requestId);
+      return prev; // No state change needed here
+    });
+
+    if (!targetRequest || targetRequest.type !== 'text') return;
 
     // Update display state
-    setDisplayedQuestions(prev => new Map(prev).set(requestId, request));
+    setDisplayedQuestions(prev => new Map(prev).set(requestId, targetRequest!));
 
     // Send display message via data channel
     const message: RequestDisplayMessage = {
@@ -307,7 +320,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
       encoder.encode(JSON.stringify(message)),
       DataPacket_Kind.RELIABLE
     );
-  }, [requests, room]);
+  }, [room]);
 
   // Handle marking question as answered
   const handleMarkAnswered = React.useCallback((requestId: string) => {
@@ -598,7 +611,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                     track.publication.kind === 'audio'
                   );
 
-                  const metadata = student.metadata ? JSON.parse(student.metadata) : {};
+                  const metadata = parseParticipantMetadata(student.metadata);
                   const request = getParticipantRequest(student.identity);
 
                   return (
@@ -694,7 +707,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           <div className={styles.studentsGrid}>
             {allStudents.length > 0 ? (
               allStudents.map((student) => {
-                const metadata = student.metadata ? JSON.parse(student.metadata) : {};
+                const metadata = parseParticipantMetadata(student.metadata);
                 const isSpeaking = metadata.role === 'student_speaker';
                 const request = getParticipantRequest(student.identity);
 

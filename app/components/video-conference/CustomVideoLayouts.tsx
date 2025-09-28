@@ -9,7 +9,7 @@ import {
   isTrackReference,
 } from '@livekit/components-react';
 import { Track, Participant } from 'livekit-client';
-import { CustomParticipantTile } from './CustomParticipantTile';
+import CustomParticipantTile from './CustomParticipantTile';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
 import clsx from 'clsx';
 

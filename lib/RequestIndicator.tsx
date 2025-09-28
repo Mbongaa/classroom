@@ -78,3 +78,15 @@ export function RequestIndicator({
     </>
   );
 }
+
+// Memoize for performance - only re-render when request status/content changes
+export default React.memo(RequestIndicator, (prevProps, nextProps) => {
+  return (
+    prevProps.request.id === nextProps.request.id &&
+    prevProps.request.status === nextProps.request.status &&
+    prevProps.request.type === nextProps.request.type &&
+    prevProps.request.question === nextProps.request.question &&
+    prevProps.participantName === nextProps.participantName &&
+    prevProps.isTeacher === nextProps.isTeacher
+  );
+});

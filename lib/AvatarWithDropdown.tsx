@@ -255,3 +255,15 @@ export function AvatarWithDropdown({
     </>
   );
 }
+
+// Memoize for performance - only re-render when participant or role changes
+export default React.memo(AvatarWithDropdown, (prevProps, nextProps) => {
+  return (
+    prevProps.participant.identity === nextProps.participant.identity &&
+    prevProps.participant.name === nextProps.participant.name &&
+    prevProps.currentRole === nextProps.currentRole &&
+    prevProps.roomName === nextProps.roomName &&
+    prevProps.teacherToken === nextProps.teacherToken &&
+    prevProps.isTeacher === nextProps.isTeacher
+  );
+});

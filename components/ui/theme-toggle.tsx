@@ -42,8 +42,6 @@ export const useThemeToggle = ({
 
     let styleElement = document.getElementById(styleId) as HTMLStyleElement;
 
-    console.log("style ELement", styleElement);
-    console.log("name", name);
 
     if (!styleElement) {
       styleElement = document.createElement("style");
@@ -53,7 +51,6 @@ export const useThemeToggle = ({
 
     styleElement.textContent = css;
 
-    console.log("content updated");
   }, []);
 
   const toggleTheme = useCallback(() => {

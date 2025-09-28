@@ -207,7 +207,7 @@ export function CustomParticipantTile({
       {/* Overlay Information */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent dark:from-white/70">
+        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
           <div className="flex items-center justify-between">
             {/* Participant Name and Role */}
             <div className="flex items-center gap-2">
@@ -307,3 +307,16 @@ export function CustomParticipantTile({
     </VideoErrorBoundary>
   );
 }
+
+// Memoize component for performance optimization
+export default React.memo(CustomParticipantTile, (prevProps, nextProps) => {
+  // Only re-render if essential props change
+  return (
+    prevProps.trackRef.participant.identity === nextProps.trackRef.participant.identity &&
+    prevProps.trackRef.publication?.trackSid === nextProps.trackRef.publication?.trackSid &&
+    prevProps.showSpeakingIndicator === nextProps.showSpeakingIndicator &&
+    prevProps.showConnectionQuality === nextProps.showConnectionQuality &&
+    prevProps.className === nextProps.className &&
+    prevProps.aspectRatio === nextProps.aspectRatio
+  );
+});

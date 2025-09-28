@@ -111,7 +111,7 @@ export function PageClientImpl(props: {
     },
     [props.roomName, props.region],
   );
-  const handlePreJoinError = React.useCallback((e: any) => console.error(e), []);
+  const handlePreJoinError = React.useCallback((e: Error) => console.error(e), []);
 
   return (
     <main data-lk-theme="default" style={{ height: '100%' }}>
@@ -379,7 +379,6 @@ function VideoConferenceComponent(props: {
               await room.localParticipant.setAttributes({
                 [attributeName]: props.selectedLanguage,
               });
-              console.log(`Set ${attributeName} to:`, props.selectedLanguage);
             } catch (error) {
               console.error('Failed to set language attribute:', error);
             }
@@ -412,7 +411,6 @@ function VideoConferenceComponent(props: {
               });
             }
           } else {
-            console.log('Joined as student - media publishing disabled by token permissions');
             // Students have canPublish: false in their token, so no need to disable
           }
         })
