@@ -29,7 +29,6 @@ import { Clipboard, Check, GripVertical } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { AvatarWithDropdown } from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
-import { TeacherRequestPanel } from '@/lib/TeacherRequestPanel';
 import { HeaderRequestDropdown } from '@/lib/HeaderRequestDropdown';
 import { StudentRequestDropdown } from '@/lib/StudentRequestDropdown';
 import { RequestIndicator } from '@/lib/RequestIndicator';
@@ -42,6 +41,8 @@ import {
   RequestUpdateMessage,
   RequestDisplayMessage
 } from '@/lib/types/StudentRequest';
+import { useResizable } from '@/lib/useResizable';
+import { isAgentParticipant } from '@/lib/participantUtils';
 import styles from './ClassroomClient.module.css';
 
 interface ClassroomClientImplWithRequestsProps {
@@ -80,16 +81,23 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
   // State for translation panel visibility and width (only for students)
   const [showTranslation, setShowTranslation] = React.useState(false);
-  const [translationWidth, setTranslationWidth] = React.useState(320);
+  const translationResize = useResizable({
+    initialWidth: 320,
+    minWidth: 250,
+    maxWidth: 600,
+  });
 
   // Get the student's selected caption language from attributes
   const captionsLanguage = localParticipant.attributes?.captions_language || 'en';
-  const [isResizing, setIsResizing] = React.useState(false);
   const translationRef = React.useRef<HTMLDivElement>(null);
 
   // State for chat sidebar width
-  const [chatWidth, setChatWidth] = React.useState(320);
-  const [isResizingChat, setIsResizingChat] = React.useState(false);
+  const chatResize = useResizable({
+    initialWidth: 320,
+    minWidth: 250,
+    maxWidth: 600,
+    widthCalculation: (clientX: number) => window.innerWidth - clientX, // Right-edge resize
+  });
 
   // State for permission notifications
   const [permissionNotification, setPermissionNotification] = React.useState<any>(null);
@@ -115,14 +123,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
     participants.forEach(participant => {
       // Filter out agents
-      if (
-        participant.kind === ParticipantKind.Agent ||
-        participant.kind === 'agent' ||
-        participant.kind === 'AGENT' ||
-        (participant.name && participant.name.toLowerCase().includes('agent')) ||
-        (participant.identity && participant.identity.toLowerCase().includes('agent')) ||
-        (participant.identity && participant.identity.toLowerCase().includes('bot'))
-      ) {
+      if (isAgentParticipant(participant)) {
         return;
       }
 
@@ -449,75 +450,9 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     };
   }, [room, handleOnLeave, handleDataReceived, handlePermissionChanged]);
 
-  // Handle translation resize functionality
-  const handleMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizing(true);
-  }, []);
 
-  const handleMouseMove = React.useCallback((e: MouseEvent) => {
-    if (!isResizing) return;
 
-    const newWidth = e.clientX;
-    if (newWidth >= 250 && newWidth <= 600) {
-      setTranslationWidth(newWidth);
-    }
-  }, [isResizing]);
 
-  const handleMouseUp = React.useCallback(() => {
-    setIsResizing(false);
-  }, []);
-
-  // Handle chat resize functionality
-  const handleChatMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizingChat(true);
-  }, []);
-
-  const handleChatMouseMove = React.useCallback((e: MouseEvent) => {
-    if (!isResizingChat) return;
-
-    const newWidth = window.innerWidth - e.clientX;
-    if (newWidth >= 250 && newWidth <= 600) {
-      setChatWidth(newWidth);
-    }
-  }, [isResizingChat]);
-
-  const handleChatMouseUp = React.useCallback(() => {
-    setIsResizingChat(false);
-  }, []);
-
-  React.useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'ew-resize';
-
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
-      };
-    }
-  }, [isResizing, handleMouseMove, handleMouseUp]);
-
-  React.useEffect(() => {
-    if (isResizingChat) {
-      document.addEventListener('mousemove', handleChatMouseMove);
-      document.addEventListener('mouseup', handleChatMouseUp);
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'ew-resize';
-
-      return () => {
-        document.removeEventListener('mousemove', handleChatMouseMove);
-        document.removeEventListener('mouseup', handleChatMouseUp);
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
-      };
-    }
-  }, [isResizingChat, handleChatMouseMove, handleChatMouseUp]);
 
   // Generate teacher auth token
   const teacherAuthToken = React.useMemo(() => {
@@ -601,7 +536,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
               className={styles.translationSidebar}
               style={{
                 display: showTranslation ? 'flex' : 'none',
-                width: `${translationWidth}px`
+                width: `${translationResize.width}px`
               }}
             >
               <TranslationPanel
@@ -611,7 +546,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
               />
               <div
                 className={styles.resizeHandle}
-                onMouseDown={handleMouseDown}
+                onMouseDown={translationResize.handleMouseDown}
                 title="Drag to resize"
               >
                 <GripVertical className={styles.resizeGrip} size={24} />
@@ -735,13 +670,13 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             className={styles.chatWrapper}
             style={{
               display: widget.state?.showChat ? '' : 'none',
-              width: `${chatWidth}px`,
+              width: `${chatResize.width}px`,
               position: 'relative'
             }}
           >
             <div
               className={styles.chatResizeHandle}
-              onMouseDown={handleChatMouseDown}
+              onMouseDown={chatResize.handleMouseDown}
               title="Drag to resize"
             >
               <GripVertical className={styles.chatResizeGrip} size={24} />

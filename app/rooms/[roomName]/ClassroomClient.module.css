@@ -459,12 +459,12 @@
 }
 
 .resizeGrip {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--lk-text2, rgba(128, 128, 128, 0.6));
   transition: color 0.2s ease;
 }
 
 .resizeHandle:hover .resizeGrip {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--lk-text1, rgba(128, 128, 128, 0.8));
 }
 
 
@@ -620,12 +620,12 @@
 }
 
 .chatResizeGrip {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--lk-text2, rgba(128, 128, 128, 0.6));
   transition: color 0.2s ease;
 }
 
 .chatResizeHandle:hover .chatResizeGrip {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--lk-text1, rgba(128, 128, 128, 0.8));
 }
 
 /* Let LiveKit Chat component use its native styling completely */
@@ -716,6 +716,20 @@
   .chatResizeHandle {
     display: none; /* Hide resize handle on mobile */
   }
+}
+
+/* Force white text for participant names in all themes - fixes light mode visibility */
+.participantName,
+.studentName {
+  color: white !important;
+}
+
+/* Also target LiveKit's native participant name classes */
+.participantName .lk-participant-name,
+.studentName .lk-participant-name,
+[data-lk-theme] .participantName,
+[data-lk-theme] .studentName {
+  color: white !important;
 }
 
 /* Animations */

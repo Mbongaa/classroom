@@ -72,7 +72,8 @@
       "Bash(awk:*)",
       "Bash(xargs -r kill -9)",
       "Bash(pnpm store prune:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(pnpm typecheck:*)"
     ],
     "deny": [],
     "ask": []

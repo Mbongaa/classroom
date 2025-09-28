@@ -15,6 +15,7 @@ import { CustomControlBar } from './CustomControlBar';
 import { CustomVideoLayouts } from './CustomVideoLayouts';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { Button } from '@/components/ui/button';
+import { useResizable } from '@/lib/useResizable';
 import { Grid3X3, Users, Presentation, MessageSquare, X } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -40,8 +41,12 @@ export function CustomVideoConference({
 
   const [layoutMode, setLayoutMode] = React.useState<'grid' | 'focus' | 'spotlight'>(defaultLayout);
   const [showSettings, setShowSettings] = React.useState(false);
-  const [chatSidebarWidth, setChatSidebarWidth] = React.useState(320);
-  const [isResizingChat, setIsResizingChat] = React.useState(false);
+  const chatResize = useResizable({
+    initialWidth: 320,
+    minWidth: 250,
+    maxWidth: 600,
+    widthCalculation: (clientX: number) => window.innerWidth - clientX, // Right-edge resize
+  });
 
   // Auto-switch to focus layout when screen share starts
   React.useEffect(() => {
@@ -54,40 +59,6 @@ export function CustomVideoConference({
     }
   }, [tracks, layoutMode]);
 
-  // Chat resize handlers
-  const handleChatMouseDown = React.useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    setIsResizingChat(true);
-  }, []);
-
-  const handleChatMouseMove = React.useCallback((e: MouseEvent) => {
-    if (!isResizingChat) return;
-
-    const newWidth = window.innerWidth - e.clientX;
-    if (newWidth >= 250 && newWidth <= 600) {
-      setChatSidebarWidth(newWidth);
-    }
-  }, [isResizingChat]);
-
-  const handleChatMouseUp = React.useCallback(() => {
-    setIsResizingChat(false);
-  }, []);
-
-  React.useEffect(() => {
-    if (isResizingChat) {
-      document.addEventListener('mousemove', handleChatMouseMove);
-      document.addEventListener('mouseup', handleChatMouseUp);
-      document.body.style.userSelect = 'none';
-      document.body.style.cursor = 'ew-resize';
-
-      return () => {
-        document.removeEventListener('mousemove', handleChatMouseMove);
-        document.removeEventListener('mouseup', handleChatMouseUp);
-        document.body.style.userSelect = '';
-        document.body.style.cursor = '';
-      };
-    }
-  }, [isResizingChat, handleChatMouseMove, handleChatMouseUp]);
 
   if (connectionState === ConnectionState.Connecting) {
     return (
@@ -204,7 +175,7 @@ export function CustomVideoConference({
           <div
             className="absolute right-0 top-0 bottom-0 z-10 border-l shadow-2xl"
             style={{
-              width: `${chatSidebarWidth}px`,
+              width: `${chatResize.width}px`,
               backgroundColor: 'var(--lk-bg)',
               borderColor: 'var(--lk-bg3)'
             }}
@@ -213,7 +184,7 @@ export function CustomVideoConference({
             <div
               className="absolute left-0 top-0 bottom-0 w-1 cursor-ew-resize hover:bg-blue-500 transition-colors"
               style={{ backgroundColor: 'var(--lk-bg3)' }}
-              onMouseDown={handleChatMouseDown}
+              onMouseDown={chatResize.handleMouseDown}
             />
 
             {/* Chat header */}

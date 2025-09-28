@@ -218,7 +218,7 @@ export function CustomParticipantTile({
               )}
               <span
                 className="text-sm font-medium truncate max-w-[150px]"
-                style={{ color: 'var(--lk-text1, white)' }}
+                style={{ color: 'white' }}
               >
                 {participant.name || participant.identity}
               </span>

@@ -3,7 +3,6 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { StudentRequestButton } from '../lib/StudentRequestButton';
 import { RequestModeModal } from '../lib/RequestModeModal';
-import { TeacherRequestPanel } from '../lib/TeacherRequestPanel';
 import { RequestIndicator } from '../lib/RequestIndicator';
 import { QuestionBubble } from '../lib/QuestionBubble';
 import { StudentRequest } from '../lib/types/StudentRequest';
@@ -122,115 +121,6 @@ describe('Student Request System', () => {
     });
   });
 
-  describe('TeacherRequestPanel', () => {
-    const mockRequests: StudentRequest[] = [
-      {
-        id: 'req_1',
-        studentIdentity: 'student1',
-        studentName: 'John Doe',
-        type: 'voice',
-        timestamp: Date.now(),
-        status: 'pending',
-      },
-      {
-        id: 'req_2',
-        studentIdentity: 'student2',
-        studentName: 'Jane Smith',
-        type: 'text',
-        question: 'What page are we on?',
-        timestamp: Date.now(),
-        status: 'pending',
-      },
-    ];
-
-    it('should render for teachers', () => {
-      const onApprove = vi.fn();
-      const onDecline = vi.fn();
-      const onDisplay = vi.fn();
-      const onMarkAnswered = vi.fn();
-
-      render(
-        <TeacherRequestPanel
-          requests={mockRequests}
-          onApprove={onApprove}
-          onDecline={onDecline}
-          onDisplay={onDisplay}
-          onMarkAnswered={onMarkAnswered}
-          isTeacher={true}
-        />
-      );
-
-      expect(screen.getByText(/student requests/i)).toBeInTheDocument();
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-    });
-
-    it('should not render for students', () => {
-      const onApprove = vi.fn();
-      const onDecline = vi.fn();
-      const onDisplay = vi.fn();
-      const onMarkAnswered = vi.fn();
-
-      const { container } = render(
-        <TeacherRequestPanel
-          requests={mockRequests}
-          onApprove={onApprove}
-          onDecline={onDecline}
-          onDisplay={onDisplay}
-          onMarkAnswered={onMarkAnswered}
-          isTeacher={false}
-        />
-      );
-
-      expect(container.firstChild).toBeNull();
-    });
-
-    it('should handle voice request approval', () => {
-      const onApprove = vi.fn();
-      const onDecline = vi.fn();
-      const onDisplay = vi.fn();
-      const onMarkAnswered = vi.fn();
-
-      render(
-        <TeacherRequestPanel
-          requests={mockRequests}
-          onApprove={onApprove}
-          onDecline={onDecline}
-          onDisplay={onDisplay}
-          onMarkAnswered={onMarkAnswered}
-          isTeacher={true}
-        />
-      );
-
-      const approveButtons = screen.getAllByText(/approve/i);
-      fireEvent.click(approveButtons[0]);
-
-      expect(onApprove).toHaveBeenCalledWith('req_1');
-    });
-
-    it('should handle text question display', () => {
-      const onApprove = vi.fn();
-      const onDecline = vi.fn();
-      const onDisplay = vi.fn();
-      const onMarkAnswered = vi.fn();
-
-      render(
-        <TeacherRequestPanel
-          requests={mockRequests}
-          onApprove={onApprove}
-          onDecline={onDecline}
-          onDisplay={onDisplay}
-          onMarkAnswered={onMarkAnswered}
-          isTeacher={true}
-        />
-      );
-
-      const displayButton = screen.getByText(/display/i);
-      fireEvent.click(displayButton);
-
-      expect(onDisplay).toHaveBeenCalledWith('req_2');
-    });
-  });
 
   describe('RequestIndicator', () => {
     const mockRequest: StudentRequest = {
