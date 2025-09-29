@@ -165,6 +165,19 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     teacher ? { participant: teacher } : undefined
   );
 
+  // Separate screen share tracks from camera tracks for the teacher
+  const teacherScreenShareTrack = teacherTracks.find(
+    track => isTrackReference(track) && track.source === Track.Source.ScreenShare
+  );
+
+  const teacherCameraTrack = teacherTracks.find(
+    track => isTrackReference(track) && track.source === Track.Source.Camera
+  );
+
+  const teacherAudioTracks = teacherTracks.filter(
+    track => isTrackReference(track) && track.publication.kind === 'audio'
+  );
+
   // Get tracks for all students
   const studentTracks = useTracks(
     [Track.Source.Camera, Track.Source.Microphone],
@@ -588,30 +601,55 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           <div className={styles.mainVideoSection}>
             {teacher || speakingStudents.length > 0 ? (
               <div className={styles.mainVideoGrid}>
-                {/* Teacher video */}
+                {/* Teacher video/screen share */}
                 {teacher && (
-                  <div className={styles.teacherVideo}>
-                    {teacherTracks.length > 0 && teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video') ? (
-                      <CustomParticipantTile
-                        trackRef={teacherTracks.find(track => isTrackReference(track) && track.publication.kind === 'video')}
-                        className={styles.teacherTile}
-                        showSpeakingIndicator={true}
-                      />
-                    ) : (
-                      <div className={styles.noVideoPlaceholder}>
-                        <div className={styles.avatarPlaceholder}>👨‍🏫</div>
-                        <div className={styles.participantName}>
-                          {teacher.name || 'Teacher'}
+                  <div className={teacherScreenShareTrack ? styles.teacherScreenShareLayout : styles.teacherVideo}>
+                    {/* Display screen share as primary if active */}
+                    {teacherScreenShareTrack ? (
+                      <>
+                        {/* Main screen share display */}
+                        <div className={styles.screenShareContainer}>
+                          <CustomParticipantTile
+                            trackRef={teacherScreenShareTrack}
+                            className={styles.screenShareTile}
+                            showSpeakingIndicator={false}
+                          />
                         </div>
-                        <div className={styles.noVideoText}>Camera Off</div>
-                      </div>
+
+                        {/* Teacher camera as overlay/thumbnail when screen sharing */}
+                        {teacherCameraTrack && (
+                          <div className={styles.teacherCameraThumbnail}>
+                            <CustomParticipantTile
+                              trackRef={teacherCameraTrack}
+                              className={styles.teacherThumbnailTile}
+                              showSpeakingIndicator={true}
+                            />
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      /* Regular camera view when not screen sharing */
+                      teacherCameraTrack ? (
+                        <CustomParticipantTile
+                          trackRef={teacherCameraTrack}
+                          className={styles.teacherTile}
+                          showSpeakingIndicator={true}
+                        />
+                      ) : (
+                        <div className={styles.noVideoPlaceholder}>
+                          <div className={styles.avatarPlaceholder}>👨‍🏫</div>
+                          <div className={styles.participantName}>
+                            {teacher.name || 'Teacher'}
+                          </div>
+                          <div className={styles.noVideoText}>Camera Off</div>
+                        </div>
+                      )
                     )}
 
-                    {teacherTracks
-                      .filter(track => isTrackReference(track) && track.publication.kind === 'audio')
-                      .map((track) => (
-                        <AudioTrack key={track.publication.trackSid} trackRef={track} />
-                      ))}
+                    {/* Audio tracks */}
+                    {teacherAudioTracks.map((track) => (
+                      <AudioTrack key={track.publication.trackSid} trackRef={track} />
+                    ))}
                   </div>
                 )}
 
