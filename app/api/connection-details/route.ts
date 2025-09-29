@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     // NEW: Check if this is a classroom and what role
     const isClassroom = request.nextUrl.searchParams.get('classroom') === 'true';
     const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
-    const pin = request.nextUrl.searchParams.get('pin') ?? ''; // Optional PIN for classroom
 
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
@@ -44,14 +43,14 @@ export async function GET(request: NextRequest) {
       randomParticipantPostfix = randomString(4);
     }
 
-    // Add role and PIN to metadata for client-side use
+    // Add role to metadata for client-side use
     const enrichedMetadata = metadata
       ? JSON.stringify({
           ...JSON.parse(metadata),
-          ...(isClassroom ? { role, ...(pin && role === 'teacher' ? { classroomPin: pin } : {}) } : {}),
+          ...(isClassroom ? { role } : {}),
         })
       : isClassroom
-        ? JSON.stringify({ role, ...(pin && role === 'teacher' ? { classroomPin: pin } : {}) })
+        ? JSON.stringify({ role })
         : '';
 
     const participantToken = await createParticipantToken(

@@ -353,7 +353,7 @@ export default function CustomPreJoin({
           disabled={!username.trim()}
           borderRadius="1.75rem"
           containerClassName="w-full h-12"
-          className="bg-black text-white border-gray-700 text-lg font-medium"
+          className="bg-white dark:bg-black text-black dark:text-white border-gray-300 dark:border-gray-700 text-lg font-medium"
           duration={3000}
         >
           Join Room

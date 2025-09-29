@@ -73,7 +73,8 @@
       "Bash(xargs -r kill -9)",
       "Bash(pnpm store prune:*)",
       "Bash(rm:*)",
-      "Bash(pnpm typecheck:*)"
+      "Bash(pnpm typecheck:*)",
+      "Bash(pnpm run:*)"
     ],
     "deny": [],
     "ask": []

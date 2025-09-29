@@ -27,20 +27,7 @@ export function CopyStudentLinkButton() {
   const copyStudentLink = async () => {
     const roomName = room.name;
     const baseUrl = window.location.origin;
-
-    // Check if there's a PIN in the teacher's metadata
-    let studentLink = `${baseUrl}/s/${roomName}`;
-    try {
-      const metadata = room.localParticipant?.metadata;
-      if (metadata) {
-        const parsed = JSON.parse(metadata);
-        if (parsed.classroomPin) {
-          studentLink += `?pin=${parsed.classroomPin}`;
-        }
-      }
-    } catch {
-      // If metadata parsing fails, just use the basic link
-    }
+    const studentLink = `${baseUrl}/s/${roomName}`;
 
     try {
       await navigator.clipboard.writeText(studentLink);
@@ -71,7 +58,7 @@ export function CopyStudentLinkButton() {
 
   return (
     <button
-      className="lk-button lk-button-menu"
+      className="ring-offset-2 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
       onClick={copyStudentLink}
       style={{
         position: 'fixed',

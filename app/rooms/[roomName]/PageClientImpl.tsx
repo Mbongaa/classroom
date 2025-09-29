@@ -121,7 +121,7 @@ export function PageClientImpl(props: {
           <div style={{
             height: '56px',
             background: 'var(--lk-bg, #000000)',
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+            borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
