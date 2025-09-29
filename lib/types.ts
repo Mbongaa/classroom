@@ -34,3 +34,24 @@ export interface ClassroomMetadata {
   role?: ClassroomRole;
   [key: string]: any;
 }
+
+// Persistent Rooms types
+export type RoomType = 'meeting' | 'classroom' | 'speech';
+
+export interface RoomMetadata {
+  roomType: RoomType;
+  teacherName?: string;
+  language?: string;
+  description?: string;
+  createdBy?: string;
+  createdAt: number;
+}
+
+export interface PersistentRoom {
+  name: string;           // Room code
+  sid: string;            // LiveKit room SID
+  emptyTimeout: number;   // Seconds before deletion when empty
+  metadata: RoomMetadata;
+  creationTime: number;   // Unix timestamp
+  numParticipants: number;
+}

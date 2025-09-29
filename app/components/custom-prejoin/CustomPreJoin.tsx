@@ -45,6 +45,13 @@ export default function CustomPreJoin({
   const [videoDeviceId, setVideoDeviceId] = React.useState<string>('');
   const [audioDeviceId, setAudioDeviceId] = React.useState<string>('');
 
+  // Sync username with defaults when it changes (e.g., when room metadata loads)
+  React.useEffect(() => {
+    if (defaults?.username) {
+      setUsername(defaults.username);
+    }
+  }, [defaults?.username]);
+
   // Media tracks
   const [localVideoTrack, setLocalVideoTrack] = React.useState<any>(null);
   const [localAudioTrack, setLocalAudioTrack] = React.useState<any>(null);

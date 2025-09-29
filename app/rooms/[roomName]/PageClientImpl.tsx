@@ -50,6 +50,7 @@ export function PageClientImpl(props: {
     undefined,
   );
   const [selectedLanguage, setSelectedLanguage] = React.useState<string>(''); // Start with no selection
+  const [roomMetadata, setRoomMetadata] = React.useState<{ teacherName?: string; language?: string } | null>(null);
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
@@ -73,16 +74,42 @@ export function PageClientImpl(props: {
     }
   }, []);
 
+  // Fetch room metadata to auto-populate language and teacher name (TEACHERS ONLY)
+  React.useEffect(() => {
+    const fetchRoomMetadata = async () => {
+      try {
+        const response = await fetch(`/api/rooms/${props.roomName}/metadata`);
+        const data = await response.json();
+
+        if (data.metadata) {
+          // Store full metadata for use in preJoinDefaults
+          setRoomMetadata(data.metadata);
+
+          // Auto-populate language ONLY for teachers
+          if (data.metadata.language && classroomInfo?.role === 'teacher') {
+            setSelectedLanguage(data.metadata.language);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch room metadata:', error);
+        // Silently fail - not critical for room functionality
+      }
+    };
+
+    fetchRoomMetadata();
+  }, [props.roomName, classroomInfo?.role]);
+
   const preJoinDefaults = React.useMemo(() => {
     // For students, disable camera/mic by default to avoid permission issues
     const isStudent = classroomInfo?.role === 'student';
+    const isTeacher = classroomInfo?.role === 'teacher';
 
     return {
-      username: '',
+      username: isTeacher && roomMetadata?.teacherName ? roomMetadata.teacherName : '',
       videoEnabled: !isStudent, // Disabled for students
       audioEnabled: !isStudent, // Disabled for students
     };
-  }, [classroomInfo]);
+  }, [classroomInfo, roomMetadata]);
   const [connectionDetails, setConnectionDetails] = React.useState<ConnectionDetails | undefined>(
     undefined,
   );

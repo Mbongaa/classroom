@@ -97,6 +97,17 @@ function DemoMeetingTab(props: { label: string }) {
           Join Speech Session (Student)
         </button>
 
+        {/* Divider */}
+        <div style={{ width: '100%', height: '1px', background: 'rgba(128, 128, 128, 0.3)', margin: '0.5rem 0' }} />
+
+        {/* Manage Persistent Rooms */}
+        <button
+          onClick={() => router.push('/manage-rooms')}
+          className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
+        >
+          Manage Persistent Rooms
+        </button>
+
         {/* Dynamic room code input */}
         {showRoomCodeInput && (
           <div style={{
