@@ -1,0 +1,324 @@
+.dropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown button styling matching HeaderRequestDropdown */
+.dropdownButton {
+  height: 36px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--lk-bg);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--lk-text1, white);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  position: relative;
+  white-space: nowrap;
+}
+
+.dropdownButton:hover:not(:disabled) {
+  background: var(--lk-bg2);
+  border-color: transparent;
+  transform: translateY(-1px);
+}
+
+.dropdownButton:focus,
+.dropdownButton:focus-visible {
+  box-shadow:
+    0 0 0 1px var(--lk-text2, #b8b2b2),
+    0 0 0 5px var(--lk-bg4, #434549);
+}
+
+.dropdownButton:active:not(:disabled) {
+  transform: translateY(0);
+  background: var(--lk-bg3);
+}
+
+.dropdownButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.dropdownButton.hasActiveRequest {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.buttonIcon {
+  flex-shrink: 0;
+}
+
+.buttonIcon.pending {
+  animation: rotate 2s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.buttonText {
+  font-size: 14px;
+  margin: 0 2px;
+}
+
+.dropdownArrow {
+  margin-left: 2px;
+  opacity: 0.7;
+}
+
+/* Dropdown panel */
+.dropdownPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 320px;
+  max-width: 400px;
+  background: var(--lk-bg);
+  border: 1px solid #4b5563;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px var(--lk-shadow, rgba(0, 0, 0, 0.3));
+  overflow: hidden;
+  z-index: 1000;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panelHeader {
+  padding: 12px 16px;
+  background: var(--lk-bg3);
+  border-bottom: 1px solid #4b5563;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panelTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--lk-text1, rgba(255, 255, 255, 0.9));
+}
+
+/* Request options section */
+.requestOptions {
+  padding: 16px;
+}
+
+.optionDescription {
+  color: var(--lk-text1, rgba(255, 255, 255, 0.7));
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+
+.optionButton {
+  width: 100%;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--lk-bg3);
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.1));
+  border-radius: 8px;
+  color: var(--lk-text1, white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.optionButton:last-child {
+  margin-bottom: 0;
+}
+
+.optionButton:hover {
+  background: var(--lk-bg3);
+  transform: translateX(2px);
+}
+
+.optionIcon {
+  flex-shrink: 0;
+  color: var(--lk-text1, rgba(255, 255, 255, 0.8));
+}
+
+.optionContent {
+  flex: 1;
+}
+
+.optionTitle {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.optionSubtitle {
+  font-size: 12px;
+  color: var(--lk-text2, rgba(255, 255, 255, 0.6));
+}
+
+/* Confirm section for voice request */
+.confirmSection {
+  padding: 20px;
+  text-align: center;
+}
+
+.confirmIcon {
+  margin-bottom: 12px;
+  color: var(--lk-text1, rgba(255, 255, 255, 0.8));
+}
+
+.confirmText {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.confirmSubtext {
+  font-size: 13px;
+  color: var(--lk-text2, rgba(255, 255, 255, 0.6));
+  margin-bottom: 20px;
+}
+
+.confirmButtons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Text input section */
+.textSection {
+  padding: 16px;
+}
+
+.textHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  color: var(--lk-text1, rgba(255, 255, 255, 0.9));
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.textInput {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  background: var(--lk-bg3);
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.2));
+  border-radius: 8px;
+  color: var(--lk-text1, white);
+  font-size: 14px;
+  resize: vertical;
+  outline: none;
+  font-family: inherit;
+}
+
+.textInput:focus {
+  border-color: #b8b2b2;
+  background: var(--lk-bg3);
+}
+
+.textInput::placeholder {
+  color: var(--lk-text2, rgba(255, 255, 255, 0.4));
+}
+
+.textFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.charCount {
+  font-size: 12px;
+  color: var(--lk-text2, rgba(255, 255, 255, 0.5));
+}
+
+.textButtons {
+  display: flex;
+  gap: 8px;
+}
+
+/* Common buttons */
+.cancelButton {
+  padding: 6px 16px;
+  background: transparent;
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.2));
+  border-radius: 6px;
+  color: var(--lk-text1, rgba(255, 255, 255, 0.7));
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+  background: var(--lk-bg3);
+  color: var(--lk-text1, white);
+}
+
+.submitButton {
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--lk-text2, rgba(255, 255, 255, 0.2));
+  border-radius: 6px;
+  color: var(--lk-text1, white);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Active request info */
+.activeRequestInfo {
+  padding: 12px 16px;
+  background: var(--lk-bg3);
+  border-top: 1px solid #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--lk-text2, rgba(255, 255, 255, 0.6));
+  font-size: 13px;
+}

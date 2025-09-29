@@ -18,8 +18,9 @@ export async function GET(request: NextRequest) {
     const metadata = request.nextUrl.searchParams.get('metadata') ?? '';
     const region = request.nextUrl.searchParams.get('region');
 
-    // NEW: Check if this is a classroom and what role
+    // NEW: Check if this is a classroom or speech session and what role
     const isClassroom = request.nextUrl.searchParams.get('classroom') === 'true';
+    const isSpeech = request.nextUrl.searchParams.get('speech') === 'true';
     const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
 
     if (!LIVEKIT_URL) {
@@ -47,9 +48,9 @@ export async function GET(request: NextRequest) {
     const enrichedMetadata = metadata
       ? JSON.stringify({
           ...JSON.parse(metadata),
-          ...(isClassroom ? { role } : {}),
+          ...((isClassroom || isSpeech) ? { role } : {}),
         })
-      : isClassroom
+      : (isClassroom || isSpeech)
         ? JSON.stringify({ role })
         : '';
 
@@ -60,7 +61,7 @@ export async function GET(request: NextRequest) {
         metadata: enrichedMetadata,
       },
       roomName,
-      isClassroom,
+      isClassroom || isSpeech,
       role,
     );
 
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
 function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
-  isClassroom: boolean = false,
+  isRoleBasedSession: boolean = false,
   role: string = 'student',
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
@@ -95,7 +96,7 @@ function createParticipantToken(
 
   let grant: VideoGrant;
 
-  if (isClassroom) {
+  if (isRoleBasedSession) {
     if (role === 'teacher') {
       // Teachers have full permissions
       grant = {

@@ -8,6 +8,7 @@ import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
+import { SpeechClientImplWithRequests as SpeechClientImpl } from './SpeechClientImplWithRequests';
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
@@ -54,18 +55,21 @@ export function PageClientImpl(props: {
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
   const [checkingPin, setCheckingPin] = React.useState(false);
 
-  // Check classroom role from URL (client-side only to avoid hydration issues)
-  const [classroomInfo, setClassroomInfo] = React.useState<{ role: string; pin: string | null } | null>(null);
+  // Check classroom/speech role from URL (client-side only to avoid hydration issues)
+  const [classroomInfo, setClassroomInfo] = React.useState<{ role: string; pin: string | null; mode?: 'classroom' | 'speech' } | null>(null);
 
   React.useEffect(() => {
     // Only access window on client side
     const currentUrl = new URL(window.location.href);
     const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
+    const isSpeech = currentUrl.searchParams.get('speech') === 'true';
     const role = currentUrl.searchParams.get('role');
     const pin = currentUrl.searchParams.get('pin');
 
     if (isClassroom) {
-      setClassroomInfo({ role: role || 'student', pin: pin || null });
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
+    } else if (isSpeech) {
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
     }
   }, []);
 
@@ -93,13 +97,17 @@ export function PageClientImpl(props: {
         url.searchParams.append('region', props.region);
       }
 
-      // Check if we have classroom parameters in the current URL
+      // Check if we have classroom or speech parameters in the current URL
       const currentUrl = new URL(window.location.href);
       const isClassroom = currentUrl.searchParams.get('classroom');
+      const isSpeech = currentUrl.searchParams.get('speech');
       const role = currentUrl.searchParams.get('role');
 
       if (isClassroom) {
         url.searchParams.append('classroom', isClassroom);
+      }
+      if (isSpeech) {
+        url.searchParams.append('speech', isSpeech);
       }
       if (role) {
         url.searchParams.append('role', role);
@@ -163,9 +171,9 @@ export function PageClientImpl(props: {
                     letterSpacing: '-0.04em',
                   }}
                 >
-                  {classroomInfo.role === 'teacher'
-                    ? 'teacher lobby'
-                    : 'student lobby'}
+                  {classroomInfo.mode === 'speech'
+                    ? (classroomInfo.role === 'teacher' ? 'speaker lobby' : 'listener lobby')
+                    : (classroomInfo.role === 'teacher' ? 'teacher lobby' : 'student lobby')}
                 </h1>
 
                 {/* Enhanced welcome message for students */}
@@ -210,7 +218,8 @@ export function PageClientImpl(props: {
                       <StatefulButton
                         onClick={() => {
                           return new Promise((resolve) => {
-                            let studentLink = `${window.location.origin}/s/${props.roomName}`;
+                            const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
+                            let studentLink = `${window.location.origin}${prefix}${props.roomName}`;
                             if (classroomInfo.pin) {
                               studentLink += `?pin=${classroomInfo.pin}`;
                             }
@@ -236,7 +245,7 @@ export function PageClientImpl(props: {
                         color: 'var(--lk-text2, #888)',
                       }}
                     >
-                      {`${window.location.origin}/s/${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
+                      {`${window.location.origin}${classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/'}${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
                     </div>
 
                     {classroomInfo.pin && (
@@ -266,6 +275,7 @@ export function PageClientImpl(props: {
               selectedLanguage={selectedLanguage}
               onLanguageChange={setSelectedLanguage}
               isTeacher={classroomInfo?.role === 'teacher'}
+              isSpeechListener={classroomInfo?.mode === 'speech' && classroomInfo?.role === 'student'}
             />
             </div>
           </div>
@@ -387,8 +397,9 @@ function VideoConferenceComponent(props: {
           // Check if user is a student by parsing the token or checking URL
           const currentUrl = new URL(window.location.href);
           const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
+          const isSpeech = currentUrl.searchParams.get('speech') === 'true';
           const role = currentUrl.searchParams.get('role');
-          const isStudent = isClassroom && role === 'student';
+          const isStudent = (isClassroom || isSpeech) && role === 'student';
 
           // Only enable media for non-students or if explicitly chosen
           if (!isStudent) {
@@ -446,17 +457,20 @@ function VideoConferenceComponent(props: {
     }
   }, [lowPowerMode]);
 
-  // Check if we're in classroom mode (client-side only)
+  // Check if we're in classroom or speech mode (client-side only)
   const [isClassroom, setIsClassroom] = React.useState(false);
+  const [isSpeech, setIsSpeech] = React.useState(false);
   const [userRole, setUserRole] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     // Only access window on client side
     const currentUrl = new URL(window.location.href);
     const classroomParam = currentUrl.searchParams.get('classroom') === 'true';
+    const speechParam = currentUrl.searchParams.get('speech') === 'true';
     const roleParam = currentUrl.searchParams.get('role');
 
     setIsClassroom(classroomParam);
+    setIsSpeech(speechParam);
     setUserRole(roleParam);
   }, []);
 
@@ -465,9 +479,11 @@ function VideoConferenceComponent(props: {
       <RoomContext.Provider value={room}>
         <LayoutContextProvider>
           <KeyboardShortcuts />
-          {/* Conditionally render ClassroomClientImpl or CustomVideoConference based on classroom mode */}
+          {/* Conditionally render ClassroomClientImpl, SpeechClientImpl, or CustomVideoConference based on mode */}
           {isClassroom ? (
             <ClassroomClientImpl userRole={userRole} />
+          ) : isSpeech ? (
+            <SpeechClientImpl userRole={userRole} />
           ) : (
             <CustomVideoConference
               chatMessageFormatter={formatChatMessageLinks}

@@ -24,6 +24,7 @@ interface CustomPreJoinProps {
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
   isTeacher?: boolean;
+  isSpeechListener?: boolean;
 }
 
 export default function CustomPreJoin({
@@ -34,11 +35,13 @@ export default function CustomPreJoin({
   selectedLanguage = '',
   onLanguageChange,
   isTeacher = false,
+  isSpeechListener = false,
 }: CustomPreJoinProps) {
   // State management
   const [username, setUsername] = React.useState(defaults?.username || '');
-  const [videoEnabled, setVideoEnabled] = React.useState(defaults?.videoEnabled !== undefined ? defaults.videoEnabled : true);
-  const [audioEnabled, setAudioEnabled] = React.useState(defaults?.audioEnabled !== undefined ? defaults.audioEnabled : true);
+  // Force disable media for speech listeners
+  const [videoEnabled, setVideoEnabled] = React.useState(isSpeechListener ? false : (defaults?.videoEnabled !== undefined ? defaults.videoEnabled : true));
+  const [audioEnabled, setAudioEnabled] = React.useState(isSpeechListener ? false : (defaults?.audioEnabled !== undefined ? defaults.audioEnabled : true));
   const [videoDeviceId, setVideoDeviceId] = React.useState<string>('');
   const [audioDeviceId, setAudioDeviceId] = React.useState<string>('');
 
@@ -53,6 +56,9 @@ export default function CustomPreJoin({
 
   // Get media devices
   React.useEffect(() => {
+    // Skip all media device setup for speech listeners
+    if (isSpeechListener) return;
+
     const getDevices = async () => {
       try {
         // Request permissions first
@@ -78,10 +84,13 @@ export default function CustomPreJoin({
     };
 
     getDevices();
-  }, []);
+  }, [isSpeechListener]);
 
   // Initialize video track
   React.useEffect(() => {
+    // Skip video track initialization for speech listeners
+    if (isSpeechListener) return;
+
     let track: any = null;
 
     const initVideoTrack = async () => {
@@ -116,6 +125,9 @@ export default function CustomPreJoin({
 
   // Initialize audio track
   React.useEffect(() => {
+    // Skip audio track initialization for speech listeners
+    if (isSpeechListener) return;
+
     let track: any = null;
 
     const initAudioTrack = async () => {
@@ -142,7 +154,7 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [audioEnabled, audioDeviceId]);
+  }, [audioEnabled, audioDeviceId, isSpeechListener]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,62 +188,65 @@ export default function CustomPreJoin({
 
   return (
     <div className="lk-prejoin" data-lk-theme="default" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-      {/* Video preview area */}
-      <div
-        className="lk-video-container w-full"
-        style={{
-          overflow: 'hidden',
-          borderRadius: '8px',
-          lineHeight: 0, // Eliminates any text baseline spacing
-          backgroundColor: 'transparent',
-        }}
-      >
-        {videoEnabled ? (
-          <video
-            ref={videoEl}
-            className="lk-camera-preview"
-            autoPlay
-            playsInline
-            muted
-            style={{
-              width: '100%',
-              height: 'auto',
-              aspectRatio: '16 / 9',
-              borderRadius: '8px',
-              backgroundColor: 'transparent',
-              display: 'block',
-              objectFit: 'cover',
-            }}
-          />
-        ) : (
-          <div className="lk-camera-off-note" style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: '100%',
-            aspectRatio: '16 / 9',
-            backgroundColor: 'transparent',
+      {/* Video preview area - Hidden for speech listeners */}
+      {!isSpeechListener && (
+        <div
+          className="lk-video-container w-full"
+          style={{
+            overflow: 'hidden',
             borderRadius: '8px',
-            color: '#666',
-          }}>
-            <CameraOff size={48} />
-            <span style={{ marginTop: '0.5rem' }}>Camera is turned off</span>
-          </div>
-        )}
-      </div>
+            lineHeight: 0, // Eliminates any text baseline spacing
+            backgroundColor: 'transparent',
+          }}
+        >
+          {videoEnabled ? (
+            <video
+              ref={videoEl}
+              className="lk-camera-preview"
+              autoPlay
+              playsInline
+              muted
+              style={{
+                width: '100%',
+                height: 'auto',
+                aspectRatio: '16 / 9',
+                borderRadius: '8px',
+                backgroundColor: 'transparent',
+                display: 'block',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <div className="lk-camera-off-note" style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              aspectRatio: '16 / 9',
+              backgroundColor: 'transparent',
+              borderRadius: '8px',
+              color: '#666',
+            }}>
+              <CameraOff size={48} />
+              <span style={{ marginTop: '0.5rem' }}>Camera is turned off</span>
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Media controls */}
-      <div style={{
-        display: 'flex',
-        gap: '0.5rem',
-        marginBottom: '1rem',
-        justifyContent: 'center',
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        {/* Microphone control */}
-        <Select value={audioDeviceId} onValueChange={setAudioDeviceId}>
+      {/* Media controls - Hidden for speech listeners */}
+      {!isSpeechListener && (
+        <div style={{
+          display: 'flex',
+          gap: '0.5rem',
+          marginBottom: '1rem',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexWrap: 'wrap'
+        }}>
+          {/* Microphone control */}
+          <Select value={audioDeviceId} onValueChange={setAudioDeviceId}>
           <SelectTrigger className="h-12 w-auto border-transparent hover:border-[#4b5563]/30">
             <div
               role="button"
@@ -321,7 +336,8 @@ export default function CustomPreJoin({
             ))}
           </SelectContent>
         </Select>
-      </div>
+        </div>
+      )}
 
       {/* Join form */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

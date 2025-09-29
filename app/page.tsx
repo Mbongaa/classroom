@@ -14,6 +14,8 @@ function DemoMeetingTab(props: { label: string }) {
   const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
   const [roomCode, setRoomCode] = useState('');
   const [showRoomCodeInput, setShowRoomCodeInput] = useState(false);
+  const [speechRoomCode, setSpeechRoomCode] = useState('');
+  const [showSpeechRoomCodeInput, setShowSpeechRoomCodeInput] = useState(false);
 
   const startMeeting = () => {
     if (e2ee) {
@@ -28,6 +30,11 @@ function DemoMeetingTab(props: { label: string }) {
     router.push(`/rooms/${roomId}?classroom=true&role=teacher`);
   };
 
+  const startSpeechSession = () => {
+    const roomId = generateRoomId();
+    router.push(`/rooms/${roomId}?speech=true&role=teacher`);
+  };
+
   const handleJoinAsStudent = () => {
     if (!showRoomCodeInput) {
       // Show the input field
@@ -35,6 +42,18 @@ function DemoMeetingTab(props: { label: string }) {
     } else if (roomCode.trim()) {
       // Join the room if room code is provided
       router.push(`/rooms/${roomCode}?classroom=true&role=student`);
+    } else {
+      alert('Please enter a room code');
+    }
+  };
+
+  const handleJoinAsSpeechStudent = () => {
+    if (!showSpeechRoomCodeInput) {
+      // Show the input field
+      setShowSpeechRoomCodeInput(true);
+    } else if (speechRoomCode.trim()) {
+      // Join the room if room code is provided
+      router.push(`/rooms/${speechRoomCode}?speech=true&role=student`);
     } else {
       alert('Please enter a room code');
     }
@@ -62,6 +81,20 @@ function DemoMeetingTab(props: { label: string }) {
           className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
         >
           Join as Student
+        </button>
+
+        <button
+          onClick={startSpeechSession}
+          className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
+        >
+          Start Speech Session (Teacher)
+        </button>
+
+        <button
+          onClick={handleJoinAsSpeechStudent}
+          className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
+        >
+          Join Speech Session (Student)
         </button>
 
         {/* Dynamic room code input */}
@@ -94,6 +127,40 @@ function DemoMeetingTab(props: { label: string }) {
               textAlign: 'center'
             }}>
               Ask your teacher for the room code
+            </p>
+          </div>
+        )}
+
+        {/* Dynamic speech room code input */}
+        {showSpeechRoomCodeInput && (
+          <div style={{
+            marginTop: '1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem',
+            alignItems: 'center',
+            animation: 'fadeIn 0.3s ease-in-out'
+          }}>
+            <Input
+              type="text"
+              placeholder="Enter speech session code (e.g., abc-def-ghi)"
+              value={speechRoomCode}
+              onChange={(e) => setSpeechRoomCode(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleJoinAsSpeechStudent();
+                }
+              }}
+              autoFocus
+              className="text-center"
+              style={{ minWidth: '250px', backgroundColor: 'transparent' }}
+            />
+            <p className="text-gray-600 dark:text-gray-400" style={{
+              fontSize: '0.85rem',
+              margin: 0,
+              textAlign: 'center'
+            }}>
+              Ask your speech teacher for the session code
             </p>
           </div>
         )}

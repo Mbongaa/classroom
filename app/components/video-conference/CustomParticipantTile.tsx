@@ -208,13 +208,8 @@ export function CustomParticipantTile({
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
           <div className="flex items-center justify-between">
-            {/* Participant Name and Role */}
+            {/* Participant Name */}
             <div className="flex items-center gap-2">
-              {metadata.role && (
-                <span className="text-lg" title={role}>
-                  {getRoleBadge()}
-                </span>
-              )}
               <span
                 className="text-sm font-medium truncate max-w-[150px]"
                 style={{ color: 'white' }}
