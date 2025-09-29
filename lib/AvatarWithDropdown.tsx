@@ -94,16 +94,16 @@ export function AvatarWithDropdown({
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/update-participant', {
+      const response = await fetch('/api/update-student-permission', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           roomName,
-          participantIdentity: participant.identity,
-          permission: action === 'grant' ? 'student_speaker' : 'student',
-          metadata: { role: action === 'grant' ? 'student_speaker' : 'student' },
+          studentIdentity: participant.identity,
+          studentName: participant.name || 'Student',
+          action,
           teacherToken,
         }),
       });

@@ -144,6 +144,9 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
           <span className={styles.languageBadge}>
             {getLanguageName(captionsLanguage)}
           </span>
+          <span className={styles.messageCountBadge}>
+            {translations.length} {translations.length === 1 ? 'message' : 'messages'}
+          </span>
           {showCloseButton && onClose && (
             <button
               className={styles.closeButton}
@@ -185,19 +188,6 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
             </div>
           );
         })}
-      </div>
-
-      {/* Status bar */}
-      <div className={styles.statusBar}>
-        <div className={styles.statusLeft}>
-          <span className={styles.statusIcon}>📝</span>
-          <span className={styles.statusText}>Translation Active</span>
-        </div>
-        <div className={styles.statusRight}>
-          <span className={styles.messageCount}>
-            {translations.length} {translations.length === 1 ? 'message' : 'messages'}
-          </span>
-        </div>
       </div>
     </div>
   );

@@ -52,6 +52,15 @@
   border: 1px solid var(--lk-bg4);
 }
 
+.messageCountBadge {
+  padding: 2px 8px;
+  background: var(--lk-bg4);
+  color: var(--lk-text2, #6b7280);
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
 .liveIndicator {
   display: flex;
   align-items: center;

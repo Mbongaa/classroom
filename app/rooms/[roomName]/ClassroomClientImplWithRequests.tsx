@@ -116,6 +116,9 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
   // State for copy link feedback
   const [linkCopied, setLinkCopied] = React.useState(false);
 
+  // State for mobile detection
+  const [isMobile, setIsMobile] = React.useState(false);
+
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
 
@@ -451,6 +454,20 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     console.log('Permissions changed:', localParticipant?.permissions);
   }, [localParticipant]);
 
+  // Mobile detection effect
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // Check on mount
+    checkMobile();
+
+    // Listen for window resize
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   React.useEffect(() => {
     room.on(RoomEvent.Disconnected, handleOnLeave);
     room.on(RoomEvent.DataReceived, handleDataReceived);
@@ -539,14 +556,14 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
       <ConnectionStateToast />
 
       {/* Main container with column layout */}
-      <div className={styles.mainContainer}>
+      <div className={`${styles.mainContainer} ${!isTeacher && showTranslation ? styles.withTranslation : ''}`}>
         {/* Video area - contains teacher video and sidebars */}
         <div className={styles.videoArea}>
-          {/* Translation sidebar - only for students, toggleable from left */}
+          {/* Translation sidebar - only for students, toggleable from left (desktop only) */}
           {!isTeacher && (
             <div
               ref={translationRef}
-              className={styles.translationSidebar}
+              className={`${styles.translationSidebar} ${styles.desktopOnly}`}
               style={{
                 display: showTranslation ? 'flex' : 'none',
                 width: `${translationResize.width}px`
@@ -683,8 +700,11 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             className={styles.chatWrapper}
             style={{
               display: widget.state?.showChat ? '' : 'none',
-              width: `${chatResize.width}px`,
-              position: 'relative'
+              // Only apply desktop-specific styles for non-mobile
+              ...(isMobile ? {} : {
+                width: `${chatResize.width}px`,
+                position: 'relative'
+              })
             }}
           >
             <div
@@ -694,9 +714,23 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             >
               <GripVertical className={styles.chatResizeGrip} size={24} />
             </div>
-            <Chat className={styles.chatSidebar} style={{ width: '100%', height: '100%' }} />
+            <Chat
+              className={styles.chatSidebar}
+              style={isMobile ? { width: '100%' } : { width: '100%', height: '100%' }}
+            />
           </div>
         </div>
+
+        {/* Mobile translation panel - positioned between video area and students (mobile only) */}
+        {!isTeacher && showTranslation && (
+          <div className={styles.translationPanelMobile}>
+            <TranslationPanel
+              captionsLanguage={captionsLanguage}
+              onClose={() => setShowTranslation(false)}
+              showCloseButton={true}
+            />
+          </div>
+        )}
 
         {/* All Students section - Fixed at bottom */}
         <div className={styles.studentsSection}>

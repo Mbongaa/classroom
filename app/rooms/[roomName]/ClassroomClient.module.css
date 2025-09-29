@@ -7,7 +7,7 @@
 }
 
 /* Override LiveKit theme variables to unify the color scheme */
-.classroomContainer[data-lk-theme="default"] {
+.classroomContainer[data-lk-theme='default'] {
   --lk-bg2: var(--lk-background); /* Make secondary background use the same dark color */
 }
 
@@ -94,9 +94,15 @@
 }
 
 @keyframes copySuccess {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Raise hand button in header - same style as copyLinkButton */
@@ -149,7 +155,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.7;
   }
   50% {
@@ -255,7 +262,8 @@
   min-height: 0; /* Allow shrinking */
 }
 
-.teacherVideo, .speakingStudentVideo {
+.teacherVideo,
+.speakingStudentVideo {
   /* Size is controlled by parent grid rules */
   position: relative;
   display: flex;
@@ -276,7 +284,8 @@
   position: relative;
 }
 
-.teacherTile, .speakerTile {
+.teacherTile,
+.speakerTile {
   width: 100%;
   height: 100%;
   position: relative;
@@ -467,7 +476,6 @@
   color: var(--lk-text1, rgba(128, 128, 128, 0.8));
 }
 
-
 /* Students Section - Fixed at bottom */
 .studentsSection {
   height: 128px; /* Sweet spot - compact without scrollbar */
@@ -480,7 +488,7 @@
 
 .sectionHeader {
   margin-bottom: 0.5rem; /* Reduced margin */
-  padding-bottom: 0.25rem; /* Reduced padding */
+  padding-bottom: 0; /* Remove bottom padding */
   border-bottom: 1px solid var(--lk-border);
 }
 
@@ -635,12 +643,38 @@
   position: relative;
   background: var(--lk-background-2);
   border-top: 1px solid var(--lk-border);
-  padding: 1rem;
+  padding: 5px;
   z-index: 50;
+}
+
+/* Desktop-only elements (hidden on mobile) */
+.desktopOnly {
+  display: flex;
+}
+
+/* Mobile translation panel (horizontal layout between video and students) */
+.translationPanelMobile {
+  display: none; /* Hidden by default */
+  height: 50vh; /* 50% of viewport height */
+  background: var(--lk-background-2);
+  border-top: 1px solid var(--lk-border);
+  border-bottom: 1px solid var(--lk-border);
+  flex-shrink: 0;
+  overflow: hidden;
+  flex-direction: column;
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  /* Hide desktop-only elements on mobile */
+  .desktopOnly {
+    display: none !important;
+  }
+
+  /* Show mobile translation panel */
+  .translationPanelMobile {
+    display: flex;
+  }
   .videoArea {
     min-height: 0;
   }
@@ -651,8 +685,8 @@
 
   /* Fix mobile video sizing - much larger on mobile! */
   .mainVideoGrid:has(> :only-child) > * {
-    width: 80vw !important;    /* 320px on 400px iPhone */
-    height: 80vw !important;   /* Square aspect ratio */
+    width: 80vw !important; /* 320px on 400px iPhone */
+    height: 80vw !important; /* Square aspect ratio */
     max-width: 350px !important;
     max-height: 350px !important;
   }
@@ -673,6 +707,28 @@
     max-height: 150px !important;
   }
 
+  /* CONDITIONAL: When translation is active - fine-tuned camera tile sizes for sweet spot */
+  .mainContainer.withTranslation .mainVideoGrid:has(> :only-child) > * {
+    width: 45vw !important; /* Fine-tune: 50vw → 45vw */
+    height: 45vw !important;
+    max-width: 170px !important;
+    max-height: 170px !important;
+  }
+
+  .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(2):last-child) > * {
+    width: 32vw !important; /* Fine-tune: 35vw → 32vw */
+    height: 32vw !important;
+    max-width: 130px !important;
+    max-height: 130px !important;
+  }
+
+  .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(3)) > * {
+    width: 28vw !important; /* Fine-tune: 30vw → 28vw */
+    height: 28vw !important;
+    max-width: 115px !important;
+    max-height: 115px !important;
+  }
+
   .translationSidebar {
     position: fixed;
     left: 0;
@@ -683,9 +739,23 @@
     z-index: 100;
   }
 
-
   .studentsSection {
     height: 110px; /* Compact on mobile */
+    /* Fixed size to eliminate flex competition */
+    flex: 0 0 110px;
+    min-height: 80px;
+    max-height: 120px;
+  }
+
+  /* Ensure main container uses proper flex layout for mobile panels */
+  .mainContainer {
+    gap: 0;
+  }
+
+  .videoArea {
+    /* Reduce video area when translation panel is active */
+    flex: 1;
+    min-height: 200px;
   }
 
   .studentsGrid {
@@ -696,6 +766,24 @@
     max-height: 60px; /* Smaller on mobile */
   }
 
+  /* Fine-tune avatar size on mobile - slightly bigger for better visibility */
+  .studentTile [class*='w-16'] {
+    width: 44px !important; /* Fine-tune: 40px → 44px */
+    height: 44px !important; /* Fine-tune: 40px → 44px */
+  }
+
+  /* Fine-tune initials font size */
+  .studentTile [class*='text-xl'] {
+    font-size: 1.1rem !important; /* Fine-tune: 1rem → 1.1rem */
+  }
+
+  /* Fine-tune student name proportionally */
+  .studentName {
+    bottom: -0.1rem !important; /* Fine-tune: 0rem → -0.1rem (slightly down) */
+    font-size: 0.65rem !important; /* Fine-tune: 0.6rem → 0.65rem */
+    padding: 0.2rem 0.4rem !important; /* Keep same padding */
+  }
+
   /* Speaking students use LiveKit's native indicator on mobile too */
 
   .roleBadge {
@@ -703,14 +791,14 @@
     padding: 0.3rem 0.6rem;
   }
 
-  .chatSidebar {
-    position: fixed;
+  .chatWrapper {
+    position: fixed !important;
     right: 0;
-    top: 0;
-    bottom: 0;
-    width: 100%;
-    max-width: 100%;
-    z-index: 100;
+    top: 56px !important; /* Below header */
+    bottom: 120px !important; /* Above control bar with extra clearance */
+    width: 100% !important;
+    height: auto !important; /* Override default height */
+    z-index: 2500 !important; /* Above all components */
   }
 
   .chatResizeHandle {
@@ -734,7 +822,8 @@
 
 /* Animations */
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
