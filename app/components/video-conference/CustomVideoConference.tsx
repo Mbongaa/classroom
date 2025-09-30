@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useResizable } from '@/lib/useResizable';
 import { Grid3X3, Users, Presentation, MessageSquare, X } from 'lucide-react';
 import clsx from 'clsx';
+import PulsatingLoader from '@/components/ui/pulsating-loader';
 
 interface CustomVideoConferenceProps {
   chatMessageFormatter?: (message: string) => string;
@@ -64,11 +65,8 @@ export function CustomVideoConference({
     return (
       <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--lk-bg)' }}>
         <div className="text-center">
-          <div
-            className="animate-spin rounded-full h-16 w-16 border-b-2 mx-auto mb-4"
-            style={{ borderColor: 'var(--lk-text1, white)' }}
-          ></div>
-          <p className="text-lg" style={{ color: 'var(--lk-text1, white)' }}>
+          <PulsatingLoader />
+          <p className="text-lg mt-4" style={{ color: 'var(--lk-text1, white)' }}>
             Connecting to room...
           </p>
         </div>

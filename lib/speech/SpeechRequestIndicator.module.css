@@ -12,13 +12,13 @@
   cursor: pointer;
   z-index: 100;
   animation: fadeInScale 0.3s ease, handWave 2s ease-in-out infinite;
-  box-shadow: 0 2px 8px rgba(255, 160, 0, 0.4);
+  box-shadow: 0 2px 8px var(--pulse-shadow-light);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .indicator:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(255, 160, 0, 0.6);
+  box-shadow: 0 4px 12px var(--pulse-shadow-medium);
 }
 
 .indicator:active {

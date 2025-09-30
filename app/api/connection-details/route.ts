@@ -3,6 +3,7 @@ import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import { ConnectionDetails } from '@/lib/types';
 import { AccessToken, AccessTokenOptions, VideoGrant } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -22,6 +23,64 @@ export async function GET(request: NextRequest) {
     const isClassroom = request.nextUrl.searchParams.get('classroom') === 'true';
     const isSpeech = request.nextUrl.searchParams.get('speech') === 'true';
     const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
+
+    // SUPABASE AUTH CHECK - Get authenticated user
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // Optional: Require authentication for classroom sessions
+    // Uncomment this block to enforce auth for classrooms
+    // if (isClassroom && !user) {
+    //   return new NextResponse('Authentication required for classroom sessions', { status: 401 });
+    // }
+
+    // If user is authenticated, get their profile and verify permissions
+    let userRole = role; // Default to query param role
+    if (user && isClassroom) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role, organization_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profile) {
+        // If user is authenticated, use their actual role from the database
+        // Teachers and admins get teacher privileges
+        if (profile.role === 'teacher' || profile.role === 'admin') {
+          userRole = 'teacher';
+        } else {
+          userRole = 'student';
+        }
+
+        // Optional: Verify user is part of the classroom
+        // Check if classroom exists and user has access
+        const { data: classroom } = await supabase
+          .from('classrooms')
+          .select('id, organization_id')
+          .eq('room_code', roomName)
+          .eq('organization_id', profile.organization_id)
+          .single();
+
+        if (classroom) {
+          // Log participation for analytics
+          await supabase
+            .from('classroom_participants')
+            .upsert(
+              {
+                classroom_id: classroom.id,
+                user_id: user.id,
+                role: userRole,
+                last_attended_at: new Date().toISOString(),
+              },
+              {
+                onConflict: 'classroom_id,user_id',
+              }
+            );
+        }
+      }
+    }
 
     if (!LIVEKIT_URL) {
       throw new Error('LIVEKIT_URL is not defined');
@@ -62,7 +121,7 @@ export async function GET(request: NextRequest) {
       },
       roomName,
       isClassroom || isSpeech,
-      role,
+      userRole, // Use the verified role from database if authenticated
     );
 
     // Return connection details

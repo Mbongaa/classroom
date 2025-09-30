@@ -1,0 +1,26 @@
+{
+  "name": "Bayaan Classroom",
+  "short_name": "Bayaan",
+  "description": "LiveKit-powered classroom for live teaching and translation",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#070707",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/images/livekit-apple-touch.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "scope": "/",
+  "categories": ["education", "productivity", "video"],
+  "lang": "en-US"
+}

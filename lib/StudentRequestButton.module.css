@@ -64,13 +64,13 @@
 
 @keyframes pulse {
   0% {
-    box-shadow: 0 4px 12px rgba(255, 160, 0, 0.3);
+    box-shadow: 0 4px 12px var(--pulse-shadow-light);
   }
   50% {
-    box-shadow: 0 4px 20px rgba(255, 160, 0, 0.5);
+    box-shadow: 0 4px 20px var(--pulse-shadow-medium);
   }
   100% {
-    box-shadow: 0 4px 12px rgba(255, 160, 0, 0.3);
+    box-shadow: 0 4px 12px var(--pulse-shadow-light);
   }
 }
 

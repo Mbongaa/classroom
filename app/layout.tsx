@@ -50,6 +50,7 @@ export const metadata: Metadata = {
       { rel: 'mask-icon', url: '/images/livekit-safari-pinned-tab.svg', color: '#070707' },
     ],
   },
+  manifest: '/manifest.json',
 };
 
 export const viewport: Viewport = {

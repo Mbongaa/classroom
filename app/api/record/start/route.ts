@@ -1,16 +1,14 @@
 import { EgressClient, EncodedFileOutput, S3Upload } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 export async function GET(req: NextRequest) {
+  // Require teacher authentication for recording operations
+  const auth = await requireTeacher();
+  if (!auth.success) return auth.response;
+
   try {
     const roomName = req.nextUrl.searchParams.get('roomName');
-
-    /**
-     * CAUTION:
-     * for simplicity this implementation does not authenticate users and therefore allows anyone with knowledge of a roomName
-     * to start/stop recordings for that room.
-     * DO NOT USE THIS FOR PRODUCTION PURPOSES AS IS
-     */
 
     if (roomName === null) {
       return new NextResponse('Missing roomName parameter', { status: 403 });

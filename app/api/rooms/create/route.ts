@@ -1,6 +1,7 @@
 import { RoomMetadata } from '@/lib/types';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { requireTeacher } from '@/lib/api-auth';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -10,6 +11,10 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 const ROOM_CODE_REGEX = /^[a-zA-Z0-9-]{4,20}$/;
 
 export async function POST(request: NextRequest) {
+  // Require teacher authentication
+  const auth = await requireTeacher();
+  if (!auth.success) return auth.response;
+
   try {
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
       return NextResponse.json(

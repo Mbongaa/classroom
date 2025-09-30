@@ -74,7 +74,10 @@
       "Bash(pnpm store prune:*)",
       "Bash(rm:*)",
       "Bash(pnpm typecheck:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "WebFetch(domain:vmxjczdwyhrierexjoph.supabase.co)",
+      "Bash(node:*)",
+      "WebFetch(domain:ui.shadcn.com)"
     ],
     "deny": [],
     "ask": []

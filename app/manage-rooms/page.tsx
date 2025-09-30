@@ -1,45 +1,11 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { PersistentRoom } from '@/lib/types';
-import { CreateRoomDialog } from '@/components/rooms/CreateRoomDialog';
-import { RoomCard } from '@/components/rooms/RoomCard';
-import { Button } from '@/components/ui/button';
-import { ThemeToggleButton } from '@/components/ui/theme-toggle';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-
-export default function ManageRoomsPage() {
-  const router = useRouter();
-  const [rooms, setRooms] = useState<PersistentRoom[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const fetchRooms = async () => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/rooms');
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to fetch rooms');
-        setLoading(false);
-        return;
-      }
-
-      setRooms(data.rooms || []);
-    } catch (err) {
-      setError('Failed to fetch rooms. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRooms();
-  }, []);
+/**
+ * Redirect /manage-rooms to /dashboard/rooms
+ * This route is deprecated in favor of the dashboard-integrated rooms page
+ */
+export default function ManageRoomsRedirect() {
+  redirect('/dashboard/rooms');
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">

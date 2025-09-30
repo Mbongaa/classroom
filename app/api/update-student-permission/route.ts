@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AccessToken, RoomServiceClient } from 'livekit-server-sdk';
+import { requireTeacher } from '@/lib/api-auth';
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -18,6 +19,10 @@ interface UpdatePermissionRequest {
 }
 
 export async function POST(request: NextRequest) {
+  // Require teacher authentication
+  const auth = await requireTeacher();
+  if (!auth.success) return auth.response;
+
   try {
     const body: UpdatePermissionRequest = await request.json();
     const { roomName, studentIdentity, studentName, action, teacherToken } = body;

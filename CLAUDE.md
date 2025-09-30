@@ -69,6 +69,16 @@ This is a Next.js 15 application using React 18 with LiveKit Components for vide
 - For connecting with custom LiveKit servers using user-provided tokens
 - Similar structure to rooms but bypasses internal token generation
 
+**Persistent Rooms** (`/manage-rooms`)
+
+- ✅ **NEW**: Zoom-like persistent room management
+- Create reusable room codes (e.g., "MATH101") for recurring lectures
+- LiveKit metadata-only architecture (no external database)
+- Auto-population of teacher name and language (teachers only)
+- Room management UI with create, list, delete operations
+- 7-day empty timeout for room persistence
+- See `PERSISTENT_ROOMS_IMPLEMENTATION.md` for complete details
+
 ### Token Generation & Permissions
 
 **API Endpoint** (`/app/api/connection-details/route.ts`)

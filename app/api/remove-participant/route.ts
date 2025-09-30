@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
+import { requireTeacher } from '@/lib/api-auth';
 
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
 const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -16,6 +17,10 @@ interface RemoveParticipantRequest {
 }
 
 export async function POST(request: NextRequest) {
+  // Require teacher authentication
+  const auth = await requireTeacher();
+  if (!auth.success) return auth.response;
+
   try {
     const body: RemoveParticipantRequest = await request.json();
     const { roomName, participantIdentity, teacherToken } = body;
