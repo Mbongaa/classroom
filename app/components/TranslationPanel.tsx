@@ -145,7 +145,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
             {getLanguageName(captionsLanguage)}
           </span>
           <span className={styles.messageCountBadge}>
-            {translations.length} {translations.length === 1 ? 'message' : 'messages'}
+            {translations.length}
           </span>
           {showCloseButton && onClose && (
             <button

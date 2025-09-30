@@ -325,8 +325,8 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
       type: 'REQUEST_DISPLAY',
       payload: {
         requestId,
-        question: request.question || '',
-        studentName: request.studentName,
+        question: targetRequest.question || '',
+        studentName: targetRequest.studentName,
         display: true,
       },
     };
