@@ -81,12 +81,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (!LIVEKIT_URL) {
-      throw new Error('LIVEKIT_URL is not defined');
+      return NextResponse.json({ error: 'LIVEKIT_URL is not configured' }, { status: 500 });
     }
     const livekitServerUrl = region ? getLiveKitURL(LIVEKIT_URL, region) : LIVEKIT_URL;
     let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
     if (livekitServerUrl === undefined) {
-      throw new Error('Invalid region');
+      return NextResponse.json({ error: 'Invalid region' }, { status: 400 });
     }
 
     if (typeof roomName !== 'string') {
