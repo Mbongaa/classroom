@@ -10,6 +10,11 @@ if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_URL) {
   throw new Error('LiveKit environment variables are not set');
 }
 
+// Type assertions after validation - we know these are strings at this point
+const API_KEY = LIVEKIT_API_KEY as string;
+const API_SECRET = LIVEKIT_API_SECRET as string;
+const URL = LIVEKIT_URL as string;
+
 interface UpdatePermissionRequest {
   roomName: string;
   studentIdentity: string;
@@ -36,7 +41,7 @@ export async function POST(request: NextRequest) {
     // For now, we'll skip validation for simplicity
 
     // Create RoomServiceClient for updating metadata
-    const roomService = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const roomService = new RoomServiceClient(URL, API_KEY, API_SECRET);
 
     // Determine new role based on action
     const updatedRole = action === 'grant' ? 'student_speaker' : 'student';
