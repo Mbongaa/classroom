@@ -208,7 +208,6 @@ export function CustomVideoConference({
                 className="h-6 w-6 p-0"
                 style={{
                   color: 'var(--lk-text1, white)',
-                  '&:hover': { backgroundColor: 'var(--lk-bg3)' },
                 }}
               >
                 <X className="w-4 h-4" style={{ color: 'var(--lk-text1, white)' }} />
