@@ -105,7 +105,7 @@ export default function TranslationPanel({
       de: 'German',
       ja: 'Japanese',
       ar: 'Arabic',
-      zh: 'Chinese',
+      cmn: 'Chinese',
       pt: 'Portuguese',
       ru: 'Russian',
       ko: 'Korean',
