@@ -2,19 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { requireTeacher } from '@/lib/api-auth';
 
-const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
-const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
-const LIVEKIT_URL = process.env.LIVEKIT_URL;
-
-if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_URL) {
-  throw new Error('LiveKit environment variables are not set');
-}
-
-// Type assertions after validation - we know these are strings at this point
-const API_KEY = LIVEKIT_API_KEY as string;
-const API_SECRET = LIVEKIT_API_SECRET as string;
-const URL = LIVEKIT_URL as string;
-
 interface RemoveParticipantRequest {
   roomName: string;
   participantIdentity: string;
@@ -22,6 +9,18 @@ interface RemoveParticipantRequest {
 }
 
 export async function POST(request: NextRequest) {
+  // Check environment variables at runtime, not during build
+  const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
+  const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
+  const LIVEKIT_URL = process.env.LIVEKIT_URL;
+
+  if (!LIVEKIT_API_KEY || !LIVEKIT_API_SECRET || !LIVEKIT_URL) {
+    return NextResponse.json(
+      { error: 'LiveKit environment variables are not configured' },
+      { status: 500 },
+    );
+  }
+
   // Require teacher authentication
   const auth = await requireTeacher();
   if (!auth.success) return auth.response;
@@ -39,7 +38,7 @@ export async function POST(request: NextRequest) {
     // For now, we'll skip validation for simplicity
 
     // Create RoomServiceClient
-    const roomService = new RoomServiceClient(URL, API_KEY, API_SECRET);
+    const roomService = new RoomServiceClient(LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
 
     // Remove the participant from the room
     try {

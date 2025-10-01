@@ -78,7 +78,8 @@
       "WebFetch(domain:vmxjczdwyhrierexjoph.supabase.co)",
       "Bash(node:*)",
       "WebFetch(domain:ui.shadcn.com)",
-      "Bash(pnpm tsc:*)"
+      "Bash(pnpm tsc:*)",
+      "Bash(timeout 180 pnpm build)"
     ],
     "deny": [],
     "ask": []
