@@ -39,7 +39,8 @@ import {
   StudentRequest,
   StudentRequestMessage,
   RequestUpdateMessage,
-  RequestDisplayMessage
+  RequestDisplayMessage,
+  RequestDisplayMultilingualMessage
 } from '@/lib/types/StudentRequest';
 import { useResizable } from '@/lib/useResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
@@ -211,8 +212,10 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
       id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       studentIdentity: localParticipant.identity,
       studentName: localParticipant.name || 'Student',
+      studentLanguage: localParticipant.attributes?.captions_language || 'en', // Capture student's language
       type,
-      question,
+      question, // Will be translated for teacher preview when received
+      originalQuestion: question, // Keep original for full translation later
       timestamp: Date.now(),
       status: 'pending',
     };
@@ -306,8 +309,8 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     );
   }, [room]);
 
-  // Handle displaying text question to all (optimized dependencies)
-  const handleDisplayQuestion = React.useCallback((requestId: string) => {
+  // Handle displaying text question to all with translation (async)
+  const handleDisplayQuestion = React.useCallback(async (requestId: string) => {
     // Use functional update to find request without depending on requests array
     let targetRequest: StudentRequest | undefined;
     setRequests(prev => {
@@ -317,26 +320,110 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
 
     if (!targetRequest || targetRequest.type !== 'text') return;
 
-    // Update display state
-    setDisplayedQuestions(prev => new Map(prev).set(requestId, targetRequest!));
+    try {
+      // Collect all unique languages in the room
+      const participantLanguages = new Set<string>();
 
-    // Send display message via data channel
-    const message: RequestDisplayMessage = {
-      type: 'REQUEST_DISPLAY',
-      payload: {
-        requestId,
-        question: targetRequest.question || '',
+      // Add teacher's language
+      if (teacher?.attributes?.speaking_language) {
+        participantLanguages.add(teacher.attributes.speaking_language);
+      } else {
+        participantLanguages.add('en');
+      }
+
+      // Add all students' languages
+      allStudents.forEach(student => {
+        const lang = student.attributes?.captions_language || 'en';
+        participantLanguages.add(lang);
+      });
+
+      // Call translation API using the original untranslated question
+      const response = await fetch('/api/translate-question', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: targetRequest.originalQuestion || targetRequest.question || '',
+          sourceLanguage: targetRequest.studentLanguage,
+          targetLanguages: Array.from(participantLanguages),
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Translation API failed');
+      }
+
+      const { translations } = await response.json();
+
+      // Determine teacher's language for local display
+      const teacherLanguage = teacher?.attributes?.speaking_language || 'en';
+      const translatedQuestionForTeacher = translations[teacherLanguage] || translations[targetRequest.studentLanguage] || targetRequest.question || '';
+
+      // Update teacher's local display state first
+      const displayRequest: StudentRequest = {
+        id: requestId,
+        studentIdentity: targetRequest.studentIdentity,
         studentName: targetRequest.studentName,
-        display: true,
-      },
-    };
+        studentLanguage: targetRequest.studentLanguage,
+        type: 'text',
+        question: translatedQuestionForTeacher, // Teacher sees in their language
+        timestamp: Date.now(),
+        status: 'displayed',
+      };
+      setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [room]);
+      // Broadcast multilingual message to other participants
+      const message: RequestDisplayMultilingualMessage = {
+        type: 'REQUEST_DISPLAY_MULTILINGUAL',
+        payload: {
+          requestId,
+          originalQuestion: targetRequest.originalQuestion || targetRequest.question || '',
+          originalLanguage: targetRequest.studentLanguage,
+          translations,
+          studentName: targetRequest.studentName,
+          display: true,
+        },
+      };
+
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE
+      );
+
+    } catch (error) {
+      console.error('Failed to translate question:', error);
+
+      // Update teacher's local display state with original question
+      const displayRequest: StudentRequest = {
+        id: requestId,
+        studentIdentity: targetRequest.studentIdentity,
+        studentName: targetRequest.studentName,
+        studentLanguage: targetRequest.studentLanguage,
+        type: 'text',
+        question: targetRequest.originalQuestion || targetRequest.question || '',
+        timestamp: Date.now(),
+        status: 'displayed',
+      };
+      setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
+
+      // Fallback: Broadcast original question without translation
+      const message: RequestDisplayMessage = {
+        type: 'REQUEST_DISPLAY',
+        payload: {
+          requestId,
+          question: targetRequest.originalQuestion || targetRequest.question || '',
+          studentName: targetRequest.studentName,
+          display: true,
+        },
+      };
+
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE
+      );
+    }
+  }, [room, teacher, allStudents]);
 
   // Handle local question close (students only - no broadcast)
   const handleLocalCloseQuestion = React.useCallback((requestId: string) => {
@@ -396,6 +483,40 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
       // Handle student requests
       if (message.type === 'STUDENT_REQUEST') {
         const request = message.payload as StudentRequest;
+
+        // If teacher receives a text question, translate it immediately for preview
+        if (isTeacher && request.type === 'text' && request.question) {
+          // Get teacher's language
+          const teacherLanguage = teacher?.attributes?.speaking_language || localParticipant.attributes?.speaking_language || 'en';
+
+          // Only translate if the question is in a different language than the teacher's
+          if (request.studentLanguage !== teacherLanguage) {
+            // Translate the question for teacher preview (non-blocking)
+            fetch('/api/translate-question', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                question: request.question,
+                sourceLanguage: request.studentLanguage,
+                targetLanguages: [teacherLanguage],
+              }),
+            })
+            .then(response => response.json())
+            .then(({ translations }) => {
+              // Update the request with translated question for teacher preview
+              setRequests(prev => prev.map(r =>
+                r.id === request.id
+                  ? { ...r, question: translations[teacherLanguage] || request.question }
+                  : r
+              ));
+            })
+            .catch(error => {
+              console.error('Failed to translate question for teacher preview:', error);
+              // Keep original question if translation fails
+            });
+          }
+        }
+
         setRequests(prev => {
           // Avoid duplicates
           if (prev.some(r => r.id === request.id)) return prev;
@@ -435,6 +556,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
             id: requestId,
             studentIdentity: '',
             studentName,
+            studentLanguage: 'en', // Default for legacy messages
             type: 'text',
             question,
             timestamp: Date.now(),
@@ -451,10 +573,44 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
           });
         }
       }
+
+      // Handle multilingual question display
+      if (message.type === 'REQUEST_DISPLAY_MULTILINGUAL') {
+        const { requestId, translations, studentName, display, originalLanguage, originalQuestion } = message.payload;
+
+        if (display) {
+          // Determine my language preference
+          const myLanguage = isTeacher
+            ? (teacher?.attributes?.speaking_language || 'en')
+            : (localParticipant.attributes?.captions_language || 'en');
+
+          // Use my language translation, fallback to original if not available
+          const translatedQuestion = translations[myLanguage] || translations[originalLanguage] || originalQuestion;
+
+          const displayRequest: StudentRequest = {
+            id: requestId,
+            studentIdentity: '',
+            studentName,
+            studentLanguage: originalLanguage,
+            type: 'text',
+            question: translatedQuestion, // Display translated version in participant's language
+            timestamp: Date.now(),
+            status: 'displayed',
+          };
+
+          setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
+        } else {
+          setDisplayedQuestions(prev => {
+            const newMap = new Map(prev);
+            newMap.delete(requestId);
+            return newMap;
+          });
+        }
+      }
     } catch (error) {
       console.error('Error parsing data channel message:', error);
     }
-  }, [localParticipant, myActiveRequest]);
+  }, [localParticipant, myActiveRequest, isTeacher, teacher]);
 
   // Handle accepting permission grant
   const handleAcceptPermission = React.useCallback(() => {
