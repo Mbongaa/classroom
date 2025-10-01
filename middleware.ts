@@ -23,6 +23,9 @@ export async function middleware(request: NextRequest) {
   return updateSession(request);
 }
 
+// Force Node.js runtime for Supabase compatibility (uses Node.js APIs)
+export const runtime = 'nodejs';
+
 export const config = {
   matcher: [
     /*

@@ -455,9 +455,22 @@ function VideoConferenceComponent(props: {
               // Use different attribute names for teachers and students
               const attributeName =
                 props.classroomRole === 'teacher' ? 'speaking_language' : 'captions_language';
+
+              // Debug logging to trace language code
+              console.log('[DEBUG] Setting language attribute:', {
+                role: props.classroomRole,
+                attributeName: attributeName,
+                language: props.selectedLanguage,
+                languageType: typeof props.selectedLanguage,
+                languageLength: props.selectedLanguage?.length,
+                languageBytes: props.selectedLanguage ? Array.from(props.selectedLanguage).map(c => c.charCodeAt(0)) : []
+              });
+
               await room.localParticipant.setAttributes({
                 [attributeName]: props.selectedLanguage,
               });
+
+              console.log('[DEBUG] Language attribute set successfully');
             } catch (error) {
               console.error('Failed to set language attribute:', error);
             }

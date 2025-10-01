@@ -5,13 +5,13 @@ import { Participant, ParticipantKind } from 'livekit-client';
  * Agents include translation services, recording bots, and other automated participants.
  */
 export function isAgentParticipant(participant: Participant): boolean {
-  // Check for official ParticipantKind.Agent
-  if (participant.kind === ParticipantKind.Agent) {
+  // Check for official ParticipantKind.AGENT
+  if (participant.kind === ParticipantKind.AGENT) {
     return true;
   }
 
   // Check for string variants of agent kind
-  if (participant.kind === 'agent' || participant.kind === 'AGENT') {
+  if (typeof participant.kind === 'string' && (participant.kind === 'agent' || participant.kind === 'AGENT')) {
     return true;
   }
 

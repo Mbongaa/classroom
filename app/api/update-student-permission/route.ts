@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
           canPublish: action === 'grant', // Grant or revoke publishing capability
           canPublishData: true, // Always allow chat
           canSubscribe: true, // Always allow subscribing
-          canUpdateOwnMetadata: false, // Don't allow metadata updates
+          canUpdateMetadata: false, // Don't allow metadata updates
         },
       );
 

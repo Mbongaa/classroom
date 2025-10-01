@@ -201,7 +201,7 @@ export function ClassroomClientImplWithRequests({
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -235,7 +235,7 @@ export function ClassroomClientImplWithRequests({
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [localParticipant, room],
@@ -283,7 +283,7 @@ export function ClassroomClientImplWithRequests({
           const encoder = new TextEncoder();
           room.localParticipant.publishData(
             encoder.encode(JSON.stringify(message)),
-            DataPacket_Kind.RELIABLE,
+            { reliable: true },
           );
         }
       } catch (error) {
@@ -313,7 +313,7 @@ export function ClassroomClientImplWithRequests({
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -402,7 +402,7 @@ export function ClassroomClientImplWithRequests({
         const encoder = new TextEncoder();
         room.localParticipant.publishData(
           encoder.encode(JSON.stringify(message)),
-          DataPacket_Kind.RELIABLE,
+          { reliable: true },
         );
       } catch (error) {
         console.error('Failed to translate question:', error);
@@ -434,7 +434,7 @@ export function ClassroomClientImplWithRequests({
         const encoder = new TextEncoder();
         room.localParticipant.publishData(
           encoder.encode(JSON.stringify(message)),
-          DataPacket_Kind.RELIABLE,
+          { reliable: true },
         );
       }
     },
@@ -477,7 +477,7 @@ export function ClassroomClientImplWithRequests({
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],

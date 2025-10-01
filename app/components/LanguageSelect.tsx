@@ -40,14 +40,14 @@ const LanguageSelect: React.FC<LanguageSelectProps> = ({
 
       try {
         // Find the agent participant (identity is "agent")
-        const agentParticipant = Array.from(room.participants.values()).find(
+        const agentParticipant = Array.from(room.remoteParticipants.values()).find(
           (p) => p.identity === 'agent',
         );
 
         if (!agentParticipant) {
           console.log(
             'Translation agent not found in the room yet. Participants:',
-            Array.from(room.participants.values()).map((p) => p.identity),
+            Array.from(room.remoteParticipants.values()).map((p) => p.identity),
           );
           return;
         }

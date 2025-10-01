@@ -33,10 +33,30 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     if (!room) return;
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
+      // DEBUG: Log ALL incoming segments
+      console.log('[DEBUG SpeechTranslationPanel] Received segments:', segments.map(s => ({
+        id: s.id,
+        language: s.language,
+        text: s.text.substring(0, 50),
+        final: s.final,
+        languageType: typeof s.language,
+        languageBytes: s.language ? Array.from(s.language).map(c => c.charCodeAt(0)) : []
+      })));
+
+      console.log('[DEBUG SpeechTranslationPanel] Filtering for language:', {
+        targetLanguage,
+        targetLanguageType: typeof targetLanguage,
+        targetLanguageBytes: targetLanguage ? Array.from(targetLanguage).map(c => c.charCodeAt(0)) : []
+      });
+
       // Filter segments for the selected language
-      const filteredSegments = segments.filter(
-        (seg) => seg.language === targetLanguage && seg.final,
-      );
+      const filteredSegments = segments.filter((seg) => {
+        const matches = seg.language === targetLanguage && seg.final;
+        console.log(`[DEBUG SpeechTranslationPanel] Segment language "${seg.language}" (final: ${seg.final}) vs "${targetLanguage}" = ${matches}`);
+        return matches;
+      });
+
+      console.log('[DEBUG SpeechTranslationPanel] Filtered segments count:', filteredSegments.length);
 
       // Process new segments
       const newSegments = filteredSegments.map((seg, index) => ({

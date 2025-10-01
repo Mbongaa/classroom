@@ -64,6 +64,11 @@ const nextConfig = {
       use: ['source-map-loader'],
     });
 
+    // Suppress warnings for missing source maps from third-party packages
+    config.ignoreWarnings = [
+      { module: /node_modules\/@mediapipe\/tasks-vision/ },
+    ];
+
     return config;
   },
   headers: async () => {

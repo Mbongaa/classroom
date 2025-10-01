@@ -199,7 +199,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -212,6 +212,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
         id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         studentIdentity: localParticipant.identity,
         studentName: localParticipant.name || 'Student',
+        studentLanguage: captionsLanguage,
         type,
         question,
         timestamp: Date.now(),
@@ -231,10 +232,10 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
-    [localParticipant, room],
+    [localParticipant, room, captionsLanguage],
   );
 
   // Handle teacher approving voice request (optimized dependencies)
@@ -279,7 +280,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
           const encoder = new TextEncoder();
           room.localParticipant.publishData(
             encoder.encode(JSON.stringify(message)),
-            DataPacket_Kind.RELIABLE,
+            { reliable: true },
           );
         }
       } catch (error) {
@@ -309,7 +310,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -344,7 +345,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -377,7 +378,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       const encoder = new TextEncoder();
       room.localParticipant.publishData(
         encoder.encode(JSON.stringify(message)),
-        DataPacket_Kind.RELIABLE,
+        { reliable: true },
       );
     },
     [room],
@@ -444,6 +445,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
               id: requestId,
               studentIdentity: '',
               studentName,
+              studentLanguage: 'en', // Display messages don't have language info, use default
               type: 'text',
               question,
               timestamp: Date.now(),

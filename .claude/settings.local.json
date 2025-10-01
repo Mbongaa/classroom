@@ -77,7 +77,8 @@
       "Bash(pnpm run:*)",
       "WebFetch(domain:vmxjczdwyhrierexjoph.supabase.co)",
       "Bash(node:*)",
-      "WebFetch(domain:ui.shadcn.com)"
+      "WebFetch(domain:ui.shadcn.com)",
+      "Bash(pnpm tsc:*)"
     ],
     "deny": [],
     "ask": []
