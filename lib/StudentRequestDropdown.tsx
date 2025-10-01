@@ -162,16 +162,18 @@ export function StudentRequestDropdown({ activeRequest, onSubmit }: StudentReque
               </div>
             </div>
           )}
+        </div>
+      )}
 
-          {activeRequest && (
-            <div className={styles.activeRequestInfo}>
-              <Clock size={16} />
-              <span>
-                Your {activeRequest.type === 'voice' ? 'speaking' : 'question'} request was sent{' '}
-                {formatTime(activeRequest.timestamp)}
-              </span>
-            </div>
-          )}
+      {isOpen && activeRequest && (
+        <div className={styles.dropdownPanel}>
+          <div className={styles.activeRequestInfo}>
+            <Clock size={16} />
+            <span>
+              Your {activeRequest.type === 'voice' ? 'speaking' : 'question'} request was sent{' '}
+              {formatTime(activeRequest.timestamp)}
+            </span>
+          </div>
         </div>
       )}
     </div>

@@ -39,6 +39,7 @@ export function CustomParticipantTile({
   const { elementProps } = useParticipantTile({
     trackRef,
     onParticipantClick: onClick ? () => onClick() : undefined,
+    htmlProps: {},
   });
 
   const participant = trackRef.participant;

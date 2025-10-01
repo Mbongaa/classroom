@@ -139,7 +139,7 @@ export function ClassroomClientImplWithRequests({
       }
 
       // Parse metadata safely once per participant
-      const participantRole = getParticipantRole(participant, localParticipant, userRole);
+      const participantRole = getParticipantRole(participant, localParticipant, userRole ?? null);
 
       if (participantRole === 'teacher') {
         teacherParticipant = participant;
@@ -159,11 +159,16 @@ export function ClassroomClientImplWithRequests({
     };
   }, [participants, localParticipant, userRole]);
 
-  // Get video and audio tracks for the teacher
-  const teacherTracks = useTracks(
-    [Track.Source.Camera, Track.Source.Microphone, Track.Source.ScreenShare],
-    teacher ? { participant: teacher } : undefined,
-  );
+  // Get all tracks and filter by participant
+  const allTracks = useTracks([Track.Source.Camera, Track.Source.Microphone, Track.Source.ScreenShare]);
+
+  // Filter teacher tracks
+  const teacherTracks = React.useMemo(() => {
+    if (!teacher) return [];
+    return allTracks.filter(
+      (track) => isTrackReference(track) && track.participant.identity === teacher.identity
+    );
+  }, [allTracks, teacher]);
 
   // Separate screen share tracks from camera tracks for the teacher
   const teacherScreenShareTrack = teacherTracks.find(
@@ -179,9 +184,12 @@ export function ClassroomClientImplWithRequests({
   );
 
   // Get tracks for all students
-  const studentTracks = useTracks([Track.Source.Camera, Track.Source.Microphone], {
-    participants: allStudents,
-  });
+  const studentTracks = React.useMemo(() => {
+    const studentIdentities = allStudents.map(s => s.identity);
+    return allTracks.filter(
+      (track) => isTrackReference(track) && studentIdentities.includes(track.participant.identity)
+    );
+  }, [allTracks, allStudents]);
 
   const handleOnLeave = React.useCallback(() => {
     router.push('/');
