@@ -8,7 +8,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { roomCode: string } }
+  { params }: { params: Promise<{ roomCode: string }> }
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -22,7 +22,7 @@ export async function DELETE(
       );
     }
 
-    const { roomCode } = params;
+    const { roomCode } = await params;
 
     if (!roomCode) {
       return NextResponse.json(

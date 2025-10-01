@@ -1,14 +1,10 @@
 .bubble {
   position: fixed;
-  background: white;
-  border-radius: 12px;
-  padding: 12px 16px;
-  max-width: 300px;
-  min-width: 200px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  min-width: 280px;
   z-index: 1001;
   opacity: 0;
-  transform: translateY(10px) scale(0.9);
+  transform: translateY(10px) scale(0.95);
   transition: all 0.2s ease;
 }
 
@@ -17,93 +13,66 @@
   transform: translateY(0) scale(1);
 }
 
-.bubble.displayedToAll {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border: 2px solid #2196f3;
-  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.25);
+.bubble.displayedToAll .alertContainer {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 4px 16px hsl(var(--primary) / 0.25);
+  border-width: 2px;
 }
 
-.header {
+.alertContainer {
+  position: relative;
+  padding-right: 2.5rem;
+  background: #000000;
+}
+
+.alertTitle {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 
-.studentName {
-  font-weight: 600;
-  color: #333;
-  font-size: 14px;
+.alertDescription {
+  word-wrap: break-word;
 }
 
 .closeButton {
-  width: 20px;
-  height: 20px;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 1.5rem;
+  height: 1.5rem;
   border: none;
-  background: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.5);
-  border-radius: 50%;
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 0.25rem;
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  line-height: 1;
+  padding: 0 !important;
 }
 
 .closeButton:hover {
-  background: rgba(0, 0, 0, 0.2);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.content {
-  color: #333;
-}
-
-.question {
-  margin: 0;
-  font-size: 14px;
-  line-height: 1.4;
-  word-wrap: break-word;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .badge {
-  position: absolute;
-  top: -10px;
-  right: 10px;
-  background: #2196f3;
-  padding: 2px 8px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
-}
-
-.badgeText {
-  color: white;
-  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.5rem;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.625rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.tail {
-  position: absolute;
-  bottom: -8px;
-  left: 20px;
-  width: 16px;
-  height: 16px;
-  background: white;
-  transform: rotate(45deg);
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.bubble.displayedToAll .tail {
-  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
-  border-right: 2px solid #2196f3;
-  border-bottom: 2px solid #2196f3;
+  letter-spacing: 0.05em;
+  border-radius: 9999px;
+  margin-left: 0.5rem;
 }
 
 /* Animation for auto-hide */

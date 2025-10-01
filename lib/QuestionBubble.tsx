@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { MessageCircle } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import styles from './QuestionBubble.module.css';
 
 interface QuestionBubbleProps {
@@ -45,8 +47,17 @@ export function QuestionBubble({
       }`}
       style={bubbleStyle}
     >
-      <div className={styles.header}>
-        <span className={styles.studentName}>{studentName}</span>
+      <Alert variant="default" className={`${styles.alertContainer} border-border`}>
+        <MessageCircle className="h-4 w-4" />
+        <AlertTitle className={styles.alertTitle}>
+          {studentName}
+          {isDisplayedToAll && (
+            <span className={styles.badge}>Displayed to All</span>
+          )}
+        </AlertTitle>
+        <AlertDescription className={styles.alertDescription}>
+          {question}
+        </AlertDescription>
         {(onClose || isDisplayedToAll) && (
           <button
             className={styles.closeButton}
@@ -56,16 +67,7 @@ export function QuestionBubble({
             ×
           </button>
         )}
-      </div>
-      <div className={styles.content}>
-        <p className={styles.question}>{question}</p>
-      </div>
-      {isDisplayedToAll && (
-        <div className={styles.badge}>
-          <span className={styles.badgeText}>Displayed to All</span>
-        </div>
-      )}
-      <div className={styles.tail} />
+      </Alert>
     </div>
   );
 }

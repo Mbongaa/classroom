@@ -338,6 +338,15 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
     );
   }, [room]);
 
+  // Handle local question close (students only - no broadcast)
+  const handleLocalCloseQuestion = React.useCallback((requestId: string) => {
+    setDisplayedQuestions(prev => {
+      const newMap = new Map(prev);
+      newMap.delete(requestId);
+      return newMap;
+    });
+  }, []);
+
   // Handle marking question as answered
   const handleMarkAnswered = React.useCallback((requestId: string) => {
     // Update request status
@@ -728,7 +737,7 @@ export function ClassroomClientImplWithRequests({ userRole }: ClassroomClientImp
                 studentName={question.studentName}
                 isDisplayedToAll={true}
                 position={{ x: window.innerWidth / 2 - 150, y: 100 }}
-                onClose={() => handleMarkAnswered(question.id)}
+                onClose={() => isTeacher ? handleMarkAnswered(question.id) : handleLocalCloseQuestion(question.id)}
               />
             ))}
           </div>

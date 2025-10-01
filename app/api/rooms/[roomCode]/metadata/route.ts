@@ -7,7 +7,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { roomCode: string } }
+  { params }: { params: Promise<{ roomCode: string }> }
 ) {
   try {
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
@@ -17,7 +17,7 @@ export async function GET(
       );
     }
 
-    const { roomCode } = params;
+    const { roomCode } = await params;
 
     // Initialize RoomServiceClient
     const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
