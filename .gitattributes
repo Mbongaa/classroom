@@ -1,1 +1,2 @@
-public/background-images/*.jpg filter=lfs diff=lfs merge=lfs -text
+# Removed Git LFS - images are small enough for regular git
+# public/background-images/*.jpg filter=lfs diff=lfs merge=lfs -text
