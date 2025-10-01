@@ -16,7 +16,7 @@ function DashboardSkeleton() {
           <div className="h-8 w-8 bg-sidebar-accent rounded mb-8" />
           {/* Nav items skeleton */}
           <div className="space-y-2">
-            {[1, 2, 3, 4].map(i => (
+            {[1, 2, 3, 4].map((i) => (
               <div key={i} className="h-8 w-8 bg-sidebar-accent rounded" />
             ))}
           </div>

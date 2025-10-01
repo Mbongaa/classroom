@@ -19,6 +19,7 @@
 ## Testing the Complete Auth Flow
 
 ### 1. Test Signup Flow
+
 1. Start the dev server: `pnpm dev`
 2. Navigate to http://localhost:3000/signup
 3. Fill in the form:
@@ -30,26 +31,31 @@
 4. Click "Create Account"
 
 **Expected Result**:
+
 - Redirects to `/org/test-org`
 - Shows organization dashboard
 
 **Verify in Supabase Dashboard**:
+
 - Authentication → Users: New user exists
 - Table Editor → profiles: User with role='admin'
 - Table Editor → organizations: Organization created with slug='test-org'
 - Table Editor → organization_members: Member record with role='admin'
 
 ### 2. Test Login Flow
+
 1. Sign out (if logged in)
 2. Navigate to http://localhost:3000/login
 3. Enter credentials from signup
 4. Click "Sign In"
 
 **Expected Result**:
+
 - Redirects to organization dashboard
 - User session restored
 
 ### 3. Test Protected Routes
+
 1. While logged in, navigate to:
    - `/org/test-org` - Should show dashboard
    - `/org/test-org/settings` - Should show settings
@@ -59,6 +65,7 @@
    - Should redirect to login page
 
 ### 4. Test LiveKit Integration
+
 1. While logged in, create a classroom:
    - Go to `/org/test-org/classrooms`
    - Click "Create Classroom"
@@ -70,17 +77,20 @@
 ### 5. Test Role-Based Access
 
 **As Admin (first user)**:
+
 - ✅ Can create classrooms
 - ✅ Can invite members
 - ✅ Can manage organization settings
 - ✅ Has full LiveKit permissions
 
 **As Teacher (invite someone)**:
+
 - ✅ Can create/manage own classrooms
 - ✅ Can't change org settings
 - ✅ Has teacher LiveKit permissions
 
 **As Student (invite someone)**:
+
 - ✅ Can join classrooms
 - ✅ Listen-only by default
 - ✅ Can request speaking permission
@@ -88,15 +98,19 @@
 ## Common Issues & Solutions
 
 ### Issue: "Failed to create organization"
+
 **Solution**: Run the complete fix script - INSERT policy was missing
 
 ### Issue: "Infinite recursion detected"
+
 **Solution**: Run the complete fix script - RLS policies were self-referential
 
 ### Issue: "User created but wrong role"
+
 **Solution**: Run the complete fix script - Trigger was setting 'student' instead of 'admin'
 
 ### Issue: Form submission fails with regex error
+
 **Solution**: Already fixed in `signup-form.tsx` - pattern attribute removed
 
 ## Database Verification Queries
@@ -151,6 +165,7 @@ After successful testing:
 ## Support
 
 If you encounter issues:
+
 1. Check browser console for errors
 2. Check Supabase Dashboard logs
 3. Verify all environment variables are set

@@ -8,7 +8,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -18,17 +18,14 @@ export async function DELETE(
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
       return NextResponse.json(
         { error: 'Server configuration error: Missing LiveKit credentials' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
     const { roomCode } = await params;
 
     if (!roomCode) {
-      return NextResponse.json(
-        { error: 'Room code is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Room code is required' }, { status: 400 });
     }
 
     // Initialize RoomServiceClient
@@ -46,15 +43,12 @@ export async function DELETE(
 
     // Handle room not found error
     if (error.message && error.message.includes('not found')) {
-      return NextResponse.json(
-        { error: 'Room not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
     return NextResponse.json(
       { error: 'Failed to delete room', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

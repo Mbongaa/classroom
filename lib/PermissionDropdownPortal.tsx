@@ -15,7 +15,7 @@ export function PermissionDropdownPortal({
   roomName,
   teacherToken,
   onPermissionUpdate,
-  currentRole
+  currentRole,
 }: PermissionDropdownPortalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -180,52 +180,53 @@ export function PermissionDropdownPortal({
       </button>
 
       {/* Dropdown menu - rendered in portal */}
-      {isOpen && createPortal(
-        <div
-          ref={menuRef}
-          className="permission-dropdown-menu-portal"
-          style={{
-            position: 'fixed',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-            zIndex: 10000,
-          }}
-        >
-          <div className="permission-dropdown-header">
-            {participant.name || 'Student'} - Permissions
-          </div>
-
-          {!isSpeaker ? (
-            <button
-              className="permission-dropdown-item permission-grant"
-              onClick={() => handlePermissionChange('grant')}
-              disabled={isLoading}
-            >
-              <span className="permission-icon">🎤</span>
-              <span>Grant Speaking</span>
-            </button>
-          ) : (
-            <button
-              className="permission-dropdown-item permission-revoke"
-              onClick={() => handlePermissionChange('revoke')}
-              disabled={isLoading}
-            >
-              <span className="permission-icon">🔇</span>
-              <span>Revoke Speaking</span>
-            </button>
-          )}
-
-          <button
-            className="permission-dropdown-item permission-remove"
-            onClick={handleRemoveParticipant}
-            disabled={isLoading}
+      {isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className="permission-dropdown-menu-portal"
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 10000,
+            }}
           >
-            <span className="permission-icon">❌</span>
-            <span>Remove from Class</span>
-          </button>
-        </div>,
-        document.body
-      )}
+            <div className="permission-dropdown-header">
+              {participant.name || 'Student'} - Permissions
+            </div>
+
+            {!isSpeaker ? (
+              <button
+                className="permission-dropdown-item permission-grant"
+                onClick={() => handlePermissionChange('grant')}
+                disabled={isLoading}
+              >
+                <span className="permission-icon">🎤</span>
+                <span>Grant Speaking</span>
+              </button>
+            ) : (
+              <button
+                className="permission-dropdown-item permission-revoke"
+                onClick={() => handlePermissionChange('revoke')}
+                disabled={isLoading}
+              >
+                <span className="permission-icon">🔇</span>
+                <span>Revoke Speaking</span>
+              </button>
+            )}
+
+            <button
+              className="permission-dropdown-item permission-remove"
+              onClick={handleRemoveParticipant}
+              disabled={isLoading}
+            >
+              <span className="permission-icon">❌</span>
+              <span>Remove from Class</span>
+            </button>
+          </div>,
+          document.body,
+        )}
 
       <style jsx>{`
         .permission-dropdown-trigger-portal {
@@ -263,8 +264,12 @@ export function PermissionDropdownPortal({
         }
 
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
       `}</style>
 

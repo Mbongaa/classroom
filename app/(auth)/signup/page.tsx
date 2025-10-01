@@ -1,11 +1,11 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
-import { SignupForm } from '@/app/(auth)/signup/signup-form'
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { SignupForm } from '@/app/(auth)/signup/signup-form';
 
 export const metadata: Metadata = {
   title: 'Sign Up',
   description: 'Create a new account',
-}
+};
 
 export default function SignupPage() {
   return (
@@ -31,7 +31,8 @@ export default function SignupPage() {
           <blockquote className="space-y-2">
             <p className="text-lg">
               &ldquo;Setting up our virtual classrooms was incredibly easy. Within minutes, we were
-              hosting live sessions with real-time translation for our international students.&rdquo;
+              hosting live sessions with real-time translation for our international
+              students.&rdquo;
             </p>
             <footer className="text-sm">Prof. Michael Chen, University of California</footer>
           </blockquote>
@@ -66,5 +67,5 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

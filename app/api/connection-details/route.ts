@@ -65,19 +65,17 @@ export async function GET(request: NextRequest) {
 
         if (classroom) {
           // Log participation for analytics
-          await supabase
-            .from('classroom_participants')
-            .upsert(
-              {
-                classroom_id: classroom.id,
-                user_id: user.id,
-                role: userRole,
-                last_attended_at: new Date().toISOString(),
-              },
-              {
-                onConflict: 'classroom_id,user_id',
-              }
-            );
+          await supabase.from('classroom_participants').upsert(
+            {
+              classroom_id: classroom.id,
+              user_id: user.id,
+              role: userRole,
+              last_attended_at: new Date().toISOString(),
+            },
+            {
+              onConflict: 'classroom_id,user_id',
+            },
+          );
         }
       }
     }
@@ -107,9 +105,9 @@ export async function GET(request: NextRequest) {
     const enrichedMetadata = metadata
       ? JSON.stringify({
           ...JSON.parse(metadata),
-          ...((isClassroom || isSpeech) ? { role } : {}),
+          ...(isClassroom || isSpeech ? { role } : {}),
         })
-      : (isClassroom || isSpeech)
+      : isClassroom || isSpeech
         ? JSON.stringify({ role })
         : '';
 

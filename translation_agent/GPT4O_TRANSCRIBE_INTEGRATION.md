@@ -103,6 +103,7 @@ The system tracks comprehensive performance metrics:
 - **Model Performance**: Comparative metrics between models
 
 Access metrics via RPC:
+
 ```python
 @ctx.room.local_participant.register_rpc_method("get/metrics")
 async def get_metrics(data: rtc.RpcInvocationData):
@@ -137,22 +138,26 @@ python -m unittest test_transcription.TestErrorHandling
 ### Migration to GPT-4o Transcribe Only
 
 1. **Update Dependencies**
+
    ```bash
    pip install --upgrade livekit-plugins-openai~=1.2
    ```
 
 2. **Verify API Access**
+
    ```bash
    # Ensure your OpenAI API key has access to GPT-4o transcribe
    # The system will not work without this model
    ```
 
 3. **Update Environment**
+
    ```bash
    echo "OPENAI_STT_MODEL=gpt-4o-transcribe" >> .env
    ```
 
 4. **Test Implementation**
+
    ```bash
    python test_transcription.py
    ```
@@ -191,6 +196,7 @@ python -m unittest test_transcription.TestErrorHandling
 ### Debug Logging
 
 Enable detailed logging:
+
 ```python
 logging.basicConfig(
     level=logging.DEBUG,
@@ -252,6 +258,7 @@ class StreamingTranscriber:
 ## Support
 
 For issues or questions:
+
 - Check test suite: `python test_transcription.py`
 - Review logs with DEBUG level enabled
 - Monitor performance metrics endpoint

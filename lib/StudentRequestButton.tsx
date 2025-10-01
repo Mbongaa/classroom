@@ -11,7 +11,7 @@ interface StudentRequestButtonProps {
 export function StudentRequestButton({
   onRequestSubmit,
   hasActiveRequest,
-  isStudent
+  isStudent,
 }: StudentRequestButtonProps) {
   const [showModal, setShowModal] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -28,10 +28,13 @@ export function StudentRequestButton({
     setShowModal(false);
   }, []);
 
-  const handleRequestSubmit = useCallback((type: 'voice' | 'text', question?: string) => {
-    onRequestSubmit(type, question);
-    setShowModal(false);
-  }, [onRequestSubmit]);
+  const handleRequestSubmit = useCallback(
+    (type: 'voice' | 'text', question?: string) => {
+      onRequestSubmit(type, question);
+      setShowModal(false);
+    },
+    [onRequestSubmit],
+  );
 
   // Only show for students
   if (!isStudent) {
@@ -44,23 +47,14 @@ export function StudentRequestButton({
         className={`${styles.requestButton} ${hasActiveRequest ? styles.active : ''} ${isAnimating ? styles.animating : ''}`}
         onClick={handleButtonClick}
         disabled={hasActiveRequest}
-        aria-label={hasActiveRequest ? "Request pending" : "Raise hand"}
-        title={hasActiveRequest ? "Your request is pending" : "Ask a question"}
+        aria-label={hasActiveRequest ? 'Request pending' : 'Raise hand'}
+        title={hasActiveRequest ? 'Your request is pending' : 'Ask a question'}
       >
-        <span className={styles.icon}>
-          {hasActiveRequest ? '⏳' : '✋'}
-        </span>
-        {hasActiveRequest && (
-          <span className={styles.badge}>Pending</span>
-        )}
+        <span className={styles.icon}>{hasActiveRequest ? '⏳' : '✋'}</span>
+        {hasActiveRequest && <span className={styles.badge}>Pending</span>}
       </button>
 
-      {showModal && (
-        <RequestModeModal
-          onClose={handleModalClose}
-          onSubmit={handleRequestSubmit}
-        />
-      )}
+      {showModal && <RequestModeModal onClose={handleModalClose} onSubmit={handleRequestSubmit} />}
     </>
   );
 }

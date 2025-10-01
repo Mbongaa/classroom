@@ -1,10 +1,13 @@
 # ✅ Signup Flow Fixed!
 
 ## The Problem We Solved
+
 The server-side Supabase client couldn't access the session immediately after signUp in the same server action, causing RLS policies to fail.
 
 ## The Solution
+
 We now use a **service role admin client** that bypasses RLS for the initial organization setup during signup. This is safe because:
+
 - It's only used during the controlled signup flow
 - The admin client is never exposed to the frontend
 - It only performs the initial setup operations
@@ -12,12 +15,15 @@ We now use a **service role admin client** that bypasses RLS for the initial org
 ## What Changed
 
 ### 1. Created Admin Client (`lib/supabase/admin.ts`)
+
 - Uses the service role key to bypass RLS
 - Only for server-side use
 - Restricted to administrative operations
 
 ### 2. Updated Signup Flow (`lib/actions/auth.ts`)
+
 Now uses the admin client for:
+
 - Creating the organization
 - Updating the profile with organization_id
 - Adding the user to organization_members
@@ -25,9 +31,11 @@ Now uses the admin client for:
 ## Testing Instructions
 
 1. **Ensure you have the service role key** in `.env.local`:
+
    ```env
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
    ```
+
    Get this from Supabase Dashboard → Settings → API → Service Role Key
 
 2. **Test the signup**:
@@ -57,6 +65,7 @@ The RLS policies remain secure for normal operations - we only bypass them durin
 ## Security Note
 
 The admin client with service role key:
+
 - ✅ Is only used server-side
 - ✅ Never exposed to frontend
 - ✅ Only used for initial setup

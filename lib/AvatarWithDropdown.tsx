@@ -22,7 +22,7 @@ export function AvatarWithDropdown({
   onPermissionUpdate,
   currentRole,
   isTeacher,
-  getInitials
+  getInitials,
 }: AvatarWithDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +39,7 @@ export function AvatarWithDropdown({
 
       // Position below avatar by default
       let top = avatarRect.bottom + 8;
-      let left = avatarRect.left + (avatarRect.width / 2) - (menuWidth / 2);
+      let left = avatarRect.left + avatarRect.width / 2 - menuWidth / 2;
 
       // If menu would go below viewport, show it above the avatar
       if (top + menuHeight > window.innerHeight) {
@@ -126,7 +126,11 @@ export function AvatarWithDropdown({
   };
 
   const handleRemoveParticipant = async () => {
-    if (confirm(`Are you sure you want to remove ${participant.name || 'this student'} from the classroom?`)) {
+    if (
+      confirm(
+        `Are you sure you want to remove ${participant.name || 'this student'} from the classroom?`,
+      )
+    ) {
       setIsLoading(true);
 
       try {
@@ -166,16 +170,18 @@ export function AvatarWithDropdown({
       {/* Avatar - clickable for teachers */}
       <div
         ref={avatarRef}
-        className={isTeacher ? styles.avatarClickable : ""}
+        className={isTeacher ? styles.avatarClickable : ''}
         onClick={isTeacher ? () => setIsOpen(!isOpen) : undefined}
-        title={isTeacher ? "Click to manage student" : undefined}
+        title={isTeacher ? 'Click to manage student' : undefined}
       >
-        <Avatar className={`w-16 h-16 mx-auto border-2 ${isTeacher ? 'border-gray-700 hover:border-gray-500 transition-colors' : 'border-gray-700'}`}>
+        <Avatar
+          className={`w-16 h-16 mx-auto border-2 ${isTeacher ? 'border-gray-700 hover:border-gray-500 transition-colors' : 'border-gray-700'}`}
+        >
           <AvatarFallback
             className="text-xl font-semibold"
             style={{
               backgroundColor: 'transparent',
-              color: 'var(--lk-text1, white)'
+              color: 'var(--lk-text1, white)',
             }}
           >
             {getInitials(participant.name || 'Student')}
@@ -184,74 +190,62 @@ export function AvatarWithDropdown({
       </div>
 
       {/* Dropdown menu - only for teachers, rendered in portal */}
-      {isTeacher && isOpen && createPortal(
-        <div
-          ref={menuRef}
-          className={styles.dropdownMenu}
-          style={{
-            position: 'fixed',
-            top: `${dropdownPosition.top}px`,
-            left: `${dropdownPosition.left}px`,
-            zIndex: 10000,
-          }}
-        >
-          <div className={styles.menuHeader}>
-            {participant.name || 'Student'}
-          </div>
-
-          {!isSpeaker ? (
-            <button
-              className={`${styles.menuItem} ${styles.grantButton}`}
-              onClick={handlePermissionToggle}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className={styles.loadingIcon}>⏳</span>
-              ) : (
-                <Mic size={16} />
-              )}
-              <span>{isLoading ? 'Granting...' : 'Grant Speaking'}</span>
-            </button>
-          ) : (
-            <button
-              className={`${styles.menuItem} ${styles.revokeButton}`}
-              onClick={handlePermissionToggle}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <span className={styles.loadingIcon}>⏳</span>
-              ) : (
-                <MicOff size={16} />
-              )}
-              <span>{isLoading ? 'Revoking...' : 'Revoke Speaking'}</span>
-            </button>
-          )}
-
-          <button
-            className={`${styles.menuItem} ${styles.removeButton}`}
-            onClick={handleRemoveParticipant}
-            disabled={isLoading}
+      {isTeacher &&
+        isOpen &&
+        createPortal(
+          <div
+            ref={menuRef}
+            className={styles.dropdownMenu}
+            style={{
+              position: 'fixed',
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`,
+              zIndex: 10000,
+            }}
           >
-            {isLoading ? (
-              <span className={styles.loadingIcon}>⏳</span>
+            <div className={styles.menuHeader}>{participant.name || 'Student'}</div>
+
+            {!isSpeaker ? (
+              <button
+                className={`${styles.menuItem} ${styles.grantButton}`}
+                onClick={handlePermissionToggle}
+                disabled={isLoading}
+              >
+                {isLoading ? <span className={styles.loadingIcon}>⏳</span> : <Mic size={16} />}
+                <span>{isLoading ? 'Granting...' : 'Grant Speaking'}</span>
+              </button>
             ) : (
-              <UserX size={16} />
+              <button
+                className={`${styles.menuItem} ${styles.revokeButton}`}
+                onClick={handlePermissionToggle}
+                disabled={isLoading}
+              >
+                {isLoading ? <span className={styles.loadingIcon}>⏳</span> : <MicOff size={16} />}
+                <span>{isLoading ? 'Revoking...' : 'Revoke Speaking'}</span>
+              </button>
             )}
-            <span>{isLoading ? 'Removing...' : 'Remove from Room'}</span>
-          </button>
 
-          <div className={styles.menuDivider}></div>
+            <button
+              className={`${styles.menuItem} ${styles.removeButton}`}
+              onClick={handleRemoveParticipant}
+              disabled={isLoading}
+            >
+              {isLoading ? <span className={styles.loadingIcon}>⏳</span> : <UserX size={16} />}
+              <span>{isLoading ? 'Removing...' : 'Remove from Room'}</span>
+            </button>
 
-          <button
-            className={`${styles.menuItem} ${styles.cancelButton}`}
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={16} />
-            <span>Cancel</span>
-          </button>
-        </div>,
-        document.body
-      )}
+            <div className={styles.menuDivider}></div>
+
+            <button
+              className={`${styles.menuItem} ${styles.cancelButton}`}
+              onClick={() => setIsOpen(false)}
+            >
+              <X size={16} />
+              <span>Cancel</span>
+            </button>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }

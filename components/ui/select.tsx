@@ -121,11 +121,13 @@ function SelectItem({
         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
         className,
       )}
-      style={{
-        color: 'var(--lk-text1, white)',
-        '--hover-bg': 'var(--lk-bg3)',
-        '--focus-bg': 'var(--lk-bg3)',
-      } as React.CSSProperties}
+      style={
+        {
+          color: 'var(--lk-text1, white)',
+          '--hover-bg': 'var(--lk-bg3)',
+          '--focus-bg': 'var(--lk-bg3)',
+        } as React.CSSProperties
+      }
       onMouseEnter={(e) => {
         e.currentTarget.style.backgroundColor = 'var(--lk-bg3)';
         e.currentTarget.style.color = 'var(--lk-text1, white)';
@@ -146,10 +148,7 @@ function SelectItem({
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <CheckIcon
-            className="h-4 w-4"
-            style={{ color: 'var(--lk-text1, white)' }}
-          />
+          <CheckIcon className="h-4 w-4" style={{ color: 'var(--lk-text1, white)' }} />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText className="flex items-center gap-2">

@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { StudentRequest } from './types/StudentRequest';
-import {
-  Hand,
-  ChevronDown,
-  ChevronUp,
-  Mic,
-  MessageCircle,
-  Clock,
-  Send
-} from 'lucide-react';
+import { Hand, ChevronDown, ChevronUp, Mic, MessageCircle, Clock, Send } from 'lucide-react';
 import styles from './StudentRequestDropdown.module.css';
 
 interface StudentRequestDropdownProps {
@@ -16,10 +8,7 @@ interface StudentRequestDropdownProps {
   onSubmit: (type: 'voice' | 'text', question?: string) => void;
 }
 
-export function StudentRequestDropdown({
-  activeRequest,
-  onSubmit
-}: StudentRequestDropdownProps) {
+export function StudentRequestDropdown({ activeRequest, onSubmit }: StudentRequestDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [requestType, setRequestType] = useState<'voice' | 'text' | null>(null);
   const [textQuestion, setTextQuestion] = useState('');
@@ -87,9 +76,12 @@ export function StudentRequestDropdown({
             <span className={styles.buttonText}>Raise Hand</span>
           </>
         )}
-        {!activeRequest && (
-          isOpen ? <ChevronUp size={16} className={styles.dropdownArrow} /> : <ChevronDown size={16} className={styles.dropdownArrow} />
-        )}
+        {!activeRequest &&
+          (isOpen ? (
+            <ChevronUp size={16} className={styles.dropdownArrow} />
+          ) : (
+            <ChevronDown size={16} className={styles.dropdownArrow} />
+          ))}
       </button>
 
       {isOpen && !activeRequest && (
@@ -104,10 +96,7 @@ export function StudentRequestDropdown({
                 How would you like to ask your question?
               </div>
 
-              <button
-                className={styles.optionButton}
-                onClick={() => setRequestType('voice')}
-              >
+              <button className={styles.optionButton} onClick={() => setRequestType('voice')}>
                 <Mic size={24} className={styles.optionIcon} />
                 <div className={styles.optionContent}>
                   <div className={styles.optionTitle}>Request to Speak</div>
@@ -115,10 +104,7 @@ export function StudentRequestDropdown({
                 </div>
               </button>
 
-              <button
-                className={styles.optionButton}
-                onClick={() => setRequestType('text')}
-              >
+              <button className={styles.optionButton} onClick={() => setRequestType('text')}>
                 <MessageCircle size={24} className={styles.optionIcon} />
                 <div className={styles.optionContent}>
                   <div className={styles.optionTitle}>Type a Question</div>
@@ -131,23 +117,15 @@ export function StudentRequestDropdown({
               <div className={styles.confirmIcon}>
                 <Mic size={32} />
               </div>
-              <div className={styles.confirmText}>
-                Request permission to speak?
-              </div>
+              <div className={styles.confirmText}>Request permission to speak?</div>
               <div className={styles.confirmSubtext}>
                 The teacher will be notified of your request
               </div>
               <div className={styles.confirmButtons}>
-                <button
-                  className={styles.cancelButton}
-                  onClick={() => setRequestType(null)}
-                >
+                <button className={styles.cancelButton} onClick={() => setRequestType(null)}>
                   Cancel
                 </button>
-                <button
-                  className={styles.submitButton}
-                  onClick={handleSubmit}
-                >
+                <button className={styles.submitButton} onClick={handleSubmit}>
                   Request to Speak
                 </button>
               </div>
@@ -167,14 +145,9 @@ export function StudentRequestDropdown({
                 autoFocus
               />
               <div className={styles.textFooter}>
-                <span className={styles.charCount}>
-                  {textQuestion.length}/200
-                </span>
+                <span className={styles.charCount}>{textQuestion.length}/200</span>
                 <div className={styles.textButtons}>
-                  <button
-                    className={styles.cancelButton}
-                    onClick={() => setRequestType(null)}
-                  >
+                  <button className={styles.cancelButton} onClick={() => setRequestType(null)}>
                     Cancel
                   </button>
                   <button
@@ -193,7 +166,10 @@ export function StudentRequestDropdown({
           {activeRequest && (
             <div className={styles.activeRequestInfo}>
               <Clock size={16} />
-              <span>Your {activeRequest.type === 'voice' ? 'speaking' : 'question'} request was sent {formatTime(activeRequest.timestamp)}</span>
+              <span>
+                Your {activeRequest.type === 'voice' ? 'speaking' : 'question'} request was sent{' '}
+                {formatTime(activeRequest.timestamp)}
+              </span>
             </div>
           )}
         </div>

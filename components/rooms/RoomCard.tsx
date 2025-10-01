@@ -132,20 +132,11 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
       </CardContent>
 
       <CardFooter className="flex gap-2">
-        <Button
-          onClick={handleJoinRoom}
-          className="flex-1 rounded-full"
-          size="sm"
-        >
+        <Button onClick={handleJoinRoom} className="flex-1 rounded-full" size="sm">
           <Video className="w-4 h-4 mr-2" />
           Join Room
         </Button>
-        <Button
-          onClick={handleDeleteRoom}
-          variant="destructive"
-          size="sm"
-          disabled={deleting}
-        >
+        <Button onClick={handleDeleteRoom} variant="destructive" size="sm" disabled={deleting}>
           <Trash2 className="w-4 h-4" />
         </Button>
       </CardFooter>

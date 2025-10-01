@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRoomContext } from "@livekit/components-react";
-import { useState, useEffect } from "react";
-import { TranscriptionSegment, RoomEvent } from "livekit-client";
+import { useRoomContext } from '@livekit/components-react';
+import { useState, useEffect } from 'react';
+import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 
 interface CaptionsProps {
   captionsEnabled: boolean;
@@ -20,9 +20,7 @@ export default function Captions({ captionsEnabled, captionsLanguage }: Captions
 
     const updateTranscriptions = (segments: TranscriptionSegment[]) => {
       // Filter segments for the selected language
-      const filteredSegments = segments.filter(
-        seg => seg.language === captionsLanguage
-      );
+      const filteredSegments = segments.filter((seg) => seg.language === captionsLanguage);
 
       setTranscriptions((prev) => {
         const newTranscriptions = { ...prev };
@@ -35,7 +33,7 @@ export default function Captions({ captionsEnabled, captionsLanguage }: Captions
       // Clean up old transcriptions (keep only last 5)
       setTranscriptions((prev) => {
         const sorted = Object.entries(prev).sort(
-          ([, a], [, b]) => (b.startTime || 0) - (a.startTime || 0)
+          ([, a], [, b]) => (b.startTime || 0) - (a.startTime || 0),
         );
         if (sorted.length > 5) {
           const keep = sorted.slice(0, 5);
@@ -75,9 +73,8 @@ export default function Captions({ captionsEnabled, captionsLanguage }: Captions
           <p
             key={segment.id}
             className={`text-center text-white font-medium leading-relaxed
-                      ${i === 0 && captionItems.length > 1
-                        ? "text-lg opacity-70 mb-2"
-                        : "text-xl"
+                      ${
+                        i === 0 && captionItems.length > 1 ? 'text-lg opacity-70 mb-2' : 'text-xl'
                       }`}
           >
             {segment.text}

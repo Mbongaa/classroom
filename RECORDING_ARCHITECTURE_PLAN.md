@@ -7,6 +7,7 @@
 ---
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture Decision](#architecture-decision)
 3. [Current Project Context](#current-project-context)
@@ -24,9 +25,11 @@
 ## Overview
 
 ### Feature Description
+
 Enable teachers to record classroom sessions with synchronized translation cards, allowing students to rewatch with personalized translations in their chosen language.
 
 ### Key Features
+
 - 🎥 **Clean Video Recording**: Records teacher audio/video as HLS streams (seekable, streaming-friendly)
 - 💬 **Translation Timeline**: Stores translation cards as timestamped sidecar data
 - 🎯 **Personalized Playback**: Each student sees their own language translations synced to video
@@ -34,6 +37,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 - 📊 **Recording Management**: List, view, download, and delete recordings per room
 
 ### Architecture Benefits
+
 - ✅ One egress job per session (not 30 for each student)
 - ✅ Clean source media for future re-editing
 - ✅ Searchable, indexable translation data
@@ -47,12 +51,14 @@ Enable teachers to record classroom sessions with synchronized translation cards
 ### Chosen Approach: Track Composite Egress + Sidecar Translations
 
 **What We Record:**
+
 1. **Video/Audio Tracks**: Teacher's media streams → HLS playlist + optional MP4
 2. **Translation Timeline**: Each translation card → Database with timestamp
 
 **Why This Approach?**
 
 #### ✅ Pros:
+
 - **Efficient**: 1 recording per session (not 30 separate UI recordings)
 - **Personalized**: Each student gets their language overlay during playback
 - **Searchable**: Translation data queryable for search/jump-to features
@@ -60,6 +66,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 - **Clean Media**: Untouched audio/video for post-production
 
 #### ❌ Alternative (Room Composite) Rejected:
+
 - Would record 30 web UIs simultaneously (heavy, expensive)
 - Baked-in UI can't be changed later
 - 30x egress concurrency requirements
@@ -68,16 +75,19 @@ Enable teachers to record classroom sessions with synchronized translation cards
 ### LiveKit Egress Types Used
 
 **Track Composite Egress** (Primary):
+
 - Combines specific audio + video tracks into HLS/MP4
 - Handles mute/unpublish transitions automatically
 - Perfect A/V sync guaranteed by LiveKit
 - Source: LiveKit Docs - Track Composite Egress
 
 **Output Formats**:
+
 - **HLS**: Segmented playlist for streaming (fast start/seek, CDN-friendly)
 - **MP4**: Single file for downloads (optional, parallel output)
 
 **Seeking Support**:
+
 - HLS VOD playlists support full scrubbing (rewind/forward)
 - Granularity tied to segment duration (6 seconds = good balance)
 - Works on all platforms (iOS native, Android/Desktop with hls.js)
@@ -89,6 +99,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 ### Existing Features (Implemented)
 
 **1. Persistent Rooms** ✅
+
 - Teachers create reusable room codes (e.g., "MATH101")
 - Metadata stored in LiveKit (64 KiB per room)
 - 7-day empty timeout for room persistence
@@ -96,6 +107,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 - Files: `app/api/rooms/*`, `app/manage-rooms/page.tsx`
 
 **2. Classroom Features** ✅
+
 - Role-based access (teacher/student permissions)
 - Teacher controls (grant/revoke speaking permissions)
 - Student request system (raise hand, ask questions)
@@ -103,6 +115,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 - Files: `app/rooms/[roomName]/ClassroomClient*.tsx`
 
 **3. Translation System** ✅
+
 - Live AI translation via external agent (Bayaan server)
 - Translation cards displayed in sidebar
 - Language selection per participant
@@ -110,6 +123,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
 - Files: `app/components/TranslationPanel.tsx`
 
 ### Technology Stack
+
 - **Framework**: Next.js 15 (App Router)
 - **Real-time**: LiveKit Cloud (WebRTC, SFU)
 - **UI**: React 18, Tailwind CSS, Shadcn UI
@@ -119,6 +133,7 @@ Enable teachers to record classroom sessions with synchronized translation cards
   - `@livekit/components-react`: v2.9.14
 
 ### Environment Variables (Current)
+
 ```env
 # LiveKit (Required)
 LIVEKIT_API_KEY=your-api-key
@@ -252,6 +267,7 @@ CREATE POLICY "Translation entries are viewable by everyone"
 ### S3 / Cloudflare R2 Setup
 
 **Recommended: Cloudflare R2** (S3-compatible, cheaper bandwidth)
+
 - Free tier: 10 GB storage, 10 million reads/month
 - No egress fees (vs AWS S3 charges for downloads)
 
@@ -273,6 +289,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 #### Bucket Structure
+
 ```
 livekit-recordings/
 ├── MATH101/
@@ -294,6 +311,7 @@ livekit-recordings/
 ### Phase 0: Prerequisites (Complete First)
 
 **Before starting recording implementation:**
+
 1. ✅ Supabase project created
 2. ✅ Database tables created (schema above)
 3. ✅ S3/R2 bucket created and credentials obtained
@@ -307,12 +325,14 @@ livekit-recordings/
 **Goal**: Setup database client and helper functions
 
 #### 1.1 Install Dependencies
+
 ```bash
 pnpm add @supabase/supabase-js hls.js
 pnpm add -D @types/hls.js
 ```
 
 #### 1.2 Create Supabase Client
+
 **File**: `lib/supabase.ts`
 
 ```typescript
@@ -324,19 +344,16 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Server-side client with service role (for privileged operations)
-export const supabaseAdmin = createClient(
-  supabaseUrl,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  }
-);
+export const supabaseAdmin = createClient(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 ```
 
 #### 1.3 Create Recording Utility Functions
+
 **File**: `lib/recording-utils.ts`
 
 ```typescript
@@ -413,12 +430,9 @@ export async function createRecording(params: {
  */
 export async function updateRecording(
   recordingId: string,
-  updates: Partial<Recording>
+  updates: Partial<Recording>,
 ): Promise<void> {
-  const { error } = await supabaseAdmin
-    .from('recordings')
-    .update(updates)
-    .eq('id', recordingId);
+  const { error } = await supabaseAdmin.from('recordings').update(updates).eq('id', recordingId);
 
   if (error) throw new Error(`Failed to update recording: ${error.message}`);
 }
@@ -485,7 +499,7 @@ export async function saveTranslationEntry(params: {
  */
 export async function getRecordingTranslations(
   recordingId: string,
-  language?: string
+  language?: string,
 ): Promise<TranslationEntry[]> {
   let query = supabaseAdmin
     .from('translation_entries')
@@ -505,6 +519,7 @@ export async function getRecordingTranslations(
 ```
 
 #### 1.4 Update Types
+
 **File**: `lib/types.ts` (add to existing file)
 
 ```typescript
@@ -534,11 +549,19 @@ export interface TranslationCardWithTime {
 **Goal**: Create API to start Track Composite Egress
 
 #### 2.1 Start Recording Endpoint
+
 **File**: `app/api/recordings/start/route.ts`
 
 ```typescript
 import { NextRequest, NextResponse } from 'next/server';
-import { EgressClient, TrackCompositeEgressRequest, EncodedFileOutput, SegmentedFileOutput, EncodedFileType, SegmentedFileProtocol } from 'livekit-server-sdk';
+import {
+  EgressClient,
+  TrackCompositeEgressRequest,
+  EncodedFileOutput,
+  SegmentedFileOutput,
+  EncodedFileType,
+  SegmentedFileProtocol,
+} from 'livekit-server-sdk';
 import { createRecording, generateSessionId } from '@/lib/recording-utils';
 
 const LIVEKIT_URL = process.env.LIVEKIT_URL!;
@@ -560,7 +583,7 @@ export async function POST(request: NextRequest) {
     if (!roomName || !roomSid || !teacherName) {
       return NextResponse.json(
         { error: 'Missing required fields: roomName, roomSid, teacherName' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -638,13 +661,14 @@ export async function POST(request: NextRequest) {
     console.error('Failed to start recording:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 ```
 
 #### 2.2 Stop Recording Endpoint
+
 **File**: `app/api/recordings/stop/route.ts`
 
 ```typescript
@@ -664,7 +688,7 @@ export async function POST(request: NextRequest) {
     if (!recordingId || !egressId) {
       return NextResponse.json(
         { error: 'Missing required fields: recordingId, egressId' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -691,7 +715,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to stop recording:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -704,6 +728,7 @@ export async function POST(request: NextRequest) {
 **Goal**: Save translation entries to database during live session
 
 #### 3.1 Translation Save Endpoint
+
 **File**: `app/api/recordings/translations/route.ts`
 
 ```typescript
@@ -717,10 +742,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!recordingId || !text || !language || !participantName || timestampMs === undefined) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     // Save translation entry
@@ -743,7 +765,7 @@ export async function POST(request: NextRequest) {
     console.error('Failed to save translation:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -755,16 +777,11 @@ export async function PUT(request: NextRequest) {
     const { entries } = body; // Array of translation entries
 
     if (!Array.isArray(entries) || entries.length === 0) {
-      return NextResponse.json(
-        { error: 'Invalid entries array' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid entries array' }, { status: 400 });
     }
 
     // Save all entries
-    const results = await Promise.all(
-      entries.map(entry => saveTranslationEntry(entry))
-    );
+    const results = await Promise.all(entries.map((entry) => saveTranslationEntry(entry)));
 
     return NextResponse.json({
       success: true,
@@ -774,13 +791,14 @@ export async function PUT(request: NextRequest) {
     console.error('Failed to batch save translations:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 ```
 
 #### 3.2 Modify TranslationPanel to Capture
+
 **File**: `app/components/TranslationPanel.tsx` (modify existing)
 
 Add recording capture logic:
@@ -799,7 +817,7 @@ export default function TranslationPanel({
   captionsLanguage,
   onClose,
   showCloseButton = false,
-  recordingMetadata // NEW
+  recordingMetadata, // NEW
 }: TranslationPanelProps) {
   // ... existing code ...
 
@@ -845,6 +863,7 @@ export default function TranslationPanel({
 **Goal**: Handle LiveKit egress events to update recording status
 
 #### 4.1 Egress Webhook Endpoint
+
 **File**: `app/api/webhooks/egress/route.ts`
 
 ```typescript
@@ -932,7 +951,7 @@ export async function POST(request: NextRequest) {
     console.error('Webhook handler error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -954,6 +973,7 @@ function constructS3Url(filename: string): string {
 ```
 
 #### 4.2 Configure Webhook in LiveKit Cloud
+
 1. Go to LiveKit Cloud Dashboard → Settings → Webhooks
 2. Add webhook URL: `https://your-domain.com/api/webhooks/egress`
 3. Enable events: `egress_started`, `egress_updated`, `egress_ended`
@@ -966,6 +986,7 @@ function constructS3Url(filename: string): string {
 **Goal**: Create video player with translation card overlay
 
 #### 5.1 Recordings List Page
+
 **File**: `app/recordings/page.tsx`
 
 ```typescript
@@ -1113,6 +1134,7 @@ export default function RecordingsPage() {
 ```
 
 #### 5.2 Playback Page
+
 **File**: `app/recordings/[recordingId]/page.tsx`
 
 ```typescript
@@ -1309,6 +1331,7 @@ export default function RecordingPlaybackPage() {
 ```
 
 #### 5.3 Translation Overlay Component
+
 **File**: `components/recordings/TranslationOverlay.tsx`
 
 ```typescript
@@ -1416,6 +1439,7 @@ export default function TranslationOverlay({
 ```
 
 #### 5.4 Recording Management API
+
 **File**: `app/api/recordings/route.ts`
 
 ```typescript
@@ -1446,7 +1470,7 @@ export async function GET(request: NextRequest) {
     console.error('Failed to fetch recordings:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -1459,10 +1483,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRecording } from '@/lib/recording-utils';
 import { supabaseAdmin } from '@/lib/supabase';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { recordingId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { recordingId: string } }) {
   try {
     const recording = await getRecording(params.recordingId);
 
@@ -1475,14 +1496,14 @@ export async function GET(
     console.error('Failed to get recording:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { recordingId: string } }
+  { params }: { params: { recordingId: string } },
 ) {
   try {
     // TODO: Also delete S3 files here
@@ -1490,10 +1511,7 @@ export async function DELETE(
     // Delete from S3 bucket...
 
     // Delete from database (cascade will delete translation_entries)
-    const { error } = await supabaseAdmin
-      .from('recordings')
-      .delete()
-      .eq('id', params.recordingId);
+    const { error } = await supabaseAdmin.from('recordings').delete().eq('id', params.recordingId);
 
     if (error) throw new Error(error.message);
 
@@ -1505,7 +1523,7 @@ export async function DELETE(
     console.error('Failed to delete recording:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -1517,17 +1535,11 @@ export async function DELETE(
 import { NextRequest, NextResponse } from 'next/server';
 import { getRecordingTranslations } from '@/lib/recording-utils';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { recordingId: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { recordingId: string } }) {
   try {
     const language = request.nextUrl.searchParams.get('language') || undefined;
 
-    const translations = await getRecordingTranslations(
-      params.recordingId,
-      language
-    );
+    const translations = await getRecordingTranslations(params.recordingId, language);
 
     return NextResponse.json({
       translations,
@@ -1536,7 +1548,7 @@ export async function GET(
     console.error('Failed to fetch translations:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -1549,6 +1561,7 @@ export async function GET(
 **Goal**: Add recording controls to classroom interface
 
 #### 6.1 Recording Controls Component
+
 **File**: `components/recordings/RecordingControls.tsx`
 
 ```typescript
@@ -1681,6 +1694,7 @@ export default function RecordingControls({
 ```
 
 #### 6.2 Integrate into Classroom Client
+
 **File**: `app/rooms/[roomName]/PageClientImpl.tsx` (modify existing)
 
 Add recording state and pass to components:
@@ -1715,6 +1729,7 @@ const [recordingMetadata, setRecordingMetadata] = useState<RecordingMetadata | n
 **Goal**: Add recordings tab to room management page
 
 #### 7.1 Add Recordings Link to Navigation
+
 **File**: `app/manage-rooms/page.tsx` (modify existing)
 
 Add link to recordings page:
@@ -1736,6 +1751,7 @@ Add link to recordings page:
 ```
 
 #### 7.2 Add Recordings Count to Room Cards
+
 **File**: `components/rooms/RoomCard.tsx` (modify existing)
 
 Add recordings count display:
@@ -1772,10 +1788,12 @@ useEffect(() => {
 ### Files to Create (16 new files)
 
 #### Database & Utilities (2 files)
+
 1. `lib/supabase.ts` - Supabase client singleton
 2. `lib/recording-utils.ts` - Recording helper functions
 
 #### API Routes (8 files)
+
 3. `app/api/recordings/start/route.ts` - Start recording endpoint
 4. `app/api/recordings/stop/route.ts` - Stop recording endpoint
 5. `app/api/recordings/route.ts` - List recordings endpoint
@@ -1783,17 +1801,19 @@ useEffect(() => {
 7. `app/api/recordings/[recordingId]/translations/route.ts` - Get translations for playback
 8. `app/api/recordings/translations/route.ts` - Save translation during live session
 9. `app/api/webhooks/egress/route.ts` - Egress event webhook handler
-10. *(Optional)* `app/api/recordings/batch-translations/route.ts` - Batch translation save
+10. _(Optional)_ `app/api/recordings/batch-translations/route.ts` - Batch translation save
 
 #### UI Pages (2 files)
+
 11. `app/recordings/page.tsx` - Recordings list page
 12. `app/recordings/[recordingId]/page.tsx` - Playback page with HLS player
 
 #### UI Components (4 files)
+
 13. `components/recordings/RecordingControls.tsx` - Start/stop recording buttons
 14. `components/recordings/TranslationOverlay.tsx` - Translation cards overlay for playback
-15. *(Optional)* `components/recordings/RecordingCard.tsx` - Recording list item card
-16. *(Optional)* `components/recordings/VideoPlayer.tsx` - Standalone HLS video player component
+15. _(Optional)_ `components/recordings/RecordingCard.tsx` - Recording list item card
+16. _(Optional)_ `components/recordings/VideoPlayer.tsx` - Standalone HLS video player component
 
 ### Files to Modify (5 files)
 
@@ -1831,6 +1851,7 @@ pnpm add -D @types/hls.js
 ### Phase 1: Database & API Testing
 
 **1. Test Recording Start**
+
 ```bash
 curl -X POST http://localhost:3000/api/recordings/start \
   -H "Content-Type: application/json" \
@@ -1844,6 +1865,7 @@ curl -X POST http://localhost:3000/api/recordings/start \
 Expected: Returns `recording` object with `id`, `sessionId`, `egressId`, `status: "ACTIVE"`
 
 **2. Test Translation Save**
+
 ```bash
 curl -X POST http://localhost:3000/api/recordings/translations \
   -H "Content-Type: application/json" \
@@ -1861,17 +1883,20 @@ Expected: Returns `entry` object with `id`, `timestampMs`
 ### Phase 2: Live Recording Test
 
 **1. Start Classroom Session as Teacher**
+
 - Navigate to `/rooms/TEST101?classroom=true&role=teacher`
 - Join with camera/mic enabled
 - Click "Start Recording"
 - Verify recording indicator appears
 
 **2. Generate Translations**
+
 - Speak into microphone (if translation agent is running)
 - Or manually trigger translation events
 - Verify translations appear in sidebar
 
 **3. Check Database**
+
 ```sql
 -- Check recording created
 SELECT * FROM recordings WHERE room_name = 'TEST101' ORDER BY started_at DESC LIMIT 1;
@@ -1881,6 +1906,7 @@ SELECT COUNT(*) FROM translation_entries WHERE recording_id = '<recording-id>';
 ```
 
 **4. Stop Recording**
+
 - Click "Stop Recording"
 - Wait 30-60 seconds for egress to complete
 - Check LiveKit Cloud Dashboard → Egress section for status
@@ -1888,14 +1914,17 @@ SELECT COUNT(*) FROM translation_entries WHERE recording_id = '<recording-id>';
 ### Phase 3: Webhook & Egress Test
 
 **1. Monitor Webhook Logs**
+
 ```bash
 # In your deployment logs
 tail -f /var/log/app.log | grep "Egress webhook"
 ```
 
 **2. Check Egress Completion**
+
 - After stopping recording, wait for `egress_ended` webhook
 - Verify database updated:
+
 ```sql
 SELECT status, hls_playlist_url, mp4_url, duration_seconds
 FROM recordings
@@ -1905,6 +1934,7 @@ WHERE session_id = '<session-id>';
 Expected: `status = "COMPLETED"`, URLs populated, duration set
 
 **3. Verify S3/R2 Files**
+
 ```bash
 # List bucket contents (using AWS CLI or R2 dashboard)
 aws s3 ls s3://livekit-recordings/TEST101/
@@ -1915,22 +1945,26 @@ Expected: See `.m3u8` playlist and `.ts` segment files
 ### Phase 4: Playback Test
 
 **1. Navigate to Recordings List**
+
 - Go to `/recordings`
 - Verify TEST101 recording appears
 - Check status badge shows "COMPLETED"
 
 **2. Open Playback Page**
+
 - Click "Watch" button
 - Verify video loads and plays
 - Verify HLS streaming works (no buffering issues)
 
 **3. Test Translation Sync**
+
 - Select different language from dropdown
 - Verify translation cards appear at correct timestamps
 - Pause video → verify cards freeze
 - Seek to different time → verify cards update
 
 **4. Test Click-to-Seek**
+
 - Click on a translation card in the sidebar
 - Verify video seeks to that timestamp
 - Verify translation card highlights
@@ -1938,23 +1972,27 @@ Expected: See `.m3u8` playlist and `.ts` segment files
 ### Phase 5: Edge Cases
 
 **1. Test Recording Failure Recovery**
+
 - Start recording
 - Stop LiveKit Cloud egress manually (via dashboard)
 - Verify webhook marks recording as "FAILED"
 - Verify UI handles failed recording gracefully
 
 **2. Test Multiple Concurrent Recordings**
+
 - Start recordings in 2 different rooms
 - Verify both egress jobs run simultaneously
 - Verify translations saved to correct recording
 
 **3. Test Long Session**
+
 - Record 10+ minute session
 - Verify HLS segments created correctly
 - Verify seeking works across entire duration
 - Check file sizes are reasonable
 
 **4. Test No Translations**
+
 - Record session with no translations
 - Verify playback works without translation data
 - Verify UI shows "No translations" message
@@ -1966,6 +2004,7 @@ Expected: See `.m3u8` playlist and `.ts` segment files
 ### HLS Playlist Structure
 
 **index.m3u8** (Master playlist):
+
 ```
 #EXTM3U
 #EXT-X-VERSION:3
@@ -1982,20 +2021,23 @@ segment_1.ts
 ### Timestamp Calculation
 
 **Recording Start Time**:
+
 ```typescript
 const recordingStartTime = Date.now(); // When egress starts
 ```
 
 **Translation Timestamp**:
+
 ```typescript
 const translationTimestamp = Date.now() - recordingStartTime; // Milliseconds
 ```
 
 **Playback Sync**:
+
 ```typescript
 const videoTimeMs = videoElement.currentTime * 1000;
 const activeTranslations = translations.filter(
-  t => Math.abs(t.timestamp_ms - videoTimeMs) < 5000 // 5-second window
+  (t) => Math.abs(t.timestamp_ms - videoTimeMs) < 5000, // 5-second window
 );
 ```
 
@@ -2030,6 +2072,7 @@ async function getSignedPlaylistUrl(key: string): Promise<string> {
 ### Performance Optimizations
 
 **1. Translation Query Optimization**
+
 ```sql
 -- Use composite index for fast lookups
 CREATE INDEX idx_translation_playback
@@ -2044,11 +2087,13 @@ ORDER BY timestamp_ms ASC;
 ```
 
 **2. HLS Segment Caching**
+
 - Use CDN (Cloudflare, CloudFront) in front of S3/R2
 - Cache segments for 1 year (immutable after recording ends)
 - Cache playlist for 5 minutes (in case of updates)
 
 **3. Translation Batching**
+
 ```typescript
 // Batch translations every 5 seconds instead of real-time
 const translationQueue: TranslationEntry[] = [];
@@ -2076,12 +2121,14 @@ setInterval(flushQueue, 5000); // Flush every 5 seconds
 **Symptoms**: API returns error, no egress created
 
 **Checks**:
+
 1. Verify S3/R2 credentials are correct
 2. Check bucket exists and has write permissions
 3. Verify LiveKit API key/secret are valid
 4. Check LiveKit Cloud dashboard for egress errors
 
 **Solution**:
+
 ```bash
 # Test S3 connection
 aws s3 ls s3://your-bucket --endpoint-url=<S3_ENDPOINT>
@@ -2097,11 +2144,13 @@ curl -X POST https://your-project.livekit.cloud/twirp/livekit.RoomService/ListRo
 **Symptoms**: Recording stays "ACTIVE" forever, no URLs populated
 
 **Checks**:
+
 1. Verify webhook URL is publicly accessible
 2. Check LiveKit Cloud webhook configuration
 3. Review webhook endpoint logs
 
 **Solution**:
+
 - Use ngrok for local testing: `ngrok http 3000`
 - Update LiveKit Cloud webhook URL to ngrok URL
 - Check webhook signature verification (if enabled)
@@ -2111,11 +2160,13 @@ curl -X POST https://your-project.livekit.cloud/twirp/livekit.RoomService/ListRo
 **Symptoms**: HLS player shows error, video element blank
 
 **Checks**:
+
 1. Verify HLS playlist URL is accessible (open in browser)
 2. Check CORS headers on S3/R2 bucket
 3. Verify browser supports HLS (or hls.js loaded)
 
 **Solution**:
+
 ```javascript
 // Add CORS to S3/R2 bucket
 {
@@ -2132,11 +2183,13 @@ curl -X POST https://your-project.livekit.cloud/twirp/livekit.RoomService/ListRo
 **Symptoms**: Cards appear at wrong times, missing translations
 
 **Checks**:
+
 1. Verify `timestamp_ms` is relative to recording start
 2. Check database query filters by correct `recording_id`
 3. Verify video `currentTime` conversion to milliseconds
 
 **Solution**:
+
 ```typescript
 // Ensure consistent timestamp calculation
 const recordingStartTime = Date.now(); // Store when recording starts
@@ -2148,12 +2201,14 @@ const timestampMs = Date.now() - recordingStartTime; // Always relative
 ## Cost Estimates
 
 ### Supabase (Free Tier)
+
 - **Database**: 500 MB (enough for ~50,000 translation entries)
 - **Bandwidth**: Unlimited
 - **API Requests**: Unlimited
 - **Cost**: $0/month
 
 ### Cloudflare R2 (Free Tier)
+
 - **Storage**: 10 GB (~20 hours of 1080p HLS)
 - **Reads**: 10 million requests/month
 - **Writes**: 1 million requests/month
@@ -2161,12 +2216,14 @@ const timestampMs = Date.now() - recordingStartTime; // Always relative
 - **Cost**: $0/month
 
 ### AWS S3 (If not using R2)
+
 - **Storage**: $0.023/GB (~$0.46 for 20 GB)
 - **Egress**: $0.09/GB (~$18 for 200 GB downloads)
 - **Requests**: $0.0004 per 1,000 GET ($0.40 for 1M requests)
 - **Cost**: ~$19/month for moderate usage
 
 ### LiveKit Cloud Egress
+
 - **Track Composite**: ~$0.0040/minute
 - **1 hour session**: ~$0.24
 - **20 sessions/month**: ~$4.80/month
@@ -2180,26 +2237,31 @@ const timestampMs = Date.now() - recordingStartTime; // Always relative
 ### Phase 8: Advanced Features (Optional)
 
 **1. Recording Search**
+
 - Full-text search across translation content
 - Filter by language, date range, teacher
 - Jump to specific translation in video
 
 **2. Recording Analytics**
+
 - Track view counts per recording
 - Most-watched segments
 - Language preference statistics
 
 **3. Recording Editing**
+
 - Trim recordings (start/end times)
 - Split long recordings into chapters
 - Add bookmarks for key moments
 
 **4. Multi-Track Recording**
+
 - Record student video/audio separately
 - Enable post-production mixing
 - Create highlight reels
 
 **5. Live Streaming**
+
 - Stream recording to YouTube/Twitch simultaneously
 - Enable live Q&A during playback
 - Add live captions during stream

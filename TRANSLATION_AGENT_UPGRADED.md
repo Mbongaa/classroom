@@ -1,29 +1,34 @@
 # LiveKit Translation Agent - Upgraded Architecture
 
 ## Overview
+
 This document describes the upgraded translation agent that uses OpenAI's GPT Realtime API for Speech-to-Text with integrated Voice Activity Detection (VAD) and punctuation, and GPT-4o for high-quality translation.
 
 ## Key Improvements
 
 ### 1. GPT Realtime for Speech-to-Text
+
 - **WebSocket Streaming**: Real-time audio processing with <1 second latency
 - **Integrated VAD**: Server-side voice activity detection with semantic understanding
 - **Automatic Punctuation**: Contextually-aware punctuation and capitalization
 - **No External Dependencies**: Removed Silero VAD dependency
 
 ### 2. GPT-4o for Translation
+
 - **Superior Quality**: More accurate and natural translations
 - **Optimized Prompting**: Professional translator system prompts
 - **Lower Temperature**: 0.3 for consistent, reliable translations
 - **Smart Token Limits**: 500 tokens max for optimal performance
 
 ### 3. Performance Enhancements
+
 - **Translation Caching**: Repeated phrases cached for instant delivery
 - **Parallel Processing**: Simultaneous translation to multiple languages
 - **Performance Monitoring**: Real-time metrics tracking
 - **Error Recovery**: Graceful fallback with error indicators
 
 ### 4. Production Readiness
+
 - **Comprehensive Logging**: Detailed logging with timestamps
 - **Metrics API**: RPC endpoint for performance monitoring
 - **Resource Management**: Proper cleanup and task management
@@ -46,6 +51,7 @@ graph TB
 ## Installation
 
 ### Prerequisites
+
 - Python 3.8+
 - LiveKit Cloud account or self-hosted server
 - OpenAI API key with GPT-4o and Realtime API access
@@ -53,11 +59,13 @@ graph TB
 ### Setup
 
 1. Install dependencies:
+
 ```bash
 pip install -r requirements_upgraded.txt
 ```
 
 2. Configure environment variables:
+
 ```env
 # LiveKit Configuration
 LIVEKIT_URL=wss://your-project.livekit.cloud
@@ -69,6 +77,7 @@ OPENAI_API_KEY=YOUR_OPENAI_KEY
 ```
 
 3. Run the upgraded agent:
+
 ```bash
 python main_upgraded.py start
 ```
@@ -76,39 +85,43 @@ python main_upgraded.py start
 ## API Endpoints
 
 ### Get Available Languages
+
 ```javascript
 await room.localParticipant.performRpc({
-  destinationIdentity: "agent",
-  method: "get/languages",
-  payload: ""
+  destinationIdentity: 'agent',
+  method: 'get/languages',
+  payload: '',
 });
 ```
 
 Response:
+
 ```json
 [
-  {"code": "es", "name": "Spanish", "flag": "🇪🇸"},
-  {"code": "fr", "name": "French", "flag": "🇫🇷"},
-  {"code": "de", "name": "German", "flag": "🇩🇪"},
-  {"code": "ja", "name": "Japanese", "flag": "🇯🇵"},
-  {"code": "ar", "name": "Arabic", "flag": "🇸🇦"},
-  {"code": "zh", "name": "Chinese", "flag": "🇨🇳"},
-  {"code": "pt", "name": "Portuguese", "flag": "🇵🇹"},
-  {"code": "ru", "name": "Russian", "flag": "🇷🇺"},
-  {"code": "ko", "name": "Korean", "flag": "🇰🇷"}
+  { "code": "es", "name": "Spanish", "flag": "🇪🇸" },
+  { "code": "fr", "name": "French", "flag": "🇫🇷" },
+  { "code": "de", "name": "German", "flag": "🇩🇪" },
+  { "code": "ja", "name": "Japanese", "flag": "🇯🇵" },
+  { "code": "ar", "name": "Arabic", "flag": "🇸🇦" },
+  { "code": "zh", "name": "Chinese", "flag": "🇨🇳" },
+  { "code": "pt", "name": "Portuguese", "flag": "🇵🇹" },
+  { "code": "ru", "name": "Russian", "flag": "🇷🇺" },
+  { "code": "ko", "name": "Korean", "flag": "🇰🇷" }
 ]
 ```
 
 ### Get Performance Metrics
+
 ```javascript
 await room.localParticipant.performRpc({
-  destinationIdentity: "agent",
-  method: "get/metrics",
-  payload: ""
+  destinationIdentity: 'agent',
+  method: 'get/metrics',
+  payload: '',
 });
 ```
 
 Response:
+
 ```json
 {
   "uptime_seconds": 3600,
@@ -127,16 +140,19 @@ Response:
 ## Performance Characteristics
 
 ### Latency Targets
+
 - **Transcription**: 200-500ms (GPT Realtime)
 - **Translation**: 100-300ms (GPT-4o)
 - **End-to-End**: <1 second typical
 
 ### Resource Usage
+
 - **Memory**: ~200MB baseline
 - **CPU**: <10% during normal operation
 - **Network**: Adaptive based on speech activity
 
 ### Scalability
+
 - **Concurrent Rooms**: Limited by OpenAI API rate limits
 - **Languages per Room**: 10+ simultaneous translations
 - **Participants**: No hard limit (LiveKit handles scaling)
@@ -144,16 +160,19 @@ Response:
 ## Testing
 
 ### Run Unit Tests
+
 ```bash
 python -m pytest test_upgraded_agent.py -v
 ```
 
 ### Run Integration Tests
+
 ```bash
 python -m pytest test_upgraded_agent.py::TestIntegration -v
 ```
 
 ### Performance Benchmarking
+
 ```bash
 python -m pytest test_upgraded_agent.py::PerformanceBenchmark -v
 ```
@@ -161,6 +180,7 @@ python -m pytest test_upgraded_agent.py::PerformanceBenchmark -v
 ## Monitoring
 
 ### Log Levels
+
 ```python
 # Set in main_upgraded.py or via environment
 logging.basicConfig(level=logging.DEBUG)  # For debugging
@@ -168,7 +188,9 @@ logging.basicConfig(level=logging.INFO)   # For production
 ```
 
 ### Metrics Collection
+
 The agent automatically logs performance metrics every 60 seconds:
+
 ```
 2024-01-15 10:30:00 - Performance Metrics: {
   "uptime_seconds": 3600,
@@ -179,7 +201,9 @@ The agent automatically logs performance metrics every 60 seconds:
 ```
 
 ### Health Checks
+
 Monitor the following for agent health:
+
 - Error rate < 1%
 - Average transcription latency < 1000ms
 - Average translation latency < 500ms
@@ -190,29 +214,35 @@ Monitor the following for agent health:
 ### Common Issues
 
 #### High Latency
+
 - **Cause**: Network congestion or OpenAI API throttling
 - **Solution**: Check network connectivity and API rate limits
 
 #### Translation Errors
+
 - **Cause**: API quota exceeded or invalid API key
 - **Solution**: Verify OpenAI API key and check usage dashboard
 
 #### No Transcriptions
+
 - **Cause**: Teacher audio not being received
 - **Solution**: Verify teacher has microphone enabled and metadata contains role
 
 #### Memory Growth
+
 - **Cause**: Translation cache growing unbounded
 - **Solution**: Cache is limited to 1000 entries by default
 
 ## Migration from Original Agent
 
 ### Breaking Changes
+
 1. Removed `livekit-plugins-silero` dependency
 2. Changed STT initialization (now uses Realtime API)
 3. Updated LLM configuration for GPT-4o
 
 ### Migration Steps
+
 1. Install new dependencies: `pip install -r requirements_upgraded.txt`
 2. Replace `main.py` with `main_upgraded.py`
 3. Ensure OpenAI API key has access to GPT-4o and Realtime API
@@ -228,11 +258,13 @@ Monitor the following for agent health:
 ## Cost Optimization
 
 ### OpenAI API Costs
+
 - **GPT Realtime**: ~$0.06 per minute of audio
 - **GPT-4o**: ~$0.015 per 1K input tokens, $0.06 per 1K output tokens
 - **Estimated**: ~$0.10-0.15 per minute per active room
 
 ### Optimization Strategies
+
 1. **Enable Caching**: Reduces repeated translation costs
 2. **Batch Translations**: Process multiple segments together
 3. **Language Detection**: Only translate to active languages
@@ -241,6 +273,7 @@ Monitor the following for agent health:
 ## Future Enhancements
 
 ### Planned Features
+
 1. **Multi-Teacher Support**: Handle multiple speakers
 2. **Custom Terminology**: Industry-specific dictionaries
 3. **Subtitle Export**: Save translations as SRT/VTT files
@@ -248,6 +281,7 @@ Monitor the following for agent health:
 5. **Translation Quality Settings**: Balance speed vs accuracy
 
 ### Performance Improvements
+
 1. **Local STT Fallback**: Use local models during outages
 2. **Translation Pre-fetching**: Predict and cache common phrases
 3. **WebSocket Reconnection**: Automatic reconnection on disconnects
@@ -256,6 +290,7 @@ Monitor the following for agent health:
 ## Support
 
 For issues or questions:
+
 1. Check agent logs for detailed error messages
 2. Verify all API keys and credentials
 3. Test with the included test suite

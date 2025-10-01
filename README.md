@@ -44,9 +44,12 @@ Steps to get a local dev setup up and running:
 ## Features
 
 ### Classroom Mode
+
 This project includes a comprehensive classroom mode with teacher/student roles, permission management, and student request system. See `CLASSROOM_ROADMAP.md` for details.
 
 ### Translation System
+
 For real-time translation capabilities, see:
+
 - Local development agent: `translation_agent/`
 - Production Bayaan server integration: `BAYAAN_SERVER_INTEGRATION.md`

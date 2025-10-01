@@ -11,10 +11,7 @@ export function isAgentParticipant(participant: Participant): boolean {
   }
 
   // Check for string variants of agent kind
-  if (
-    participant.kind === 'agent' ||
-    participant.kind === 'AGENT'
-  ) {
+  if (participant.kind === 'agent' || participant.kind === 'AGENT') {
     return true;
   }
 

@@ -14,7 +14,7 @@ export function RequestIndicator({
   request,
   participantName,
   isTeacher,
-  onQuestionDisplay
+  onQuestionDisplay,
 }: RequestIndicatorProps) {
   const [showBubble, setShowBubble] = useState(false);
 
@@ -62,9 +62,7 @@ export function RequestIndicator({
         aria-label={getIndicatorTitle()}
       >
         <span className={styles.icon}>✋</span>
-        {request.type === 'text' && (
-          <span className={styles.typeIcon}>{getIndicatorIcon()}</span>
-        )}
+        {request.type === 'text' && <span className={styles.typeIcon}>{getIndicatorIcon()}</span>}
       </div>
 
       {showBubble && request.type === 'text' && request.question && (

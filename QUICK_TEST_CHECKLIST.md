@@ -59,6 +59,7 @@ ORDER BY tablename;
 ## 🎯 Key Changes Made
 
 The fix completely eliminated circular dependencies by:
+
 - **Organizations policies** now check `profiles.organization_id` instead of `organization_members`
 - **Organization_members policies** use `profiles` for authorization instead of self-references
 - **No table queries itself** in any RLS policy

@@ -42,19 +42,16 @@ export class VideoErrorBoundary extends Component<Props, State> {
           className="flex flex-col items-center justify-center h-full w-full p-4"
           style={{
             backgroundColor: 'var(--lk-bg3)',
-            color: 'var(--lk-text1, white)'
+            color: 'var(--lk-text1, white)',
           }}
         >
           <AlertCircle className="w-12 h-12 mb-4 text-red-500" />
           <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--lk-text1, white)' }}>
             Video Component Error
           </h2>
-          <p
-            className="text-sm text-center max-w-md"
-            style={{ color: 'var(--lk-text2, #6b7280)' }}
-          >
+          <p className="text-sm text-center max-w-md" style={{ color: 'var(--lk-text2, #6b7280)' }}>
             {this.props.fallbackMessage ||
-             'Something went wrong displaying this video. Please try refreshing the page or check your connection.'}
+              'Something went wrong displaying this video. Please try refreshing the page or check your connection.'}
           </p>
           {process.env.NODE_ENV === 'development' && this.state.error && (
             <details

@@ -14,7 +14,7 @@ export function PermissionDropdown({
   roomName,
   teacherToken,
   onPermissionUpdate,
-  currentRole
+  currentRole,
 }: PermissionDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -95,9 +95,7 @@ export function PermissionDropdown({
 
       {isOpen && (
         <div className="permission-dropdown-menu">
-          <div className="permission-dropdown-header">
-            Manage Permissions
-          </div>
+          <div className="permission-dropdown-header">Manage Permissions</div>
 
           {!isSpeaker ? (
             <button
@@ -199,8 +197,12 @@ export function PermissionDropdown({
         }
 
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
         }
 
         .permission-dropdown-menu {

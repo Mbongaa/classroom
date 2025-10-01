@@ -1,43 +1,43 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useFormStatus } from 'react-dom'
-import { updateProfile } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { updateProfile } from '@/lib/actions/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" disabled={pending}>
       {pending ? 'Saving...' : 'Save Changes'}
     </Button>
-  )
+  );
 }
 
 interface ProfileFormProps {
   profile: {
-    full_name: string | null
-    avatar_url: string | null
-  }
+    full_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 export function ProfileForm({ profile }: ProfileFormProps) {
-  const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(formData: FormData) {
-    setError(null)
-    setSuccess(false)
+    setError(null);
+    setSuccess(false);
 
-    const result = await updateProfile(formData)
+    const result = await updateProfile(formData);
 
     if (result.success) {
-      setSuccess(true)
-      setTimeout(() => setSuccess(false), 3000)
+      setSuccess(true);
+      setTimeout(() => setSuccess(false), 3000);
     } else if (result.error) {
-      setError(result.error)
+      setError(result.error);
     }
   }
 
@@ -79,5 +79,5 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         <SubmitButton />
       </div>
     </form>
-  )
+  );
 }

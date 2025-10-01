@@ -13,6 +13,7 @@ This document served as the planning blueprint for the persistent rooms feature.
 **📄 See Complete Implementation Details**: `PERSISTENT_ROOMS_IMPLEMENTATION.md`
 
 ### Key Achievements
+
 - ✅ LiveKit metadata-only architecture (no external database)
 - ✅ Room management UI with create, list, delete operations
 - ✅ Auto-population of teacher name and language (teachers only)
@@ -22,11 +23,13 @@ This document served as the planning blueprint for the persistent rooms feature.
 - ✅ Race condition fixes for async metadata loading
 
 ### Implementation Summary
+
 - **9 new files created**: 4 API endpoints, 5 UI components
 - **3 files modified**: Landing page, PageClientImpl, CustomPreJoin
 - **2 dependencies added**: @radix-ui/react-dialog, @radix-ui/react-label
 
 ### Quick Links
+
 - **API Documentation**: See "API Endpoints" section in `PERSISTENT_ROOMS_IMPLEMENTATION.md`
 - **UI Components**: See "UI Components" section in `PERSISTENT_ROOMS_IMPLEMENTATION.md`
 - **Testing Guide**: See "Testing Guide" section in `PERSISTENT_ROOMS_IMPLEMENTATION.md`
@@ -41,6 +44,7 @@ The sections below represent the original planning and architectural analysis th
 ---
 
 ## Table of Contents
+
 1. [Business Value](#business-value)
 2. [Architecture Analysis](#architecture-analysis)
 3. [Technical Implementation](#technical-implementation)
@@ -57,15 +61,18 @@ The sections below represent the original planning and architectural analysis th
 ## Business Value
 
 ### Problem Statement
+
 Currently, room IDs are randomly generated (e.g., `x7k2-m9p5`) for each session. Teachers and students need a new link every time, making recurring lectures inconvenient.
 
 ### Desired Solution
+
 - Teachers create persistent rooms with memorable codes (e.g., `MATH101`)
 - Same room code works for all lectures in a course
 - Room stores teacher name, language, and configuration
 - Students bookmark room link and reuse it throughout semester
 
 ### Use Cases
+
 1. **Recurring Lectures**: Weekly Math 101 class uses same code
 2. **Office Hours**: Professor has permanent office hour room
 3. **Study Groups**: Student groups with consistent meeting spaces
@@ -78,6 +85,7 @@ Currently, room IDs are randomly generated (e.g., `x7k2-m9p5`) for each session.
 ### LiveKit Room Lifecycle Deep Dive
 
 #### Current Implementation (Ad-Hoc Rooms)
+
 ```
 Landing Page → Generate Random ID → Navigate to /rooms/[randomId] →
 Client Requests Token → Server Creates Token → Client Connects →
@@ -86,12 +94,14 @@ All Leave → Room Auto-Deletes
 ```
 
 **Characteristics**:
+
 - Rooms created implicitly on first join
 - No explicit room creation API call
 - Auto-delete when empty (default 5 min)
 - New room ID needed for each session
 
 #### New Implementation (Persistent Rooms)
+
 ```
 Teacher Dashboard → Create Room Form → API Call to RoomServiceClient.createRoom() →
 Room Persists on LiveKit Server → Teacher Shares Code →
@@ -100,6 +110,7 @@ Multiple Sessions Over Time → Manual Deletion Only
 ```
 
 **Characteristics**:
+
 - Rooms created explicitly via API
 - Persist when empty (configurable timeout)
 - Human-readable codes
@@ -108,6 +119,7 @@ Multiple Sessions Over Time → Manual Deletion Only
 ### LiveKit Native Support Verified
 
 ✅ **Confirmed APIs** (from official docs):
+
 ```typescript
 // 1. Create Room
 RoomServiceClient.createRoom({
@@ -132,6 +144,7 @@ RoomServiceClient.updateRoomMetadata(roomName: string, metadata: string)
 **Decision**: Use LiveKit metadata for room configuration instead of external database
 
 **Advantages**:
+
 1. ✅ **Zero Infrastructure**: No database to setup/maintain
 2. ✅ **Faster Development**: 5-8 days vs 10-14 days
 3. ✅ **Single Source of Truth**: Configuration lives with room
@@ -140,6 +153,7 @@ RoomServiceClient.updateRoomMetadata(roomName: string, metadata: string)
 6. ✅ **Sufficient Capacity**: 64 KiB per room (plenty for config)
 
 **When to Add Database** (Phase 2):
+
 - Complex queries (filter by teacher, language, date)
 - User account system
 - Session history and analytics
@@ -153,18 +167,21 @@ RoomServiceClient.updateRoomMetadata(roomName: string, metadata: string)
 ### System Components
 
 #### 1. Backend (Next.js API Routes)
+
 - `/api/rooms/create` - Create new persistent room
 - `/api/rooms` - List all rooms
 - `/api/rooms/[roomCode]` - Get/update/delete specific room
 - `/api/connection-details` - Modified to validate room existence
 
 #### 2. Frontend (React Components)
+
 - `CreateRoomModal` - Form for room creation
 - `RoomDashboard` - List and manage rooms
 - `JoinByCodeInput` - Student join flow
 - Updated landing page with new options
 
 #### 3. LiveKit Integration
+
 - `RoomServiceClient` - Server-side room management
 - Metadata storage - Room configuration persistence
 - Token generation - Validates room before issuing JWT
@@ -178,20 +195,22 @@ RoomServiceClient.updateRoomMetadata(roomName: string, metadata: string)
 **Purpose**: Create new persistent room with configuration
 
 **Request Body**:
+
 ```typescript
 interface CreateRoomRequest {
-  roomCode: string;          // "MATH101" (4-20 chars, alphanumeric + hyphens)
-  displayName: string;       // "Mathematics 101"
-  type: "classroom" | "speech";
-  teacherName: string;       // "Prof. Smith"
-  teacherLanguage: string;   // "en", "ar", "es", etc.
-  maxParticipants?: number;  // Default: 0 (unlimited)
-  emptyTimeout?: number;     // Seconds, default: 604800 (7 days)
-  pin?: string;              // Optional 4-6 digit PIN
+  roomCode: string; // "MATH101" (4-20 chars, alphanumeric + hyphens)
+  displayName: string; // "Mathematics 101"
+  type: 'classroom' | 'speech';
+  teacherName: string; // "Prof. Smith"
+  teacherLanguage: string; // "en", "ar", "es", etc.
+  maxParticipants?: number; // Default: 0 (unlimited)
+  emptyTimeout?: number; // Seconds, default: 604800 (7 days)
+  pin?: string; // Optional 4-6 digit PIN
 }
 ```
 
 **Response**:
+
 ```typescript
 interface CreateRoomResponse {
   success: boolean;
@@ -201,27 +220,28 @@ interface CreateRoomResponse {
     metadata: RoomMetadata;
     createdAt: number;
   };
-  shareableLink: string;     // "https://app.com/rooms/MATH101?classroom=true"
-  studentLink: string;       // "https://app.com/s/MATH101"
+  shareableLink: string; // "https://app.com/rooms/MATH101?classroom=true"
+  studentLink: string; // "https://app.com/s/MATH101"
 }
 ```
 
 **Implementation**:
+
 ```typescript
 export async function POST(request: NextRequest) {
   const body: CreateRoomRequest = await request.json();
 
   // 1. Validate room code format
   if (!/^[a-zA-Z0-9-]{4,20}$/.test(body.roomCode)) {
-    return NextResponse.json({ error: "Invalid room code format" }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid room code format' }, { status: 400 });
   }
 
   // 2. Check uniqueness
   const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
   const existingRooms = await roomService.listRooms();
 
-  if (existingRooms.some(r => r.name.toLowerCase() === body.roomCode.toLowerCase())) {
-    return NextResponse.json({ error: "Room code already exists" }, { status: 409 });
+  if (existingRooms.some((r) => r.name.toLowerCase() === body.roomCode.toLowerCase())) {
+    return NextResponse.json({ error: 'Room code already exists' }, { status: 409 });
   }
 
   // 3. Create room with metadata
@@ -262,6 +282,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Error Codes**:
+
 - `400` - Invalid request format
 - `409` - Room code already exists
 - `500` - Server error
@@ -273,6 +294,7 @@ export async function POST(request: NextRequest) {
 **Purpose**: List all persistent rooms
 
 **Query Parameters**:
+
 ```typescript
 {
   type?: "classroom" | "speech";  // Filter by type
@@ -282,6 +304,7 @@ export async function POST(request: NextRequest) {
 ```
 
 **Response**:
+
 ```typescript
 interface ListRoomsResponse {
   rooms: Array<{
@@ -296,6 +319,7 @@ interface ListRoomsResponse {
 ```
 
 **Implementation**:
+
 ```typescript
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -306,19 +330,20 @@ export async function GET(request: NextRequest) {
   const allRooms = await roomService.listRooms();
 
   // Filter rooms based on metadata
-  const filteredRooms = allRooms.filter(room => {
+  const filteredRooms = allRooms.filter((room) => {
     if (!room.metadata) return false;
 
     const metadata: RoomMetadata = JSON.parse(room.metadata);
 
     if (typeFilter && metadata.type !== typeFilter) return false;
-    if (teacherFilter && !metadata.teacherName.toLowerCase().includes(teacherFilter.toLowerCase())) return false;
+    if (teacherFilter && !metadata.teacherName.toLowerCase().includes(teacherFilter.toLowerCase()))
+      return false;
 
     return true;
   });
 
   return NextResponse.json({
-    rooms: filteredRooms.map(room => ({
+    rooms: filteredRooms.map((room) => ({
       name: room.name,
       sid: room.sid,
       metadata: JSON.parse(room.metadata || '{}'),
@@ -337,6 +362,7 @@ export async function GET(request: NextRequest) {
 **Purpose**: Get details of specific room
 
 **Response**:
+
 ```typescript
 interface GetRoomResponse {
   room: {
@@ -355,10 +381,11 @@ interface GetRoomResponse {
 ```
 
 **Implementation**:
+
 ```typescript
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   const { roomCode } = await params;
 
@@ -370,7 +397,7 @@ export async function GET(
     const rooms = await roomService.listRooms([roomCode]);
 
     if (rooms.length === 0) {
-      return NextResponse.json({ error: "Room not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Room not found' }, { status: 404 });
     }
 
     const room = rooms[0];
@@ -382,7 +409,7 @@ export async function GET(
         metadata: JSON.parse(room.metadata || '{}'),
         numParticipants: room.numParticipants,
         creationTime: room.creationTime,
-        activeParticipants: participants.map(p => ({
+        activeParticipants: participants.map((p) => ({
           identity: p.identity,
           name: p.name,
           role: JSON.parse(p.metadata || '{}').role || 'unknown',
@@ -390,7 +417,7 @@ export async function GET(
       },
     });
   } catch (error) {
-    return NextResponse.json({ error: "Room not found" }, { status: 404 });
+    return NextResponse.json({ error: 'Room not found' }, { status: 404 });
   }
 }
 ```
@@ -402,13 +429,15 @@ export async function GET(
 **Purpose**: Delete persistent room
 
 **Request Headers**:
+
 ```typescript
 {
-  Authorization: "Bearer <admin-token>"  // TODO: Add auth
+  Authorization: 'Bearer <admin-token>'; // TODO: Add auth
 }
 ```
 
 **Response**:
+
 ```typescript
 interface DeleteRoomResponse {
   success: boolean;
@@ -417,10 +446,11 @@ interface DeleteRoomResponse {
 ```
 
 **Implementation**:
+
 ```typescript
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   const { roomCode } = await params;
 
@@ -436,7 +466,7 @@ export async function DELETE(
       message: `Room ${roomCode} deleted successfully`,
     });
   } catch (error) {
-    return NextResponse.json({ error: "Failed to delete room" }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to delete room' }, { status: 500 });
   }
 }
 ```
@@ -448,12 +478,14 @@ export async function DELETE(
 **Changes**: Add room existence validation
 
 **Before**:
+
 ```typescript
 // Generated token for any roomName, room auto-created on join
 const participantToken = await createParticipantToken(userInfo, roomName, ...);
 ```
 
 **After**:
+
 ```typescript
 // Validate room exists for non-random room codes
 const isRandomCode = /^[a-z0-9]{4}-[a-z0-9]{4}$/.test(roomName);
@@ -497,12 +529,8 @@ const participantToken = await createParticipantToken(userInfo, roomName, ...);
     <h3>Persistent Rooms</h3>
 
     {/* For Teachers */}
-    <button onClick={() => setShowCreateModal(true)}>
-      Create Persistent Room
-    </button>
-    <button onClick={() => router.push('/dashboard')}>
-      My Rooms
-    </button>
+    <button onClick={() => setShowCreateModal(true)}>Create Persistent Room</button>
+    <button onClick={() => router.push('/dashboard')}>My Rooms</button>
 
     {/* For Students */}
     <div className="join-by-code">
@@ -514,11 +542,11 @@ const participantToken = await createParticipantToken(userInfo, roomName, ...);
       <button onClick={handleJoinByCode}>Join</button>
     </div>
   </div>
-</div>
+</div>;
 
-{showCreateModal && (
-  <CreateRoomModal onClose={() => setShowCreateModal(false)} />
-)}
+{
+  showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} />;
+}
 ```
 
 ---
@@ -528,6 +556,7 @@ const participantToken = await createParticipantToken(userInfo, roomName, ...);
 **Location**: `app/components/CreateRoomModal.tsx`
 
 **Features**:
+
 - Room code input with validation
 - Display name input
 - Type selector (Classroom/Speech)
@@ -538,6 +567,7 @@ const participantToken = await createParticipantToken(userInfo, roomName, ...);
 - Preview of shareable link
 
 **Component**:
+
 ```tsx
 'use client';
 
@@ -606,8 +636,12 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
         <h2>✅ Room Created Successfully!</h2>
 
         <div className="room-details">
-          <p><strong>Room Code:</strong> {formData.roomCode}</p>
-          <p><strong>Display Name:</strong> {formData.displayName}</p>
+          <p>
+            <strong>Room Code:</strong> {formData.roomCode}
+          </p>
+          <p>
+            <strong>Display Name:</strong> {formData.displayName}
+          </p>
         </div>
 
         <div className="share-links">
@@ -622,9 +656,7 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
           <div>
             <label>Student Link:</label>
             <Input value={created.studentLink} readOnly />
-            <Button onClick={() => navigator.clipboard.writeText(created.studentLink)}>
-              Copy
-            </Button>
+            <Button onClick={() => navigator.clipboard.writeText(created.studentLink)}>Copy</Button>
           </div>
         </div>
 
@@ -637,7 +669,12 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
     <div className="modal">
       <h2>Create Persistent Room</h2>
 
-      <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+      >
         {/* Room Code */}
         <div>
           <label>Room Code *</label>
@@ -667,7 +704,9 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
           <label>Room Type *</label>
           <Select
             value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as 'classroom' | 'speech' })}
+            onChange={(e) =>
+              setFormData({ ...formData, type: e.target.value as 'classroom' | 'speech' })
+            }
           >
             <option value="classroom">Classroom (Teacher/Students)</option>
             <option value="speech">Speech (Speaker/Listeners)</option>
@@ -708,7 +747,9 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
             min="10"
             max="200"
             value={formData.maxParticipants}
-            onChange={(e) => setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })}
+            onChange={(e) =>
+              setFormData({ ...formData, maxParticipants: parseInt(e.target.value) })
+            }
           />
           <span>{formData.maxParticipants === 200 ? 'Unlimited' : formData.maxParticipants}</span>
         </div>
@@ -739,7 +780,9 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
         {error && <div className="error">{error}</div>}
 
         <div className="actions">
-          <Button type="button" onClick={onClose}>Cancel</Button>
+          <Button type="button" onClick={onClose}>
+            Cancel
+          </Button>
           <Button type="submit" disabled={creating}>
             {creating ? 'Creating...' : 'Create Room'}
           </Button>
@@ -757,6 +800,7 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
 **Location**: `app/dashboard/page.tsx`
 
 **Features**:
+
 - Table of created rooms
 - Room status (active/empty)
 - Participant count
@@ -764,6 +808,7 @@ export function CreateRoomModal({ onClose }: CreateRoomModalProps) {
 - Search and filter
 
 **Component Structure**:
+
 ```tsx
 'use client';
 
@@ -831,7 +876,9 @@ export default function DashboardPage() {
         <tbody>
           {rooms.map((room) => (
             <tr key={room.sid}>
-              <td><strong>{room.name}</strong></td>
+              <td>
+                <strong>{room.name}</strong>
+              </td>
               <td>{room.metadata.displayName}</td>
               <td>{room.metadata.type}</td>
               <td>{room.metadata.teacherName}</td>
@@ -860,31 +907,31 @@ export default function DashboardPage() {
 ```typescript
 interface RoomMetadata {
   // Core identifiers
-  displayName: string;          // "Mathematics 101"
-  type: "classroom" | "speech"; // Room mode
+  displayName: string; // "Mathematics 101"
+  type: 'classroom' | 'speech'; // Room mode
 
   // Teacher/Speaker information
-  teacherName: string;          // "Prof. Smith"
-  teacherLanguage: string;      // ISO 639-1 code: "en", "ar", "es"
-  teacherId?: string;           // Optional unique ID (future: link to user account)
+  teacherName: string; // "Prof. Smith"
+  teacherLanguage: string; // ISO 639-1 code: "en", "ar", "es"
+  teacherId?: string; // Optional unique ID (future: link to user account)
 
   // Access control
-  pin?: string;                 // Optional 4-6 digit PIN
-  maxParticipants: number;      // 0 = unlimited
+  pin?: string; // Optional 4-6 digit PIN
+  maxParticipants: number; // 0 = unlimited
 
   // Timestamps
-  createdAt: number;            // Unix timestamp (ms)
-  lastUsedAt?: number;          // Last session timestamp
-  updatedAt?: number;           // Last metadata update
+  createdAt: number; // Unix timestamp (ms)
+  lastUsedAt?: number; // Last session timestamp
+  updatedAt?: number; // Last metadata update
 
   // Optional scheduling (Phase 2)
   schedule?: {
     recurring: boolean;
-    dayOfWeek?: number[];       // 0-6 (Sunday-Saturday)
-    startTime?: string;         // "14:00" (24h format)
-    endTime?: string;           // "15:30"
-    duration?: number;          // Minutes
-    timezone?: string;          // "America/New_York"
+    dayOfWeek?: number[]; // 0-6 (Sunday-Saturday)
+    startTime?: string; // "14:00" (24h format)
+    endTime?: string; // "15:30"
+    duration?: number; // Minutes
+    timezone?: string; // "America/New_York"
   };
 
   // Optional analytics (Phase 2)
@@ -892,7 +939,7 @@ interface RoomMetadata {
     totalSessions: number;
     totalParticipants: number;
     averageParticipants: number;
-    totalDuration: number;      // Minutes
+    totalDuration: number; // Minutes
   };
 
   // Custom fields (extensible)
@@ -907,6 +954,7 @@ interface RoomMetadata {
 **Capacity**: Easily stores all required fields with room for growth
 
 **Example**:
+
 ```json
 {
   "displayName": "Mathematics 101 - Calculus",
@@ -919,6 +967,7 @@ interface RoomMetadata {
   "lastUsedAt": 1703088000000
 }
 ```
+
 **Size**: ~200 bytes
 
 ---
@@ -928,6 +977,7 @@ interface RoomMetadata {
 ### Phase 1: Backend Foundation (Days 1-3)
 
 **Day 1: Room Creation API**
+
 - [ ] Create `/api/rooms/create/route.ts`
 - [ ] Implement RoomServiceClient integration
 - [ ] Add room code validation
@@ -936,6 +986,7 @@ interface RoomMetadata {
 - [ ] Verify rooms persist on LiveKit server
 
 **Day 2: Room Management APIs**
+
 - [ ] Create `/api/rooms/route.ts` (GET - list rooms)
 - [ ] Create `/api/rooms/[roomCode]/route.ts` (GET, DELETE)
 - [ ] Implement filtering logic
@@ -943,6 +994,7 @@ interface RoomMetadata {
 - [ ] Test listing and deletion
 
 **Day 3: Token Generation Updates**
+
 - [ ] Modify `/api/connection-details/route.ts`
 - [ ] Add room existence validation
 - [ ] Distinguish persistent vs ad-hoc rooms (regex check)
@@ -956,6 +1008,7 @@ interface RoomMetadata {
 ### Phase 2: Frontend Components (Days 4-6)
 
 **Day 4: Room Creation UI**
+
 - [ ] Create `CreateRoomModal.tsx` component
 - [ ] Implement form with all fields
 - [ ] Add real-time validation
@@ -964,6 +1017,7 @@ interface RoomMetadata {
 - [ ] Style according to existing design system
 
 **Day 5: Dashboard & Listing**
+
 - [ ] Create `/app/dashboard/page.tsx`
 - [ ] Implement room listing table
 - [ ] Add filter and search functionality
@@ -972,6 +1026,7 @@ interface RoomMetadata {
 - [ ] Test with multiple rooms
 
 **Day 6: Join Flow Updates**
+
 - [ ] Update landing page (`app/page.tsx`)
 - [ ] Add "Join by Code" input field
 - [ ] Implement room code validation
@@ -986,6 +1041,7 @@ interface RoomMetadata {
 ### Phase 3: Integration & Testing (Days 7-8)
 
 **Day 7: End-to-End Testing**
+
 - [ ] Test complete teacher flow (create → share → join)
 - [ ] Test complete student flow (code → join → session)
 - [ ] Test room persistence (create → leave → rejoin)
@@ -994,6 +1050,7 @@ interface RoomMetadata {
 - [ ] Test backward compatibility (ad-hoc rooms still work)
 
 **Day 8: Polish & Documentation**
+
 - [ ] Fix bugs discovered in testing
 - [ ] Add loading states and error messages
 - [ ] Improve UX (animations, feedback, etc.)
@@ -1012,6 +1069,7 @@ interface RoomMetadata {
 **Problem**: Teacher wants "MATH101" but another room exists with that code
 
 **Solution**:
+
 ```typescript
 // In CreateRoomModal, suggest alternatives on conflict
 const suggestAlternatives = (baseCode: string) => {
@@ -1042,9 +1100,10 @@ if (error.includes('already exists')) {
 **Problem**: Rooms auto-delete after `emptyTimeout` expires
 
 **Solution**:
+
 ```typescript
 // Set long timeout for persistent rooms (7 days)
-emptyTimeout: 604800  // 7 days in seconds
+emptyTimeout: 604800; // 7 days in seconds
 
 // Add "Refresh Room" button in dashboard
 const refreshRoom = async (roomCode: string) => {
@@ -1073,15 +1132,16 @@ useEffect(() => {
 **Problem**: Admin deletes room with participants currently in session
 
 **Solution**:
+
 ```typescript
 // Show confirmation with participant count
 const handleDelete = async (roomCode: string) => {
-  const room = await fetch(`/api/rooms/${roomCode}`).then(r => r.json());
+  const room = await fetch(`/api/rooms/${roomCode}`).then((r) => r.json());
 
   if (room.room.numParticipants > 0) {
     const confirmed = confirm(
       `⚠️ ${room.room.numParticipants} participants are currently in this room. ` +
-      `Deleting will disconnect them. Continue?`
+        `Deleting will disconnect them. Continue?`,
     );
 
     if (!confirmed) return;
@@ -1104,6 +1164,7 @@ const handleDelete = async (roomCode: string) => {
 **Problem**: User has old link to deleted room, requests token
 
 **Solution**:
+
 ```typescript
 // In /api/connection-details
 const rooms = await roomService.listRooms([roomName]);
@@ -1139,6 +1200,7 @@ if (connectionError?.status === 404) {
 **Problem**: Two people try to join as teacher role
 
 **Solution**:
+
 ```typescript
 // Strategy 1: First teacher is primary admin, others are co-teachers
 const teacherRole = determineTeacherRole(participants);
@@ -1170,14 +1232,13 @@ if (userId !== room.metadata.teacherId) {
 **Problem**: User enters "math101" but room is "MATH101"
 
 **Solution**:
+
 ```typescript
 // Store room codes in uppercase internally
 const normalizedCode = roomCode.toUpperCase();
 
 // Case-insensitive matching
-const existingRoom = allRooms.find(
-  r => r.name.toUpperCase() === normalizedCode
-);
+const existingRoom = allRooms.find((r) => r.name.toUpperCase() === normalizedCode);
 
 // Display in original case but match case-insensitively
 // User sees: "MATH101"
@@ -1191,22 +1252,23 @@ const existingRoom = allRooms.find(
 **Problem**: Users enter invalid characters or too short/long codes
 
 **Solution**:
+
 ```typescript
 const ROOM_CODE_REGEX = /^[A-Z0-9-]{4,20}$/;
 
 const validateRoomCode = (code: string): { valid: boolean; error?: string } => {
   if (code.length < 4) {
-    return { valid: false, error: "Room code must be at least 4 characters" };
+    return { valid: false, error: 'Room code must be at least 4 characters' };
   }
 
   if (code.length > 20) {
-    return { valid: false, error: "Room code must be 20 characters or less" };
+    return { valid: false, error: 'Room code must be 20 characters or less' };
   }
 
   if (!ROOM_CODE_REGEX.test(code)) {
     return {
       valid: false,
-      error: "Room code can only contain letters, numbers, and hyphens"
+      error: 'Room code can only contain letters, numbers, and hyphens',
     };
   }
 
@@ -1232,18 +1294,21 @@ const handleCodeChange = (value: string) => {
 **Goal**: Link rooms to teacher accounts, implement proper access control
 
 **Features**:
+
 - Teacher accounts with login
 - Room ownership tracking
 - Permission management (who can delete/edit)
 - Student rosters
 
 **Tech Stack Options**:
+
 - Next-Auth + PostgreSQL
 - Supabase Auth
 - Clerk
 - Auth0
 
 **Database Schema**:
+
 ```sql
 CREATE TABLE users (
   id UUID PRIMARY KEY,
@@ -1277,6 +1342,7 @@ CREATE TABLE room_access (
 **Goal**: Allow teachers to schedule recurring sessions with calendar sync
 
 **Features**:
+
 - Set recurring schedule (weekly, daily)
 - Time zone support
 - Email/SMS reminders
@@ -1284,16 +1350,17 @@ CREATE TABLE room_access (
 - iCal export
 
 **Implementation**:
+
 ```typescript
 interface RoomSchedule {
   recurring: boolean;
   pattern: 'daily' | 'weekly' | 'monthly';
   daysOfWeek: number[]; // [1,3,5] for Mon/Wed/Fri
-  startTime: string;    // "14:00"
-  endTime: string;      // "15:30"
-  timezone: string;     // "America/New_York"
-  startDate: string;    // "2024-01-15"
-  endDate?: string;     // "2024-05-15" (semester end)
+  startTime: string; // "14:00"
+  endTime: string; // "15:30"
+  timezone: string; // "America/New_York"
+  startDate: string; // "2024-01-15"
+  endDate?: string; // "2024-05-15" (semester end)
 }
 
 // Generate calendar events
@@ -1320,6 +1387,7 @@ const generateEvents = (schedule: RoomSchedule) => {
 ```
 
 **Calendar Integration**:
+
 ```typescript
 // Google Calendar API
 const addToGoogleCalendar = async (event, roomCode) => {
@@ -1348,6 +1416,7 @@ const addToGoogleCalendar = async (event, roomCode) => {
 **Goal**: Track room usage, participant engagement, attendance
 
 **Features**:
+
 - Session history (date, duration, participants)
 - Attendance tracking
 - Engagement metrics (talk time, participation)
@@ -1355,6 +1424,7 @@ const addToGoogleCalendar = async (event, roomCode) => {
 - Charts and visualizations
 
 **Database Schema**:
+
 ```sql
 CREATE TABLE sessions (
   id UUID PRIMARY KEY,
@@ -1379,16 +1449,20 @@ CREATE TABLE session_participants (
 ```
 
 **Analytics Dashboard**:
+
 ```tsx
 // /app/dashboard/analytics/[roomCode]/page.tsx
 export default function RoomAnalytics({ roomCode }) {
-  const stats = useMemo(() => ({
-    totalSessions: sessions.length,
-    totalParticipants: sessions.reduce((sum, s) => sum + s.total_participants, 0),
-    avgParticipants: totalParticipants / totalSessions,
-    totalDuration: sessions.reduce((sum, s) => sum + s.duration_minutes, 0),
-    avgDuration: totalDuration / totalSessions,
-  }), [sessions]);
+  const stats = useMemo(
+    () => ({
+      totalSessions: sessions.length,
+      totalParticipants: sessions.reduce((sum, s) => sum + s.total_participants, 0),
+      avgParticipants: totalParticipants / totalSessions,
+      totalDuration: sessions.reduce((sum, s) => sum + s.duration_minutes, 0),
+      avgDuration: totalDuration / totalSessions,
+    }),
+    [sessions],
+  );
 
   return (
     <div>
@@ -1414,21 +1488,25 @@ export default function RoomAnalytics({ roomCode }) {
 ### 4. Advanced Room Features
 
 **Waiting Room**:
+
 - Students wait for teacher approval before joining
 - Teacher sees list of waiting participants
 - One-click admit or reject
 
 **Room Templates**:
+
 - Save common configurations as templates
 - Quick create from template
 - Share templates with other teachers
 
 **Breakout Rooms**:
+
 - Split students into smaller groups
 - Random or manual assignment
 - Timer and auto-return to main room
 
 **Recording Management**:
+
 - Automatic recording for all sessions
 - Cloud storage integration (S3, Google Drive)
 - Playback portal for students
@@ -1477,7 +1555,7 @@ export async function POST(request: NextRequest) {
   const roomService = new RoomServiceClient(
     process.env.LIVEKIT_URL!,
     process.env.LIVEKIT_API_KEY!,
-    process.env.LIVEKIT_API_SECRET!
+    process.env.LIVEKIT_API_SECRET!,
   );
 
   const metadata: RoomMetadata = {
@@ -1664,6 +1742,7 @@ export async function GET(request: NextRequest) {
 ### When to Migrate
 
 **Triggers**:
+
 - Room listing becomes slow (>2 seconds)
 - Need complex queries (search, sort by multiple fields)
 - Implementing user accounts
@@ -1673,6 +1752,7 @@ export async function GET(request: NextRequest) {
 ### Migration Strategy
 
 **Phase 1: Add Database, Keep Metadata** (Hybrid Approach)
+
 ```typescript
 // Supabase schema (minimal)
 table rooms {
@@ -1713,6 +1793,7 @@ const fullConfig = JSON.parse(room[0].metadata);
 ```
 
 **Phase 2: Sync Existing Rooms**
+
 ```typescript
 // One-time migration script
 async function syncRoomsToDatabase() {
@@ -1737,6 +1818,7 @@ async function syncRoomsToDatabase() {
 ```
 
 **Phase 3: Gradual Feature Migration**
+
 - Keep metadata for runtime config (type, language, pin)
 - Move historical data to database (sessions, analytics)
 - Keep both systems in sync via API middleware
@@ -1747,12 +1829,14 @@ async function syncRoomsToDatabase() {
 ## Testing Checklist
 
 ### Unit Tests
+
 - [ ] Room code validation (valid/invalid formats)
 - [ ] Metadata serialization/deserialization
 - [ ] Token generation with room metadata
 - [ ] Filter logic (type, teacher name)
 
 ### Integration Tests
+
 - [ ] Room creation via API
 - [ ] Room listing with filters
 - [ ] Room deletion
@@ -1760,6 +1844,7 @@ async function syncRoomsToDatabase() {
 - [ ] Token rejection for non-existent room
 
 ### End-to-End Tests
+
 - [ ] Complete teacher flow (create → share → join)
 - [ ] Complete student flow (code → join → session)
 - [ ] Multiple participants in same persistent room
@@ -1768,6 +1853,7 @@ async function syncRoomsToDatabase() {
 - [ ] Error handling (invalid codes, deleted rooms)
 
 ### Edge Cases
+
 - [ ] Room code already exists
 - [ ] Room deleted while participants active
 - [ ] Token request for deleted room
@@ -1782,6 +1868,7 @@ async function syncRoomsToDatabase() {
 ## Deployment Checklist
 
 ### Environment Variables
+
 ```bash
 # .env.production
 LIVEKIT_API_KEY=your_production_key
@@ -1791,6 +1878,7 @@ NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 ```
 
 ### Pre-Deployment
+
 - [ ] Test on staging environment
 - [ ] Verify room creation works
 - [ ] Verify token generation works
@@ -1799,6 +1887,7 @@ NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 - [ ] Load testing (simultaneous sessions)
 
 ### Post-Deployment
+
 - [ ] Monitor error rates
 - [ ] Check room creation success rate
 - [ ] Monitor LiveKit API usage
@@ -1810,18 +1899,21 @@ NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 ## Success Metrics
 
 ### Adoption Metrics
+
 - Number of persistent rooms created
 - Percentage of sessions using persistent vs ad-hoc rooms
 - Average reuse count per room
 - Teacher satisfaction score
 
 ### Performance Metrics
+
 - Room creation time (<1 second)
 - Room listing time (<2 seconds)
 - Token generation time (<500ms)
 - API error rate (<0.1%)
 
 ### Business Metrics
+
 - User retention improvement
 - Session frequency increase
 - Feature adoption rate
@@ -1834,6 +1926,7 @@ NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 This implementation plan provides a complete roadmap for adding Zoom-like persistent rooms to your LiveKit application. The metadata-first approach minimizes infrastructure complexity while delivering all core functionality. The system is designed for gradual enhancement, allowing you to add features like user authentication and analytics as your needs grow.
 
 **Key Takeaways**:
+
 1. ✅ Fully possible with LiveKit's native APIs
 2. ✅ No database required for MVP
 3. ✅ 5-8 days to production-ready feature

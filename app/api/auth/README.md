@@ -5,12 +5,14 @@ This directory contains API route handlers for Supabase authentication.
 ## Available Endpoints
 
 ### `/api/auth/callback`
+
 - **Method**: GET
 - **Purpose**: Handles OAuth callback redirects from authentication providers
 - **Used For**: Google, GitHub, and other OAuth provider sign-ins
 - **Auto-configured**: This endpoint is automatically used by Supabase when you set up OAuth providers
 
 ### `/api/auth/signout`
+
 - **Method**: POST
 - **Purpose**: Signs out the current user and clears their session
 - **Usage**: Call from client components or server actions
@@ -37,6 +39,7 @@ Make sure your Supabase project has the correct redirect URLs configured:
 ## Next Steps
 
 Phase 2 will involve:
+
 1. Creating login/signup UI components
 2. Adding server actions for authentication
 3. Connecting to your Supabase database

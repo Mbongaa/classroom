@@ -54,9 +54,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto p-6">
           <div className="container mx-auto">
-            <Suspense fallback={<ContentSkeleton />}>
-              {children}
-            </Suspense>
+            <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>
           </div>
         </main>
       </div>
@@ -69,7 +67,10 @@ function NavItemSkeleton() {
   return (
     <>
       {[1, 2, 3, 4].map((i) => (
-        <div key={i} className="h-9 w-9 rounded-md bg-neutral-200/50 dark:bg-neutral-700/50 animate-pulse" />
+        <div
+          key={i}
+          className="h-9 w-9 rounded-md bg-neutral-200/50 dark:bg-neutral-700/50 animate-pulse"
+        />
       ))}
     </>
   );
@@ -85,7 +86,9 @@ function UserSkeleton() {
 }
 
 function ThemeToggleSkeleton() {
-  return <div className="h-10 w-10 rounded-full bg-neutral-200/50 dark:bg-neutral-700/50 animate-pulse" />;
+  return (
+    <div className="h-10 w-10 rounded-full bg-neutral-200/50 dark:bg-neutral-700/50 animate-pulse" />
+  );
 }
 
 function ContentSkeleton() {

@@ -1,22 +1,24 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import Link from 'next/link'
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
 
 interface LayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
   params: Promise<{
-    orgSlug: string
-  }>
+    orgSlug: string;
+  }>;
 }
 
 export default async function OrganizationLayout({ children, params }: LayoutProps) {
-  const { orgSlug } = await params
-  const supabase = await createClient()
+  const { orgSlug } = await params;
+  const supabase = await createClient();
 
   // Check authentication
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/login')
+    redirect('/login');
   }
 
   // Get user's profile with organization
@@ -24,13 +26,13 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
     .from('profiles')
     .select('*, organizations(*)')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (!profile || !profile.organizations) {
-    redirect('/dashboard')
+    redirect('/dashboard');
   }
 
-  const org = profile.organizations
+  const org = profile.organizations;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -84,9 +86,7 @@ export default async function OrganizationLayout({ children, params }: LayoutPro
           </div>
         </div>
       </header>
-      <main className="flex-1">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
     </div>
-  )
+  );
 }

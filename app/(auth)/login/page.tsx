@@ -1,11 +1,11 @@
-import { Metadata } from 'next'
-import Link from 'next/link'
-import { LoginForm } from '@/app/(auth)/login/login-form'
+import { Metadata } from 'next';
+import Link from 'next/link';
+import { LoginForm } from '@/app/(auth)/login/login-form';
 
 export const metadata: Metadata = {
   title: 'Login',
   description: 'Login to your account',
-}
+};
 
 export default function LoginPage() {
   return (
@@ -31,7 +31,8 @@ export default function LoginPage() {
           <blockquote className="space-y-2">
             <p className="text-lg">
               &ldquo;This platform has transformed how we conduct live teaching sessions. The
-              real-time translation feature is a game-changer for our multilingual classrooms.&rdquo;
+              real-time translation feature is a game-changer for our multilingual
+              classrooms.&rdquo;
             </p>
             <footer className="text-sm">Dr. Sarah Johnson, Educational Director</footer>
           </blockquote>
@@ -55,5 +56,5 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

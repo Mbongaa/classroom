@@ -33,9 +33,7 @@ export default function RecordingsPage() {
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
-            <p className="text-lg text-muted-foreground mb-4">
-              Recording features coming soon!
-            </p>
+            <p className="text-lg text-muted-foreground mb-4">Recording features coming soon!</p>
             <p className="text-sm text-muted-foreground">
               You&apos;ll be able to view, download, and share your classroom recordings here.
             </p>

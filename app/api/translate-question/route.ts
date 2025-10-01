@@ -7,23 +7,17 @@ export async function POST(request: NextRequest) {
 
     // Validate inputs
     if (!question || typeof question !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid or missing question text' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid or missing question text' }, { status: 400 });
     }
 
     if (!sourceLanguage || typeof sourceLanguage !== 'string') {
-      return NextResponse.json(
-        { error: 'Invalid or missing source language' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Invalid or missing source language' }, { status: 400 });
     }
 
     if (!targetLanguages || !Array.isArray(targetLanguages) || targetLanguages.length === 0) {
       return NextResponse.json(
         { error: 'Invalid or missing target languages array' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,8 +25,11 @@ export async function POST(request: NextRequest) {
     if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY not configured');
       return NextResponse.json(
-        { error: 'Translation service not configured. Please add GEMINI_API_KEY to environment variables.' },
-        { status: 500 }
+        {
+          error:
+            'Translation service not configured. Please add GEMINI_API_KEY to environment variables.',
+        },
+        { status: 500 },
       );
     }
 
@@ -54,9 +51,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         error: 'Translation failed',
-        details: isDevelopment ? String(error) : undefined
+        details: isDevelopment ? String(error) : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

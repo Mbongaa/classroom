@@ -60,7 +60,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             `
             *,
             organization:organizations(*)
-          `
+          `,
           )
           .eq('id', authUser.id)
           .single();

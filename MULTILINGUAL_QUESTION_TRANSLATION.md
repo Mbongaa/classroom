@@ -156,6 +156,7 @@ This document describes the implementation of a Gemini API-based multilingual tr
 **Purpose:** Gemini API wrapper for batch translation
 
 **Key Features:**
+
 - `GeminiTranslator` class with `translateBatch()` method
 - Batch translation to multiple languages in single API call
 - Automatic fallback to original text on errors
@@ -163,10 +164,11 @@ This document describes the implementation of a Gemini API-based multilingual tr
 - JSON response parsing with markdown cleanup
 
 **Code Structure:**
+
 ```typescript
 export class GeminiTranslator {
-  constructor(apiKey: string)
-  async translateBatch(request: TranslationRequest): Promise<TranslationResult>
+  constructor(apiKey: string);
+  async translateBatch(request: TranslationRequest): Promise<TranslationResult>;
 }
 
 interface TranslationRequest {
@@ -185,12 +187,14 @@ interface TranslationResult {
 **Purpose:** Server-side translation endpoint
 
 **Security Features:**
+
 - API key stored server-side (never exposed to client)
 - Input validation for question, sourceLanguage, targetLanguages
 - Environment variable checks
 - Detailed error logging in development mode
 
 **API Contract:**
+
 ```typescript
 POST /api/translate-question
 Request Body: {
@@ -212,11 +216,13 @@ Error Response: {
 #### 1. `/lib/types/StudentRequest.ts`
 
 **Changes:**
+
 - Added `studentLanguage: string` field to `StudentRequest` interface
 - Added `'REQUEST_DISPLAY_MULTILINGUAL'` to `RequestMessage` type union
 - Created new `RequestDisplayMultilingualMessage` interface
 
 **New Type:**
+
 ```typescript
 export interface RequestDisplayMultilingualMessage extends RequestMessage {
   type: 'REQUEST_DISPLAY_MULTILINGUAL';
@@ -236,15 +242,18 @@ export interface RequestDisplayMultilingualMessage extends RequestMessage {
 **Changes Made:**
 
 **Import Addition:**
+
 ```typescript
 import { RequestDisplayMultilingualMessage } from '@/lib/types/StudentRequest';
 ```
 
 **handleRequestSubmit (Line 209-235):**
+
 - Added `studentLanguage: localParticipant.attributes?.captions_language || 'en'`
 - Captures student's language preference at question submission time
 
 **handleDisplayQuestion (Line 312-395):**
+
 - Changed from synchronous to asynchronous function
 - Collects all participant languages (teacher + all students)
 - Calls `/api/translate-question` endpoint
@@ -252,6 +261,7 @@ import { RequestDisplayMultilingualMessage } from '@/lib/types/StudentRequest';
 - Fallback to `REQUEST_DISPLAY` on translation failure
 
 **handleDataReceived (Line 437-548):**
+
 - Added handler for `REQUEST_DISPLAY_MULTILINGUAL` message type
 - Determines participant's language preference (teacher vs student)
 - Selects appropriate translation from translations map
@@ -262,6 +272,7 @@ import { RequestDisplayMultilingualMessage } from '@/lib/types/StudentRequest';
 #### 3. `.env.example`
 
 **Addition:**
+
 ```env
 # TRANSLATION SETTINGS
 # #################
@@ -273,9 +284,11 @@ GEMINI_API_KEY=
 ### Dependencies
 
 **Already Installed:**
+
 - `@google/generative-ai@^0.24.1` - Google's Gemini API SDK
 
 **Existing Dependencies Used:**
+
 - `next` - API routes and server-side processing
 - `livekit-client` - Data channel messaging
 - `react` - Component state management
@@ -325,6 +338,7 @@ pnpm dev
 #### Test Setup
 
 1. **Start Application:**
+
    ```bash
    pnpm dev
    ```
@@ -367,12 +381,14 @@ pnpm dev
 #### Expected Behavior
 
 ✅ **Success Indicators:**
+
 - Question appears as bubble overlay on video area
 - Each participant sees question in their own language
 - No console errors
 - Question remains until teacher marks as answered
 
 ❌ **Failure Indicators:**
+
 - All participants see same language → Check API key configuration
 - Console errors → Check browser console and server logs
 - Question doesn't appear → Check LiveKit data channel connectivity
@@ -389,8 +405,8 @@ describe('Multilingual Question Translation', () => {
       body: JSON.stringify({
         question: '¿Cuándo es el examen?',
         sourceLanguage: 'es',
-        targetLanguages: ['en', 'es', 'fr', 'de']
-      })
+        targetLanguages: ['en', 'es', 'fr', 'de'],
+      }),
     });
 
     const result = await response.json();
@@ -413,6 +429,7 @@ describe('Multilingual Question Translation', () => {
 **Scenario:** `GEMINI_API_KEY` not set in `.env.local`
 
 **Behavior:**
+
 ```javascript
 // Server logs:
 "GEMINI_API_KEY not configured"
@@ -434,6 +451,7 @@ describe('Multilingual Question Translation', () => {
 **Scenario:** Network error or Gemini API timeout
 
 **Behavior:**
+
 ```javascript
 // Console error:
 "Failed to translate question: [error details]"
@@ -449,6 +467,7 @@ describe('Multilingual Question Translation', () => {
 **Scenario:** Gemini returns malformed JSON
 
 **Behavior:**
+
 ```javascript
 // GeminiTranslator catch block:
 "Gemini translation failed: [parse error]"
@@ -464,6 +483,7 @@ describe('Multilingual Question Translation', () => {
 **Scenario:** Gemini doesn't return translation for requested language
 
 **Behavior:**
+
 ```javascript
 // Warning logged:
 "Missing translations for languages: [language codes]"
@@ -479,6 +499,7 @@ describe('Multilingual Question Translation', () => {
 **Scenario:** Participant joins without `captions_language` or `speaking_language` set
 
 **Behavior:**
+
 ```javascript
 // Default applied:
 const myLanguage = localParticipant.attributes?.captions_language || 'en';
@@ -492,6 +513,7 @@ const myLanguage = localParticipant.attributes?.captions_language || 'en';
 ### Error Monitoring
 
 **Server-Side Logging:**
+
 ```javascript
 // All errors logged with context
 console.error('Translation API error:', error);
@@ -499,12 +521,14 @@ console.error('Gemini translation failed:', error);
 ```
 
 **Client-Side Logging:**
+
 ```javascript
 // Translation failures logged
 console.error('Failed to translate question:', error);
 ```
 
 **Recommended Monitoring:**
+
 - Monitor `/api/translate-question` error rate
 - Alert on consecutive translation failures
 - Track API key quota usage
@@ -515,11 +539,13 @@ console.error('Failed to translate question:', error);
 ### API Performance
 
 **Typical Response Times:**
+
 - Translation API call: ~800ms - 2000ms
 - Gemini 1.5 Flash processing: ~500ms - 1500ms
 - Total user-facing delay: ~1-2 seconds
 
 **Optimization Strategies:**
+
 1. **Batch Translation:** Single API call for all languages (already implemented)
 2. **Deduplication:** Remove duplicate language codes before API call
 3. **Caching:** Consider caching identical questions (future enhancement)
@@ -527,11 +553,13 @@ console.error('Failed to translate question:', error);
 ### Resource Usage
 
 **Per Translation Request:**
+
 - API calls: 1 per question display
 - Token usage: ~100-300 tokens depending on question length
 - Network data: ~1-5 KB per request
 
 **Cost Estimation (Gemini 1.5 Flash):**
+
 - Free tier: 15 requests per minute
 - Paid tier: ~$0.00001 per request
 - Classroom with 30 students, 10 questions/hour: ~$0.0001/hour
@@ -539,6 +567,7 @@ console.error('Failed to translate question:', error);
 ### LiveKit Data Channel
 
 **Message Size:**
+
 - Original `REQUEST_DISPLAY`: ~100-200 bytes
 - New `REQUEST_DISPLAY_MULTILINGUAL`: ~500-1000 bytes (varies with languages)
 - Impact: Minimal - well within LiveKit data channel limits
@@ -548,12 +577,14 @@ console.error('Failed to translate question:', error);
 ### API Key Protection
 
 ✅ **Implemented Security:**
+
 - API key stored in `.env.local` (not committed to git)
 - Server-side processing only (Next.js API route)
 - Never exposed to client-side JavaScript
 - Environment variable validation
 
 ❌ **NOT Implemented (Consider for Production):**
+
 - Rate limiting per user/IP
 - API key rotation mechanism
 - Request signing/authentication
@@ -562,12 +593,14 @@ console.error('Failed to translate question:', error);
 ### Input Validation
 
 ✅ **Current Validation:**
+
 - Question text type and presence
 - Source language type and presence
 - Target languages array validation
 - Maximum question length (200 chars - enforced in UI)
 
 ⚠️ **Additional Considerations:**
+
 - Profanity filtering (optional)
 - Language code validation against whitelist
 - Question content sanitization
@@ -576,12 +609,14 @@ console.error('Failed to translate question:', error);
 ### Privacy Considerations
 
 **Data Sent to Gemini API:**
+
 - Student question text only
 - No personally identifiable information (PII)
 - No student names or identities
 - No room or session metadata
 
 **Data Retention:**
+
 - No question storage in database
 - Ephemeral processing only
 - Gemini API may log requests (check Google's policy)
@@ -593,12 +628,14 @@ console.error('Failed to translate question:', error);
 #### Issue: All participants see same language
 
 **Diagnosis:**
+
 ```bash
 # Check browser console for translation errors
 # Check server logs for API errors
 ```
 
 **Solutions:**
+
 1. Verify `GEMINI_API_KEY` is set in `.env.local`
 2. Restart development server after adding API key
 3. Check API key is valid at https://aistudio.google.com/apikey
@@ -607,12 +644,14 @@ console.error('Failed to translate question:', error);
 #### Issue: Questions not appearing
 
 **Diagnosis:**
+
 ```bash
 # Check browser console for data channel errors
 # Verify LiveKit connection is active
 ```
 
 **Solutions:**
+
 1. Check LiveKit connection status (green indicator)
 2. Verify data channel is enabled in room
 3. Check browser console for JavaScript errors
@@ -621,12 +660,14 @@ console.error('Failed to translate question:', error);
 #### Issue: Translation takes too long
 
 **Diagnosis:**
+
 ```bash
 # Check network tab for API request duration
 # Monitor server logs for Gemini API response time
 ```
 
 **Solutions:**
+
 1. Check internet connection speed
 2. Verify Gemini API service status
 3. Consider implementing loading indicator
@@ -635,12 +676,14 @@ console.error('Failed to translate question:', error);
 #### Issue: Some languages not translated
 
 **Diagnosis:**
+
 ```bash
 # Check console for "Missing translations for languages" warning
 # Verify Gemini API response includes all requested languages
 ```
 
 **Solutions:**
+
 1. Check language code format (ISO 639-1: 'en', 'es', 'fr')
 2. Verify Gemini supports requested language
 3. Review API response in network tab
@@ -649,6 +692,7 @@ console.error('Failed to translate question:', error);
 ### Debug Mode
 
 **Enable Detailed Logging:**
+
 ```typescript
 // In ClassroomClientImplWithRequests.tsx
 console.log('Participant languages:', Array.from(participantLanguages));
@@ -658,6 +702,7 @@ console.log('Selected translation:', translatedQuestion);
 ```
 
 **Server-Side Debug:**
+
 ```typescript
 // In /app/api/translate-question/route.ts
 console.log('Translation request:', { question, sourceLanguage, targetLanguages });
@@ -715,16 +760,19 @@ console.log('Gemini response:', result);
 ### Regular Tasks
 
 **Weekly:**
+
 - Monitor API usage and costs
 - Review error logs for patterns
 - Check translation quality feedback
 
 **Monthly:**
+
 - Rotate API keys if required
 - Review and update language support
 - Analyze performance metrics
 
 **Quarterly:**
+
 - Evaluate alternative translation services
 - Review security practices
 - Update dependencies
@@ -741,12 +789,14 @@ console.log('Gemini response:', result);
 ## Contact & Support
 
 **For Issues:**
+
 - Check browser and server console logs
 - Review this documentation
 - Test with simplified scenario (2 participants, 1 language)
 - Verify environment configuration
 
 **For Enhancements:**
+
 - Document use case and requirements
 - Consider performance impact
 - Review security implications

@@ -48,10 +48,10 @@ export interface RoomMetadata {
 }
 
 export interface PersistentRoom {
-  name: string;           // Room code
-  sid: string;            // LiveKit room SID
-  emptyTimeout: number;   // Seconds before deletion when empty
+  name: string; // Room code
+  sid: string; // LiveKit room SID
+  emptyTimeout: number; // Seconds before deletion when empty
   metadata: RoomMetadata;
-  creationTime: number;   // Unix timestamp
+  creationTime: number; // Unix timestamp
   numParticipants: number;
 }

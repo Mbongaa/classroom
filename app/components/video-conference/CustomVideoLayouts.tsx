@@ -25,10 +25,10 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Track window size for dynamic adjustments
   const [windowWidth, setWindowWidth] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1024
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [windowHeight, setWindowHeight] = React.useState(
-    typeof window !== 'undefined' ? window.innerHeight : 768
+    typeof window !== 'undefined' ? window.innerHeight : 768,
   );
 
   React.useEffect(() => {
@@ -46,77 +46,77 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
   // Mobile-first grid classes - optimized for different screen sizes with better mobile sizing
   const getGridClass = () => {
     // Determine grid columns based on participant count and screen size
-    let gridClass = "grid gap-2 h-full w-full auto-rows-fr ";
+    let gridClass = 'grid gap-2 h-full w-full auto-rows-fr ';
 
     // Mobile (default) - Optimized for iPhone visibility
     if (count === 1) {
-      gridClass += "grid-cols-1 ";
+      gridClass += 'grid-cols-1 ';
     } else if (count <= 4) {
-      gridClass += "grid-cols-1 ";  // Single column for 2-4 participants (larger tiles)
+      gridClass += 'grid-cols-1 '; // Single column for 2-4 participants (larger tiles)
     } else if (count <= 6) {
-      gridClass += "grid-cols-2 ";  // 2 columns only for 5-6
+      gridClass += 'grid-cols-2 '; // 2 columns only for 5-6
     } else if (count <= 9) {
-      gridClass += "grid-cols-2 ";  // Keep 2 columns for 7-9
+      gridClass += 'grid-cols-2 '; // Keep 2 columns for 7-9
     } else {
-      gridClass += "grid-cols-3 ";  // 3 columns for 10+ (still visible)
+      gridClass += 'grid-cols-3 '; // 3 columns for 10+ (still visible)
     }
 
     // Small phones (sm: 640px+) - intermediate step
     if (count === 1) {
-      gridClass += "sm:grid-cols-1 ";
+      gridClass += 'sm:grid-cols-1 ';
     } else if (count === 2) {
-      gridClass += "sm:grid-cols-2 ";
+      gridClass += 'sm:grid-cols-2 ';
     } else if (count <= 4) {
-      gridClass += "sm:grid-cols-2 ";
+      gridClass += 'sm:grid-cols-2 ';
     } else if (count <= 9) {
-      gridClass += "sm:grid-cols-3 ";
+      gridClass += 'sm:grid-cols-3 ';
     } else {
-      gridClass += "sm:grid-cols-3 ";
+      gridClass += 'sm:grid-cols-3 ';
     }
 
     // Tablet (md: 768px+)
     if (count === 1) {
-      gridClass += "md:grid-cols-1 ";
+      gridClass += 'md:grid-cols-1 ';
     } else if (count === 2) {
-      gridClass += "md:grid-cols-2 ";
+      gridClass += 'md:grid-cols-2 ';
     } else if (count <= 4) {
-      gridClass += "md:grid-cols-2 ";
+      gridClass += 'md:grid-cols-2 ';
     } else if (count <= 9) {
-      gridClass += "md:grid-cols-3 ";
+      gridClass += 'md:grid-cols-3 ';
     } else {
-      gridClass += "md:grid-cols-4 ";
+      gridClass += 'md:grid-cols-4 ';
     }
 
     // Desktop (lg: 1024px+)
     if (count === 1) {
-      gridClass += "lg:grid-cols-1 ";
+      gridClass += 'lg:grid-cols-1 ';
     } else if (count === 2) {
-      gridClass += "lg:grid-cols-2 ";
+      gridClass += 'lg:grid-cols-2 ';
     } else if (count <= 6) {
-      gridClass += "lg:grid-cols-3 ";
+      gridClass += 'lg:grid-cols-3 ';
     } else if (count <= 12) {
-      gridClass += "lg:grid-cols-4 ";
+      gridClass += 'lg:grid-cols-4 ';
     } else if (count <= 20) {
-      gridClass += "lg:grid-cols-5 ";
+      gridClass += 'lg:grid-cols-5 ';
     } else {
-      gridClass += "lg:grid-cols-6 ";
+      gridClass += 'lg:grid-cols-6 ';
     }
 
     // XL screens (xl: 1280px+)
     if (count === 1) {
-      gridClass += "xl:grid-cols-1 ";
+      gridClass += 'xl:grid-cols-1 ';
     } else if (count === 2) {
-      gridClass += "xl:grid-cols-2 ";
+      gridClass += 'xl:grid-cols-2 ';
     } else if (count <= 4) {
-      gridClass += "xl:grid-cols-3 ";
+      gridClass += 'xl:grid-cols-3 ';
     } else if (count <= 8) {
-      gridClass += "xl:grid-cols-4 ";
+      gridClass += 'xl:grid-cols-4 ';
     } else if (count <= 15) {
-      gridClass += "xl:grid-cols-5 ";
+      gridClass += 'xl:grid-cols-5 ';
     } else if (count <= 24) {
-      gridClass += "xl:grid-cols-6 ";
+      gridClass += 'xl:grid-cols-6 ';
     } else {
-      gridClass += "xl:grid-cols-7 ";
+      gridClass += 'xl:grid-cols-7 ';
     }
 
     return gridClass;
@@ -127,19 +127,21 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
     // For single participant, return tile directly with minimal wrapper
     // The parent container already handles centering and sizing
     return (
-      <div className={clsx(
-        "h-full w-full flex items-center justify-center",
-        isMobilePortrait ? "p-4" : "p-8"
-      )}>
+      <div
+        className={clsx(
+          'h-full w-full flex items-center justify-center',
+          isMobilePortrait ? 'p-4' : 'p-8',
+        )}
+      >
         <CustomParticipantTile
           trackRef={participantTracks[0]}
           className={clsx(
-            "w-full h-full",
+            'w-full h-full',
             isMobilePortrait
-              ? "max-w-[350px] max-h-[350px]" // Mobile: square constraint
-              : "max-w-5xl max-h-[85vh]"      // Desktop: wider constraint
+              ? 'max-w-[350px] max-h-[350px]' // Mobile: square constraint
+              : 'max-w-5xl max-h-[85vh]', // Desktop: wider constraint
           )}
-          aspectRatio={isMobilePortrait ? "1:1" : "16:9"}
+          aspectRatio={isMobilePortrait ? '1:1' : '16:9'}
         />
       </div>
     );
@@ -150,10 +152,10 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Dynamic minimum size based on screen width for better mobile experience
   const getMinTileSize = () => {
-    if (windowWidth < 640) return '200px';  // Mobile: larger minimum
-    if (windowWidth < 768) return '180px';  // Small tablet
+    if (windowWidth < 640) return '200px'; // Mobile: larger minimum
+    if (windowWidth < 768) return '180px'; // Small tablet
     if (windowWidth < 1024) return '160px'; // Tablet
-    return '150px';  // Desktop: can be smaller
+    return '150px'; // Desktop: can be smaller
   };
 
   if (useAutoFit) {
@@ -188,31 +190,35 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Standard grid for smaller groups (better control)
   return (
-    <div className={clsx(
-      "h-full w-full flex items-center justify-center",
-      isMobilePortrait ? "p-2" : "p-2 md:p-4"
-    )}>
+    <div
+      className={clsx(
+        'h-full w-full flex items-center justify-center',
+        isMobilePortrait ? 'p-2' : 'p-2 md:p-4',
+      )}
+    >
       <div className="w-full h-full max-w-7xl">
         <div className={getGridClass()}>
           {participantTracks.map((track) => (
             <div
               key={`${track.participant.identity}_${track.source}`}
               className={clsx(
-                "relative w-full h-full rounded-lg overflow-hidden",
+                'relative w-full h-full rounded-lg overflow-hidden',
                 // Enhanced minimum heights for better mobile visibility
-                count === 2 && isMobilePortrait && "min-h-[250px] min-w-[250px]", // Square-ish for 2 on mobile portrait
-                count === 2 && !isMobilePortrait && "min-h-[280px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px]", // Larger for 2
-                count <= 4 && count > 2 && "min-h-[200px] sm:min-h-[240px] md:min-h-[280px]", // Larger for 3-4
-                count <= 6 && count > 4 && "min-h-[160px] sm:min-h-[180px] md:min-h-[200px]", // Medium for 5-6
-                count > 6 && "min-h-[120px] sm:min-h-[140px] md:min-h-[160px]", // Standard for 7+
-                !isMobilePortrait && "aspect-video"
+                count === 2 && isMobilePortrait && 'min-h-[250px] min-w-[250px]', // Square-ish for 2 on mobile portrait
+                count === 2 &&
+                  !isMobilePortrait &&
+                  'min-h-[280px] sm:min-h-[320px] md:min-h-[380px] lg:min-h-[420px]', // Larger for 2
+                count <= 4 && count > 2 && 'min-h-[200px] sm:min-h-[240px] md:min-h-[280px]', // Larger for 3-4
+                count <= 6 && count > 4 && 'min-h-[160px] sm:min-h-[180px] md:min-h-[200px]', // Medium for 5-6
+                count > 6 && 'min-h-[120px] sm:min-h-[140px] md:min-h-[160px]', // Standard for 7+
+                !isMobilePortrait && 'aspect-video',
               )}
               style={{ backgroundColor: 'var(--lk-bg3)' }}
             >
               <CustomParticipantTile
                 trackRef={track}
                 className="absolute inset-0"
-                aspectRatio={isMobilePortrait && count <= 2 ? "1:1" : "16:9"}
+                aspectRatio={isMobilePortrait && count <= 2 ? '1:1' : '16:9'}
               />
             </div>
           ))}
@@ -229,10 +235,10 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Track window size for responsive adjustments
   const [windowWidth, setWindowWidth] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1024
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [windowHeight, setWindowHeight] = React.useState(
-    typeof window !== 'undefined' ? window.innerHeight : 768
+    typeof window !== 'undefined' ? window.innerHeight : 768,
   );
 
   React.useEffect(() => {
@@ -249,7 +255,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
   // Set initial focus to screen share or first speaking participant
   React.useEffect(() => {
     const screenShare = participantTracks.find(
-      track => track.source === Track.Source.ScreenShare
+      (track) => track.source === Track.Source.ScreenShare,
     );
 
     if (screenShare) {
@@ -259,9 +265,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
     }
   }, [participantTracks]);
 
-  const otherTracks = participantTracks.filter(
-    track => track !== focusedTrack
-  );
+  const otherTracks = participantTracks.filter((track) => track !== focusedTrack);
 
   return (
     <div className="flex flex-col h-full">
@@ -272,7 +276,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
             <CustomParticipantTile
               trackRef={focusedTrack}
               className="absolute inset-0"
-              aspectRatio={isMobilePortrait && participantTracks.length === 1 ? "1:1" : "16:9"}
+              aspectRatio={isMobilePortrait && participantTracks.length === 1 ? '1:1' : '16:9'}
             />
           </div>
         )}
@@ -314,10 +318,10 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Track window size for responsive adjustments
   const [windowWidth, setWindowWidth] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth : 1024
+    typeof window !== 'undefined' ? window.innerWidth : 1024,
   );
   const [windowHeight, setWindowHeight] = React.useState(
-    typeof window !== 'undefined' ? window.innerHeight : 768
+    typeof window !== 'undefined' ? window.innerHeight : 768,
   );
 
   React.useEffect(() => {
@@ -332,14 +336,13 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
   const isMobilePortrait = windowWidth < 768 && windowHeight > windowWidth;
 
   // Find presenter (screen share or designated presenter)
-  const presenterTrack = participantTracks.find(
-    track => track.source === Track.Source.ScreenShare
-  ) || participantTracks.find(
-    track => track.participant === localParticipant
-  ) || participantTracks[0];
+  const presenterTrack =
+    participantTracks.find((track) => track.source === Track.Source.ScreenShare) ||
+    participantTracks.find((track) => track.participant === localParticipant) ||
+    participantTracks[0];
 
   const audienceTracks = participantTracks.filter(
-    track => track !== presenterTrack && track.source !== Track.Source.ScreenShare
+    (track) => track !== presenterTrack && track.source !== Track.Source.ScreenShare,
   );
 
   return (
@@ -351,7 +354,7 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
             <CustomParticipantTile
               trackRef={presenterTrack}
               className="absolute inset-0"
-              aspectRatio={isMobilePortrait && participantTracks.length === 1 ? "1:1" : "16:9"}
+              aspectRatio={isMobilePortrait && participantTracks.length === 1 ? '1:1' : '16:9'}
             />
           </div>
         )}
@@ -359,19 +362,20 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
 
       {/* Audience section - bottom on mobile, sidebar on desktop */}
       {audienceTracks.length > 0 && (
-        <div className={clsx(
-          "flex-shrink-0",
-          // Mobile: horizontal scroll at bottom
-          "h-32 md:h-40 lg:h-full",
-          "w-full lg:w-72 xl:w-80",
-          // Border positioning
-          "border-t lg:border-t-0 lg:border-l",
-          // Scroll behavior
-          "overflow-x-auto lg:overflow-x-visible",
-          "overflow-y-hidden lg:overflow-y-auto"
-        )}
-        style={{ borderColor: 'var(--lk-bg3)', backgroundColor: 'var(--lk-bg2)' }}
-      >
+        <div
+          className={clsx(
+            'flex-shrink-0',
+            // Mobile: horizontal scroll at bottom
+            'h-32 md:h-40 lg:h-full',
+            'w-full lg:w-72 xl:w-80',
+            // Border positioning
+            'border-t lg:border-t-0 lg:border-l',
+            // Scroll behavior
+            'overflow-x-auto lg:overflow-x-visible',
+            'overflow-y-hidden lg:overflow-y-auto',
+          )}
+          style={{ borderColor: 'var(--lk-bg3)', backgroundColor: 'var(--lk-bg2)' }}
+        >
           {/* Mobile: horizontal layout, Desktop: vertical layout */}
           <div className="flex lg:block h-full lg:h-auto">
             {/* Mobile layout */}
@@ -420,14 +424,10 @@ export function SpotlightLayout({ tracks }: { tracks: TrackReference[] }) {
 }
 
 // Main Layout Manager Component
-export function CustomVideoLayouts({
-  layoutMode = 'grid',
-  className,
-}: CustomVideoLayoutProps) {
-  const tracks = useTracks(
-    [Track.Source.Camera, Track.Source.ScreenShare],
-    { onlySubscribed: true }
-  );
+export function CustomVideoLayouts({ layoutMode = 'grid', className }: CustomVideoLayoutProps) {
+  const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
+    onlySubscribed: true,
+  });
 
   const renderLayout = () => {
     switch (layoutMode) {

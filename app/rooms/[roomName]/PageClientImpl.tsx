@@ -50,14 +50,21 @@ export function PageClientImpl(props: {
     undefined,
   );
   const [selectedLanguage, setSelectedLanguage] = React.useState<string>(''); // Start with no selection
-  const [roomMetadata, setRoomMetadata] = React.useState<{ teacherName?: string; language?: string } | null>(null);
+  const [roomMetadata, setRoomMetadata] = React.useState<{
+    teacherName?: string;
+    language?: string;
+  } | null>(null);
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
   const [checkingPin, setCheckingPin] = React.useState(false);
 
   // Check classroom/speech role from URL (client-side only to avoid hydration issues)
-  const [classroomInfo, setClassroomInfo] = React.useState<{ role: string; pin: string | null; mode?: 'classroom' | 'speech' } | null>(null);
+  const [classroomInfo, setClassroomInfo] = React.useState<{
+    role: string;
+    pin: string | null;
+    mode?: 'classroom' | 'speech';
+  } | null>(null);
 
   React.useEffect(() => {
     // Only access window on client side
@@ -153,22 +160,26 @@ export function PageClientImpl(props: {
       {connectionDetails === undefined || preJoinChoices === undefined ? (
         <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
           {/* Header with Bayaan logo - placed outside the centered content */}
-          <div style={{
-            height: '56px',
-            background: 'var(--lk-bg, #000000)',
-            borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 20px',
-            flexShrink: 0
-          }}>
-            <span style={{
-              fontSize: '20px',
-              fontWeight: 700,
-              color: 'var(--foreground)',
-              letterSpacing: '-0.03rem'
-            }}>
+          <div
+            style={{
+              height: '56px',
+              background: 'var(--lk-bg, #000000)',
+              borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0 20px',
+              flexShrink: 0,
+            }}
+          >
+            <span
+              style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                color: 'var(--foreground)',
+                letterSpacing: '-0.03rem',
+              }}
+            >
               bayaan.ai
             </span>
             <ThemeToggleButton start="top-right" />
@@ -176,134 +187,161 @@ export function PageClientImpl(props: {
 
           {/* Main content area */}
           <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-            <div style={{
-              textAlign: 'center',
-              width: 'min(100%, 480px)',
-              marginInline: 'auto'
-            }}>
-            {classroomInfo && (
-              <div>
-                <h1
-                  style={{
-                    marginBottom: '1.5rem',
-                    padding: '0.75rem 0.5rem',
-                    background: 'transparent',
-                    color: 'var(--lk-text1, white)',
-                    borderRadius: '8px',
-                    fontSize: '3.5rem',
-                    fontWeight: '700',
-                    fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                    textAlign: 'center',
-                    textTransform: 'none',
-                    letterSpacing: '-0.04em',
-                  }}
-                >
-                  {classroomInfo.mode === 'speech'
-                    ? (classroomInfo.role === 'teacher' ? 'speaker lobby' : 'listener lobby')
-                    : (classroomInfo.role === 'teacher' ? 'teacher lobby' : 'student lobby')}
-                </h1>
-
-                {/* Enhanced welcome message for students */}
-                {classroomInfo.role === 'student' && (
-                  <div
+            <div
+              style={{
+                textAlign: 'center',
+                width: 'min(100%, 480px)',
+                marginInline: 'auto',
+              }}
+            >
+              {classroomInfo && (
+                <div>
+                  <h1
                     style={{
                       marginBottom: '1.5rem',
-                      padding: '1rem',
+                      padding: '0.75rem 0.5rem',
                       background: 'transparent',
-                      border: 'none',
+                      color: 'var(--lk-text1, white)',
                       borderRadius: '8px',
-                      fontSize: '0.95rem',
+                      fontSize: '3.5rem',
+                      fontWeight: '700',
+                      fontFamily: 'var(--font-poppins), Poppins, sans-serif',
+                      textAlign: 'center',
+                      textTransform: 'none',
+                      letterSpacing: '-0.04em',
                     }}
                   >
-                    <div style={{ fontWeight: 'bold', marginBottom: '0.5rem', color: 'var(--lk-text1, white)' }}>
-                      📚 Welcome to the Classroom!
-                    </div>
-                    <div style={{ color: 'var(--lk-text2, #aaa)', lineHeight: '1.5' }}>
-                      You&apos;re joining as a student. You&apos;ll be able to:
-                      <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
-                        <li>Watch and listen to your teacher</li>
-                        <li>Participate via chat</li>
-                        <li>View shared screens and materials</li>
-                      </ul>
-                      <small style={{ opacity: 0.8, color: 'var(--lk-text2, #aaa)' }}>
-                        Just enter your name below to join the session.
-                      </small>
-                    </div>
-                  </div>
-                )}
+                    {classroomInfo.mode === 'speech'
+                      ? classroomInfo.role === 'teacher'
+                        ? 'speaker lobby'
+                        : 'listener lobby'
+                      : classroomInfo.role === 'teacher'
+                        ? 'teacher lobby'
+                        : 'student lobby'}
+                  </h1>
 
-                {/* Show shareable link for teachers */}
-                {classroomInfo.role === 'teacher' && (
-                  <div
-                    style={{
-                      marginBottom: '1.5rem',
-                      fontSize: '0.95rem',
-                    }}
-                  >
-                    {/* Stateful Copy Button */}
-                    <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
-                      <StatefulButton
-                        onClick={() => {
-                          return new Promise((resolve) => {
-                            const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
-                            let studentLink = `${window.location.origin}${prefix}${props.roomName}`;
-                            if (classroomInfo.pin) {
-                              studentLink += `?pin=${classroomInfo.pin}`;
-                            }
-                            navigator.clipboard.writeText(studentLink);
-                            setTimeout(resolve, 500); // Short delay to show animation
-                          });
-                        }}
-                      >
-                        Copy Student Link
-                      </StatefulButton>
-                    </div>
-
-                    {/* Show the link for reference */}
+                  {/* Enhanced welcome message for students */}
+                  {classroomInfo.role === 'student' && (
                     <div
                       style={{
-                        padding: '0.5rem',
-                        backgroundColor: 'transparent',
-                        borderRadius: '4px',
-                        fontFamily: 'monospace',
-                        fontSize: '0.8rem',
-                        textAlign: 'center',
-                        wordBreak: 'break-all',
-                        color: 'var(--lk-text2, #888)',
+                        marginBottom: '1.5rem',
+                        padding: '1rem',
+                        background: 'transparent',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontSize: '0.95rem',
                       }}
                     >
-                      {`${window.location.origin}${classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/'}${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
-                    </div>
-
-                    {classroomInfo.pin && (
-                      <div style={{
-                        fontSize: '0.9rem',
-                        color: '#4CAF50',
-                        marginTop: '0.5rem',
-                        fontWeight: 'bold',
-                        textAlign: 'center'
-                      }}>
-                        🔒 Classroom PIN: {classroomInfo.pin}
+                      <div
+                        style={{
+                          fontWeight: 'bold',
+                          marginBottom: '0.5rem',
+                          color: 'var(--lk-text1, white)',
+                        }}
+                      >
+                        📚 Welcome to the Classroom!
                       </div>
-                    )}
-                    <div style={{ fontSize: '0.85rem', color: '#999', marginTop: '0.5rem', textAlign: 'center' }}>
-                      Students will join directly as listeners
-                      {classroomInfo.pin && ' • PIN included in link'}
+                      <div style={{ color: 'var(--lk-text2, #aaa)', lineHeight: '1.5' }}>
+                        You&apos;re joining as a student. You&apos;ll be able to:
+                        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+                          <li>Watch and listen to your teacher</li>
+                          <li>Participate via chat</li>
+                          <li>View shared screens and materials</li>
+                        </ul>
+                        <small style={{ opacity: 0.8, color: 'var(--lk-text2, #aaa)' }}>
+                          Just enter your name below to join the session.
+                        </small>
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
-            <CustomPreJoin
-              defaults={preJoinDefaults}
-              onSubmit={handlePreJoinSubmit}
-              onError={handlePreJoinError}
-              showLanguageSelector={classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher'}
-              selectedLanguage={selectedLanguage}
-              onLanguageChange={setSelectedLanguage}
-              isTeacher={classroomInfo?.role === 'teacher'}
-              isSpeechListener={classroomInfo?.mode === 'speech' && classroomInfo?.role === 'student'}
-            />
+                  )}
+
+                  {/* Show shareable link for teachers */}
+                  {classroomInfo.role === 'teacher' && (
+                    <div
+                      style={{
+                        marginBottom: '1.5rem',
+                        fontSize: '0.95rem',
+                      }}
+                    >
+                      {/* Stateful Copy Button */}
+                      <div
+                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}
+                      >
+                        <StatefulButton
+                          onClick={() => {
+                            return new Promise((resolve) => {
+                              const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
+                              let studentLink = `${window.location.origin}${prefix}${props.roomName}`;
+                              if (classroomInfo.pin) {
+                                studentLink += `?pin=${classroomInfo.pin}`;
+                              }
+                              navigator.clipboard.writeText(studentLink);
+                              setTimeout(resolve, 500); // Short delay to show animation
+                            });
+                          }}
+                        >
+                          Copy Student Link
+                        </StatefulButton>
+                      </div>
+
+                      {/* Show the link for reference */}
+                      <div
+                        style={{
+                          padding: '0.5rem',
+                          backgroundColor: 'transparent',
+                          borderRadius: '4px',
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          textAlign: 'center',
+                          wordBreak: 'break-all',
+                          color: 'var(--lk-text2, #888)',
+                        }}
+                      >
+                        {`${window.location.origin}${classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/'}${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
+                      </div>
+
+                      {classroomInfo.pin && (
+                        <div
+                          style={{
+                            fontSize: '0.9rem',
+                            color: '#4CAF50',
+                            marginTop: '0.5rem',
+                            fontWeight: 'bold',
+                            textAlign: 'center',
+                          }}
+                        >
+                          🔒 Classroom PIN: {classroomInfo.pin}
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#999',
+                          marginTop: '0.5rem',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Students will join directly as listeners
+                        {classroomInfo.pin && ' • PIN included in link'}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+              <CustomPreJoin
+                defaults={preJoinDefaults}
+                onSubmit={handlePreJoinSubmit}
+                onError={handlePreJoinError}
+                showLanguageSelector={
+                  classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher'
+                }
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+                isTeacher={classroomInfo?.role === 'teacher'}
+                isSpeechListener={
+                  classroomInfo?.mode === 'speech' && classroomInfo?.role === 'student'
+                }
+              />
             </div>
           </div>
         </div>
@@ -409,10 +447,14 @@ function VideoConferenceComponent(props: {
         )
         .then(async () => {
           // Set participant language attribute for students and teachers in classroom mode
-          if ((props.classroomRole === 'student' || props.classroomRole === 'teacher') && props.selectedLanguage) {
+          if (
+            (props.classroomRole === 'student' || props.classroomRole === 'teacher') &&
+            props.selectedLanguage
+          ) {
             try {
               // Use different attribute names for teachers and students
-              const attributeName = props.classroomRole === 'teacher' ? 'speaking_language' : 'captions_language';
+              const attributeName =
+                props.classroomRole === 'teacher' ? 'speaking_language' : 'captions_language';
               await room.localParticipant.setAttributes({
                 [attributeName]: props.selectedLanguage,
               });

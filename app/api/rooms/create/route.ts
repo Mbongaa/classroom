@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
       return NextResponse.json(
         { error: 'Server configuration error: Missing LiveKit credentials' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -28,23 +28,20 @@ export async function POST(request: NextRequest) {
 
     // Validation
     if (!roomCode || typeof roomCode !== 'string') {
-      return NextResponse.json(
-        { error: 'Room code is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Room code is required' }, { status: 400 });
     }
 
     if (!ROOM_CODE_REGEX.test(roomCode)) {
       return NextResponse.json(
         { error: 'Room code must be 4-20 alphanumeric characters or hyphens' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!roomType || !['meeting', 'classroom', 'speech'].includes(roomType)) {
       return NextResponse.json(
         { error: 'Invalid room type. Must be meeting, classroom, or speech' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +49,7 @@ export async function POST(request: NextRequest) {
     if ((roomType === 'classroom' || roomType === 'speech') && !teacherName) {
       return NextResponse.json(
         { error: `Teacher name is required for ${roomType} rooms` },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -91,7 +88,7 @@ export async function POST(request: NextRequest) {
       if (error.message && error.message.includes('already exists')) {
         return NextResponse.json(
           { error: 'Room code already exists. Please choose a different code.' },
-          { status: 409 }
+          { status: 409 },
         );
       }
       throw error; // Re-throw other errors
@@ -100,7 +97,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating room:', error);
     return NextResponse.json(
       { error: 'Failed to create room', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

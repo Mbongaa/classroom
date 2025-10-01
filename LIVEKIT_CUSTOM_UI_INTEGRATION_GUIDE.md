@@ -1,6 +1,7 @@
 # LiveKit Custom UI Integration Guide
 
 ## Table of Contents
+
 1. [Introduction: Why CSS Overrides Don't Work](#introduction-why-css-overrides-dont-work)
 2. [The LiveKit Philosophy](#the-livekit-philosophy)
 3. [Understanding the Hook and Component Pattern](#understanding-the-hook-and-component-pattern)
@@ -75,17 +76,18 @@ return <YourCustomButton onClick={toggle} active={isEnabled} />;
 
 Every LiveKit UI component has a corresponding hook that provides its logic:
 
-| Component | Hook | Purpose |
-|-----------|------|---------|
-| `<TrackToggle>` | `useTrackToggle()` | Toggle audio/video tracks |
-| `<DisconnectButton>` | `useDisconnectButton()` | Leave room functionality |
-| `<Chat>` | `useChat()` | Chat messaging logic |
-| `<ParticipantTile>` | `useParticipantTile()` | Participant display logic |
-| `<ControlBar>` | Multiple hooks | Composite control logic |
+| Component            | Hook                    | Purpose                   |
+| -------------------- | ----------------------- | ------------------------- |
+| `<TrackToggle>`      | `useTrackToggle()`      | Toggle audio/video tracks |
+| `<DisconnectButton>` | `useDisconnectButton()` | Leave room functionality  |
+| `<Chat>`             | `useChat()`             | Chat messaging logic      |
+| `<ParticipantTile>`  | `useParticipantTile()`  | Participant display logic |
+| `<ControlBar>`       | Multiple hooks          | Composite control logic   |
 
 ### How Hooks Work
 
 Hooks provide:
+
 1. **State**: Current status (enabled/disabled, muted/unmuted)
 2. **Actions**: Functions to trigger changes (toggle, send, disconnect)
 3. **Props**: Accessibility and HTML attributes
@@ -98,6 +100,7 @@ Hooks provide:
 ### Track Control Hooks
 
 #### `useTrackToggle()`
+
 Controls microphone, camera, or screen share.
 
 ```typescript
@@ -120,18 +123,19 @@ function CustomMicButton() {
 ```
 
 #### `useTracks()`
+
 Subscribe to and manage multiple tracks.
 
 ```typescript
-const tracks = useTracks(
-  [Track.Source.Camera, Track.Source.ScreenShare],
-  { onlySubscribed: false }
-);
+const tracks = useTracks([Track.Source.Camera, Track.Source.ScreenShare], {
+  onlySubscribed: false,
+});
 ```
 
 ### Participant Management Hooks
 
 #### `useParticipants()`
+
 Get all participants in the room.
 
 ```typescript
@@ -140,6 +144,7 @@ const participants = useParticipants();
 ```
 
 #### `useLocalParticipant()`
+
 Access the local participant.
 
 ```typescript
@@ -147,6 +152,7 @@ const { localParticipant, isConnected } = useLocalParticipant();
 ```
 
 #### `useRemoteParticipants()`
+
 Get only remote participants.
 
 ```typescript
@@ -156,6 +162,7 @@ const remoteParticipants = useRemoteParticipants();
 ### Communication Hooks
 
 #### `useChat()`
+
 Complete chat functionality.
 
 ```typescript
@@ -167,6 +174,7 @@ const sendMessage = async (text: string) => {
 ```
 
 #### `useDataChannel()`
+
 Send custom data between participants.
 
 ```typescript
@@ -178,6 +186,7 @@ const { send } = useDataChannel('custom-topic', (msg) => {
 ### Media Device Hooks
 
 #### `useMediaDevices()`
+
 List available devices.
 
 ```typescript
@@ -185,6 +194,7 @@ const devices = useMediaDevices({ kind: 'videoinput' });
 ```
 
 #### `useMediaDeviceSelect()`
+
 Device selection with switching.
 
 ```typescript
@@ -197,6 +207,7 @@ const { devices, activeDeviceId, setActiveMediaDevice } = useMediaDeviceSelect({
 ### Room and Connection Hooks
 
 #### `useRoomContext()`
+
 Access the Room instance.
 
 ```typescript
@@ -204,6 +215,7 @@ const room = useRoomContext();
 ```
 
 #### `useConnectionState()`
+
 Monitor connection status.
 
 ```typescript
@@ -214,6 +226,7 @@ const connectionState = useConnectionState();
 ### Layout and UI Hooks
 
 #### `useLayoutContext()`
+
 Manage layout state like pinning.
 
 ```typescript
@@ -221,6 +234,7 @@ const { pin, widget } = useLayoutContext();
 ```
 
 #### `useFocusToggle()`
+
 Focus/spotlight functionality.
 
 ```typescript
@@ -234,11 +248,13 @@ const { mergedProps, inFocus } = useFocusToggle({ trackRef });
 ### Example 1: Replace Microphone Button with Custom Component
 
 #### Step 1: Install Dependencies
+
 ```bash
 pnpm install lucide-react  # For icons
 ```
 
 #### Step 2: Create Custom Component
+
 ```typescript
 // components/CustomMicButton.tsx
 'use client';
@@ -273,6 +289,7 @@ export function CustomMicButton() {
 ```
 
 #### Step 3: Use in Your Layout
+
 ```typescript
 // Instead of LiveKit's VideoConference, compose your own
 import {
@@ -452,12 +469,14 @@ export function CustomParticipantTile({ trackRef }: CustomParticipantTileProps) 
 ### Shadcn/ui Integration
 
 #### Setup
+
 ```bash
 npx shadcn-ui@latest add button
 npx shadcn-ui@latest add toggle
 ```
 
 #### Implementation
+
 ```typescript
 // components/ShadcnMicToggle.tsx
 import { useTrackToggle } from '@livekit/components-react';
@@ -765,14 +784,13 @@ export const useLiveKitStore = create<LiveKitStore>((set) => ({
   pinnedTracks: [],
   layoutMode: 'grid',
 
-  selectParticipant: (participant) =>
-    set({ selectedParticipant: participant }),
+  selectParticipant: (participant) => set({ selectedParticipant: participant }),
 
   togglePin: (trackId) =>
     set((state) => ({
       pinnedTracks: state.pinnedTracks.includes(trackId)
-        ? state.pinnedTracks.filter(id => id !== trackId)
-        : [...state.pinnedTracks, trackId]
+        ? state.pinnedTracks.filter((id) => id !== trackId)
+        : [...state.pinnedTracks, trackId],
     })),
 
   setLayoutMode: (mode) => set({ layoutMode: mode }),
@@ -793,6 +811,7 @@ export function CustomLayoutManager() {
 ## Best Practices
 
 ### 1. Always Use Hooks for Logic
+
 Never try to reimplement WebRTC logic. Use LiveKit hooks for all real-time functionality.
 
 ```typescript
@@ -807,6 +826,7 @@ const { toggle } = useTrackToggle({ source: Track.Source.Microphone });
 ```
 
 ### 2. Maintain Accessibility
+
 LiveKit hooks provide accessibility props. Always spread them:
 
 ```typescript
@@ -840,6 +860,7 @@ export function SafeVideoConference() {
 ```
 
 ### 4. Optimize Re-renders
+
 Use React.memo and useMemo for expensive operations:
 
 ```typescript
@@ -856,6 +877,7 @@ const ParticipantGrid = React.memo(({ participants }) => {
 ```
 
 ### 5. Clean Component Separation
+
 Separate logic from presentation:
 
 ```typescript
@@ -896,17 +918,23 @@ function MicrophoneButton() {
 ## Common Pitfalls and Solutions
 
 ### Pitfall 1: CSS Specificity Battles
+
 **Problem**: Trying to override `.lk-*` classes
+
 ```css
-.lk-control-bar { /* Won't work reliably */ }
+.lk-control-bar {
+  /* Won't work reliably */
+}
 ```
 
 **Solution**: Don't use LiveKit's styled components. Use hooks instead.
 
 ### Pitfall 2: Missing Audio Renderer
+
 **Problem**: No audio when using custom layouts
 
 **Solution**: Always include `<RoomAudioRenderer />`:
+
 ```typescript
 return (
   <div>
@@ -917,9 +945,11 @@ return (
 ```
 
 ### Pitfall 3: State Synchronization Issues
+
 **Problem**: Custom state getting out of sync with LiveKit
 
 **Solution**: Always derive state from LiveKit hooks:
+
 ```typescript
 // ❌ Wrong
 const [isMuted, setIsMuted] = useState(false);
@@ -929,9 +959,11 @@ const { isEnabled } = useTrackToggle({ source: Track.Source.Microphone });
 ```
 
 ### Pitfall 4: Context Provider Missing
+
 **Problem**: Hooks throwing errors about missing context
 
 **Solution**: Ensure proper context wrapping:
+
 ```typescript
 <LiveKitRoom>
   <RoomContext.Provider value={room}>
@@ -943,14 +975,16 @@ const { isEnabled } = useTrackToggle({ source: Track.Source.Microphone });
 ```
 
 ### Pitfall 5: Performance Issues with Large Rooms
+
 **Problem**: UI lagging with many participants
 
 **Solution**: Implement pagination and virtualization:
+
 ```typescript
 const participants = useParticipants();
 const visibleParticipants = useMemo(
   () => participants.slice(0, 9), // Show only first 9
-  [participants]
+  [participants],
 );
 ```
 
@@ -959,12 +993,15 @@ const visibleParticipants = useMemo(
 ## Migration Guide: From CSS Overrides to Hooks
 
 ### Step 1: Identify Components to Replace
+
 List all LiveKit components you're trying to style:
+
 - `<VideoConference>` → Build custom layout
 - `<TrackToggle>` → Use `useTrackToggle()`
 - `<ControlBar>` → Compose with individual hooks
 
 ### Step 2: Install UI Dependencies
+
 ```bash
 pnpm install lucide-react  # Icons
 pnpm install clsx          # Class utilities
@@ -972,7 +1009,9 @@ pnpm install clsx          # Class utilities
 ```
 
 ### Step 3: Create Hook Wrappers
+
 For each component, create a hook wrapper:
+
 ```typescript
 // hooks/useControls.ts
 export function useControls() {
@@ -985,7 +1024,9 @@ export function useControls() {
 ```
 
 ### Step 4: Build Custom Components
+
 Replace LiveKit components with your own:
+
 ```typescript
 // components/Controls.tsx
 export function Controls() {
@@ -1000,7 +1041,9 @@ export function Controls() {
 ```
 
 ### Step 5: Compose Your Layout
+
 Replace `<VideoConference>` with composition:
+
 ```typescript
 export function App() {
   return (
@@ -1020,12 +1063,14 @@ export function App() {
 The key to successfully customizing LiveKit UI is to **embrace the hooks pattern** rather than fighting with CSS. By understanding that LiveKit provides the logic while you provide the presentation, you can create completely custom video conferencing UIs that match your brand and design system perfectly.
 
 ### Key Takeaways:
+
 1. **Never override LiveKit CSS** - Use hooks instead
 2. **Compose, don't override** - Build layouts from smaller parts
 3. **Hooks provide everything** - State, actions, and accessibility
 4. **You own the presentation** - Complete visual freedom
 
 ### Resources:
+
 - [LiveKit React Components Documentation](https://docs.livekit.io/reference/components/react/)
 - [LiveKit Client SDK Documentation](https://docs.livekit.io/client-sdk-js/)
 - [Example Applications](https://github.com/livekit/components-js/tree/main/examples)
@@ -1060,7 +1105,7 @@ import { Track, Room } from 'livekit-client';
 
 // Basic custom mic button
 const { toggle, isEnabled } = useTrackToggle({
-  source: Track.Source.Microphone
+  source: Track.Source.Microphone,
 });
 
 // Get all tracks

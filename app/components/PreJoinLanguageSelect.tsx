@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useId } from "react";
+import { useId } from 'react';
 import {
   Select,
   SelectContent,
@@ -9,35 +9,31 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 
 // Language options organized by region
 const LANGUAGES_BY_REGION = [
   {
-    region: "Americas",
+    region: 'Americas',
     items: [
-      { value: "en", label: "English", flag: "🇺🇸" },
-      { value: "es", label: "Español", flag: "🇪🇸" },
+      { value: 'en', label: 'English', flag: '🇺🇸' },
+      { value: 'es', label: 'Español', flag: '🇪🇸' },
     ],
   },
   {
-    region: "Europe",
+    region: 'Europe',
     items: [
-      { value: "fr", label: "Français", flag: "🇫🇷" },
-      { value: "de", label: "Deutsch", flag: "🇩🇪" },
+      { value: 'fr', label: 'Français', flag: '🇫🇷' },
+      { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
     ],
   },
   {
-    region: "Asia",
-    items: [
-      { value: "ja", label: "日本語", flag: "🇯🇵" },
-    ],
+    region: 'Asia',
+    items: [{ value: 'ja', label: '日本語', flag: '🇯🇵' }],
   },
   {
-    region: "Middle East",
-    items: [
-      { value: "ar", label: "العربية", flag: "🇸🇦" },
-    ],
+    region: 'Middle East',
+    items: [{ value: 'ar', label: 'العربية', flag: '🇸🇦' }],
   },
 ];
 
@@ -59,7 +55,9 @@ const PreJoinLanguageSelect: React.FC<PreJoinLanguageSelectProps> = ({
   return (
     <Select value={selectedLanguage} onValueChange={onLanguageChange} disabled={disabled}>
       <SelectTrigger id={id}>
-        <SelectValue placeholder={isTeacher ? "Select transcription language" : "Select translation language"} />
+        <SelectValue
+          placeholder={isTeacher ? 'Select transcription language' : 'Select translation language'}
+        />
       </SelectTrigger>
       <SelectContent>
         {LANGUAGES_BY_REGION.map((region) => (

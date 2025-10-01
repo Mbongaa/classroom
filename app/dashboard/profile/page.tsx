@@ -54,9 +54,7 @@ export default function ProfilePage() {
             </div>
             <div>
               <p className="text-sm font-medium">Organization</p>
-              <p className="text-sm text-muted-foreground">
-                {profile.organization?.name || 'N/A'}
-              </p>
+              <p className="text-sm text-muted-foreground">{profile.organization?.name || 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm font-medium">Member Since</p>

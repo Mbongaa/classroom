@@ -1,9 +1,6 @@
 import { redirect } from 'next/navigation';
 
-export async function GET(
-  request: Request,
-  { params }: { params: Promise<{ roomName: string }> }
-) {
+export async function GET(request: Request, { params }: { params: Promise<{ roomName: string }> }) {
   const { roomName } = await params;
 
   // Redirect to the main room page with speech student role

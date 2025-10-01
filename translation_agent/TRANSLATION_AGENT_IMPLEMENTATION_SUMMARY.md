@@ -5,6 +5,7 @@
 The Translation Agent is a real-time speech translation system built on LiveKit that enables multi-language classroom communication. A teacher speaks in their native language, and students receive simultaneous translations in their preferred languages. The system uses OpenAI's GPT-4o transcribe for superior speech-to-text accuracy and GPT-4o for high-quality translations.
 
 ### Key Features
+
 - **Real-time Translation**: Sub-2-second latency from speech to translated text
 - **Multi-language Support**: Simultaneous translation to multiple languages
 - **Superior Accuracy**: GPT-4o transcribe model with lower Word Error Rate (WER)
@@ -66,12 +67,14 @@ flowchart TB
 **Purpose**: Converts teacher's speech to text in real-time
 
 **Key Features**:
+
 - Uses GPT-4o transcribe model exclusively (no fallback)
 - Supports 100+ languages with auto-detection
 - Processes audio at 16kHz sample rate
 - Emits final transcriptions only (not interim)
 
 **Configuration**:
+
 ```python
 model = "gpt-4o-transcribe"  # Mandatory
 language = "en"               # Or "auto" for detection
@@ -82,18 +85,21 @@ language = "en"               # Or "auto" for detection
 **Purpose**: Translates transcribed text to student's language
 
 **Key Features**:
+
 - Uses GPT-4o LLM for translation
 - Maintains conversation context for better accuracy
 - Implements translation caching
 - Publishes via LiveKit TranscriptionSegment
 
 **Configuration**:
+
 ```python
 model = "gpt-4o"
 temperature = 0.3  # Lower for consistent translations
 ```
 
 **System Prompt**:
+
 ```
 You are a skilled translator. Your task is to translate messages to [language].
 Respond only with the translated text, without any additional commentary.
@@ -102,6 +108,7 @@ Respond only with the translated text, without any additional commentary.
 ### 3. Performance Monitor
 
 **Metrics Tracked**:
+
 - Average transcription time
 - Average translation time per language
 - Cache hit rates
@@ -113,6 +120,7 @@ Respond only with the translated text, without any additional commentary.
 ### 4. Main Agent (Entrypoint)
 
 **Responsibilities**:
+
 - Room connection management
 - Teacher identification and tracking
 - Student language preference handling
@@ -156,6 +164,7 @@ Respond only with the translated text, without any additional commentary.
 ```
 
 ### Timing Example
+
 ```
 T+0ms    : Teacher says "Hello"
 T+500ms  : Audio processed by STT
@@ -169,6 +178,7 @@ T+1900ms : All students have translations
 ## Technical Stack
 
 ### Models
+
 - **Speech-to-Text**: OpenAI GPT-4o transcribe
   - Superior accuracy (lower WER)
   - 100+ language support
@@ -180,6 +190,7 @@ T+1900ms : All students have translations
   - Consistent terminology
 
 ### Technologies
+
 - **LiveKit**: Real-time communication framework
 - **LiveKit Agents**: Python framework for agents
 - **LiveKit OpenAI Plugin**: Integration with OpenAI services
@@ -187,6 +198,7 @@ T+1900ms : All students have translations
 - **AsyncIO**: Concurrent processing
 
 ### Dependencies
+
 ```
 livekit-agents~=1.2
 livekit-plugins-openai~=1.2
@@ -197,16 +209,19 @@ livekit-plugins-silero
 ## Context Management
 
 ### 1. Session-Level Context
+
 - **Scope**: Single room session
 - **Reset**: On agent restart or room change
 - **Storage**: In-memory only
 
 ### 2. Transcription Context
+
 - **Managed by**: GPT-4o transcribe internally
 - **Benefits**: Better accuracy for continuous speech
 - **Reset**: On silence or speaker change
 
 ### 3. Translation Context
+
 - **Per Translator**: Each language has independent context
 - **ChatContext**: Maintains conversation history
 - **Benefits**:
@@ -215,6 +230,7 @@ livekit-plugins-silero
   - Context-aware translations
 
 ### 4. Cache System
+
 ```python
 # Per-translator cache
 cache_key = hash(text + language)
@@ -225,22 +241,26 @@ eviction = LRU (Least Recently Used)
 ## Performance Features
 
 ### Parallel Processing
+
 - All translations run concurrently
 - Non-blocking architecture
 - `asyncio.gather()` for coordination
 
 ### Caching Strategy
+
 - Reduces redundant API calls
 - Sub-100ms response for cached translations
 - 1000-item limit per language
 
 ### Monitoring
+
 - Real-time performance metrics
 - Automatic metric logging
 - Error rate tracking
 - Cache hit rate analysis
 
 ### Optimizations
+
 - Streaming responses (no waiting for complete translation)
 - Frame counting for audio debugging
 - Efficient error handling with fallbacks
@@ -248,6 +268,7 @@ eviction = LRU (Least Recently Used)
 ## Configuration
 
 ### Environment Variables
+
 ```bash
 # Required
 OPENAI_API_KEY=your-api-key
@@ -260,6 +281,7 @@ OPENAI_STT_MODEL=gpt-4o-transcribe  # No other option supported
 ```
 
 ### Supported Languages
+
 ```python
 SUPPORTED_LANGUAGES = {
     "en": "English 🇺🇸",
@@ -278,11 +300,13 @@ SUPPORTED_LANGUAGES = {
 ## API Requirements
 
 ### OpenAI API Access
+
 - **GPT-4o transcribe**: Required for speech-to-text
 - **GPT-4o**: Required for translation
 - **No Fallbacks**: System will not start without these models
 
 ### LiveKit Requirements
+
 - LiveKit Cloud or self-hosted instance
 - API credentials for agent connection
 - WebSocket connectivity
@@ -290,6 +314,7 @@ SUPPORTED_LANGUAGES = {
 ## Current Status
 
 ### ✅ Working Features
+
 1. **Speech-to-Text**: GPT-4o transcribe integration complete
 2. **Translation**: GPT-4o translation with correct ChatChunk structure
 3. **Multi-language**: Parallel translation to multiple languages
@@ -298,11 +323,13 @@ SUPPORTED_LANGUAGES = {
 6. **Error Handling**: Graceful degradation on failures
 
 ### 🔧 Recent Fixes
+
 1. **Removed Whisper Fallback**: GPT-4o transcribe is now mandatory
 2. **Fixed LLM Initialization**: Removed unsupported `max_tokens` parameter
 3. **Fixed ChatChunk Structure**: Changed from `chunk.choices` to `chunk.delta`
 
 ### 📊 Tested Scenarios
+
 - Teacher speaking English → Student receiving Arabic translation ✅
 - Multiple students with different languages ✅
 - Translation caching for repeated phrases ✅
@@ -312,16 +339,19 @@ SUPPORTED_LANGUAGES = {
 ## Usage Flow
 
 ### Teacher Setup
+
 1. Join room with role=teacher metadata
 2. Enable microphone
 3. Start speaking
 
 ### Student Setup
+
 1. Join room with role=student metadata
 2. Send language preference via data channel
 3. Receive translations as TranscriptionSegments
 
 ### Agent Behavior
+
 1. Waits for teacher to join
 2. Subscribes to teacher's audio track
 3. Starts transcription with GPT-4o transcribe
@@ -332,17 +362,20 @@ SUPPORTED_LANGUAGES = {
 ## Performance Characteristics
 
 ### Latency Breakdown
+
 - **Audio Buffer**: 100-200ms
 - **Transcription**: 500-1000ms
 - **Translation**: 600-1800ms
 - **Total End-to-End**: 1.2-3.0 seconds
 
 ### Resource Usage
+
 - **Memory**: ~200MB base + 50MB per language
 - **CPU**: Low (mostly waiting for API)
 - **Network**: Minimal (text only after audio)
 
 ### Scalability
+
 - **Students**: Tested with 10+ simultaneous
 - **Languages**: Supports 10+ concurrent translations
 - **Duration**: Stable for multi-hour sessions
@@ -372,6 +405,7 @@ SUPPORTED_LANGUAGES = {
 ## Future Enhancements
 
 ### Potential Improvements
+
 1. **Interim Transcriptions**: Show partial results
 2. **Speaker Diarization**: Multiple teacher support
 3. **Custom Terminology**: Domain-specific dictionaries
@@ -379,6 +413,7 @@ SUPPORTED_LANGUAGES = {
 5. **Recording**: Save sessions with translations
 
 ### Architecture Extensions
+
 1. **Redis Cache**: Persistent translation cache
 2. **Load Balancing**: Multiple agent instances
 3. **Analytics**: Detailed usage statistics
@@ -386,4 +421,4 @@ SUPPORTED_LANGUAGES = {
 
 ---
 
-*This implementation provides a production-ready, real-time translation system optimized for educational environments with superior accuracy through GPT-4o models.*
+_This implementation provides a production-ready, real-time translation system optimized for educational environments with superior accuracy through GPT-4o models._

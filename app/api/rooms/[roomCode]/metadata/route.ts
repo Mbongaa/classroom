@@ -7,13 +7,13 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   try {
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
       return NextResponse.json(
         { error: 'Server configuration error: Missing LiveKit credentials' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -57,7 +57,7 @@ export async function GET(
     console.error('Error fetching room metadata:', error);
     return NextResponse.json(
       { error: 'Failed to fetch room metadata', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

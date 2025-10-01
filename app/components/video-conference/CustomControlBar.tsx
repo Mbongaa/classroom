@@ -63,7 +63,7 @@ export function CustomControlBar({
     toggle: toggleMic,
     enabled: micEnabled,
     pending: micPending,
-    buttonProps: micButtonProps
+    buttonProps: micButtonProps,
   } = useTrackToggle({
     source: Track.Source.Microphone,
   });
@@ -73,7 +73,7 @@ export function CustomControlBar({
     toggle: toggleCamera,
     enabled: cameraEnabled,
     pending: cameraPending,
-    buttonProps: cameraButtonProps
+    buttonProps: cameraButtonProps,
   } = useTrackToggle({
     source: Track.Source.Camera,
   });
@@ -83,7 +83,7 @@ export function CustomControlBar({
     toggle: toggleScreen,
     enabled: screenEnabled,
     pending: screenPending,
-    buttonProps: screenButtonProps
+    buttonProps: screenButtonProps,
   } = useTrackToggle({
     source: Track.Source.ScreenShare,
   });
@@ -117,7 +117,7 @@ export function CustomControlBar({
       className={clsx(
         'flex items-center justify-center gap-2 p-[5px] sm:p-4',
         'backdrop-blur-sm border-t',
-        className
+        className,
       )}
       style={{
         backgroundColor: 'var(--lk-bg)',
@@ -195,12 +195,9 @@ export function CustomControlBar({
 
       {/* Divider */}
       {(controls.microphone || controls.camera || controls.screenShare) &&
-       (controls.chat || controls.settings || controls.leave) && (
-        <div
-          className="w-px h-8 mx-2"
-          style={{ backgroundColor: 'var(--lk-bg3)' }}
-        />
-      )}
+        (controls.chat || controls.settings || controls.leave) && (
+          <div className="w-px h-8 mx-2" style={{ backgroundColor: 'var(--lk-bg3)' }} />
+        )}
 
       {/* Chat Button */}
       {controls.chat && (
@@ -211,15 +208,14 @@ export function CustomControlBar({
           className={buttonClass}
           aria-label={layoutContext.widget.state?.showChat ? 'Hide chat' : 'Show chat'}
           style={{
-            backgroundColor: layoutContext.widget.state?.showChat ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            backgroundColor: layoutContext.widget.state?.showChat
+              ? 'var(--lk-bg4)'
+              : 'var(--lk-bg2)',
             color: 'var(--lk-text1, white)',
             borderColor: 'var(--lk-bg3)',
           }}
         >
-          <MessageSquare
-            className="h-5 w-5"
-            style={{ color: 'var(--lk-text1, white)' }}
-          />
+          <MessageSquare className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
           {variation !== 'minimal' && 'Chat'}
         </Button>
       )}
@@ -239,10 +235,7 @@ export function CustomControlBar({
             borderColor: 'var(--lk-bg3)',
           }}
         >
-          <Languages
-            className="h-5 w-5"
-            style={{ color: 'var(--lk-text1, white)' }}
-          />
+          <Languages className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
           {variation !== 'minimal' && 'Translation'}
         </Button>
       )}
@@ -261,10 +254,7 @@ export function CustomControlBar({
             borderColor: 'var(--lk-bg3)',
           }}
         >
-          <Settings
-            className="h-5 w-5"
-            style={{ color: 'var(--lk-text1, white)' }}
-          />
+          <Settings className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
           {variation !== 'minimal' && 'Settings'}
         </Button>
       )}

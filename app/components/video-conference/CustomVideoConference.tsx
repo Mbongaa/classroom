@@ -51,8 +51,8 @@ export function CustomVideoConference({
 
   // Auto-switch to focus layout when screen share starts
   React.useEffect(() => {
-    const hasScreenShare = tracks.some(track =>
-      track.publication?.source === Track.Source.ScreenShare
+    const hasScreenShare = tracks.some(
+      (track) => track.publication?.source === Track.Source.ScreenShare,
     );
 
     if (hasScreenShare && layoutMode === 'grid') {
@@ -60,10 +60,12 @@ export function CustomVideoConference({
     }
   }, [tracks, layoutMode]);
 
-
   if (connectionState === ConnectionState.Connecting) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--lk-bg)' }}>
+      <div
+        className="flex items-center justify-center h-full"
+        style={{ backgroundColor: 'var(--lk-bg)' }}
+      >
         <div className="text-center">
           <PulsatingLoader />
           <p className="text-lg mt-4" style={{ color: 'var(--lk-text1, white)' }}>
@@ -76,7 +78,10 @@ export function CustomVideoConference({
 
   if (connectionState === ConnectionState.Disconnected) {
     return (
-      <div className="flex items-center justify-center h-full" style={{ backgroundColor: 'var(--lk-bg)' }}>
+      <div
+        className="flex items-center justify-center h-full"
+        style={{ backgroundColor: 'var(--lk-bg)' }}
+      >
         <div className="text-center">
           <div className="text-6xl mb-4">🔌</div>
           <p className="text-lg" style={{ color: 'var(--lk-text1, white)' }}>
@@ -104,7 +109,7 @@ export function CustomVideoConference({
           className="flex items-center justify-between p-2 border-b"
           style={{
             backgroundColor: 'var(--lk-bg2)',
-            borderColor: 'var(--lk-bg3)'
+            borderColor: 'var(--lk-bg3)',
           }}
         >
           <div className="flex items-center gap-2">
@@ -116,7 +121,7 @@ export function CustomVideoConference({
               style={{
                 backgroundColor: layoutMode === 'grid' ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
                 color: 'var(--lk-text1, white)',
-                borderColor: 'var(--lk-bg3)'
+                borderColor: 'var(--lk-bg3)',
               }}
             >
               <Grid3X3 className="w-4 h-4 mr-1" style={{ color: 'var(--lk-text1, white)' }} />
@@ -130,7 +135,7 @@ export function CustomVideoConference({
               style={{
                 backgroundColor: layoutMode === 'focus' ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
                 color: 'var(--lk-text1, white)',
-                borderColor: 'var(--lk-bg3)'
+                borderColor: 'var(--lk-bg3)',
               }}
             >
               <Users className="w-4 h-4 mr-1" style={{ color: 'var(--lk-text1, white)' }} />
@@ -144,7 +149,7 @@ export function CustomVideoConference({
               style={{
                 backgroundColor: layoutMode === 'spotlight' ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
                 color: 'var(--lk-text1, white)',
-                borderColor: 'var(--lk-bg3)'
+                borderColor: 'var(--lk-bg3)',
               }}
             >
               <Presentation className="w-4 h-4 mr-1" style={{ color: 'var(--lk-text1, white)' }} />
@@ -162,10 +167,7 @@ export function CustomVideoConference({
       <div className="flex-1 overflow-hidden relative">
         {/* Video area - always full width */}
         <div className="w-full h-full relative">
-          <CustomVideoLayouts
-            layoutMode={layoutMode}
-            className="h-full"
-          />
+          <CustomVideoLayouts layoutMode={layoutMode} className="h-full" />
         </div>
 
         {/* Chat sidebar - overlay positioned */}
@@ -175,7 +177,7 @@ export function CustomVideoConference({
             style={{
               width: `${chatResize.width}px`,
               backgroundColor: 'var(--lk-bg)',
-              borderColor: 'var(--lk-bg3)'
+              borderColor: 'var(--lk-bg3)',
             }}
           >
             {/* Resize handle */}
@@ -190,14 +192,11 @@ export function CustomVideoConference({
               className="flex items-center justify-between p-3 border-b"
               style={{
                 backgroundColor: 'var(--lk-bg2)',
-                borderColor: 'var(--lk-bg3)'
+                borderColor: 'var(--lk-bg3)',
               }}
             >
               <div className="flex items-center gap-2">
-                <MessageSquare
-                  className="w-4 h-4"
-                  style={{ color: 'var(--lk-text2, #6b7280)' }}
-                />
+                <MessageSquare className="w-4 h-4" style={{ color: 'var(--lk-text2, #6b7280)' }} />
                 <span className="font-medium" style={{ color: 'var(--lk-text1, white)' }}>
                   Chat
                 </span>
@@ -209,7 +208,7 @@ export function CustomVideoConference({
                 className="h-6 w-6 p-0"
                 style={{
                   color: 'var(--lk-text1, white)',
-                  '&:hover': { backgroundColor: 'var(--lk-bg3)' }
+                  '&:hover': { backgroundColor: 'var(--lk-bg3)' },
                 }}
               >
                 <X className="w-4 h-4" style={{ color: 'var(--lk-text1, white)' }} />
@@ -217,10 +216,7 @@ export function CustomVideoConference({
             </div>
 
             {/* Chat component */}
-            <Chat
-              className="h-[calc(100%-49px)]"
-              messageFormatter={chatMessageFormatter}
-            />
+            <Chat className="h-[calc(100%-49px)]" messageFormatter={chatMessageFormatter} />
           </div>
         )}
       </div>
@@ -253,7 +249,7 @@ export function CustomVideoConference({
               style={{
                 backgroundColor: 'var(--lk-bg4)',
                 color: 'var(--lk-text1, white)',
-                borderColor: 'var(--lk-bg3)'
+                borderColor: 'var(--lk-bg3)',
               }}
             >
               Close

@@ -13,29 +13,31 @@ Both modes share core infrastructure but have independent UI components and beha
 
 ### Classroom Mode Routes
 
-| Route | Redirects To | Description |
-|-------|-------------|-------------|
-| `/s/[roomName]` | `/rooms/[roomName]?classroom=true&role=student` | Student join link |
-| `/t/[roomName]` | `/rooms/[roomName]?classroom=true&role=teacher` | Teacher join link |
+| Route            | Redirects To                                            | Description               |
+| ---------------- | ------------------------------------------------------- | ------------------------- |
+| `/s/[roomName]`  | `/rooms/[roomName]?classroom=true&role=student`         | Student join link         |
+| `/t/[roomName]`  | `/rooms/[roomName]?classroom=true&role=teacher`         | Teacher join link         |
 | `/sp/[roomName]` | `/rooms/[roomName]?classroom=true&role=student_speaker` | Student speaker join link |
-| `/l/[roomName]` | `/rooms/[roomName]?classroom=true&role=listener` | Listener join link |
+| `/l/[roomName]`  | `/rooms/[roomName]?classroom=true&role=listener`        | Listener join link        |
 
 ### Speech Mode Routes
 
-| Route | Redirects To | Description |
-|-------|-------------|-------------|
-| `/speech-s/[roomName]` | `/rooms/[roomName]?speech=true&role=student` | Listener join link |
-| `/speech-t/[roomName]` | `/rooms/[roomName]?speech=true&role=teacher` | Speaker join link |
-| `/speech-sp/[roomName]` | Not implemented | Would be for speech student speakers |
-| `/speech-l/[roomName]` | Not implemented | Would be for speech listeners |
+| Route                   | Redirects To                                 | Description                          |
+| ----------------------- | -------------------------------------------- | ------------------------------------ |
+| `/speech-s/[roomName]`  | `/rooms/[roomName]?speech=true&role=student` | Listener join link                   |
+| `/speech-t/[roomName]`  | `/rooms/[roomName]?speech=true&role=teacher` | Speaker join link                    |
+| `/speech-sp/[roomName]` | Not implemented                              | Would be for speech student speakers |
+| `/speech-l/[roomName]`  | Not implemented                              | Would be for speech listeners        |
 
 ### Direct Access
+
 - Regular room: `/rooms/[roomName]` (no special parameters)
 - With parameters: `/rooms/[roomName]?classroom=true&role=teacher` or `?speech=true&role=student`
 
 ## Component Architecture
 
 ### Main Router Component
+
 **`/app/rooms/[roomName]/PageClientImpl.tsx`**
 
 This component detects the mode from URL parameters and routes to the appropriate implementation:
@@ -58,6 +60,7 @@ if (classroomInfo?.mode === 'classroom') {
 ### Mode-Specific Implementations
 
 #### Classroom Mode
+
 - **Component**: `/app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx`
 - **Translation**: `/app/components/TranslationPanel.tsx`
 - **Styles**: `/app/components/TranslationPanel.module.css`
@@ -69,6 +72,7 @@ if (classroomInfo?.mode === 'classroom') {
   - Translation sidebar (up to 50% width)
 
 #### Speech Mode
+
 - **Component**: `/app/rooms/[roomName]/SpeechClientImplWithRequests.tsx`
 - **Translation**: `/app/components/SpeechTranslationPanel.tsx`
 - **Styles**: `/app/components/SpeechTranslationPanel.module.css`
@@ -82,15 +86,17 @@ if (classroomInfo?.mode === 'classroom') {
 ## Key Differences Between Modes
 
 ### Terminology
-| Classroom Mode | Speech Mode | Description |
-|----------------|-------------|-------------|
-| Teacher | Speaker | Person presenting/speaking |
-| Student | Listener | Person listening/watching |
-| Student Speaker | - | Student with speaking permissions |
+
+| Classroom Mode  | Speech Mode | Description                       |
+| --------------- | ----------- | --------------------------------- |
+| Teacher         | Speaker     | Person presenting/speaking        |
+| Student         | Listener    | Person listening/watching         |
+| Student Speaker | -           | Student with speaking permissions |
 
 ### UI Differences
 
 #### Classroom Mode
+
 - Shows role badges (teacher icon) on participant tiles
 - Has student request system with floating button
 - Permission dropdown for teachers
@@ -98,6 +104,7 @@ if (classroomInfo?.mode === 'classroom') {
 - Full PreJoin with camera/mic controls
 
 #### Speech Mode
+
 - No role badges on participant tiles
 - No request system
 - Simplified controls
@@ -107,11 +114,13 @@ if (classroomInfo?.mode === 'classroom') {
 ### PreJoin Behavior
 
 #### Classroom Students
+
 - Shows camera/mic controls (disabled by default)
 - May request permissions if user enables them
 - Shows "Speech Student Lobby" title
 
 #### Speech Listeners
+
 - **No camera/mic controls shown**
 - **Never requests media permissions**
 - **Skips all media device initialization**
@@ -119,6 +128,7 @@ if (classroomInfo?.mode === 'classroom') {
 - Only shows name input and join button
 
 Implementation in `CustomPreJoin.tsx`:
+
 ```typescript
 // Force disable media for speech listeners
 const [videoEnabled] = React.useState(isSpeechListener ? false : ...);
@@ -134,6 +144,7 @@ React.useEffect(() => {
 ## Shared Components
 
 These components are used by both modes:
+
 - `CustomPreJoin.tsx` - PreJoin screen (with mode-specific behavior)
 - `CustomParticipantTile.tsx` - Video tiles (with optional role badges)
 - `CustomVideoConference.tsx` - Main conference component
@@ -189,11 +200,13 @@ if (isClassroom || isSpeech) {
 ## CSS Customizations
 
 ### Speech Mode Specific
+
 - Translation panel max-width: `70%` (vs 50% in classroom)
 - Mobile translation height: `70vh` (vs 50vh in classroom)
 - Simplified participant tiles (no role badges)
 
 ### Classroom Mode Specific
+
 - Request indicator styles
 - Permission dropdown portal styles
 - Role badge display on tiles
@@ -201,16 +214,19 @@ if (isClassroom || isSpeech) {
 ## Adding New Features
 
 ### To add a feature to Classroom mode only:
+
 1. Edit `ClassroomClientImplWithRequests.tsx`
 2. Use `TranslationPanel.tsx` for translation-related changes
 3. Modify `Classroom.module.css` for styling
 
 ### To add a feature to Speech mode only:
+
 1. Edit `SpeechClientImplWithRequests.tsx`
 2. Use `SpeechTranslationPanel.tsx` for translation-related changes
 3. Modify `SpeechClient.module.css` for styling
 
 ### To add a feature to both modes:
+
 1. Edit shared components in `/app/components/`
 2. Use mode detection if behavior should differ:
    ```typescript
@@ -220,14 +236,17 @@ if (isClassroom || isSpeech) {
 ## Testing
 
 ### Classroom Mode
+
 - Teacher: Navigate to `/t/test-room`
 - Student: Navigate to `/s/test-room`
 
 ### Speech Mode
+
 - Speaker: Navigate to `/speech-t/test-room`
 - Listener: Navigate to `/speech-s/test-room`
 
 ### Direct Testing
+
 - Classroom: `/rooms/test-room?classroom=true&role=teacher`
 - Speech: `/rooms/test-room?speech=true&role=teacher`
 

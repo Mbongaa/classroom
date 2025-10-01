@@ -5,12 +5,12 @@
  * Use these in API route handlers to ensure only authorized users can access endpoints.
  */
 
-import { createClient } from '@/lib/supabase/server'
-import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 
 export type AuthResult =
   | { success: true; user: any; supabase: any; profile?: any }
-  | { success: false; response: NextResponse }
+  | { success: false; response: NextResponse };
 
 /**
  * Require authentication for API route
@@ -25,28 +25,28 @@ export type AuthResult =
  * }
  */
 export async function requireAuth(): Promise<AuthResult> {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   const {
     data: { user },
-    error
-  } = await supabase.auth.getUser()
+    error,
+  } = await supabase.auth.getUser();
 
   if (error || !user) {
     return {
       success: false,
       response: NextResponse.json(
         { error: 'Unauthorized - Authentication required' },
-        { status: 401 }
-      )
-    }
+        { status: 401 },
+      ),
+    };
   }
 
   return {
     success: true,
     user,
-    supabase
-  }
+    supabase,
+  };
 }
 
 /**
@@ -62,26 +62,23 @@ export async function requireAuth(): Promise<AuthResult> {
  * }
  */
 export async function requireTeacher(): Promise<AuthResult> {
-  const authResult = await requireAuth()
-  if (!authResult.success) return authResult
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
 
-  const { user, supabase } = authResult
+  const { user, supabase } = authResult;
 
   // Fetch user profile with role
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role, organization_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (error || !profile) {
     return {
       success: false,
-      response: NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
-      )
-    }
+      response: NextResponse.json({ error: 'Profile not found' }, { status: 404 }),
+    };
   }
 
   // Check if user has teacher or admin role
@@ -90,17 +87,17 @@ export async function requireTeacher(): Promise<AuthResult> {
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden - Teacher or admin role required' },
-        { status: 403 }
-      )
-    }
+        { status: 403 },
+      ),
+    };
   }
 
   return {
     success: true,
     user,
     supabase,
-    profile
-  }
+    profile,
+  };
 }
 
 /**
@@ -116,45 +113,39 @@ export async function requireTeacher(): Promise<AuthResult> {
  * }
  */
 export async function requireAdmin(): Promise<AuthResult> {
-  const authResult = await requireAuth()
-  if (!authResult.success) return authResult
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
 
-  const { user, supabase } = authResult
+  const { user, supabase } = authResult;
 
   // Fetch user profile with role
   const { data: profile, error } = await supabase
     .from('profiles')
     .select('role, organization_id')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (error || !profile) {
     return {
       success: false,
-      response: NextResponse.json(
-        { error: 'Profile not found' },
-        { status: 404 }
-      )
-    }
+      response: NextResponse.json({ error: 'Profile not found' }, { status: 404 }),
+    };
   }
 
   // Check if user has admin role
   if (profile.role !== 'admin') {
     return {
       success: false,
-      response: NextResponse.json(
-        { error: 'Forbidden - Admin role required' },
-        { status: 403 }
-      )
-    }
+      response: NextResponse.json({ error: 'Forbidden - Admin role required' }, { status: 403 }),
+    };
   }
 
   return {
     success: true,
     user,
     supabase,
-    profile
-  }
+    profile,
+  };
 }
 
 /**
@@ -164,10 +155,10 @@ export async function requireAdmin(): Promise<AuthResult> {
  * @param organizationId - The organization ID to check membership for
  */
 export async function requireOrgMember(organizationId: string): Promise<AuthResult> {
-  const authResult = await requireAuth()
-  if (!authResult.success) return authResult
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
 
-  const { user, supabase } = authResult
+  const { user, supabase } = authResult;
 
   // Check if user is member of the organization
   const { data: member, error } = await supabase
@@ -175,22 +166,22 @@ export async function requireOrgMember(organizationId: string): Promise<AuthResu
     .select('role')
     .eq('user_id', user.id)
     .eq('organization_id', organizationId)
-    .single()
+    .single();
 
   if (error || !member) {
     return {
       success: false,
       response: NextResponse.json(
         { error: 'Forbidden - Not a member of this organization' },
-        { status: 403 }
-      )
-    }
+        { status: 403 },
+      ),
+    };
   }
 
   return {
     success: true,
     user,
     supabase,
-    profile: member
-  }
+    profile: member,
+  };
 }

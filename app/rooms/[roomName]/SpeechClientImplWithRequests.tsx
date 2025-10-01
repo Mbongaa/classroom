@@ -17,13 +17,7 @@ import {
 } from '@livekit/components-react';
 import { CustomControlBar } from '@/app/components/video-conference/CustomControlBar';
 import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
-import {
-  Track,
-  Participant,
-  RoomEvent,
-  DataPacket_Kind,
-  ParticipantKind,
-} from 'livekit-client';
+import { Track, Participant, RoomEvent, DataPacket_Kind, ParticipantKind } from 'livekit-client';
 import { useRouter } from 'next/navigation';
 import { Clipboard, Check, GripVertical } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
@@ -35,7 +29,7 @@ import {
   StudentRequest,
   StudentRequestMessage,
   RequestUpdateMessage,
-  RequestDisplayMessage
+  RequestDisplayMessage,
 } from '@/lib/types/StudentRequest';
 import { useResizable } from '@/lib/useResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
@@ -66,7 +60,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
     }
 
     const cleanName = name.trim();
-    const parts = cleanName.split(/\s+/).filter(part => part.length > 0);
+    const parts = cleanName.split(/\s+/).filter((part) => part.length > 0);
 
     if (parts.length === 0) {
       return 'ST';
@@ -85,7 +79,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
   const [showTranslation, setShowTranslation] = React.useState(userRole !== 'teacher');
   // Calculate 70% of viewport width for max translation panel width
   const [maxTranslationWidth, setMaxTranslationWidth] = React.useState(
-    typeof window !== 'undefined' ? window.innerWidth * 0.7 : 800
+    typeof window !== 'undefined' ? window.innerWidth * 0.7 : 800,
   );
 
   const translationResize = useResizable({
@@ -107,12 +101,15 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
   });
 
   // State for permission notifications
-  const [permissionNotification, setPermissionNotification] = React.useState<PermissionNotification | null>(null);
+  const [permissionNotification, setPermissionNotification] =
+    React.useState<PermissionNotification | null>(null);
 
   // State for student request system
   const [requests, setRequests] = React.useState<StudentRequest[]>([]);
   const [myActiveRequest, setMyActiveRequest] = React.useState<StudentRequest | null>(null);
-  const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(new Map());
+  const [displayedQuestions, setDisplayedQuestions] = React.useState<Map<string, StudentRequest>>(
+    new Map(),
+  );
 
   // State for copy link feedback
   const [linkCopied, setLinkCopied] = React.useState(false);
@@ -133,7 +130,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
     const speakingStudentsList: Participant[] = [];
 
     // Single pass through participants with optimized metadata parsing
-    participants.forEach(participant => {
+    participants.forEach((participant) => {
       // Filter out agents
       if (isAgentParticipant(participant)) {
         return;
@@ -163,290 +160,312 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
   // Get video and audio tracks for the teacher
   const teacherTracks = useTracks(
     [Track.Source.Camera, Track.Source.Microphone, Track.Source.ScreenShare],
-    teacher ? { participant: teacher } : undefined
+    teacher ? { participant: teacher } : undefined,
   );
 
   // Separate screen share tracks from camera tracks for the teacher
   const teacherScreenShareTrack = teacherTracks.find(
-    track => isTrackReference(track) && track.source === Track.Source.ScreenShare
+    (track) => isTrackReference(track) && track.source === Track.Source.ScreenShare,
   );
 
   const teacherCameraTrack = teacherTracks.find(
-    track => isTrackReference(track) && track.source === Track.Source.Camera
+    (track) => isTrackReference(track) && track.source === Track.Source.Camera,
   );
 
   const teacherAudioTracks = teacherTracks.filter(
-    track => isTrackReference(track) && track.publication.kind === 'audio'
+    (track) => isTrackReference(track) && track.publication.kind === 'audio',
   );
 
   // Get tracks for all students
-  const studentTracks = useTracks(
-    [Track.Source.Camera, Track.Source.Microphone],
-    { participants: allStudents }
-  );
+  const studentTracks = useTracks([Track.Source.Camera, Track.Source.Microphone], {
+    participants: allStudents,
+  });
 
   const handleOnLeave = React.useCallback(() => {
     router.push('/');
   }, [router]);
 
   // Handle permission update from teacher (for teachers sending updates)
-  const handlePermissionUpdate = React.useCallback((participantIdentity: string, action: 'grant' | 'revoke') => {
-    // Send data channel message to notify the student
-    const message = {
-      type: 'permission_update',
-      action,
-      targetParticipant: participantIdentity,
-      timestamp: Date.now(),
-    };
+  const handlePermissionUpdate = React.useCallback(
+    (participantIdentity: string, action: 'grant' | 'revoke') => {
+      // Send data channel message to notify the student
+      const message = {
+        type: 'permission_update',
+        action,
+        targetParticipant: participantIdentity,
+        timestamp: Date.now(),
+      };
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [room]);
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE,
+      );
+    },
+    [room],
+  );
 
   // Handle student request submission
-  const handleRequestSubmit = React.useCallback((type: 'voice' | 'text', question?: string) => {
-    const request: StudentRequest = {
-      id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      studentIdentity: localParticipant.identity,
-      studentName: localParticipant.name || 'Student',
-      type,
-      question,
-      timestamp: Date.now(),
-      status: 'pending',
-    };
+  const handleRequestSubmit = React.useCallback(
+    (type: 'voice' | 'text', question?: string) => {
+      const request: StudentRequest = {
+        id: `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        studentIdentity: localParticipant.identity,
+        studentName: localParticipant.name || 'Student',
+        type,
+        question,
+        timestamp: Date.now(),
+        status: 'pending',
+      };
 
-    // Update local state
-    setMyActiveRequest(request);
-    setRequests(prev => [...prev, request]);
+      // Update local state
+      setMyActiveRequest(request);
+      setRequests((prev) => [...prev, request]);
 
-    // Send request via data channel
-    const message: StudentRequestMessage = {
-      type: 'STUDENT_REQUEST',
-      payload: request,
-    };
+      // Send request via data channel
+      const message: StudentRequestMessage = {
+        type: 'STUDENT_REQUEST',
+        payload: request,
+      };
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [localParticipant, room]);
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE,
+      );
+    },
+    [localParticipant, room],
+  );
 
   // Handle teacher approving voice request (optimized dependencies)
-  const handleApproveRequest = React.useCallback(async (requestId: string) => {
-    // Use functional update to avoid dependency on requests array
-    let targetRequest: StudentRequest | undefined;
-    setRequests(prev => {
-      targetRequest = prev.find(r => r.id === requestId);
-      if (!targetRequest || targetRequest.type !== 'voice') return prev;
-      return prev.map(r => r.id === requestId ? { ...r, status: 'approved' as const } : r);
-    });
-
-    if (!targetRequest || targetRequest.type !== 'voice') return;
-
-    // For voice requests, use Phase 5 permission system
-    try {
-      const response = await fetch('/api/update-speech-student-permission', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          roomName: room.name,
-          studentIdentity: targetRequest.studentIdentity,
-          studentName: targetRequest.studentName,
-          action: 'grant',
-          teacherToken: `teacher_${room.name}_${localParticipant.identity}`,
-        }),
+  const handleApproveRequest = React.useCallback(
+    async (requestId: string) => {
+      // Use functional update to avoid dependency on requests array
+      let targetRequest: StudentRequest | undefined;
+      setRequests((prev) => {
+        targetRequest = prev.find((r) => r.id === requestId);
+        if (!targetRequest || targetRequest.type !== 'voice') return prev;
+        return prev.map((r) => (r.id === requestId ? { ...r, status: 'approved' as const } : r));
       });
 
-      if (response.ok) {
-        // Send update via data channel
-        const message: RequestUpdateMessage = {
-          type: 'REQUEST_UPDATE',
-          payload: {
-            requestId,
-            status: 'approved',
-          },
-        };
+      if (!targetRequest || targetRequest.type !== 'voice') return;
 
-        const encoder = new TextEncoder();
-        room.localParticipant.publishData(
-          encoder.encode(JSON.stringify(message)),
-          DataPacket_Kind.RELIABLE
-        );
+      // For voice requests, use Phase 5 permission system
+      try {
+        const response = await fetch('/api/update-speech-student-permission', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            roomName: room.name,
+            studentIdentity: targetRequest.studentIdentity,
+            studentName: targetRequest.studentName,
+            action: 'grant',
+            teacherToken: `teacher_${room.name}_${localParticipant.identity}`,
+          }),
+        });
+
+        if (response.ok) {
+          // Send update via data channel
+          const message: RequestUpdateMessage = {
+            type: 'REQUEST_UPDATE',
+            payload: {
+              requestId,
+              status: 'approved',
+            },
+          };
+
+          const encoder = new TextEncoder();
+          room.localParticipant.publishData(
+            encoder.encode(JSON.stringify(message)),
+            DataPacket_Kind.RELIABLE,
+          );
+        }
+      } catch (error) {
+        console.error('Failed to approve voice request:', error);
       }
-    } catch (error) {
-      console.error('Failed to approve voice request:', error);
-    }
-  }, [room, localParticipant]);
+    },
+    [room, localParticipant],
+  );
 
   // Handle teacher declining request
-  const handleDeclineRequest = React.useCallback((requestId: string) => {
-    // Update request status
-    setRequests(prev => prev.map(r =>
-      r.id === requestId ? { ...r, status: 'declined' as const } : r
-    ));
+  const handleDeclineRequest = React.useCallback(
+    (requestId: string) => {
+      // Update request status
+      setRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'declined' as const } : r)),
+      );
 
-    // Send update via data channel
-    const message: RequestUpdateMessage = {
-      type: 'REQUEST_UPDATE',
-      payload: {
-        requestId,
-        status: 'declined',
-      },
-    };
+      // Send update via data channel
+      const message: RequestUpdateMessage = {
+        type: 'REQUEST_UPDATE',
+        payload: {
+          requestId,
+          status: 'declined',
+        },
+      };
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [room]);
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE,
+      );
+    },
+    [room],
+  );
 
   // Handle displaying text question to all (optimized dependencies)
-  const handleDisplayQuestion = React.useCallback((requestId: string) => {
-    // Use functional update to find request without depending on requests array
-    let targetRequest: StudentRequest | undefined;
-    setRequests(prev => {
-      targetRequest = prev.find(r => r.id === requestId);
-      return prev; // No state change needed here
-    });
+  const handleDisplayQuestion = React.useCallback(
+    (requestId: string) => {
+      // Use functional update to find request without depending on requests array
+      let targetRequest: StudentRequest | undefined;
+      setRequests((prev) => {
+        targetRequest = prev.find((r) => r.id === requestId);
+        return prev; // No state change needed here
+      });
 
-    if (!targetRequest || targetRequest.type !== 'text') return;
+      if (!targetRequest || targetRequest.type !== 'text') return;
 
-    // Update display state
-    setDisplayedQuestions(prev => new Map(prev).set(requestId, targetRequest!));
+      // Update display state
+      setDisplayedQuestions((prev) => new Map(prev).set(requestId, targetRequest!));
 
-    // Send display message via data channel
-    const message: RequestDisplayMessage = {
-      type: 'REQUEST_DISPLAY',
-      payload: {
-        requestId,
-        question: targetRequest.question || '',
-        studentName: targetRequest.studentName,
-        display: true,
-      },
-    };
+      // Send display message via data channel
+      const message: RequestDisplayMessage = {
+        type: 'REQUEST_DISPLAY',
+        payload: {
+          requestId,
+          question: targetRequest.question || '',
+          studentName: targetRequest.studentName,
+          display: true,
+        },
+      };
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [room]);
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE,
+      );
+    },
+    [room],
+  );
 
   // Handle marking question as answered
-  const handleMarkAnswered = React.useCallback((requestId: string) => {
-    // Update request status
-    setRequests(prev => prev.map(r =>
-      r.id === requestId ? { ...r, status: 'answered' as const } : r
-    ));
+  const handleMarkAnswered = React.useCallback(
+    (requestId: string) => {
+      // Update request status
+      setRequests((prev) =>
+        prev.map((r) => (r.id === requestId ? { ...r, status: 'answered' as const } : r)),
+      );
 
-    // Remove from displayed questions
-    setDisplayedQuestions(prev => {
-      const newMap = new Map(prev);
-      newMap.delete(requestId);
-      return newMap;
-    });
+      // Remove from displayed questions
+      setDisplayedQuestions((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(requestId);
+        return newMap;
+      });
 
-    // Send update via data channel
-    const message: RequestUpdateMessage = {
-      type: 'REQUEST_UPDATE',
-      payload: {
-        requestId,
-        status: 'answered',
-      },
-    };
+      // Send update via data channel
+      const message: RequestUpdateMessage = {
+        type: 'REQUEST_UPDATE',
+        payload: {
+          requestId,
+          status: 'answered',
+        },
+      };
 
-    const encoder = new TextEncoder();
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      DataPacket_Kind.RELIABLE
-    );
-  }, [room]);
+      const encoder = new TextEncoder();
+      room.localParticipant.publishData(
+        encoder.encode(JSON.stringify(message)),
+        DataPacket_Kind.RELIABLE,
+      );
+    },
+    [room],
+  );
 
   // Handle receiving data messages
-  const handleDataReceived = React.useCallback((data: Uint8Array, participant?: Participant) => {
-    try {
-      const decoder = new TextDecoder();
-      const message = JSON.parse(decoder.decode(data));
+  const handleDataReceived = React.useCallback(
+    (data: Uint8Array, participant?: Participant) => {
+      try {
+        const decoder = new TextDecoder();
+        const message = JSON.parse(decoder.decode(data));
 
-      // Handle permission updates (existing)
-      if (message.type === 'permission_update' && message.targetParticipant === localParticipant.identity) {
-        setPermissionNotification({
-          type: message.action,
-          message: message.action === 'grant'
-            ? 'Your teacher has granted you speaking permission. You can now use your microphone and camera.'
-            : 'Your speaking permission has been revoked.',
-        });
-      }
+        // Handle permission updates (existing)
+        if (
+          message.type === 'permission_update' &&
+          message.targetParticipant === localParticipant.identity
+        ) {
+          setPermissionNotification({
+            type: message.action,
+            message:
+              message.action === 'grant'
+                ? 'Your teacher has granted you speaking permission. You can now use your microphone and camera.'
+                : 'Your speaking permission has been revoked.',
+          });
+        }
 
-      // Handle student requests
-      if (message.type === 'STUDENT_REQUEST') {
-        const request = message.payload as StudentRequest;
-        setRequests(prev => {
-          // Avoid duplicates
-          if (prev.some(r => r.id === request.id)) return prev;
-          return [...prev, request];
-        });
-      }
+        // Handle student requests
+        if (message.type === 'STUDENT_REQUEST') {
+          const request = message.payload as StudentRequest;
+          setRequests((prev) => {
+            // Avoid duplicates
+            if (prev.some((r) => r.id === request.id)) return prev;
+            return [...prev, request];
+          });
+        }
 
-      // Handle request updates
-      if (message.type === 'REQUEST_UPDATE') {
-        const { requestId, status } = message.payload;
-        setRequests(prev => prev.map(r =>
-          r.id === requestId ? { ...r, status } : r
-        ));
+        // Handle request updates
+        if (message.type === 'REQUEST_UPDATE') {
+          const { requestId, status } = message.payload;
+          setRequests((prev) => prev.map((r) => (r.id === requestId ? { ...r, status } : r)));
 
-        // If it's my request and it was answered/declined, clear my active request
-        if (myActiveRequest?.id === requestId) {
-          if (status === 'approved' || status === 'declined' || status === 'answered') {
-            setMyActiveRequest(null);
+          // If it's my request and it was answered/declined, clear my active request
+          if (myActiveRequest?.id === requestId) {
+            if (status === 'approved' || status === 'declined' || status === 'answered') {
+              setMyActiveRequest(null);
+            }
+          }
+
+          // Clear displayed questions for ALL students when teacher resolves question
+          if (status === 'answered' || status === 'declined') {
+            setDisplayedQuestions((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(requestId);
+              return newMap;
+            });
           }
         }
 
-        // Clear displayed questions for ALL students when teacher resolves question
-        if (status === 'answered' || status === 'declined') {
-          setDisplayedQuestions(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(requestId);
-            return newMap;
-          });
-        }
-      }
+        // Handle question display
+        if (message.type === 'REQUEST_DISPLAY') {
+          const { requestId, question, studentName, display } = message.payload;
+          if (display) {
+            const displayRequest: StudentRequest = {
+              id: requestId,
+              studentIdentity: '',
+              studentName,
+              type: 'text',
+              question,
+              timestamp: Date.now(),
+              status: 'displayed',
+            };
+            setDisplayedQuestions((prev) => new Map(prev).set(requestId, displayRequest));
 
-      // Handle question display
-      if (message.type === 'REQUEST_DISPLAY') {
-        const { requestId, question, studentName, display } = message.payload;
-        if (display) {
-          const displayRequest: StudentRequest = {
-            id: requestId,
-            studentIdentity: '',
-            studentName,
-            type: 'text',
-            question,
-            timestamp: Date.now(),
-            status: 'displayed',
-          };
-          setDisplayedQuestions(prev => new Map(prev).set(requestId, displayRequest));
-
-          // Questions now stay visible until teacher manually marks them as answered
-        } else {
-          setDisplayedQuestions(prev => {
-            const newMap = new Map(prev);
-            newMap.delete(requestId);
-            return newMap;
-          });
+            // Questions now stay visible until teacher manually marks them as answered
+          } else {
+            setDisplayedQuestions((prev) => {
+              const newMap = new Map(prev);
+              newMap.delete(requestId);
+              return newMap;
+            });
+          }
         }
+      } catch (error) {
+        console.error('Error parsing data channel message:', error);
       }
-    } catch (error) {
-      console.error('Error parsing data channel message:', error);
-    }
-  }, [localParticipant, myActiveRequest]);
+    },
+    [localParticipant, myActiveRequest],
+  );
 
   // Handle accepting permission grant
   const handleAcceptPermission = React.useCallback(() => {
@@ -496,9 +515,6 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
     };
   }, [room, handleOnLeave, handleDataReceived, handlePermissionChanged]);
 
-
-
-
   // Generate teacher auth token
   const teacherAuthToken = React.useMemo(() => {
     if (isTeacher && localParticipant) {
@@ -509,9 +525,8 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
 
   // Get active request for a participant
   const getParticipantRequest = (participantIdentity: string) => {
-    return requests.find(r =>
-      r.studentIdentity === participantIdentity &&
-      r.status === 'pending'
+    return requests.find(
+      (r) => r.studentIdentity === participantIdentity && r.status === 'pending',
     );
   };
 
@@ -526,23 +541,24 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
 
           <div className={styles.headerControls}>
             {/* Teacher controls */}
-            {isTeacher && (<>
-              {/* Copy student link button */}
-              <button
-                className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
-                onClick={() => {
-                  const studentLink = `${window.location.origin}/speech-s/${room.name}`;
-                  navigator.clipboard.writeText(studentLink);
-                  setLinkCopied(true);
-                  setTimeout(() => setLinkCopied(false), 2000);
-                }}
-                title={linkCopied ? "Link copied!" : "Copy student link"}
-                aria-label="Copy student link to clipboard"
-              >
-                {linkCopied ? <Check size={18} /> : <Clipboard size={18} />}
-              </button>
-            </>)}
-
+            {isTeacher && (
+              <>
+                {/* Copy student link button */}
+                <button
+                  className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
+                  onClick={() => {
+                    const studentLink = `${window.location.origin}/speech-s/${room.name}`;
+                    navigator.clipboard.writeText(studentLink);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 2000);
+                  }}
+                  title={linkCopied ? 'Link copied!' : 'Copy student link'}
+                  aria-label="Copy student link to clipboard"
+                >
+                  {linkCopied ? <Check size={18} /> : <Clipboard size={18} />}
+                </button>
+              </>
+            )}
 
             {/* Theme toggle - rightmost for all users */}
             <ThemeToggleButton start="top-right" />
@@ -564,13 +580,10 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
               className={`${styles.translationSidebar} ${styles.desktopOnly}`}
               style={{
                 display: 'flex',
-                width: `${translationResize.width}px`
+                width: `${translationResize.width}px`,
               }}
             >
-              <SpeechTranslationPanel
-                targetLanguage={captionsLanguage}
-                hideCloseButton={true}
-              />
+              <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} />
               <div
                 className={styles.resizeHandle}
                 onMouseDown={translationResize.handleMouseDown}
@@ -587,7 +600,13 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
               <div className={styles.mainVideoGrid}>
                 {/* Teacher video/screen share */}
                 {teacher && (
-                  <div className={teacherScreenShareTrack ? styles.teacherScreenShareLayout : styles.teacherVideo}>
+                  <div
+                    className={
+                      teacherScreenShareTrack
+                        ? styles.teacherScreenShareLayout
+                        : styles.teacherVideo
+                    }
+                  >
                     {/* Display screen share as primary if active */}
                     {teacherScreenShareTrack ? (
                       <>
@@ -611,22 +630,18 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
                           </div>
                         )}
                       </>
+                    ) : /* Regular camera view when not screen sharing */
+                    teacherCameraTrack ? (
+                      <CustomParticipantTile
+                        trackRef={teacherCameraTrack}
+                        className={styles.teacherTile}
+                        showSpeakingIndicator={true}
+                      />
                     ) : (
-                      /* Regular camera view when not screen sharing */
-                      teacherCameraTrack ? (
-                        <CustomParticipantTile
-                          trackRef={teacherCameraTrack}
-                          className={styles.teacherTile}
-                          showSpeakingIndicator={true}
-                        />
-                      ) : (
-                        <div className={styles.noVideoPlaceholder}>
-                          <div className={styles.participantName}>
-                            {teacher.name || 'Teacher'}
-                          </div>
-                          <div className={styles.noVideoText}>Camera Off</div>
-                        </div>
-                      )
+                      <div className={styles.noVideoPlaceholder}>
+                        <div className={styles.participantName}>{teacher.name || 'Teacher'}</div>
+                        <div className={styles.noVideoText}>Camera Off</div>
+                      </div>
                     )}
 
                     {/* Audio tracks */}
@@ -639,14 +654,16 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
                 {/* Speaking students videos */}
                 {speakingStudents.map((student) => {
                   const studentTrack = studentTracks.find(
-                    track => isTrackReference(track) &&
-                    track.participant === student &&
-                    track.publication.kind === 'video'
+                    (track) =>
+                      isTrackReference(track) &&
+                      track.participant === student &&
+                      track.publication.kind === 'video',
                   );
                   const audioTrack = studentTracks.find(
-                    track => isTrackReference(track) &&
-                    track.participant === student &&
-                    track.publication.kind === 'audio'
+                    (track) =>
+                      isTrackReference(track) &&
+                      track.participant === student &&
+                      track.publication.kind === 'audio',
                   );
 
                   const metadata = parseParticipantMetadata(student.metadata);
@@ -673,16 +690,12 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
                             isTeacher={isTeacher}
                             getInitials={getInitials}
                           />
-                          <div className={styles.participantName}>
-                            {student.name || 'Student'}
-                          </div>
+                          <div className={styles.participantName}>{student.name || 'Student'}</div>
                           <div className={styles.noVideoText}>Camera Off</div>
                         </div>
                       )}
 
-                      {audioTrack && (
-                        <AudioTrack trackRef={audioTrack} />
-                      )}
+                      {audioTrack && <AudioTrack trackRef={audioTrack} />}
                     </div>
                   );
                 })}
@@ -695,7 +708,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
             )}
 
             {/* Display question bubbles */}
-            {Array.from(displayedQuestions.values()).map(question => (
+            {Array.from(displayedQuestions.values()).map((question) => (
               <QuestionBubble
                 key={question.id}
                 question={question.question || ''}
@@ -714,10 +727,12 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
               style={{
                 display: widget.state?.showChat ? '' : 'none',
                 // Only apply desktop-specific styles for non-mobile
-                ...(isMobile ? {} : {
-                  width: `${chatResize.width}px`,
-                  position: 'relative'
-                })
+                ...(isMobile
+                  ? {}
+                  : {
+                      width: `${chatResize.width}px`,
+                      position: 'relative',
+                    }),
               }}
             >
               <div
@@ -738,10 +753,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
         {!isTeacher && (
           <div className={styles.translationPanelMobile}>
-            <SpeechTranslationPanel
-              targetLanguage={captionsLanguage}
-              hideCloseButton={true}
-            />
+            <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} />
           </div>
         )}
 
@@ -776,9 +788,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
                         />
                       </div>
 
-                      <div className={styles.studentName}>
-                        {student.name || 'Student'}
-                      </div>
+                      <div className={styles.studentName}>{student.name || 'Student'}</div>
                     </div>
                   );
                 })
@@ -803,7 +813,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
               chat: true,
               screenShare: true,
               leave: true,
-              translation: false
+              translation: false,
             }}
             onTranslationClick={() => {}}
             showTranslation={false}
@@ -811,8 +821,6 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
           />
         </div>
       )}
-
-
 
       {/* Teacher Request Panel - Removed, now using SpeechHeaderRequestDropdown */}
 

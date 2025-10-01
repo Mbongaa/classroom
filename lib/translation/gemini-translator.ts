@@ -17,7 +17,7 @@ export class GeminiTranslator {
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     // Use gemini-2.5-flash for the current SDK version
-    this.model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    this.model = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
 
   async translateBatch(request: TranslationRequest): Promise<TranslationResult> {
@@ -51,11 +51,11 @@ IMPORTANT: Include a translation for EACH of these language codes: ${targetLangu
       const parsed = JSON.parse(cleanedResponse);
 
       // Validate that we have translations for all requested languages
-      const missingLanguages = targetLanguages.filter(lang => !parsed.translations[lang]);
+      const missingLanguages = targetLanguages.filter((lang) => !parsed.translations[lang]);
       if (missingLanguages.length > 0) {
         console.warn('Missing translations for languages:', missingLanguages);
         // Fill in missing languages with source text as fallback
-        missingLanguages.forEach(lang => {
+        missingLanguages.forEach((lang) => {
           parsed.translations[lang] = text;
         });
       }
@@ -66,7 +66,7 @@ IMPORTANT: Include a translation for EACH of these language codes: ${targetLangu
 
       // Create fallback response with original text
       const fallbackTranslations: { [key: string]: string } = {};
-      targetLanguages.forEach(lang => {
+      targetLanguages.forEach((lang) => {
         fallbackTranslations[lang] = text;
       });
 

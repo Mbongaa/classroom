@@ -1,30 +1,30 @@
-'use client'
+'use client';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { signOut } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { signOut } from '@/lib/actions/auth';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface DashboardNavProps {
   user: {
-    user: any
-    profile: any
-  }
+    user: any;
+    profile: any;
+  };
 }
 
 export function DashboardNav({ user }: DashboardNavProps) {
-  const pathname = usePathname()
+  const pathname = usePathname();
 
   const navigation = [
     { name: 'Dashboard', href: '/dashboard' },
     { name: 'Classrooms', href: '/dashboard/classrooms' },
     { name: 'Recordings', href: '/dashboard/recordings' },
     { name: 'Profile', href: '/dashboard/profile' },
-  ]
+  ];
 
   async function handleSignOut() {
-    await signOut()
+    await signOut();
   }
 
   return (
@@ -52,7 +52,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
               href={item.href}
               className={cn(
                 'text-sm font-medium transition-colors hover:text-primary',
-                pathname === item.href ? 'text-foreground' : 'text-muted-foreground'
+                pathname === item.href ? 'text-foreground' : 'text-muted-foreground',
               )}
             >
               {item.name}
@@ -72,5 +72,5 @@ export function DashboardNav({ user }: DashboardNavProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

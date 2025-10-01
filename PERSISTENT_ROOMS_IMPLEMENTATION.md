@@ -5,6 +5,7 @@
 ---
 
 ## Table of Contents
+
 1. [Overview](#overview)
 2. [Architecture](#architecture)
 3. [API Endpoints](#api-endpoints)
@@ -20,9 +21,11 @@
 ## Overview
 
 ### Feature Description
+
 Persistent rooms allow teachers to create reusable room codes (like "MATH101") that can be used for recurring lectures throughout a semester. The implementation uses **LiveKit's native metadata system** without requiring an external database.
 
 ### Key Benefits
+
 - 🔑 **Memorable Room Codes**: Teachers create custom codes instead of random IDs
 - 🔄 **Reusability**: Same room code works for all sessions
 - 💾 **No Database**: Uses LiveKit's 64 KiB metadata storage per room
@@ -72,14 +75,15 @@ Persistent rooms allow teachers to create reusable room codes (like "MATH101") t
 ```typescript
 interface RoomMetadata {
   roomType: 'meeting' | 'classroom' | 'speech';
-  teacherName?: string;        // Required for classroom/speech
-  language?: string;            // ISO code: en, es, fr, de, ja, ar
-  description?: string;         // Optional description
-  createdAt: number;            // Unix timestamp
+  teacherName?: string; // Required for classroom/speech
+  language?: string; // ISO code: en, es, fr, de, ja, ar
+  description?: string; // Optional description
+  createdAt: number; // Unix timestamp
 }
 ```
 
 ### Room Persistence
+
 - **Empty Timeout**: 7 days (604,800 seconds)
 - Rooms persist even when empty
 - Auto-deleted after 7 days of no activity
@@ -90,9 +94,11 @@ interface RoomMetadata {
 ## API Endpoints
 
 ### 1. Create Room
+
 **Endpoint**: `POST /api/rooms/create`
 
 **Request Body**:
+
 ```json
 {
   "roomCode": "MATH101",
@@ -104,6 +110,7 @@ interface RoomMetadata {
 ```
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -118,6 +125,7 @@ interface RoomMetadata {
 ```
 
 **Validation**:
+
 - Room code: 4-20 alphanumeric characters or hyphens
 - Room type: Must be "meeting", "classroom", or "speech"
 - Teacher name: Required for classroom/speech types
@@ -128,9 +136,11 @@ interface RoomMetadata {
 ---
 
 ### 2. List All Rooms
+
 **Endpoint**: `GET /api/rooms`
 
 **Response**:
+
 ```json
 {
   "rooms": [
@@ -153,6 +163,7 @@ interface RoomMetadata {
 ```
 
 **Features**:
+
 - Parses LiveKit metadata from JSON
 - Converts BigInt values to Number for JSON serialization
 - Handles missing or invalid metadata gracefully
@@ -162,9 +173,11 @@ interface RoomMetadata {
 ---
 
 ### 3. Delete Room
+
 **Endpoint**: `DELETE /api/rooms/[roomCode]`
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -177,9 +190,11 @@ interface RoomMetadata {
 ---
 
 ### 4. Get Room Metadata
+
 **Endpoint**: `GET /api/rooms/[roomCode]/metadata`
 
 **Response**:
+
 ```json
 {
   "metadata": {
@@ -194,6 +209,7 @@ interface RoomMetadata {
 ```
 
 **Features**:
+
 - Returns null if room doesn't exist
 - Used for auto-population in PreJoin component
 
@@ -204,9 +220,11 @@ interface RoomMetadata {
 ## UI Components
 
 ### 1. Room Management Page
+
 **Route**: `/manage-rooms`
 
 **Features**:
+
 - Grid layout (1/2/3 columns responsive)
 - Create Room button (floating action)
 - Room cards with metadata display
@@ -216,6 +234,7 @@ interface RoomMetadata {
 **File**: `app/manage-rooms/page.tsx`
 
 **Screenshot Flow**:
+
 ```
 ┌─────────────────────────────────────────────────┐
 │  Manage Persistent Rooms        [Create Room]  │
@@ -233,9 +252,11 @@ interface RoomMetadata {
 ---
 
 ### 2. Create Room Dialog
+
 **Component**: `CreateRoomDialog`
 
 **Features**:
+
 - Modal dialog using Shadcn UI
 - Form validation (client + server)
 - Room type selector (meeting, classroom, speech)
@@ -245,15 +266,17 @@ interface RoomMetadata {
 - Error display
 
 **Props**:
+
 ```typescript
 interface CreateRoomDialogProps {
-  onRoomCreated: () => void;  // Callback to refresh room list
+  onRoomCreated: () => void; // Callback to refresh room list
 }
 ```
 
 **File**: `components/rooms/CreateRoomDialog.tsx`
 
 **Form Fields**:
+
 - **Room Code**: 4-20 characters, alphanumeric + hyphens
 - **Room Type**: Dropdown (meeting, classroom, speech)
 - **Teacher/Speaker Name**: Text input (required for classroom/speech)
@@ -263,9 +286,11 @@ interface CreateRoomDialogProps {
 ---
 
 ### 3. Room Card Component
+
 **Component**: `RoomCard`
 
 **Features**:
+
 - Displays room metadata
 - Color-coded badges by room type
 - Join room button (navigates to room with correct URL params)
@@ -274,16 +299,18 @@ interface CreateRoomDialogProps {
 - Formatted creation date
 
 **Props**:
+
 ```typescript
 interface RoomCardProps {
   room: PersistentRoom;
-  onDelete: () => void;  // Callback after successful deletion
+  onDelete: () => void; // Callback after successful deletion
 }
 ```
 
 **File**: `components/rooms/RoomCard.tsx`
 
 **Room Type Badge Colors**:
+
 - Meeting: Blue (`bg-blue-500`)
 - Classroom: Green (`bg-green-500`)
 - Speech: Purple (`bg-purple-500`)
@@ -291,6 +318,7 @@ interface RoomCardProps {
 ---
 
 ### 4. Shadcn UI Components
+
 Created standard Shadcn components:
 
 1. **Card** (`components/ui/card.tsx`)
@@ -310,11 +338,13 @@ Created standard Shadcn components:
 ## Auto-Population Feature
 
 ### Overview
+
 When teachers join their persistent rooms, the PreJoin component automatically pre-fills their name and language from room metadata. **Students do NOT get auto-population** to ensure they enter their own information.
 
 ### Implementation
 
 #### 1. Metadata Fetch (PageClientImpl)
+
 ```typescript
 // Fetch room metadata on component mount
 React.useEffect(() => {
@@ -337,6 +367,7 @@ React.useEffect(() => {
 ```
 
 #### 2. Username Pre-Fill (PreJoin Defaults)
+
 ```typescript
 const preJoinDefaults = React.useMemo(() => {
   const isStudent = classroomInfo?.role === 'student';
@@ -351,6 +382,7 @@ const preJoinDefaults = React.useMemo(() => {
 ```
 
 #### 3. Race Condition Fix (CustomPreJoin)
+
 ```typescript
 // Sync username with defaults when it changes (metadata loads async)
 React.useEffect(() => {
@@ -369,6 +401,7 @@ React.useEffect(() => {
 ### User Experience
 
 #### Teacher Experience:
+
 ```
 1. Click "Join Room" on MATH101 card
 2. PreJoin appears with:
@@ -378,6 +411,7 @@ React.useEffect(() => {
 ```
 
 #### Student Experience:
+
 ```
 1. Visit student link /s/MATH101
 2. PreJoin appears with:
@@ -390,6 +424,7 @@ React.useEffect(() => {
 ### Technical Details
 
 **Files Modified**:
+
 - `app/rooms/[roomName]/PageClientImpl.tsx`
   - Added `roomMetadata` state
   - Added metadata fetch with teacher-only language population
@@ -405,6 +440,7 @@ React.useEffect(() => {
 ## Data Flow
 
 ### Room Creation Flow
+
 ```
 User fills form → CreateRoomDialog validates →
 POST /api/rooms/create → RoomServiceClient.createRoom() →
@@ -414,6 +450,7 @@ GET /api/rooms → Display new room card
 ```
 
 ### Room Join Flow (Teacher)
+
 ```
 Teacher clicks "Join Room" →
 Navigate to /rooms/MATH101?classroom=true&role=teacher →
@@ -428,6 +465,7 @@ Teacher clicks "Join Room" (no typing needed!)
 ```
 
 ### Room Join Flow (Student)
+
 ```
 Student visits /s/MATH101 (student shortcut) →
 Navigate to /rooms/MATH101?classroom=true&role=student →
@@ -447,12 +485,14 @@ Student clicks "Join Room"
 ### Files Created (9 new files)
 
 **API Routes** (4 files):
+
 1. `app/api/rooms/create/route.ts` - Room creation endpoint
 2. `app/api/rooms/route.ts` - List all rooms endpoint
 3. `app/api/rooms/[roomCode]/route.ts` - Delete room endpoint
 4. `app/api/rooms/[roomCode]/metadata/route.ts` - Get room metadata endpoint
 
 **UI Components** (5 files):
+
 1. `components/ui/card.tsx` - Shadcn card component
 2. `components/ui/dialog.tsx` - Shadcn dialog component
 3. `components/ui/badge.tsx` - Shadcn badge component
@@ -460,10 +500,12 @@ Student clicks "Join Room"
 5. `components/rooms/CreateRoomDialog.tsx` - Room creation dialog
 
 **Feature Components** (2 files):
+
 1. `components/rooms/RoomCard.tsx` - Individual room display card
 2. `app/manage-rooms/page.tsx` - Room management page
 
 **Type Definitions**:
+
 1. `lib/types.ts` - Added `RoomType`, `RoomMetadata`, `PersistentRoom` interfaces
 
 ### Files Modified (3 files)
@@ -481,6 +523,7 @@ Student clicks "Join Room"
    - Fixes race condition where metadata loads after component mount
 
 ### Dependencies Added
+
 - `@radix-ui/react-dialog` - Dialog primitive for modal
 - `@radix-ui/react-label` - Label primitive for form labels
 
@@ -491,6 +534,7 @@ Student clicks "Join Room"
 ### 1. Create Room Test
 
 **Steps**:
+
 1. Navigate to `/manage-rooms`
 2. Click "Create Room" button
 3. Fill form:
@@ -502,6 +546,7 @@ Student clicks "Join Room"
 4. Click "Create Room"
 
 **Expected**:
+
 - Dialog closes
 - New room card appears in grid
 - Card shows "TEST101", "Classroom" badge, teacher name, language
@@ -509,10 +554,12 @@ Student clicks "Join Room"
 ### 2. Room Join Test (Teacher)
 
 **Steps**:
+
 1. On room card for "TEST101", click "Join Room"
 2. Observe PreJoin component
 
 **Expected**:
+
 - URL: `/rooms/TEST101?classroom=true&role=teacher`
 - Username field shows: "Test Teacher" (pre-filled)
 - Language picker shows: "English" (pre-selected)
@@ -521,11 +568,13 @@ Student clicks "Join Room"
 ### 3. Room Join Test (Student)
 
 **Steps**:
+
 1. Copy student link from teacher lobby
 2. Paste in incognito/different browser
 3. Observe PreJoin component
 
 **Expected**:
+
 - Username field: Empty (student must enter name)
 - Language picker: Empty/default (student must select)
 - Camera and mic disabled by default
@@ -533,30 +582,36 @@ Student clicks "Join Room"
 ### 4. Delete Room Test
 
 **Steps**:
+
 1. On room card, click delete (trash) button
 2. Confirm deletion in alert
 
 **Expected**:
+
 - Room card disappears from grid
 - Room no longer accessible
 
 ### 5. Duplicate Room Code Test
 
 **Steps**:
+
 1. Create room "DUP101"
 2. Try creating another room "DUP101"
 
 **Expected**:
+
 - Error message: "Room code already exists. Please choose a different code."
 - Dialog stays open with error displayed
 
 ### 6. Empty Rooms List Test
 
 **Steps**:
+
 1. Delete all rooms
 2. Observe empty state
 
 **Expected**:
+
 - Message: "No rooms yet. Create your first room to get started!"
 - Create Room button still available
 
@@ -569,6 +624,7 @@ Student clicks "Join Room"
 **Problem**: LiveKit SDK returns `creationTime` and `emptyTimeout` as BigInt values, which cannot be serialized by `JSON.stringify()`.
 
 **Solution**: Convert all BigInt values to Number before returning in API responses:
+
 ```typescript
 return {
   emptyTimeout: Number(room.emptyTimeout),
@@ -578,6 +634,7 @@ return {
 ```
 
 **Affected Endpoints**:
+
 - `POST /api/rooms/create` (line 79, 81)
 - `GET /api/rooms` (lines 32, 38, 45, 47)
 
@@ -586,12 +643,14 @@ return {
 **Problem**: `useState(initialValue)` only uses initial value once when component mounts. Doesn't re-run when prop changes.
 
 **Timeline**:
+
 1. Component mounts → `defaults.username = ''` (metadata not loaded yet)
 2. `useState('')` initializes state to empty
 3. Metadata loads → `defaults.username = 'Dr. Smith'`
 4. State stays empty (useState doesn't re-run)
 
 **Solution**: Use `useEffect` to watch prop changes:
+
 ```typescript
 React.useEffect(() => {
   if (defaults?.username) {
@@ -603,19 +662,22 @@ React.useEffect(() => {
 ### Room Type Navigation Logic
 
 **Classroom Rooms**:
+
 ```typescript
-url += '?classroom=true&role=teacher'
+url += '?classroom=true&role=teacher';
 ```
 
 **Speech Rooms**:
+
 ```typescript
-url += '?speech=true&role=teacher'
+url += '?speech=true&role=teacher';
 ```
 
 **Meeting Rooms**:
+
 ```typescript
 // No query params needed (default behavior)
-url = `/rooms/${roomName}`
+url = `/rooms/${roomName}`;
 ```
 
 ### Language Picker Integration
@@ -623,6 +685,7 @@ url = `/rooms/${roomName}`
 The language picker component (`PreJoinLanguageSelect`) was reused from the existing PreJoin implementation:
 
 **Features**:
+
 - Regional grouping (Americas, Europe, Asia, Middle East)
 - Flag emojis for visual recognition
 - Native language names (e.g., "Español" not "Spanish")
@@ -630,6 +693,7 @@ The language picker component (`PreJoinLanguageSelect`) was reused from the exis
 - Shadcn Select component with grouped options
 
 **Integration**:
+
 ```typescript
 <PreJoinLanguageSelect
   selectedLanguage={language}
@@ -642,6 +706,7 @@ The language picker component (`PreJoinLanguageSelect`) was reused from the exis
 ### Metadata Storage Limits
 
 **LiveKit Metadata Limits**:
+
 - Max size: 64 KiB per room
 - Format: JSON string
 - Current usage: ~300 bytes (typical room)
@@ -649,6 +714,7 @@ The language picker component (`PreJoinLanguageSelect`) was reused from the exis
 
 **Future Scalability**:
 For larger metadata needs (schedules, recordings, analytics), consider:
+
 1. External database with room SID as foreign key
 2. Cloud storage (S3) with metadata URLs
 3. LiveKit attributes on participants (separate 64 KiB per participant)
@@ -699,6 +765,7 @@ For larger metadata needs (schedules, recordings, analytics), consider:
 ## Summary
 
 ✅ **Implemented Features**:
+
 - Persistent room creation with metadata storage
 - Room management UI (list, create, delete)
 - Three room types (meeting, classroom, speech)
@@ -709,12 +776,14 @@ For larger metadata needs (schedules, recordings, analytics), consider:
 - Race condition fix for username population
 
 🎯 **Key Success Metrics**:
+
 - Zero external database dependencies (MVP)
 - Sub-100ms metadata fetch times
 - Teacher convenience: 2 clicks to join (vs. 10+ keystrokes)
 - Students maintain separate identity (no auto-fill)
 
 🚀 **Production Ready**:
+
 - Error handling for all edge cases
 - Input validation (client + server)
 - Graceful fallbacks for missing data

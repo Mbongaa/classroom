@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect } from "react";
-import { useRoomContext } from "@livekit/components-react";
+import React, { useState, useEffect } from 'react';
+import { useRoomContext } from '@livekit/components-react';
 
 interface Language {
   code: string;
@@ -41,21 +41,23 @@ const LanguageSelect: React.FC<LanguageSelectProps> = ({
       try {
         // Find the agent participant (identity is "agent")
         const agentParticipant = Array.from(room.participants.values()).find(
-          p => p.identity === 'agent'
+          (p) => p.identity === 'agent',
         );
 
         if (!agentParticipant) {
-          console.log("Translation agent not found in the room yet. Participants:",
-            Array.from(room.participants.values()).map(p => p.identity));
+          console.log(
+            'Translation agent not found in the room yet. Participants:',
+            Array.from(room.participants.values()).map((p) => p.identity),
+          );
           return;
         }
 
-        console.log("Found agent participant:", agentParticipant.identity);
+        console.log('Found agent participant:', agentParticipant.identity);
 
         const response = await room.localParticipant.performRpc({
           destinationIdentity: agentParticipant.identity,
-          method: "get/languages",
-          payload: "",
+          method: 'get/languages',
+          payload: '',
         });
 
         const languageList = JSON.parse(response);
@@ -67,7 +69,7 @@ const LanguageSelect: React.FC<LanguageSelectProps> = ({
           onLanguageChange(languageList[0].code);
         }
       } catch (error) {
-        console.error("Failed to get languages from agent:", error);
+        console.error('Failed to get languages from agent:', error);
       }
     }
 

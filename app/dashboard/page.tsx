@@ -39,7 +39,7 @@ export default function DashboardPage() {
       const { count: recordingCount } = await supabase
         .from('session_recordings')
         .select('*', { count: 'exact', head: true })
-        .in('classroom_id', classrooms?.map(c => c.id) || []);
+        .in('classroom_id', classrooms?.map((c) => c.id) || []);
 
       setStats({
         classroomCount: classroomCount || 0,

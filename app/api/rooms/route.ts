@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     if (!API_KEY || !API_SECRET || !LIVEKIT_URL) {
       return NextResponse.json(
         { error: 'Server configuration error: Missing LiveKit credentials' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -32,10 +32,12 @@ export async function GET(request: NextRequest) {
 
       try {
         // Parse metadata from JSON string
-        metadata = room.metadata ? JSON.parse(room.metadata) : {
-          roomType: 'meeting',
-          createdAt: Number(room.creationTime), // Convert BigInt to number
-        };
+        metadata = room.metadata
+          ? JSON.parse(room.metadata)
+          : {
+              roomType: 'meeting',
+              createdAt: Number(room.creationTime), // Convert BigInt to number
+            };
       } catch (error) {
         // Fallback if metadata parsing fails
         metadata = {
@@ -61,7 +63,7 @@ export async function GET(request: NextRequest) {
     console.error('Error listing rooms:', error);
     return NextResponse.json(
       { error: 'Failed to list rooms', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

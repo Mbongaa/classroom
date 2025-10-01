@@ -69,22 +69,21 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
     }
   }, [question, onSubmit]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleTextSubmit();
-    }
-  }, [handleTextSubmit]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleTextSubmit();
+      }
+    },
+    [handleTextSubmit],
+  );
 
   return (
     <div className={styles.overlay}>
       <div ref={modalRef} className={styles.modal}>
         {/* Close button */}
-        <button
-          className={styles.closeButton}
-          onClick={onClose}
-          aria-label="Close"
-        >
+        <button className={styles.closeButton} onClick={onClose} aria-label="Close">
           ×
         </button>
 
@@ -100,9 +99,7 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
               >
                 <span className={styles.optionIcon}>🎤</span>
                 <span className={styles.optionLabel}>Ask by Voice</span>
-                <span className={styles.optionDescription}>
-                  Request to speak and ask verbally
-                </span>
+                <span className={styles.optionDescription}>Request to speak and ask verbally</span>
               </button>
 
               <button
@@ -112,9 +109,7 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
               >
                 <span className={styles.optionIcon}>💬</span>
                 <span className={styles.optionLabel}>Ask by Text</span>
-                <span className={styles.optionDescription}>
-                  Type your question for display
-                </span>
+                <span className={styles.optionDescription}>Type your question for display</span>
               </button>
             </div>
             <button className={styles.cancelButton} onClick={onClose}>
@@ -134,11 +129,7 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
                 you&apos;ll be able to turn on your microphone and camera to ask your question.
               </p>
               <div className={styles.actions}>
-                <button
-                  className={styles.backButton}
-                  onClick={handleBack}
-                  disabled={isSubmitting}
-                >
+                <button className={styles.backButton} onClick={handleBack} disabled={isSubmitting}>
                   Back
                 </button>
                 <button
@@ -168,15 +159,9 @@ export function RequestModeModal({ onClose, onSubmit }: RequestModeModalProps) {
                 maxLength={200}
                 disabled={isSubmitting}
               />
-              <div className={styles.charCount}>
-                {question.length}/200
-              </div>
+              <div className={styles.charCount}>{question.length}/200</div>
               <div className={styles.actions}>
-                <button
-                  className={styles.backButton}
-                  onClick={handleBack}
-                  disabled={isSubmitting}
-                >
+                <button className={styles.backButton} onClick={handleBack} disabled={isSubmitting}>
                   Back
                 </button>
                 <button

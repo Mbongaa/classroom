@@ -23,7 +23,7 @@ export function StudentPermissionNotification({
   room,
   onAccept,
   onDecline,
-  onDismiss
+  onDismiss,
 }: StudentPermissionNotificationProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -77,12 +77,8 @@ export function StudentPermissionNotification({
           <div className="notification-title">
             {isGrant ? 'Speaking Permission Granted' : 'Speaking Permission Revoked'}
           </div>
-          <div className="notification-message">
-            {notification.message}
-          </div>
-          <div className="notification-from">
-            by {notification.grantedBy}
-          </div>
+          <div className="notification-message">{notification.message}</div>
+          <div className="notification-from">by {notification.grantedBy}</div>
         </div>
 
         {isGrant && (

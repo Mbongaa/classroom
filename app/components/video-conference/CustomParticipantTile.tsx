@@ -12,16 +12,7 @@ import {
   useLocalParticipant,
 } from '@livekit/components-react';
 import { Track, ConnectionQuality } from 'livekit-client';
-import {
-  Mic,
-  MicOff,
-  Video,
-  VideoOff,
-  Wifi,
-  WifiOff,
-  User,
-  ScreenShare,
-} from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare } from 'lucide-react';
 import clsx from 'clsx';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -61,7 +52,8 @@ export function CustomParticipantTile({
 
   // Get video and audio tracks
   const videoTrack = trackRef.publication?.track;
-  const isVideoEnabled = trackRef.publication?.isSubscribed &&
+  const isVideoEnabled =
+    trackRef.publication?.isSubscribed &&
     (trackRef.source === Track.Source.Camera || trackRef.source === Track.Source.ScreenShare) &&
     !trackRef.publication?.isMuted;
   const isScreenShare = trackRef.source === Track.Source.ScreenShare;
@@ -120,7 +112,7 @@ export function CustomParticipantTile({
     }
 
     const cleanName = name.trim();
-    const parts = cleanName.split(/\s+/).filter(part => part.length > 0);
+    const parts = cleanName.split(/\s+/).filter((part) => part.length > 0);
 
     if (parts.length === 0) {
       return 'UN';
@@ -136,28 +128,28 @@ export function CustomParticipantTile({
   };
 
   return (
-    <VideoErrorBoundary fallbackMessage={`Error loading video for ${participant.name || participant.identity}`}>
+    <VideoErrorBoundary
+      fallbackMessage={`Error loading video for ${participant.name || participant.identity}`}
+    >
       <div
         {...elementProps}
         className={clsx(
           'relative overflow-hidden rounded-3xl',
           'w-full h-full',
           getAspectRatioClass(), // Apply the aspect ratio class
-          className
+          className,
         )}
         style={{
           backgroundColor: 'var(--lk-bg3)',
-          ...(isSpeaking && showSpeakingIndicator && {
-            boxShadow: `0 0 0 var(--lk-speaking-thickness, 6px) var(--lk-speaking-border, white)`
-          })
+          ...(isSpeaking &&
+            showSpeakingIndicator && {
+              boxShadow: `0 0 0 var(--lk-speaking-thickness, 6px) var(--lk-speaking-border, white)`,
+            }),
         }}
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
-          <VideoTrack
-            trackRef={trackRef}
-            className="absolute inset-0 w-full h-full object-cover"
-          />
+          <VideoTrack trackRef={trackRef} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -178,7 +170,7 @@ export function CustomParticipantTile({
                     className="text-2xl font-semibold"
                     style={{
                       backgroundColor: 'transparent',
-                      color: 'var(--lk-text1, white)'
+                      color: 'var(--lk-text1, white)',
                     }}
                   >
                     {getInitials(participant.name || participant.identity)}
@@ -186,118 +178,112 @@ export function CustomParticipantTile({
                 </Avatar>
               )}
               <p className="text-sm" style={{ color: 'var(--lk-text2, #6b7280)' }}>
-                {isScreenShare ? 'Screen Share' : (participant.name || participant.identity)}
+                {isScreenShare ? 'Screen Share' : participant.name || participant.identity}
               </p>
             </div>
           </div>
         )}
 
-      {/* Audio Track (invisible but necessary for audio playback) */}
-      {audioPublication && audioPublication.track && (
-        <AudioTrack
-          trackRef={{
-            participant,
-            source: Track.Source.Microphone,
-            publication: audioPublication,
-          }}
-        />
-      )}
+        {/* Audio Track (invisible but necessary for audio playback) */}
+        {audioPublication && audioPublication.track && (
+          <AudioTrack
+            trackRef={{
+              participant,
+              source: Track.Source.Microphone,
+              publication: audioPublication,
+            }}
+          />
+        )}
 
-      {/* Overlay Information */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Top Bar */}
-        <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
-          <div className="flex items-center justify-between">
-            {/* Participant Name */}
-            <div className="flex items-center gap-2">
-              <span
-                className="text-sm font-medium truncate max-w-[150px]"
-                style={{ color: 'white' }}
-              >
-                {participant.name || participant.identity}
-              </span>
-            </div>
-
-            {/* Status Icons - removed connection quality */}
-          </div>
-        </div>
-
-        {/* Bottom Bar */}
-        <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
-          <div className="flex items-center justify-between">
-            {/* Media Status Icons */}
-            <div className="flex items-center gap-2">
-              {/* Microphone Status */}
-              <div
-                className="p-1.5 rounded-full"
-                style={{
-                  backgroundColor: isAudioEnabled ? 'var(--lk-bg3)' : '#ef4444'
-                }}
-                title={isAudioEnabled ? 'Microphone on' : 'Microphone off'}
-              >
-                {isAudioEnabled ? (
-                  <Mic
-                    className="w-3.5 h-3.5"
-                    style={{ color: 'var(--lk-text1, white)' }}
-                  />
-                ) : (
-                  <MicOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
-                )}
+        {/* Overlay Information */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Top Bar */}
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+            <div className="flex items-center justify-between">
+              {/* Participant Name */}
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-sm font-medium truncate max-w-[150px]"
+                  style={{ color: 'white' }}
+                >
+                  {participant.name || participant.identity}
+                </span>
               </div>
 
-              {/* Camera Status (only if not screen share) */}
-              {!isScreenShare && (
+              {/* Status Icons - removed connection quality */}
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+            <div className="flex items-center justify-between">
+              {/* Media Status Icons */}
+              <div className="flex items-center gap-2">
+                {/* Microphone Status */}
                 <div
                   className="p-1.5 rounded-full"
                   style={{
-                    backgroundColor: isVideoEnabled ? 'var(--lk-bg3)' : '#ef4444'
+                    backgroundColor: isAudioEnabled ? 'var(--lk-bg3)' : '#ef4444',
                   }}
-                  title={isVideoEnabled ? 'Camera on' : 'Camera off'}
+                  title={isAudioEnabled ? 'Microphone on' : 'Microphone off'}
                 >
-                  {isVideoEnabled ? (
-                    <Video
-                      className="w-3.5 h-3.5"
-                      style={{ color: 'var(--lk-text1, white)' }}
-                    />
+                  {isAudioEnabled ? (
+                    <Mic className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
                   ) : (
-                    <VideoOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                    <MicOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
                   )}
+                </div>
+
+                {/* Camera Status (only if not screen share) */}
+                {!isScreenShare && (
+                  <div
+                    className="p-1.5 rounded-full"
+                    style={{
+                      backgroundColor: isVideoEnabled ? 'var(--lk-bg3)' : '#ef4444',
+                    }}
+                    title={isVideoEnabled ? 'Camera on' : 'Camera off'}
+                  >
+                    {isVideoEnabled ? (
+                      <Video className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
+                    ) : (
+                      <VideoOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Speaking Indicator */}
+              {showSpeakingIndicator && isSpeaking && (
+                <div className="flex gap-0.5">
+                  {[0, 1, 2].map((i) => (
+                    <div
+                      key={i}
+                      className="w-1 h-3 rounded-full animate-pulse"
+                      style={{
+                        backgroundColor: 'var(--lk-text1, white)',
+                        animationDelay: `${i * 100}ms`,
+                      }}
+                    />
+                  ))}
                 </div>
               )}
             </div>
-
-            {/* Speaking Indicator */}
-            {showSpeakingIndicator && isSpeaking && (
-              <div className="flex gap-0.5">
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    className="w-1 h-3 rounded-full animate-pulse"
-                    style={{
-                      backgroundColor: 'var(--lk-text1, white)',
-                      animationDelay: `${i * 100}ms`,
-                    }}
-                  />
-                ))}
-              </div>
-            )}
           </div>
+
+          {/* Additional Metadata */}
+          {showMetadata && metadata.additionalInfo && (
+            <div
+              className="absolute top-12 left-2 right-2 text-xs rounded px-2 py-1"
+              style={{
+                color: 'var(--lk-text1, white)',
+                backgroundColor: 'var(--lk-bg2)',
+              }}
+            >
+              {metadata.additionalInfo}
+            </div>
+          )}
         </div>
-
-        {/* Additional Metadata */}
-        {showMetadata && metadata.additionalInfo && (
-          <div
-            className="absolute top-12 left-2 right-2 text-xs rounded px-2 py-1"
-            style={{
-              color: 'var(--lk-text1, white)',
-              backgroundColor: 'var(--lk-bg2)'
-            }}
-          >
-            {metadata.additionalInfo}
-          </div>
-        )}
       </div>
-    </div>
     </VideoErrorBoundary>
   );
 }

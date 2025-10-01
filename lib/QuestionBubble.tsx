@@ -16,7 +16,7 @@ export function QuestionBubble({
   studentName,
   onClose,
   isDisplayedToAll = false,
-  position
+  position,
 }: QuestionBubbleProps) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -51,19 +51,11 @@ export function QuestionBubble({
         <MessageCircle className="h-4 w-4" />
         <AlertTitle className={styles.alertTitle}>
           {studentName}
-          {isDisplayedToAll && (
-            <span className={styles.badge}>Displayed to All</span>
-          )}
+          {isDisplayedToAll && <span className={styles.badge}>Displayed to All</span>}
         </AlertTitle>
-        <AlertDescription className={styles.alertDescription}>
-          {question}
-        </AlertDescription>
+        <AlertDescription className={styles.alertDescription}>{question}</AlertDescription>
         {(onClose || isDisplayedToAll) && (
-          <button
-            className={styles.closeButton}
-            onClick={handleClose}
-            aria-label="Close question"
-          >
+          <button className={styles.closeButton} onClick={handleClose} aria-label="Close question">
             ×
           </button>
         )}

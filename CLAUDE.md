@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **CRITICAL**: This is a LiveKit real-time communication project. All operations in this repository MUST use the **`--persona-livekit-architect`** persona by default.
 
 The LiveKit Architect persona is required because:
+
 - LiveKit uses event-driven, state-machine architecture (not traditional web patterns)
 - Incorrect patterns from generalist personas have caused system breakages
 - Real-time communication requires specialized WebRTC and LiveKit expertise
@@ -96,23 +97,27 @@ Token structure includes metadata with role information for client-side UI adapt
 The codebase includes classroom features for educational use (Phases 1-6 complete, 55% of roadmap):
 
 **Phase 1 - Role-Based Access**:
+
 - Token generation with teacher/student permissions
 - Smart PreJoin defaults (students join with mic/camera off)
 - Role badges and graceful error handling
 
 **Phase 2 - Teacher-Shares-Link Flow**:
+
 - URL shortcuts: `/s/[roomName]` for students, `/t/[roomName]` for teachers
 - Copy Student Link button for teachers (floating top-right in conference)
 - Optional PIN protection (4-6 digits)
 - Enhanced student welcome experience
 
 **Phase 3 - Classroom Client UI**:
+
 - Custom classroom layout with teacher spotlight and student grid
 - Role-based UI with visual badges
 - Translation sidebar for students
 - Chat integration with LiveKit patterns
 
 **Phase 4 - UI Enhancements & Bug Fixes**:
+
 - Fixed audio routing and duplicate sections
 - Speaking indicator for teacher
 - Resizable sidebars (translation and chat)
@@ -120,6 +125,7 @@ The codebase includes classroom features for educational use (Phases 1-6 complet
 - LiveKit-compliant implementations
 
 **Phase 5 - Teacher Permission Controls**:
+
 - LiveKit updateParticipant API for dynamic permissions (best practice)
 - Real-time permission updates without reconnection
 - Portal-based dropdown UI (floating above all content)
@@ -128,6 +134,7 @@ The codebase includes classroom features for educational use (Phases 1-6 complet
 - No token regeneration needed (server-side updates)
 
 **Phase 6 - Student Request System (COMPLETED)**:
+
 - Dual-mode request system (voice 🎤 or text 💬)
 - Floating raise hand button for students
 - Request mode selection modal
@@ -138,6 +145,7 @@ The codebase includes classroom features for educational use (Phases 1-6 complet
 - Real-time updates via LiveKit Data Channels
 
 **Usage**:
+
 - Teachers: Start classroom → optionally set PIN → share generated link
 - Students: Click teacher's link → enter name → join as listener
 
@@ -147,6 +155,7 @@ See `CLASSROOM_PHASE_1.md` through `CLASSROOM_PHASE_6_COMPLETED.md` for implemen
 See `CLASSROOM_ROADMAP.md` for next phases (Phase 8: Interactive Learning Tools ready to start).
 
 **Important Notes**:
+
 - Translation sidebar exists but is UI-only (no actual translation functionality)
 - Phase 7 (Permissions API) removed from roadmap as Phase 5 already implements this
 - updateParticipant API confirmed as LiveKit best practice for dynamic permissions
@@ -154,6 +163,7 @@ See `CLASSROOM_ROADMAP.md` for next phases (Phase 8: Interactive Learning Tools 
 ### Translation System
 
 The project includes two translation implementations:
+
 1. **Local Translation Agent** (`translation_agent/`) - Development/testing agent using OpenAI
 2. **Bayaan Server Integration** - Production-grade translation with Speechmatics + OpenAI
 
@@ -179,14 +189,17 @@ For details on using the superior Bayaan server for production, see: `BAYAAN_SER
 ### LiveKit UI Customization
 
 **CRITICAL**: Before creating ANY UI components, you MUST read and understand:
+
 - **`LIVEKIT_CUSTOM_UI_INTEGRATION_GUIDE.md`** - Complete guide on proper LiveKit UI integration
 
 **Key Principle**: "We provide the logic, you provide the presentation"
+
 - **NEVER** override LiveKit CSS classes (`.lk-*`)
 - **ALWAYS** use LiveKit hooks for logic with custom UI components
 - **USE** Shadcn UI components with LiveKit hooks for consistent design
 
 Example of correct pattern:
+
 ```typescript
 // ✅ CORRECT: Use LiveKit hook with Shadcn UI
 import { useTrackToggle } from '@livekit/components-react';
@@ -201,6 +214,7 @@ return <Button onClick={toggle}>{isEnabled ? 'Mute' : 'Unmute'}</Button>;
 **IMPORTANT**: This codebase uses **valid and correct LiveKit SDK patterns**. There are two equally valid approaches for building LiveKit components:
 
 #### Approach 1: Direct LiveKit Client SDK (Current Implementation ✅)
+
 - Uses `createLocalVideoTrack()` and `createLocalAudioTrack()` from `livekit-client`
 - Direct track management with proper lifecycle (create, use, cleanup)
 - **This is an official LiveKit pattern** and is functionally correct
@@ -215,6 +229,7 @@ const audioTrack = await createLocalAudioTrack({ deviceId });
 ```
 
 #### Approach 2: LiveKit React Hooks (Alternative)
+
 - Uses `usePreviewTracks()` or `useTrackToggle()` from `@livekit/components-react`
 - Higher-level abstraction with built-in state management
 - Convenient for customizing pre-built LiveKit components
@@ -226,6 +241,7 @@ const tracks = usePreviewTracks(options, onError);
 ```
 
 #### When to Use Each Approach:
+
 - **Direct SDK**: For fully custom components where you need fine control (current PreJoin)
 - **React Hooks**: When customizing pre-built LiveKit components or preferring hooks abstraction
 

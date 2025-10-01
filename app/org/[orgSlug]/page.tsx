@@ -1,20 +1,23 @@
-import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation';
+import { createClient } from '@/lib/supabase/server';
 
 interface PageProps {
   params: Promise<{
-    orgSlug: string
-  }>
+    orgSlug: string;
+  }>;
 }
 
 export default async function OrganizationDashboard({ params }: PageProps) {
-  const { orgSlug } = await params
-  const supabase = await createClient()
+  const { orgSlug } = await params;
+  const supabase = await createClient();
 
   // Check authentication
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   if (!user) {
-    redirect('/login')
+    redirect('/login');
   }
 
   // Get user's profile with organization
@@ -22,29 +25,29 @@ export default async function OrganizationDashboard({ params }: PageProps) {
     .from('profiles')
     .select('*, organizations(*)')
     .eq('id', user.id)
-    .single()
+    .single();
 
   if (!profile || !profile.organizations) {
-    redirect('/dashboard')
+    redirect('/dashboard');
   }
 
   // Verify user belongs to this organization
-  const org = profile.organizations
+  const org = profile.organizations;
   if (org.slug !== orgSlug) {
-    redirect(`/org/${org.slug}`)
+    redirect(`/org/${org.slug}`);
   }
 
   // Get organization members count
   const { count: memberCount } = await supabase
     .from('organization_members')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', org.id)
+    .eq('organization_id', org.id);
 
   // Get classrooms count
   const { count: classroomCount } = await supabase
     .from('classrooms')
     .select('*', { count: 'exact', head: true })
-    .eq('organization_id', org.id)
+    .eq('organization_id', org.id);
 
   return (
     <div className="container mx-auto py-8">
@@ -132,7 +135,12 @@ export default async function OrganizationDashboard({ params }: PageProps) {
                   >
                     <span>Invite Members</span>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </a>
                   <a
@@ -141,7 +149,12 @@ export default async function OrganizationDashboard({ params }: PageProps) {
                   >
                     <span>Organization Settings</span>
                     <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </a>
                 </>
@@ -153,7 +166,12 @@ export default async function OrganizationDashboard({ params }: PageProps) {
                 >
                   <span>Create Classroom</span>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </a>
               )}
@@ -163,7 +181,12 @@ export default async function OrganizationDashboard({ params }: PageProps) {
               >
                 <span>View All Classrooms</span>
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </a>
               <a
@@ -172,7 +195,12 @@ export default async function OrganizationDashboard({ params }: PageProps) {
               >
                 <span>Quick Meeting (No Database)</span>
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </a>
             </div>
@@ -191,7 +219,7 @@ export default async function OrganizationDashboard({ params }: PageProps) {
                   {new Date(org.created_at).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
                   })}
                 </dd>
               </div>
@@ -204,5 +232,5 @@ export default async function OrganizationDashboard({ params }: PageProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

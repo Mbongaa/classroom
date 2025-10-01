@@ -35,7 +35,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // Filter segments for the selected language
       const filteredSegments = segments.filter(
-        seg => seg.language === targetLanguage && seg.final
+        (seg) => seg.language === targetLanguage && seg.final,
       );
 
       // Process new segments
@@ -44,13 +44,13 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
         speaker: seg.participant?.name || 'Speaker',
         text: seg.text,
         timestamp: Date.now(),
-        isLatest: false
+        isLatest: false,
       }));
 
       if (newSegments.length > 0) {
-        setTranslatedSegments(prev => {
+        setTranslatedSegments((prev) => {
           // Add new segments and keep only last 100
-          const updated = [...prev.map(s => ({ ...s, isLatest: false })), ...newSegments];
+          const updated = [...prev.map((s) => ({ ...s, isLatest: false })), ...newSegments];
           // Mark the last one as latest
           if (updated.length > 0) {
             updated[updated.length - 1].isLatest = true;

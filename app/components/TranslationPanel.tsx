@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useRoomContext } from "@livekit/components-react";
-import { useState, useEffect, useRef } from "react";
-import { TranscriptionSegment, RoomEvent } from "livekit-client";
+import { useRoomContext } from '@livekit/components-react';
+import { useState, useEffect, useRef } from 'react';
+import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages } from 'lucide-react';
 import styles from './TranslationPanel.module.css';
 
@@ -20,7 +20,11 @@ interface TranslationEntry {
   language: string;
 }
 
-export default function TranslationPanel({ captionsLanguage, onClose, showCloseButton = false }: TranslationPanelProps) {
+export default function TranslationPanel({
+  captionsLanguage,
+  onClose,
+  showCloseButton = false,
+}: TranslationPanelProps) {
   const room = useRoomContext();
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
   const [isReceiving, setIsReceiving] = useState(false);
@@ -32,21 +36,19 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // Filter segments for the selected language
-      const filteredSegments = segments.filter(
-        seg => seg.language === captionsLanguage
-      );
+      const filteredSegments = segments.filter((seg) => seg.language === captionsLanguage);
 
       // Add new translations to the list
-      const newEntries = filteredSegments.map(segment => ({
+      const newEntries = filteredSegments.map((segment) => ({
         id: segment.id,
         text: segment.text,
         timestamp: new Date(),
-        participantName: "Teacher", // Translations come from the teacher via agent
-        language: segment.language
+        participantName: 'Teacher', // Translations come from the teacher via agent
+        language: segment.language,
       }));
 
       if (newEntries.length > 0) {
-        setTranslations(prev => {
+        setTranslations((prev) => {
           // Keep only last 100 translations to prevent memory issues
           const updated = [...prev, ...newEntries];
           if (updated.length > 100) {
@@ -80,7 +82,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
     if (scrollRef.current) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   }, [translations]);
@@ -90,7 +92,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: true,
     });
   };
 
@@ -106,7 +108,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
       zh: 'Chinese',
       pt: 'Portuguese',
       ru: 'Russian',
-      ko: 'Korean'
+      ko: 'Korean',
     };
     return languages[code] || code.toUpperCase();
   };
@@ -124,9 +126,7 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
         </p>
         <div className={styles.languageIndicator}>
           <span className={styles.languageLabel}>Selected Language:</span>
-          <span className={styles.languageBadge}>
-            {getLanguageName(captionsLanguage)}
-          </span>
+          <span className={styles.languageBadge}>{getLanguageName(captionsLanguage)}</span>
         </div>
       </div>
     );
@@ -141,18 +141,10 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
           <span className={styles.headerTitle}>Live Translations</span>
         </div>
         <div className={styles.headerRight}>
-          <span className={styles.languageBadge}>
-            {getLanguageName(captionsLanguage)}
-          </span>
-          <span className={styles.messageCountBadge}>
-            {translations.length}
-          </span>
+          <span className={styles.languageBadge}>{getLanguageName(captionsLanguage)}</span>
+          <span className={styles.messageCountBadge}>{translations.length}</span>
           {showCloseButton && onClose && (
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label="Close translation"
-            >
+            <button className={styles.closeButton} onClick={onClose} aria-label="Close translation">
               ×
             </button>
           )}
@@ -173,13 +165,9 @@ export default function TranslationPanel({ captionsLanguage, onClose, showCloseB
                   <span className={styles.speakerIcon}>👤</span>
                   {entry.participantName}
                 </span>
-                <span className={styles.timestamp}>
-                  {formatTime(entry.timestamp)}
-                </span>
+                <span className={styles.timestamp}>{formatTime(entry.timestamp)}</span>
               </div>
-              <div className={styles.translationText}>
-                {entry.text}
-              </div>
+              <div className={styles.translationText}>{entry.text}</div>
               {isLatest && (
                 <div className={styles.latestIndicator}>
                   <span className={styles.latestBadge}>Latest</span>

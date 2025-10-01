@@ -1,7 +1,7 @@
-"use client";
-import { cn } from "@/lib/utils";
-import React from "react";
-import { motion, AnimatePresence, useAnimate } from "framer-motion";
+'use client';
+import { cn } from '@/lib/utils';
+import React from 'react';
+import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
@@ -13,11 +13,11 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
 
   const animateLoading = async () => {
     await animate(
-      ".loader",
+      '.loader',
       {
-        width: "20px",
+        width: '20px',
         scale: 1,
-        display: "block",
+        display: 'block',
       },
       {
         duration: 0.2,
@@ -27,22 +27,22 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
 
   const animateSuccess = async () => {
     await animate(
-      ".loader",
+      '.loader',
       {
-        width: "0px",
+        width: '0px',
         scale: 0,
-        display: "none",
+        display: 'none',
       },
       {
         duration: 0.2,
       },
     );
     await animate(
-      ".check",
+      '.check',
       {
-        width: "20px",
+        width: '20px',
         scale: 1,
-        display: "block",
+        display: 'block',
       },
       {
         duration: 0.2,
@@ -50,11 +50,11 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
     );
 
     await animate(
-      ".check",
+      '.check',
       {
-        width: "0px",
+        width: '0px',
         scale: 0,
-        display: "none",
+        display: 'none',
       },
       {
         delay: 2,
@@ -85,7 +85,7 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
       layoutId="button"
       ref={scope}
       className={cn(
-        "flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-white dark:ring-offset-black",
+        'flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-white dark:ring-offset-black',
         className,
       )}
       {...buttonProps}
@@ -109,16 +109,16 @@ const Loader = () => {
       initial={{
         scale: 0,
         width: 0,
-        display: "none",
+        display: 'none',
       }}
       style={{
         scale: 0.5,
-        display: "none",
+        display: 'none',
       }}
       transition={{
         duration: 0.3,
         repeat: Infinity,
-        ease: "linear",
+        ease: 'linear',
       }}
       xmlns="http://www.w3.org/2000/svg"
       width="24"
@@ -143,11 +143,11 @@ const CheckIcon = () => {
       initial={{
         scale: 0,
         width: 0,
-        display: "none",
+        display: 'none',
       }}
       style={{
         scale: 0.5,
-        display: "none",
+        display: 'none',
       }}
       xmlns="http://www.w3.org/2000/svg"
       width="24"

@@ -1,6 +1,6 @@
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
-import { NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
+import { NextResponse } from 'next/server';
 
 /**
  * Sign Out Route Handler
@@ -24,38 +24,38 @@ import { NextResponse } from 'next/server'
  * @returns JSON response with success/error status
  */
 export async function POST(request: Request) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Check if a user is signed in
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (user) {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut();
   }
 
   // Revalidate the entire site to clear cached user data
-  revalidatePath('/', 'layout')
+  revalidatePath('/', 'layout');
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true });
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
   // Check if a user is signed in
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (user) {
-    await supabase.auth.signOut()
+    await supabase.auth.signOut();
   }
 
   // Revalidate the entire site to clear cached user data
-  revalidatePath('/', 'layout')
+  revalidatePath('/', 'layout');
 
   // Redirect to login page
-  return NextResponse.redirect(new URL('/login', request.url))
+  return NextResponse.redirect(new URL('/login', request.url));
 }

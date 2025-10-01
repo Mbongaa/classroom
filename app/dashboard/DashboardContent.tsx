@@ -70,9 +70,7 @@ export function DashboardContent({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, {userName}!
-        </h1>
+        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {userName}!</h1>
         <p className="text-muted-foreground">
           Here&apos;s what&apos;s happening with your classrooms today.
         </p>
@@ -111,7 +109,14 @@ export function DashboardContent({
               Start or join a video conference session.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', alignItems: 'center' }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                alignItems: 'center',
+              }}
+            >
               {/* Start Meeting */}
               <button
                 onClick={startMeeting}
@@ -137,7 +142,14 @@ export function DashboardContent({
               </button>
 
               {/* Divider */}
-              <div style={{ width: '100%', height: '1px', background: 'rgba(128, 128, 128, 0.3)', margin: '0.5rem 0' }} />
+              <div
+                style={{
+                  width: '100%',
+                  height: '1px',
+                  background: 'rgba(128, 128, 128, 0.3)',
+                  margin: '0.5rem 0',
+                }}
+              />
 
               {/* Manage Persistent Rooms */}
               <button
@@ -149,8 +161,12 @@ export function DashboardContent({
             </div>
 
             {/* E2EE Section - EXACT original */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}>
-              <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}>
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}
+            >
+              <div
+                style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}
+              >
                 <input
                   id="use-e2ee"
                   type="checkbox"
@@ -162,8 +178,17 @@ export function DashboardContent({
                 </label>
               </div>
               {e2ee && (
-                <div style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}>
-                  <label htmlFor="passphrase" className="text-black dark:text-white">Passphrase</label>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: '1rem',
+                    alignItems: 'center',
+                  }}
+                >
+                  <label htmlFor="passphrase" className="text-black dark:text-white">
+                    Passphrase
+                  </label>
                   <input
                     id="passphrase"
                     type="password"

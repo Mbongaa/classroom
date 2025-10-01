@@ -52,53 +52,58 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
 ## Usage Examples
 
 ### Client Component (Browser)
-```tsx
-'use client'
 
-import { createClient } from '@/lib/supabase/client'
+```tsx
+'use client';
+
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignInButton() {
-  const supabase = createClient()
+  const supabase = createClient();
 
   async function handleSignIn() {
     const { error } = await supabase.auth.signInWithPassword({
       email: 'user@example.com',
-      password: 'password'
-    })
+      password: 'password',
+    });
   }
 
-  return <button onClick={handleSignIn}>Sign In</button>
+  return <button onClick={handleSignIn}>Sign In</button>;
 }
 ```
 
 ### Server Component
+
 ```tsx
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server';
 
 export default async function ProtectedPage() {
-  const supabase = await createClient()
+  const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect('/login')
+    redirect('/login');
   }
 
-  return <div>Hello {user.email}</div>
+  return <div>Hello {user.email}</div>;
 }
 ```
 
 ### Server Action
-```tsx
-'use server'
 
-import { createClient } from '@/lib/supabase/server'
-import { revalidatePath } from 'next/cache'
+```tsx
+'use server';
+
+import { createClient } from '@/lib/supabase/server';
+import { revalidatePath } from 'next/cache';
 
 export async function signOut() {
-  const supabase = await createClient()
-  await supabase.auth.signOut()
-  revalidatePath('/', 'layout')
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
 }
 ```
 
@@ -130,11 +135,13 @@ Add to your MCP client configuration (e.g., Claude Desktop config):
 ```
 
 ### Get Your Project Ref
+
 1. Go to your Supabase Dashboard
 2. Settings > General
 3. Copy the "Reference ID"
 
 ### Get Your Access Token
+
 1. Go to https://supabase.com/dashboard/account/tokens
 2. Click "Generate new token"
 3. Copy the token
@@ -142,6 +149,7 @@ Add to your MCP client configuration (e.g., Claude Desktop config):
 ### MCP Server Capabilities
 
 When configured, the MCP server provides:
+
 - Database schema exploration
 - SQL query execution
 - Migration management
@@ -174,12 +182,14 @@ This authentication layer is **separate** from LiveKit functionality:
 ## Best Practices
 
 ### ✅ DO
+
 - Use the appropriate client for each context (browser/server/middleware)
 - Always check for users in protected routes
 - Handle authentication errors gracefully
 - Use Server Actions for mutations
 
 ### ❌ DON'T
+
 - Mix client types (e.g., using browser client in Server Components)
 - Add logic between `createServerClient` and `getUser()` calls
 - Modify middleware cookies directly
@@ -188,15 +198,18 @@ This authentication layer is **separate** from LiveKit functionality:
 ## Troubleshooting
 
 ### Users Getting Logged Out Randomly
+
 - Check middleware implementation - no logic between client creation and `getUser()`
 - Ensure middleware is returning the `supabaseResponse` object correctly
 
 ### Session Not Persisting
+
 - Verify environment variables are set correctly
 - Check that middleware is running (matcher configuration)
 - Ensure cookies are not being blocked by browser
 
 ### TypeScript Errors
+
 - Run `pnpm install` to ensure all dependencies are installed
 - Check that `@supabase/supabase-js` and `@supabase/ssr` are in package.json
 

@@ -37,14 +37,17 @@ export function useResizable({
     setIsResizing(true);
   }, []);
 
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing) return;
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing) return;
 
-    const newWidth = widthCalculation(e.clientX);
-    if (newWidth >= minWidth && newWidth <= maxWidth) {
-      setWidth(newWidth);
-    }
-  }, [isResizing, widthCalculation, minWidth, maxWidth]);
+      const newWidth = widthCalculation(e.clientX);
+      if (newWidth >= minWidth && newWidth <= maxWidth) {
+        setWidth(newWidth);
+      }
+    },
+    [isResizing, widthCalculation, minWidth, maxWidth],
+  );
 
   const handleMouseUp = useCallback(() => {
     setIsResizing(false);

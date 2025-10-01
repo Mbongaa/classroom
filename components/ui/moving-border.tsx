@@ -1,19 +1,19 @@
-"use client";
-import React from "react";
+'use client';
+import React from 'react';
 import {
   motion,
   useAnimationFrame,
   useMotionTemplate,
   useMotionValue,
   useTransform,
-} from "framer-motion";
-import { useRef } from "react";
-import { cn } from "@/lib/utils";
+} from 'framer-motion';
+import { useRef } from 'react';
+import { cn } from '@/lib/utils';
 
 export function Button({
-  borderRadius = "1.75rem",
+  borderRadius = '1.75rem',
   children,
-  as: Component = "button",
+  as: Component = 'button',
   containerClassName,
   borderClassName,
   duration,
@@ -34,7 +34,7 @@ export function Button({
   return (
     <Component
       className={cn(
-        "relative h-16 w-40 overflow-hidden bg-transparent p-[1px] text-xl",
+        'relative h-16 w-40 overflow-hidden bg-transparent p-[1px] text-xl',
         containerClassName,
       )}
       style={{
@@ -43,15 +43,12 @@ export function Button({
       disabled={disabled}
       {...otherProps}
     >
-      <div
-        className="absolute inset-0"
-        style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}
-      >
+      <div className="absolute inset-0" style={{ borderRadius: `calc(${borderRadius} * 0.96)` }}>
         {!disabled ? (
           <MovingBorder duration={duration} rx="30%" ry="30%">
             <div
               className={cn(
-                "h-20 w-20 bg-[radial-gradient(#000000_40%,transparent_60%)] dark:bg-[radial-gradient(#ffffff_40%,transparent_60%)] opacity-[0.8]",
+                'h-20 w-20 bg-[radial-gradient(#000000_40%,transparent_60%)] dark:bg-[radial-gradient(#ffffff_40%,transparent_60%)] opacity-[0.8]',
                 borderClassName,
               )}
             />
@@ -63,8 +60,8 @@ export function Button({
 
       <div
         className={cn(
-          "relative flex h-full w-full items-center justify-center border border-slate-800 bg-slate-900/[0.8] text-sm text-white antialiased backdrop-blur-xl",
-          disabled && "opacity-50 cursor-not-allowed",
+          'relative flex h-full w-full items-center justify-center border border-slate-800 bg-slate-900/[0.8] text-sm text-white antialiased backdrop-blur-xl',
+          disabled && 'opacity-50 cursor-not-allowed',
           className,
         )}
         style={{
@@ -101,14 +98,8 @@ export const MovingBorder = ({
     }
   });
 
-  const x = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).x,
-  );
-  const y = useTransform(
-    progress,
-    (val) => pathRef.current?.getPointAtLength(val).y,
-  );
+  const x = useTransform(progress, (val) => pathRef.current?.getPointAtLength(val).x);
+  const y = useTransform(progress, (val) => pathRef.current?.getPointAtLength(val).y);
 
   const transform = useMotionTemplate`translateX(${x}px) translateY(${y}px) translateX(-50%) translateY(-50%)`;
 
@@ -122,21 +113,14 @@ export const MovingBorder = ({
         height="100%"
         {...otherProps}
       >
-        <rect
-          fill="none"
-          width="100%"
-          height="100%"
-          rx={rx}
-          ry={ry}
-          ref={pathRef}
-        />
+        <rect fill="none" width="100%" height="100%" rx={rx} ry={ry} ref={pathRef} />
       </svg>
       <motion.div
         style={{
-          position: "absolute",
+          position: 'absolute',
           top: 0,
           left: 0,
-          display: "inline-block",
+          display: 'inline-block',
           transform,
         }}
       >

@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useFormStatus } from 'react-dom'
-import { signUp } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { signUp } from '@/lib/actions/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 function SubmitButton() {
-  const { pending } = useFormStatus()
+  const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
       {pending ? 'Creating account...' : 'Create Account'}
     </Button>
-  )
+  );
 }
 
 function slugify(text: string): string {
@@ -22,25 +22,25 @@ function slugify(text: string): string {
     .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/--+/g, '-')
-    .trim()
+    .trim();
 }
 
 export function SignupForm() {
-  const [error, setError] = useState<string | null>(null)
-  const [orgName, setOrgName] = useState('')
-  const [orgSlug, setOrgSlug] = useState('')
+  const [error, setError] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState('');
+  const [orgSlug, setOrgSlug] = useState('');
 
   function handleOrgNameChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const name = e.target.value
-    setOrgName(name)
-    setOrgSlug(slugify(name))
+    const name = e.target.value;
+    setOrgName(name);
+    setOrgSlug(slugify(name));
   }
 
   async function handleSubmit(formData: FormData) {
-    setError(null)
-    const result = await signUp(formData)
+    setError(null);
+    const result = await signUp(formData);
     if (!result.success && result.error) {
-      setError(result.error)
+      setError(result.error);
     }
   }
 
@@ -91,9 +91,7 @@ export function SignupForm() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Organization Details
-              </span>
+              <span className="bg-background px-2 text-muted-foreground">Organization Details</span>
             </div>
           </div>
 
@@ -108,7 +106,9 @@ export function SignupForm() {
               onChange={handleOrgNameChange}
               required
             />
-            <p className="text-xs text-muted-foreground">Your school, company, or organization name</p>
+            <p className="text-xs text-muted-foreground">
+              Your school, company, or organization name
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -127,18 +127,18 @@ export function SignupForm() {
                 // No pattern attribute - slugify handles validation
               />
             </div>
-            <p className="text-xs text-muted-foreground">Lowercase letters, numbers, and hyphens only</p>
+            <p className="text-xs text-muted-foreground">
+              Lowercase letters, numbers, and hyphens only
+            </p>
           </div>
 
           {error && (
-            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">
-              {error}
-            </div>
+            <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}
 
           <SubmitButton />
         </div>
       </form>
     </div>
-  )
+  );
 }

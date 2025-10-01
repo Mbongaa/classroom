@@ -16,7 +16,7 @@ describe('Student Request System', () => {
           onRequestSubmit={onRequestSubmit}
           hasActiveRequest={false}
           isStudent={true}
-        />
+        />,
       );
 
       const button = screen.getByRole('button', { name: /raise hand/i });
@@ -31,7 +31,7 @@ describe('Student Request System', () => {
           onRequestSubmit={onRequestSubmit}
           hasActiveRequest={false}
           isStudent={false}
-        />
+        />,
       );
 
       expect(container.firstChild).toBeNull();
@@ -44,7 +44,7 @@ describe('Student Request System', () => {
           onRequestSubmit={onRequestSubmit}
           hasActiveRequest={true}
           isStudent={true}
-        />
+        />,
       );
 
       const button = screen.getByRole('button');
@@ -58,12 +58,7 @@ describe('Student Request System', () => {
       const onClose = vi.fn();
       const onSubmit = vi.fn();
 
-      render(
-        <RequestModeModal
-          onClose={onClose}
-          onSubmit={onSubmit}
-        />
-      );
+      render(<RequestModeModal onClose={onClose} onSubmit={onSubmit} />);
 
       expect(screen.getByText(/ask by voice/i)).toBeInTheDocument();
       expect(screen.getByText(/ask by text/i)).toBeInTheDocument();
@@ -73,12 +68,7 @@ describe('Student Request System', () => {
       const onClose = vi.fn();
       const onSubmit = vi.fn();
 
-      render(
-        <RequestModeModal
-          onClose={onClose}
-          onSubmit={onSubmit}
-        />
-      );
+      render(<RequestModeModal onClose={onClose} onSubmit={onSubmit} />);
 
       const voiceButton = screen.getByText(/ask by voice/i).closest('button');
       fireEvent.click(voiceButton!);
@@ -97,12 +87,7 @@ describe('Student Request System', () => {
       const onClose = vi.fn();
       const onSubmit = vi.fn();
 
-      render(
-        <RequestModeModal
-          onClose={onClose}
-          onSubmit={onSubmit}
-        />
-      );
+      render(<RequestModeModal onClose={onClose} onSubmit={onSubmit} />);
 
       const textButton = screen.getByText(/ask by text/i).closest('button');
       fireEvent.click(textButton!);
@@ -121,7 +106,6 @@ describe('Student Request System', () => {
     });
   });
 
-
   describe('RequestIndicator', () => {
     const mockRequest: StudentRequest = {
       id: 'req_1',
@@ -135,11 +119,7 @@ describe('Student Request System', () => {
 
     it('should render request indicator', () => {
       render(
-        <RequestIndicator
-          request={mockRequest}
-          participantName="John Doe"
-          isTeacher={false}
-        />
+        <RequestIndicator request={mockRequest} participantName="John Doe" isTeacher={false} />,
       );
 
       const indicator = screen.getByRole('button', { name: /has a question/i });
@@ -149,11 +129,7 @@ describe('Student Request System', () => {
 
     it('should show question bubble on click for text requests', () => {
       render(
-        <RequestIndicator
-          request={mockRequest}
-          participantName="John Doe"
-          isTeacher={false}
-        />
+        <RequestIndicator request={mockRequest} participantName="John Doe" isTeacher={false} />,
       );
 
       const indicator = screen.getByRole('button', { name: /has a question/i });
@@ -165,12 +141,7 @@ describe('Student Request System', () => {
 
   describe('QuestionBubble', () => {
     it('should render question bubble', () => {
-      render(
-        <QuestionBubble
-          question="What page are we on?"
-          studentName="John Doe"
-        />
-      );
+      render(<QuestionBubble question="What page are we on?" studentName="John Doe" />);
 
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText('What page are we on?')).toBeInTheDocument();
@@ -182,7 +153,7 @@ describe('Student Request System', () => {
           question="What page are we on?"
           studentName="John Doe"
           isDisplayedToAll={true}
-        />
+        />,
       );
 
       expect(screen.getByText('Displayed to All')).toBeInTheDocument();
@@ -192,11 +163,7 @@ describe('Student Request System', () => {
       const onClose = vi.fn();
 
       render(
-        <QuestionBubble
-          question="What page are we on?"
-          studentName="John Doe"
-          onClose={onClose}
-        />
+        <QuestionBubble question="What page are we on?" studentName="John Doe" onClose={onClose} />,
       );
 
       const closeButton = screen.getByRole('button', { name: /close/i });

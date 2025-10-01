@@ -27,7 +27,7 @@ export function parseParticipantMetadata(metadata: string | undefined): Record<s
 export function getParticipantRole(
   participant: any,
   localParticipant: any,
-  userRole: string | null
+  userRole: string | null,
 ): string {
   const metadata = parseParticipantMetadata(participant.metadata);
   return metadata.role || (participant === localParticipant ? userRole : 'student') || 'student';

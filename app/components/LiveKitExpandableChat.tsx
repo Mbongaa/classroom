@@ -26,17 +26,14 @@ export function LiveKitExpandableChat() {
     });
   }, [chatMessages, localParticipant.localParticipant?.identity]);
 
-  const handleSendMessage = React.useCallback((message: string) => {
-    if (message.trim()) {
-      send(message);
-    }
-  }, [send]);
-
-  return (
-    <ExpandableChat
-      messages={messages}
-      onSendMessage={handleSendMessage}
-      className="z-50"
-    />
+  const handleSendMessage = React.useCallback(
+    (message: string) => {
+      if (message.trim()) {
+        send(message);
+      }
+    },
+    [send],
   );
+
+  return <ExpandableChat messages={messages} onSendMessage={handleSendMessage} className="z-50" />;
 }

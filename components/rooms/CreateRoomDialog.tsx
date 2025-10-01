@@ -143,7 +143,11 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
               <Label htmlFor="roomType">
                 Room Type <span className="text-red-500">*</span>
               </Label>
-              <Select value={roomType} onValueChange={(value) => setRoomType(value as RoomType)} disabled={loading}>
+              <Select
+                value={roomType}
+                onValueChange={(value) => setRoomType(value as RoomType)}
+                disabled={loading}
+              >
                 <SelectTrigger id="roomType">
                   <SelectValue placeholder="Select room type" />
                 </SelectTrigger>

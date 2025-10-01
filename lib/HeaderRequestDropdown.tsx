@@ -10,7 +10,7 @@ import {
   Check,
   X,
   Monitor,
-  CheckCircle
+  CheckCircle,
 } from 'lucide-react';
 import styles from './HeaderRequestDropdown.module.css';
 
@@ -27,7 +27,7 @@ export function HeaderRequestDropdown({
   onApprove,
   onDecline,
   onDisplay,
-  onMarkAnswered
+  onMarkAnswered,
 }: HeaderRequestDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hasNewRequest, setHasNewRequest] = useState(false);
@@ -60,7 +60,7 @@ export function HeaderRequestDropdown({
     }
   }, [isOpen]);
 
-  const pendingRequests = requests.filter(r => r.status === 'pending');
+  const pendingRequests = requests.filter((r) => r.status === 'pending');
 
   const getRequestIcon = (request: StudentRequest) => {
     return request.type === 'voice' ? <Mic size={20} /> : <MessageCircle size={20} />;
@@ -87,16 +87,18 @@ export function HeaderRequestDropdown({
         {pendingRequests.length > 0 && (
           <span className={styles.badge}>{pendingRequests.length}</span>
         )}
-        {isOpen ? <ChevronUp size={16} className={styles.dropdownArrow} /> : <ChevronDown size={16} className={styles.dropdownArrow} />}
+        {isOpen ? (
+          <ChevronUp size={16} className={styles.dropdownArrow} />
+        ) : (
+          <ChevronDown size={16} className={styles.dropdownArrow} />
+        )}
       </button>
 
       {isOpen && (
         <div className={styles.dropdownPanel}>
           <div className={styles.panelHeader}>
             <span className={styles.panelTitle}>Student Requests</span>
-            <span className={styles.requestCount}>
-              {pendingRequests.length} pending
-            </span>
+            <span className={styles.requestCount}>{pendingRequests.length} pending</span>
           </div>
 
           <div className={styles.requestList}>
@@ -109,21 +111,13 @@ export function HeaderRequestDropdown({
               pendingRequests.map((request) => (
                 <div key={request.id} className={styles.request}>
                   <div className={styles.requestHeader}>
-                    <span className={styles.requestType}>
-                      {getRequestIcon(request)}
-                    </span>
-                    <span className={styles.studentName}>
-                      {request.studentName}
-                    </span>
-                    <span className={styles.requestTime}>
-                      {formatTime(request.timestamp)}
-                    </span>
+                    <span className={styles.requestType}>{getRequestIcon(request)}</span>
+                    <span className={styles.studentName}>{request.studentName}</span>
+                    <span className={styles.requestTime}>{formatTime(request.timestamp)}</span>
                   </div>
 
                   {request.type === 'text' && request.question && (
-                    <div className={styles.questionText}>
-                      &quot;{request.question}&quot;
-                    </div>
+                    <div className={styles.questionText}>&quot;{request.question}&quot;</div>
                   )}
 
                   <div className={styles.actions}>
