@@ -74,7 +74,7 @@ export function DashboardContent({
           Welcome back, {userName}!
         </h1>
         <p className="text-muted-foreground">
-          Here's what's happening with your classrooms today.
+          Here&apos;s what&apos;s happening with your classrooms today.
         </p>
       </div>
 

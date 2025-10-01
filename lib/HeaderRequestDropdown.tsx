@@ -122,7 +122,7 @@ export function HeaderRequestDropdown({
 
                   {request.type === 'text' && request.question && (
                     <div className={styles.questionText}>
-                      "{request.question}"
+                      &quot;{request.question}&quot;
                     </div>
                   )}
 

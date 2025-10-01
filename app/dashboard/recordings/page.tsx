@@ -37,7 +37,7 @@ export default function RecordingsPage() {
               Recording features coming soon!
             </p>
             <p className="text-sm text-muted-foreground">
-              You'll be able to view, download, and share your classroom recordings here.
+              You&apos;ll be able to view, download, and share your classroom recordings here.
             </p>
           </div>
         </CardContent>
