@@ -42,8 +42,11 @@ import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtil
 import styles from './ClassroomClient.module.css';
 
 interface PermissionNotification {
-  type: 'grant' | 'revoke';
+  type: 'permission_update';
+  action: 'grant' | 'revoke';
   message: string;
+  timestamp: number;
+  grantedBy: string;
 }
 
 interface ClassroomClientImplWithRequestsProps {
@@ -501,11 +504,14 @@ export function ClassroomClientImplWithRequests({
           message.targetParticipant === localParticipant.identity
         ) {
           setPermissionNotification({
-            type: message.action,
+            type: 'permission_update',
+            action: message.action,
             message:
               message.action === 'grant'
                 ? 'Your teacher has granted you speaking permission. You can now use your microphone and camera.'
                 : 'Your speaking permission has been revoked.',
+            timestamp: Date.now(),
+            grantedBy: participant?.name || 'Teacher',
           });
         }
 
