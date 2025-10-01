@@ -21,7 +21,7 @@ import clsx from 'clsx';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 
 interface CustomVideoConferenceProps {
-  chatMessageFormatter?: (message: string) => string;
+  chatMessageFormatter?: (message: string) => React.ReactNode;
   SettingsComponent?: React.ComponentType<any>;
   showLayoutSwitcher?: boolean;
   defaultLayout?: 'grid' | 'focus' | 'spotlight';

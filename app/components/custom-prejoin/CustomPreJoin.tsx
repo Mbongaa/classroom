@@ -15,7 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Mic, MicOff, Camera, CameraOff, ChevronDown } from 'lucide-react';
 
 interface CustomPreJoinProps {
-  onSubmit: (values: { username: string; videoEnabled: boolean; audioEnabled: boolean }) => void;
+  onSubmit: (values: {
+    username: string;
+    videoEnabled: boolean;
+    audioEnabled: boolean;
+    videoDeviceId: string;
+    audioDeviceId: string;
+  }) => void;
   onError?: (error: Error) => void;
   defaults?: {
     username?: string;
@@ -188,6 +194,8 @@ export default function CustomPreJoin({
       username: username.trim(),
       videoEnabled,
       audioEnabled,
+      videoDeviceId,
+      audioDeviceId,
     });
   };
 
