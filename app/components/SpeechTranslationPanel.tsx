@@ -61,7 +61,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
       // Process new segments
       const newSegments = filteredSegments.map((seg, index) => ({
         id: seg.id || `seg-${Date.now()}-${index}`,
-        speaker: seg.participant?.name || 'Speaker',
+        speaker: 'Speaker', // LiveKit v2.x TranscriptionSegment doesn't include participant
         text: seg.text,
         timestamp: Date.now(),
         isLatest: false,
