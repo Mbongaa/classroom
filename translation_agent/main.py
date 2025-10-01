@@ -45,7 +45,7 @@ SUPPORTED_LANGUAGES = {
     "de": Language(code="de", name="German", flag="🇩🇪"),
     "ja": Language(code="ja", name="Japanese", flag="🇯🇵"),
     "ar": Language(code="ar", name="Arabic", flag="🇸🇦"),
-    "zh": Language(code="zh", name="Chinese", flag="🇨🇳"),
+    "cmn": Language(code="cmn", name="Chinese", flag="🇨🇳"),
     "pt": Language(code="pt", name="Portuguese", flag="🇵🇹"),
     "ru": Language(code="ru", name="Russian", flag="🇷🇺"),
     "ko": Language(code="ko", name="Korean", flag="🇰🇷"),

@@ -29,7 +29,10 @@ const LANGUAGES_BY_REGION = [
   },
   {
     region: 'Asia',
-    items: [{ value: 'ja', label: '日本語', flag: '🇯🇵' }],
+    items: [
+      { value: 'ja', label: '日本語', flag: '🇯🇵' },
+      { value: 'cmn', label: '中文', flag: '🇨🇳' },
+    ],
   },
   {
     region: 'Middle East',
