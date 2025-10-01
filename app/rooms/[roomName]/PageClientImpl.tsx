@@ -463,7 +463,9 @@ function VideoConferenceComponent(props: {
                 language: props.selectedLanguage,
                 languageType: typeof props.selectedLanguage,
                 languageLength: props.selectedLanguage?.length,
-                languageBytes: props.selectedLanguage ? Array.from(props.selectedLanguage).map(c => c.charCodeAt(0)) : []
+                languageBytes: props.selectedLanguage
+                  ? Array.from(props.selectedLanguage).map((c) => c.charCodeAt(0))
+                  : [],
               });
 
               await room.localParticipant.setAttributes({

@@ -158,13 +158,17 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
   }, [participants, localParticipant, userRole]);
 
   // Get all tracks and filter by participant
-  const allTracks = useTracks([Track.Source.Camera, Track.Source.Microphone, Track.Source.ScreenShare]);
+  const allTracks = useTracks([
+    Track.Source.Camera,
+    Track.Source.Microphone,
+    Track.Source.ScreenShare,
+  ]);
 
   // Filter teacher tracks
   const teacherTracks = React.useMemo(() => {
     if (!teacher) return [];
     return allTracks.filter(
-      (track) => isTrackReference(track) && track.participant.identity === teacher.identity
+      (track) => isTrackReference(track) && track.participant.identity === teacher.identity,
     );
   }, [allTracks, teacher]);
 
@@ -183,9 +187,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
 
   // Get tracks for all students
   const studentTracks = React.useMemo(() => {
-    const studentIdentities = allStudents.map(s => s.identity);
+    const studentIdentities = allStudents.map((s) => s.identity);
     return allTracks.filter(
-      (track) => isTrackReference(track) && studentIdentities.includes(track.participant.identity)
+      (track) => isTrackReference(track) && studentIdentities.includes(track.participant.identity),
     );
   }, [allTracks, allStudents]);
 
@@ -205,10 +209,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       };
 
       const encoder = new TextEncoder();
-      room.localParticipant.publishData(
-        encoder.encode(JSON.stringify(message)),
-        { reliable: true },
-      );
+      room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+        reliable: true,
+      });
     },
     [room],
   );
@@ -238,10 +241,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       };
 
       const encoder = new TextEncoder();
-      room.localParticipant.publishData(
-        encoder.encode(JSON.stringify(message)),
-        { reliable: true },
-      );
+      room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+        reliable: true,
+      });
     },
     [localParticipant, room, captionsLanguage],
   );
@@ -286,10 +288,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
           };
 
           const encoder = new TextEncoder();
-          room.localParticipant.publishData(
-            encoder.encode(JSON.stringify(message)),
-            { reliable: true },
-          );
+          room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+            reliable: true,
+          });
         }
       } catch (error) {
         console.error('Failed to approve voice request:', error);
@@ -316,10 +317,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       };
 
       const encoder = new TextEncoder();
-      room.localParticipant.publishData(
-        encoder.encode(JSON.stringify(message)),
-        { reliable: true },
-      );
+      room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+        reliable: true,
+      });
     },
     [room],
   );
@@ -351,10 +351,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       };
 
       const encoder = new TextEncoder();
-      room.localParticipant.publishData(
-        encoder.encode(JSON.stringify(message)),
-        { reliable: true },
-      );
+      room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+        reliable: true,
+      });
     },
     [room],
   );
@@ -384,10 +383,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
       };
 
       const encoder = new TextEncoder();
-      room.localParticipant.publishData(
-        encoder.encode(JSON.stringify(message)),
-        { reliable: true },
-      );
+      room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+        reliable: true,
+      });
     },
     [room],
   );

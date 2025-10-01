@@ -36,25 +36,32 @@ export default function TranslationPanel({
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // DEBUG: Log ALL incoming segments
-      console.log('[DEBUG TranslationPanel] Received segments:', segments.map(s => ({
-        id: s.id,
-        language: s.language,
-        text: s.text.substring(0, 50),
-        final: s.final,
-        languageType: typeof s.language,
-        languageBytes: s.language ? Array.from(s.language).map(c => c.charCodeAt(0)) : []
-      })));
+      console.log(
+        '[DEBUG TranslationPanel] Received segments:',
+        segments.map((s) => ({
+          id: s.id,
+          language: s.language,
+          text: s.text.substring(0, 50),
+          final: s.final,
+          languageType: typeof s.language,
+          languageBytes: s.language ? Array.from(s.language).map((c) => c.charCodeAt(0)) : [],
+        })),
+      );
 
       console.log('[DEBUG TranslationPanel] Filtering for language:', {
         captionsLanguage,
         captionsLanguageType: typeof captionsLanguage,
-        captionsLanguageBytes: captionsLanguage ? Array.from(captionsLanguage).map(c => c.charCodeAt(0)) : []
+        captionsLanguageBytes: captionsLanguage
+          ? Array.from(captionsLanguage).map((c) => c.charCodeAt(0))
+          : [],
       });
 
       // Filter segments for the selected language
       const filteredSegments = segments.filter((seg) => {
         const matches = seg.language === captionsLanguage;
-        console.log(`[DEBUG TranslationPanel] Segment language "${seg.language}" vs "${captionsLanguage}" = ${matches}`);
+        console.log(
+          `[DEBUG TranslationPanel] Segment language "${seg.language}" vs "${captionsLanguage}" = ${matches}`,
+        );
         return matches;
       });
 
