@@ -621,7 +621,7 @@
   align-items: center;
   justify-content: center;
   height: 100%; /* Fill available space without overflow */
-  color: var(--lk-text-muted);
+  color: #6b7280; /* gray-500 - visible in both light and dark modes */
   font-size: 0.9rem;
 }
 
@@ -855,10 +855,10 @@
   }
 }
 
-/* Force white text for participant names in all themes - fixes light mode visibility */
+/* Theme-aware text color for participant names */
 .participantName,
 .studentName {
-  color: white !important;
+  color: var(--lk-text1, white) !important;
 }
 
 /* Also target LiveKit's native participant name classes */
@@ -866,7 +866,7 @@
 .studentName .lk-participant-name,
 [data-lk-theme] .participantName,
 [data-lk-theme] .studentName {
-  color: white !important;
+  color: var(--lk-text1, white) !important;
 }
 
 /* Animations */

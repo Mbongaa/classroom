@@ -3,14 +3,25 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signIn } from '@/lib/actions/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/moving-border';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
-function SubmitButton() {
+function SubmitButton({ isFormValid }: { isFormValid: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
+    <Button
+      as="button"
+      type="submit"
+      disabled={!isFormValid || pending}
+      borderRadius="1.75rem"
+      containerClassName="w-full h-12"
+      className={
+        isFormValid && !pending
+          ? 'bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
+          : 'bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
+      }
+      duration={3000}
+    >
       {pending ? 'Signing in...' : 'Sign In'}
     </Button>
   );
@@ -18,6 +29,27 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  // Field-specific validation errors
+  const [emailError, setEmailError] = useState('');
+
+  // Track which fields have been touched
+  const [touched, setTouched] = useState({
+    email: false,
+  });
+
+  // Validation functions
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) return '';
+    if (!emailRegex.test(email)) return 'Please enter a valid email address';
+    return '';
+  };
+
+  // Calculate if form is valid (both fields filled AND no errors)
+  const isFormValid = email.trim() !== '' && password.trim() !== '' && !emailError;
 
   async function handleSubmit(formData: FormData) {
     setError(null);
@@ -32,37 +64,60 @@ export function LoginForm() {
       <form action={handleSubmit}>
         <div className="grid gap-4">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
+            <FloatingLabelInput
               id="email"
               name="email"
-              placeholder="name@example.com"
+              label="Email"
               type="email"
               autoCapitalize="none"
               autoComplete="email"
               autoCorrect="off"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (touched.email) {
+                  setEmailError(validateEmail(e.target.value));
+                }
+              }}
+              onBlur={() => {
+                setTouched((prev) => ({ ...prev, email: true }));
+                setEmailError(validateEmail(email));
+              }}
               required
             />
+            {touched.email && emailError && (
+              <p className="text-xs text-red-600 dark:text-red-400">{emailError}</p>
+            )}
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" required />
-          </div>
+          <FloatingLabelInput
+            id="password"
+            name="password"
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}
-          <SubmitButton />
+          <SubmitButton isFormValid={isFormValid} />
         </div>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or</span>
-        </div>
+      <div className="flex flex-col items-center gap-2">
+        <span className="text-xs uppercase text-gray-600 dark:text-gray-400">Or</span>
+        <div className="w-full border-t border-[#4b5563]" />
       </div>
-      <Button variant="outline" type="button" disabled>
+      <Button
+        as="button"
+        type="button"
+        disabled
+        borderRadius="1.75rem"
+        containerClassName="w-full h-12"
+        className="bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium"
+        duration={3000}
+      >
         <svg
           className="mr-2 h-4 w-4"
           aria-hidden="true"

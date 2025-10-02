@@ -189,12 +189,12 @@ export function DashboardContent({
                   <label htmlFor="passphrase" className="text-black dark:text-white">
                     Passphrase
                   </label>
-                  <input
+                  <Input
                     id="passphrase"
                     type="password"
                     value={sharedPassphrase}
                     onChange={(ev) => setSharedPassphrase(ev.target.value)}
-                    className="flex-1 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 bg-transparent text-black dark:text-white"
+                    className="flex-1"
                   />
                 </div>
               )}

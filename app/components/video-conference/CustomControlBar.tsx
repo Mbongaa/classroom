@@ -209,13 +209,15 @@ export function CustomControlBar({
           aria-label={layoutContext.widget.state?.showChat ? 'Hide chat' : 'Show chat'}
           style={{
             backgroundColor: layoutContext.widget.state?.showChat
-              ? 'var(--lk-bg4)'
+              ? 'rgba(34, 197, 94, 0.2)'
               : 'var(--lk-bg2)',
             color: 'var(--lk-text1, white)',
-            borderColor: 'var(--lk-bg3)',
+            borderColor: layoutContext.widget.state?.showChat
+              ? 'rgba(34, 197, 94, 0.4)'
+              : 'var(--lk-bg3)',
           }}
         >
-          <MessageSquare className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          <MessageSquare className="h-5 w-5" style={{ color: '#22c55e' }} />
           {variation !== 'minimal' && 'Chat'}
         </Button>
       )}
@@ -230,12 +232,12 @@ export function CustomControlBar({
           aria-label={showTranslation ? 'Hide translation' : 'Show translation'}
           title={showTranslation ? 'Hide translation panel' : 'Show translation panel'}
           style={{
-            backgroundColor: showTranslation ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+            backgroundColor: showTranslation ? 'rgba(59, 130, 246, 0.2)' : 'var(--lk-bg2)',
             color: 'var(--lk-text1, white)',
-            borderColor: 'var(--lk-bg3)',
+            borderColor: showTranslation ? 'rgba(59, 130, 246, 0.4)' : 'var(--lk-bg3)',
           }}
         >
-          <Languages className="h-5 w-5" style={{ color: 'var(--lk-text1, white)' }} />
+          <Languages className="h-5 w-5" style={{ color: '#3b82f6' }} />
           {variation !== 'minimal' && 'Translation'}
         </Button>
       )}

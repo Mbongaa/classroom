@@ -199,13 +199,12 @@ export function CustomParticipantTile({
         {/* Overlay Information */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Top Bar */}
-          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-black/70 to-transparent">
+          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent">
             <div className="flex items-center justify-between">
               {/* Participant Name */}
               <div className="flex items-center gap-2">
                 <span
-                  className="text-sm font-medium truncate max-w-[150px]"
-                  style={{ color: 'white' }}
+                  className="text-sm font-medium truncate max-w-[150px] text-black dark:text-white"
                 >
                   {participant.name || participant.identity}
                 </span>
@@ -216,7 +215,7 @@ export function CustomParticipantTile({
           </div>
 
           {/* Bottom Bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent">
             <div className="flex items-center justify-between">
               {/* Media Status Icons */}
               <div className="flex items-center gap-2">
@@ -270,6 +269,12 @@ export function CustomParticipantTile({
               )}
             </div>
           </div>
+
+          {/* Left Side Gradient */}
+          <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent" />
+
+          {/* Right Side Gradient */}
+          <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent" />
 
           {/* Additional Metadata */}
           {showMetadata && metadata.additionalInfo && (

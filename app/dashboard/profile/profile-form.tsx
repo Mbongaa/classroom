@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { updateProfile } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -44,22 +43,18 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   return (
     <form action={handleSubmit}>
       <div className="grid gap-4">
+        <FloatingLabelInput
+          id="fullName"
+          name="fullName"
+          label="Full Name"
+          defaultValue={profile.full_name || ''}
+          required
+        />
         <div className="grid gap-2">
-          <Label htmlFor="fullName">Full Name</Label>
-          <Input
-            id="fullName"
-            name="fullName"
-            placeholder="John Doe"
-            defaultValue={profile.full_name || ''}
-            required
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="avatarUrl">Avatar URL</Label>
-          <Input
+          <FloatingLabelInput
             id="avatarUrl"
             name="avatarUrl"
-            placeholder="https://example.com/avatar.jpg"
+            label="Avatar URL"
             type="url"
             defaultValue={profile.avatar_url || ''}
           />

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/moving-border';
 
 export function MarketingLandingPage() {
   return (
@@ -35,10 +35,26 @@ export function MarketingLandingPage() {
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Link href="/login">
-            <Button variant="ghost">Sign In</Button>
+            <Button
+              as="button"
+              borderRadius="1.75rem"
+              containerClassName="h-10"
+              className="bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-sm font-medium px-6"
+              duration={3000}
+            >
+              Sign In
+            </Button>
           </Link>
           <Link href="/signup">
-            <Button>Get Started</Button>
+            <Button
+              as="button"
+              borderRadius="1.75rem"
+              containerClassName="h-10"
+              className="bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-sm font-medium px-6"
+              duration={3000}
+            >
+              Get Started
+            </Button>
           </Link>
           <ThemeToggleButton start="top-right" />
         </div>
@@ -83,15 +99,23 @@ export function MarketingLandingPage() {
           </p>
           <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link href="/signup">
-              <Button size="lg" style={{ fontSize: '18px', padding: '24px 32px' }}>
+              <Button
+                as="button"
+                borderRadius="1.75rem"
+                containerClassName="h-14"
+                className="bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium px-8"
+                duration={3000}
+              >
                 Start Free Trial
               </Button>
             </Link>
             <Link href="/login">
               <Button
-                variant="outline"
-                size="lg"
-                style={{ fontSize: '18px', padding: '24px 32px' }}
+                as="button"
+                borderRadius="1.75rem"
+                containerClassName="h-14"
+                className="bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium px-8"
+                duration={3000}
               >
                 Sign In to Dashboard
               </Button>

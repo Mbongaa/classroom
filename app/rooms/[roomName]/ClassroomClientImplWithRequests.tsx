@@ -86,7 +86,7 @@ export function ClassroomClientImplWithRequests({
   };
 
   // State for translation panel visibility and width (only for students)
-  const [showTranslation, setShowTranslation] = React.useState(false);
+  const [showTranslation, setShowTranslation] = React.useState(true);
   const translationResize = useResizable({
     initialWidth: 320,
     minWidth: 250,

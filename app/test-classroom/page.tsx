@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { generateRoomId } from '@/lib/client-utils';
+import { Input } from '@/components/ui/input';
 
 // Test page for classroom functionality - NOT FOR PRODUCTION
 export default function TestClassroomPage() {
@@ -57,11 +58,11 @@ export default function TestClassroomPage() {
         <h2>Test Room Setup</h2>
         <div style={{ marginBottom: '1rem' }}>
           <label>Room Name: </label>
-          <input
+          <Input
             type="text"
             value={roomName}
             onChange={(e) => setRoomName(e.target.value)}
-            style={{ marginLeft: '0.5rem', padding: '0.25rem' }}
+            className="ml-2 inline-flex w-auto"
           />
           <button
             onClick={() => setRoomName(generateRoomId())}
