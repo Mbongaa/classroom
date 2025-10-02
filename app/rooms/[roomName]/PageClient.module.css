@@ -1,0 +1,211 @@
+/* Main container for the entire page */
+.mainContainer {
+  /* Modern viewport height with Safari fallbacks */
+  height: 100vh; /* Fallback for older browsers */
+  height: 100svh; /* Small viewport height (mobile with address bar) */
+  height: -webkit-fill-available; /* Safari-specific fix */
+
+  /* Prevent ANY scrolling */
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  /* Theme */
+  background-color: var(--lk-background);
+}
+
+/* PreJoin container */
+.preJoinContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Header with logo */
+.header {
+  /* Responsive height with bounds */
+  height: 8vh;
+  min-height: 40px;
+  max-height: 60px;
+
+  background: var(--lk-bg, #000000);
+  border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+
+.logo {
+  /* Responsive font size */
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  font-weight: 700;
+  color: var(--foreground);
+  letter-spacing: -0.03rem;
+}
+
+/* Content area - centered */
+.contentArea {
+  display: grid;
+  place-items: center;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0; /* Critical for flexbox shrinking */
+  padding: 1rem;
+}
+
+.contentWrapper {
+  text-align: center;
+  width: min(100%, 480px);
+  margin-inline: auto;
+  max-height: 100%;
+  overflow-y: auto; /* Allow scrolling within content if needed */
+  overflow-x: hidden;
+
+  /* Hide scrollbar on webkit browsers */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.contentWrapper::-webkit-scrollbar {
+  display: none;
+}
+
+/* Lobby title */
+.lobbyTitle {
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 0.5rem;
+  background: transparent;
+  color: var(--lk-text1, white);
+  border-radius: 8px;
+  /* Responsive font size */
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 700;
+  font-family: var(--font-poppins), Poppins, sans-serif;
+  text-align: center;
+  text-transform: none;
+  letter-spacing: -0.04em;
+}
+
+/* Welcome section for students */
+.welcomeSection {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+}
+
+.welcomeTitle {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: var(--lk-text1, white);
+}
+
+.welcomeText {
+  color: var(--lk-text2, #aaa);
+  line-height: 1.5;
+}
+
+.welcomeList {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.welcomeNote {
+  opacity: 0.8;
+  color: var(--lk-text2, #aaa);
+  font-size: 0.875rem;
+}
+
+/* Teacher info section */
+.teacherInfo {
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.copyButtonWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.linkDisplay {
+  padding: 0.5rem;
+  background-color: transparent;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.8rem;
+  text-align: center;
+  word-break: break-all;
+  color: var(--lk-text2, #888);
+}
+
+.pinInfo {
+  font-size: 0.9rem;
+  color: #4CAF50;
+  margin-top: 0.5rem;
+  font-weight: bold;
+  text-align: center;
+}
+
+.infoNote {
+  font-size: 0.85rem;
+  color: #999;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* Media queries for small viewports */
+@media (max-height: 600px) {
+  .header {
+    height: 50px;
+    min-height: 40px;
+    max-height: 50px;
+  }
+
+  .lobbyTitle {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    margin-bottom: 1rem;
+  }
+
+  .welcomeSection {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+  }
+
+  .contentArea {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-height: 500px) {
+  .header {
+    height: 40px;
+    min-height: 40px;
+    max-height: 40px;
+  }
+
+  .lobbyTitle {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .welcomeSection {
+    display: none; /* Hide welcome text on very small screens */
+  }
+}
+
+/* Horizontal layout for tablets/desktop - Phase 2 preparation */
+@media (min-width: 768px) and (min-height: 600px) {
+  /* Phase 2: This will be updated for horizontal layout */
+  .contentWrapper {
+    width: min(100%, 600px);
+  }
+}

@@ -12,6 +12,7 @@ import { SpeechClientImplWithRequests as SpeechClientImpl } from './SpeechClient
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
+import styles from './PageClient.module.css';
 import {
   formatChatMessageLinks,
   LocalUserChoices,
@@ -156,61 +157,21 @@ export function PageClientImpl(props: {
   const handlePreJoinError = React.useCallback((e: Error) => console.error(e), []);
 
   return (
-    <main data-lk-theme="default" style={{ height: '100%' }}>
+    <main data-lk-theme="default" className={styles.mainContainer}>
       {connectionDetails === undefined || preJoinChoices === undefined ? (
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <div className={styles.preJoinContainer}>
           {/* Header with Bayaan logo - placed outside the centered content */}
-          <div
-            style={{
-              height: '56px',
-              background: 'var(--lk-bg, #000000)',
-              borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0 20px',
-              flexShrink: 0,
-            }}
-          >
-            <span
-              style={{
-                fontSize: '20px',
-                fontWeight: 700,
-                color: 'var(--foreground)',
-                letterSpacing: '-0.03rem',
-              }}
-            >
-              bayaan.ai
-            </span>
+          <div className={styles.header}>
+            <span className={styles.logo}>bayaan.ai</span>
             <ThemeToggleButton start="top-right" />
           </div>
 
           {/* Main content area */}
-          <div style={{ display: 'grid', placeItems: 'center', flex: 1 }}>
-            <div
-              style={{
-                textAlign: 'center',
-                width: 'min(100%, 480px)',
-                marginInline: 'auto',
-              }}
-            >
+          <div className={styles.contentArea}>
+            <div className={styles.contentWrapper}>
               {classroomInfo && (
                 <div>
-                  <h1
-                    style={{
-                      marginBottom: '1.5rem',
-                      padding: '0.75rem 0.5rem',
-                      background: 'transparent',
-                      color: 'var(--lk-text1, white)',
-                      borderRadius: '8px',
-                      fontSize: '3.5rem',
-                      fontWeight: '700',
-                      fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                      textAlign: 'center',
-                      textTransform: 'none',
-                      letterSpacing: '-0.04em',
-                    }}
-                  >
+                  <h1 className={styles.lobbyTitle}>
                     {classroomInfo.mode === 'speech'
                       ? classroomInfo.role === 'teacher'
                         ? 'speaker lobby'
@@ -222,33 +183,18 @@ export function PageClientImpl(props: {
 
                   {/* Enhanced welcome message for students */}
                   {classroomInfo.role === 'student' && (
-                    <div
-                      style={{
-                        marginBottom: '1.5rem',
-                        padding: '1rem',
-                        background: 'transparent',
-                        border: 'none',
-                        borderRadius: '8px',
-                        fontSize: '0.95rem',
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontWeight: 'bold',
-                          marginBottom: '0.5rem',
-                          color: 'var(--lk-text1, white)',
-                        }}
-                      >
+                    <div className={styles.welcomeSection}>
+                      <div className={styles.welcomeTitle}>
                         📚 Welcome to the Classroom!
                       </div>
-                      <div style={{ color: 'var(--lk-text2, #aaa)', lineHeight: '1.5' }}>
+                      <div className={styles.welcomeText}>
                         You&apos;re joining as a student. You&apos;ll be able to:
-                        <ul style={{ margin: '0.5rem 0', paddingLeft: '1.5rem' }}>
+                        <ul className={styles.welcomeList}>
                           <li>Watch and listen to your teacher</li>
                           <li>Participate via chat</li>
                           <li>View shared screens and materials</li>
                         </ul>
-                        <small style={{ opacity: 0.8, color: 'var(--lk-text2, #aaa)' }}>
+                        <small className={styles.welcomeNote}>
                           Just enter your name below to join the session.
                         </small>
                       </div>
@@ -257,16 +203,9 @@ export function PageClientImpl(props: {
 
                   {/* Show shareable link for teachers */}
                   {classroomInfo.role === 'teacher' && (
-                    <div
-                      style={{
-                        marginBottom: '1.5rem',
-                        fontSize: '0.95rem',
-                      }}
-                    >
+                    <div className={styles.teacherInfo}>
                       {/* Stateful Copy Button */}
-                      <div
-                        style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}
-                      >
+                      <div className={styles.copyButtonWrapper}>
                         <StatefulButton
                           onClick={() => {
                             return new Promise((resolve) => {
@@ -285,42 +224,16 @@ export function PageClientImpl(props: {
                       </div>
 
                       {/* Show the link for reference */}
-                      <div
-                        style={{
-                          padding: '0.5rem',
-                          backgroundColor: 'transparent',
-                          borderRadius: '4px',
-                          fontFamily: 'monospace',
-                          fontSize: '0.8rem',
-                          textAlign: 'center',
-                          wordBreak: 'break-all',
-                          color: 'var(--lk-text2, #888)',
-                        }}
-                      >
+                      <div className={styles.linkDisplay}>
                         {`${window.location.origin}${classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/'}${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
                       </div>
 
                       {classroomInfo.pin && (
-                        <div
-                          style={{
-                            fontSize: '0.9rem',
-                            color: '#4CAF50',
-                            marginTop: '0.5rem',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                          }}
-                        >
+                        <div className={styles.pinInfo}>
                           🔒 Classroom PIN: {classroomInfo.pin}
                         </div>
                       )}
-                      <div
-                        style={{
-                          fontSize: '0.85rem',
-                          color: '#999',
-                          marginTop: '0.5rem',
-                          textAlign: 'center',
-                        }}
-                      >
+                      <div className={styles.infoNote}>
                         Students will join directly as listeners
                         {classroomInfo.pin && ' • PIN included in link'}
                       </div>
