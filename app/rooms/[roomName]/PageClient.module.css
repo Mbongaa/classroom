@@ -2,8 +2,8 @@
 .mainContainer {
   /* Modern viewport height with Safari fallbacks */
   height: 100vh; /* Fallback for older browsers */
-  height: 100svh; /* Small viewport height (mobile with address bar) */
-  height: -webkit-fill-available; /* Safari-specific fix */
+  height: -webkit-fill-available; /* Safari < iOS 15 */
+  height: 100svh; /* Modern browsers - must be last to override */
 
   /* Prevent ANY scrolling */
   overflow: hidden;
@@ -56,7 +56,7 @@
   flex: 1;
   overflow: hidden;
   min-height: 0; /* Critical for flexbox shrinking */
-  padding: 1rem;
+  padding: clamp(0.5rem, 2vh, 1rem);
 }
 
 .contentWrapper {
@@ -64,42 +64,39 @@
   width: min(100%, 480px);
   margin-inline: auto;
   max-height: 100%;
-  overflow-y: auto; /* Allow scrolling within content if needed */
-  overflow-x: hidden;
+  overflow: hidden; /* Prevent ALL scrolling */
 
-  /* Hide scrollbar on webkit browsers */
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.contentWrapper::-webkit-scrollbar {
-  display: none;
+  /* Ensure content fits within container */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 /* Lobby title */
 .lobbyTitle {
-  margin-bottom: 1.5rem;
-  padding: 0.75rem 0.5rem;
+  margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+  padding: 0.5rem;
   background: transparent;
   color: var(--lk-text1, white);
   border-radius: 8px;
   /* Responsive font size */
-  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-size: clamp(1.5rem, 4vh, 3.5rem);
   font-weight: 700;
   font-family: var(--font-poppins), Poppins, sans-serif;
   text-align: center;
   text-transform: none;
   letter-spacing: -0.04em;
+  line-height: 1.2;
 }
 
 /* Welcome section for students */
 .welcomeSection {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
+  margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+  padding: clamp(0.5rem, 1.5vh, 1rem);
   background: transparent;
   border: none;
   border-radius: 8px;
-  font-size: 0.95rem;
+  font-size: clamp(0.75rem, 1.5vh, 0.95rem);
 }
 
 .welcomeTitle {
@@ -126,8 +123,8 @@
 
 /* Teacher info section */
 .teacherInfo {
-  margin-bottom: 1.5rem;
-  font-size: 0.95rem;
+  margin-bottom: clamp(0.5rem, 2vh, 1.5rem);
+  font-size: clamp(0.75rem, 1.5vh, 0.95rem);
 }
 
 .copyButtonWrapper {
@@ -163,21 +160,22 @@
 }
 
 /* Media queries for small viewports */
-@media (max-height: 600px) {
+@media (max-height: 700px) {
   .header {
     height: 50px;
     min-height: 40px;
     max-height: 50px;
+    padding: 0 1rem;
   }
 
   .lobbyTitle {
-    font-size: clamp(1.5rem, 4vw, 2.5rem);
-    margin-bottom: 1rem;
+    font-size: clamp(1.5rem, 3.5vh, 2.5rem);
+    margin-bottom: 0.75rem;
   }
 
   .welcomeSection {
-    margin-bottom: 1rem;
-    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding: 0.5rem;
   }
 
   .contentArea {
@@ -185,7 +183,7 @@
   }
 }
 
-@media (max-height: 500px) {
+@media (max-height: 550px) {
   .header {
     height: 40px;
     min-height: 40px;
@@ -195,10 +193,19 @@
   .lobbyTitle {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
+    padding: 0.25rem;
   }
 
   .welcomeSection {
     display: none; /* Hide welcome text on very small screens */
+  }
+
+  .teacherInfo {
+    margin-bottom: 0.5rem;
+  }
+
+  .contentArea {
+    padding: 0.25rem;
   }
 }
 

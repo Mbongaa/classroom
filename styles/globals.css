@@ -16,8 +16,8 @@ html {
 
 body {
   min-height: 100vh;
-  min-height: -webkit-fill-available; /* Safari fallback */
-  min-height: 100svh; /* Modern small viewport height */
+  min-height: -webkit-fill-available; /* Safari < iOS 15 */
+  min-height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden; /* Prevent body scrolling */
   position: relative;
 }
@@ -25,8 +25,8 @@ body {
 /* Main element specific fixes */
 main {
   height: 100vh;
-  height: 100svh;
-  height: -webkit-fill-available;
+  height: -webkit-fill-available; /* Safari < iOS 15 */
+  height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden;
   position: relative;
 }
@@ -34,8 +34,8 @@ main {
 /* Ensure LiveKit theme containers respect viewport */
 main[data-lk-theme] {
   height: 100vh;
-  height: 100svh;
-  height: -webkit-fill-available;
+  height: -webkit-fill-available; /* Safari < iOS 15 */
+  height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden;
 }
 

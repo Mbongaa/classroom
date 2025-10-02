@@ -1,8 +1,8 @@
 .speechContainer {
   /* Modern viewport height with Safari fallbacks */
   height: 100vh; /* Fallback for older browsers */
-  height: 100svh; /* Small viewport height (mobile with address bar) */
-  height: -webkit-fill-available; /* Safari-specific fix */
+  height: -webkit-fill-available; /* Safari < iOS 15 */
+  height: 100svh; /* Modern browsers - must be last to override */
 
   /* Prevent ANY scrolling */
   overflow: hidden;
@@ -247,28 +247,28 @@
 
 /* Single participant - large square based on container height */
 .mainVideoGrid:has(> :only-child) > * {
-  --tile-size: min(calc(100% - 2rem), calc(100vh - 250px));
+  --tile-size: min(calc(100% - 2rem), calc(100svh - 250px));
   width: var(--tile-size);
   height: var(--tile-size);
 }
 
 /* 2 participants - squares that fit side by side */
 .mainVideoGrid:has(> :nth-child(2):last-child) > * {
-  --tile-size: min(calc(50% - 1rem), calc(100vh - 250px));
+  --tile-size: min(calc(50% - 1rem), calc(100svh - 250px));
   width: var(--tile-size);
   height: var(--tile-size);
 }
 
 /* 3-4 participants - squares in 2x2 grid */
 .mainVideoGrid:has(> :nth-child(3)):not(:has(> :nth-child(5))) > * {
-  --tile-size: min(calc(45% - 1rem), calc(50vh - 125px));
+  --tile-size: min(calc(45% - 1rem), calc(50svh - 125px));
   width: var(--tile-size);
   height: var(--tile-size);
 }
 
 /* 5+ participants - smaller squares */
 .mainVideoGrid:has(> :nth-child(5)) > * {
-  --tile-size: min(calc(30% - 1rem), calc(33vh - 80px));
+  --tile-size: min(calc(30% - 1rem), calc(33svh - 80px));
   width: var(--tile-size);
   height: var(--tile-size);
 }
@@ -684,7 +684,7 @@
 /* Mobile translation panel (horizontal layout between video and students) */
 .translationPanelMobile {
   display: none; /* Hidden by default */
-  height: 70vh; /* 70% of viewport height for more translation space */
+  height: 70svh; /* 70% of small viewport height (Safari compatible) */
   background: var(--lk-background-2);
   border-top: 1px solid var(--lk-border);
   border-bottom: 1px solid var(--lk-border);
@@ -839,8 +839,8 @@
   .chatWrapper {
     position: fixed !important;
     right: 0;
-    top: 56px !important; /* Below header */
-    bottom: 120px !important; /* Above control bar with extra clearance */
+    top: clamp(40px, 8vh, 60px) !important; /* Match responsive header */
+    bottom: calc(clamp(80px, 15vh, 150px) + 60px) !important; /* Match students section + control bar */
     width: 100% !important;
     height: auto !important; /* Override default height */
     z-index: 2500 !important; /* Above all components */
