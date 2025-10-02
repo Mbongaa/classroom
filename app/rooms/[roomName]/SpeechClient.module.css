@@ -12,6 +12,10 @@
   right: 0;
   bottom: 0;
 
+  /* Prevent touch scrolling on iPad/Safari */
+  touch-action: none;
+  -webkit-overflow-scrolling: auto;
+
   display: flex;
   flex-direction: column;
   background-color: var(--lk-background);

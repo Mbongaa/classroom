@@ -10,8 +10,13 @@
 
 /* Global viewport height fixes for Safari and mobile browsers */
 html {
-  height: 100%;
-  height: -webkit-fill-available; /* Safari-specific fix */
+  height: 100vh; /* Explicit height for Safari */
+  height: -webkit-fill-available; /* Safari < iOS 15 */
+  height: 100svh; /* Modern browsers */
+
+  /* Prevent Safari scroll bugs */
+  overflow: hidden;
+  touch-action: none;
 }
 
 body {
@@ -20,6 +25,10 @@ body {
   min-height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden; /* Prevent body scrolling */
   position: relative;
+
+  /* Prevent Safari iPad scroll bugs with input fields */
+  touch-action: none;
+  -webkit-overflow-scrolling: auto;
 }
 
 /* Main element specific fixes */
@@ -29,6 +38,7 @@ main {
   height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden;
   position: relative;
+  touch-action: none;
 }
 
 /* Ensure LiveKit theme containers respect viewport */
@@ -37,6 +47,7 @@ main[data-lk-theme] {
   height: -webkit-fill-available; /* Safari < iOS 15 */
   height: 100svh; /* Modern browsers - must be last to override */
   overflow: hidden;
+  touch-action: none;
 }
 
 /* Typography with Poppins font */

@@ -384,10 +384,15 @@ export default function CustomPreJoin({
         <Input
           id="username"
           type="text"
+          name="username"
           placeholder="Enter your name"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck="false"
+          autoFocus={typeof window !== 'undefined' && !/iPad|Tablet/.test(navigator.userAgent)}
           required
           className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
         />
