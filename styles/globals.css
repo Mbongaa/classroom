@@ -8,6 +8,20 @@
   box-sizing: border-box;
 }
 
+/* Global viewport height fixes for Safari and mobile browsers */
+html {
+  height: 100%;
+  height: -webkit-fill-available; /* Safari-specific fix */
+}
+
+body {
+  min-height: 100vh;
+  min-height: -webkit-fill-available; /* Safari fallback */
+  min-height: 100svh; /* Modern small viewport height */
+  overflow: hidden; /* Prevent body scrolling */
+  position: relative;
+}
+
 /* Typography with Poppins font */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
