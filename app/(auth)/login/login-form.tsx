@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signIn } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -31,36 +30,33 @@ export function LoginForm() {
     <div className="grid gap-6">
       <form action={handleSubmit}>
         <div className="grid gap-4">
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              placeholder="name@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" name="password" type="password" required />
-          </div>
+          <FloatingLabelInput
+            id="email"
+            name="email"
+            label="Email"
+            type="email"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            required
+          />
+          <FloatingLabelInput
+            id="password"
+            name="password"
+            label="Password"
+            type="password"
+            autoComplete="current-password"
+            required
+          />
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}
           <SubmitButton />
         </div>
       </form>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or</span>
-        </div>
+      <div className="flex flex-col items-center gap-2">
+        <span className="text-xs uppercase text-muted-foreground">Or</span>
+        <div className="w-full border-t" />
       </div>
       <Button variant="outline" type="button" disabled>
         <svg

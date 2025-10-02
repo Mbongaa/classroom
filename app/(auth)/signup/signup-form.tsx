@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signUp } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -48,36 +47,30 @@ export function SignupForm() {
     <div className="grid gap-6">
       <form action={handleSubmit}>
         <div className="grid gap-4">
+          <FloatingLabelInput
+            id="fullName"
+            name="fullName"
+            label="Full Name"
+            type="text"
+            autoCapitalize="words"
+            autoComplete="name"
+            required
+          />
+          <FloatingLabelInput
+            id="email"
+            name="email"
+            label="Email"
+            type="email"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            required
+          />
           <div className="grid gap-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              name="fullName"
-              placeholder="John Doe"
-              type="text"
-              autoCapitalize="words"
-              autoComplete="name"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              placeholder="name@example.com"
-              type="email"
-              autoCapitalize="none"
-              autoComplete="email"
-              autoCorrect="off"
-              required
-            />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
+            <FloatingLabelInput
               id="password"
               name="password"
+              label="Password"
               type="password"
               autoComplete="new-password"
               required
@@ -86,21 +79,16 @@ export function SignupForm() {
             <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
           </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Organization Details</span>
-            </div>
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-xs uppercase text-muted-foreground">Organization Details</span>
+            <div className="w-full border-t" />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="orgName">Organization Name</Label>
-            <Input
+            <FloatingLabelInput
               id="orgName"
               name="orgName"
-              placeholder="My School"
+              label="Organization Name"
               type="text"
               value={orgName}
               onChange={handleOrgNameChange}
@@ -112,13 +100,12 @@ export function SignupForm() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="orgSlug">Organization URL</Label>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">bayaan.app/</span>
-              <Input
+              <FloatingLabelInput
                 id="orgSlug"
                 name="orgSlug"
-                placeholder="my-school"
+                label="URL Slug"
                 type="text"
                 value={orgSlug}
                 onChange={(e) => setOrgSlug(slugify(e.target.value))}

@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 import { Mic, MicOff, Camera, CameraOff, ChevronDown } from 'lucide-react';
 
 interface CustomPreJoinProps {
@@ -380,12 +380,12 @@ export default function CustomPreJoin({
         onSubmit={handleSubmit}
         style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
       >
-        {/* Username input */}
-        <Input
+        {/* Username input with floating label */}
+        <FloatingLabelInput
           id="username"
           type="text"
           name="username"
-          placeholder="Enter your name"
+          label="Your Name"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           autoComplete="off"
@@ -394,7 +394,6 @@ export default function CustomPreJoin({
           spellCheck="false"
           autoFocus={typeof window !== 'undefined' && !/iPad|Tablet/.test(navigator.userAgent)}
           required
-          className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
         />
 
         {/* Language selector */}

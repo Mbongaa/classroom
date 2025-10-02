@@ -79,7 +79,8 @@
       "Bash(node:*)",
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(pnpm tsc:*)",
-      "Bash(timeout 180 pnpm build)"
+      "Bash(timeout 180 pnpm build)",
+      "WebFetch(domain:ui.aceternity.com)"
     ],
     "deny": [],
     "ask": []
