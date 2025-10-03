@@ -3,23 +3,26 @@
 import { useEffect, useRef } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { SessionMetadata } from '@/lib/types';
+import { generateSessionId } from '@/lib/client-utils';
 
 interface TranscriptionSaverProps {
-  sessionMetadata?: SessionMetadata | null;
+  roomName: string;
+  sessionStartTime: number;
 }
 
 /**
  * Invisible component that listens to transcription events and saves them for teachers.
  * This component has no UI - it only handles the transcription saving logic.
  * Mounted only by teachers to save transcriptions in their speaking language.
+ * Now uses session_id instead of recording_id for proper separation.
  */
-export default function TranscriptionSaver({ sessionMetadata }: TranscriptionSaverProps) {
+export default function TranscriptionSaver({ roomName, sessionStartTime }: TranscriptionSaverProps) {
   const room = useRoomContext();
   const savedSegmentIds = useRef<Set<string>>(new Set());
+  const sessionId = generateSessionId(roomName);
 
   useEffect(() => {
-    if (!room || !sessionMetadata) return;
+    if (!room) return;
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // Only process final segments to avoid duplicates
@@ -53,14 +56,14 @@ export default function TranscriptionSaver({ sessionMetadata }: TranscriptionSav
         if (!savedSegmentIds.current.has(segmentKey)) {
           savedSegmentIds.current.add(segmentKey);
 
-          const timestampMs = Date.now() - sessionMetadata.startTime;
+          const timestampMs = Date.now() - sessionStartTime;
 
-          // Save to transcriptions API
+          // Save to transcriptions API with session_id
           fetch('/api/transcriptions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              recordingId: sessionMetadata.recordingId,
+              sessionId, // Use session_id instead of recording_id
               text: transcription.text,
               language: transcription.language,
               participantIdentity: room.localParticipant?.identity || 'unknown',
@@ -86,14 +89,20 @@ export default function TranscriptionSaver({ sessionMetadata }: TranscriptionSav
 
     // Subscribe to transcription events
     room.on(RoomEvent.TranscriptionReceived, handleTranscription);
-    console.log('[TranscriptionSaver] Listening for transcriptions, speaking language:',
-      room.localParticipant?.attributes?.speaking_language);
+
+    // Only log if we have a speaking language set
+    const speakingLanguage = room.localParticipant?.attributes?.speaking_language;
+    if (speakingLanguage) {
+      console.log('[TranscriptionSaver] Listening for transcriptions, speaking language:', speakingLanguage);
+    } else {
+      console.log('[TranscriptionSaver] Waiting for speaking language to be set...');
+    }
 
     // Cleanup
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, sessionMetadata]);
+  }, [room, sessionId, sessionStartTime, room?.localParticipant?.attributes?.speaking_language]);
 
   // No UI - this component is invisible
   return null;

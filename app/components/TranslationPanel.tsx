@@ -6,13 +6,14 @@ import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages } from 'lucide-react';
 import styles from './TranslationPanel.module.css';
 
-import { SessionMetadata } from '@/lib/types';
+import { generateSessionId } from '@/lib/client-utils';
 
 interface TranslationPanelProps {
   captionsLanguage: string;
   onClose?: () => void;
   showCloseButton?: boolean;
-  sessionMetadata?: SessionMetadata | null;
+  roomName: string;
+  sessionStartTime: number;
   userRole?: 'teacher' | 'student' | null;
 }
 
@@ -28,7 +29,8 @@ export default function TranslationPanel({
   captionsLanguage,
   onClose,
   showCloseButton = false,
-  sessionMetadata,
+  roomName,
+  sessionStartTime,
   userRole,
 }: TranslationPanelProps) {
   const room = useRoomContext();
@@ -37,6 +39,7 @@ export default function TranslationPanel({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
+  const sessionId = generateSessionId(roomName);
 
   useEffect(() => {
     if (!room) return;
@@ -54,7 +57,7 @@ export default function TranslationPanel({
       );
 
       // Save only what THIS participant is consuming (prevent N-participant multiplication)
-      if (sessionMetadata && userRole) {
+      if (userRole) {
         const finalSegments = segments.filter(seg => seg.final);
 
         // Detect speaker's original language based on role
@@ -74,12 +77,12 @@ export default function TranslationPanel({
             if (!savedSegmentIds.current.has(segmentKey)) {
               savedSegmentIds.current.add(segmentKey);
 
-              const timestampMs = Date.now() - sessionMetadata.startTime;
+              const timestampMs = Date.now() - sessionStartTime;
               fetch('/api/transcriptions', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  recordingId: sessionMetadata.recordingId,
+                  sessionId, // Use session_id instead of recording_id
                   text: transcription.text,
                   language: transcription.language,
                   participantIdentity: room.localParticipant?.identity || 'unknown',
@@ -104,7 +107,7 @@ export default function TranslationPanel({
             if (!savedSegmentIds.current.has(segmentKey)) {
               savedSegmentIds.current.add(segmentKey);
 
-              const timestampMs = Date.now() - sessionMetadata.startTime;
+              const timestampMs = Date.now() - sessionStartTime;
               // Get teacher's name from remote participants (for students)
               const teacher = Array.from(room.remoteParticipants.values())
                 .find(p => p.attributes?.speaking_language !== undefined);
@@ -112,7 +115,7 @@ export default function TranslationPanel({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  recordingId: sessionMetadata.recordingId,
+                  sessionId, // Use session_id instead of recording_id
                   text: translation.text,
                   language: translation.language,
                   participantName: teacher?.name || 'Teacher',
@@ -171,7 +174,7 @@ export default function TranslationPanel({
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, captionsLanguage, sessionMetadata, userRole]);
+  }, [room, captionsLanguage, sessionId, sessionStartTime, userRole]);
 
   // Auto-scroll to bottom when new translations arrive
   useEffect(() => {

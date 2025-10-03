@@ -68,6 +68,7 @@ export async function createRecording(params: {
   teacherName: string;
   classroomId?: string;
   createdBy?: string;
+  sessionUuid?: string; // Link to sessions table
 }): Promise<Recording> {
   const supabase = createAdminClient();
 
@@ -81,6 +82,7 @@ export async function createRecording(params: {
       teacher_name: params.teacherName,
       classroom_id: params.classroomId || null,
       created_by: params.createdBy || null,
+      session_uuid: params.sessionUuid || null, // Link to session if exists
       status: 'ACTIVE',
       started_at: new Date().toISOString(),
     })
@@ -154,7 +156,7 @@ export async function getRecordingByEgressId(egressId: string): Promise<Recordin
 }
 
 /**
- * Get all recordings for a room
+ * Get all recordings for a room (excludes transcript-only entries)
  */
 export async function getRoomRecordings(roomName: string): Promise<Recording[]> {
   const supabase = createAdminClient();
@@ -163,6 +165,7 @@ export async function getRoomRecordings(roomName: string): Promise<Recording[]> 
     .from('session_recordings')
     .select('*')
     .eq('room_name', roomName)
+    .not('livekit_egress_id', 'like', 'transcript-%') // Filter out fake recordings
     .order('started_at', { ascending: false });
 
   if (error) throw new Error(`Failed to get recordings: ${error.message}`);
@@ -170,7 +173,7 @@ export async function getRoomRecordings(roomName: string): Promise<Recording[]> 
 }
 
 /**
- * Get all recordings (for dashboard)
+ * Get all recordings (for dashboard) - excludes transcript-only entries
  */
 export async function getAllRecordings(): Promise<Recording[]> {
   const supabase = createAdminClient();
@@ -178,6 +181,7 @@ export async function getAllRecordings(): Promise<Recording[]> {
   const { data, error } = await supabase
     .from('session_recordings')
     .select('*')
+    .not('livekit_egress_id', 'like', 'transcript-%') // Filter out fake recordings
     .order('started_at', { ascending: false });
 
   if (error) throw new Error(`Failed to get recordings: ${error.message}`);

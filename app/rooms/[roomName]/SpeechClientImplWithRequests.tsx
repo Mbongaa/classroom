@@ -46,14 +46,15 @@ interface PermissionNotification {
   grantedBy: string;
 }
 
-import { SessionMetadata } from '@/lib/types';
+// SessionMetadata no longer needed - using roomName and sessionStartTime directly
 
 interface SpeechClientImplWithRequestsProps {
   userRole?: string | null;
-  sessionMetadata?: SessionMetadata | null;
+  roomName: string;
+  sessionStartTime: number;
 }
 
-export function SpeechClientImplWithRequests({ userRole, sessionMetadata }: SpeechClientImplWithRequestsProps) {
+export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartTime }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
   const connectionState = useConnectionState();
@@ -663,7 +664,13 @@ export function SpeechClientImplWithRequests({ userRole, sessionMetadata }: Spee
                 width: `${translationResize.width}px`,
               }}
             >
-              <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} sessionMetadata={sessionMetadata} userRole={userRole as 'teacher' | 'student'} />
+              <SpeechTranslationPanel
+                targetLanguage={captionsLanguage}
+                hideCloseButton={true}
+                roomName={roomName}
+                sessionStartTime={sessionStartTime}
+                userRole={userRole as 'teacher' | 'student'}
+              />
               <div
                 className={styles.resizeHandle}
                 onMouseDown={translationResize.handleMouseDown}
@@ -833,7 +840,13 @@ export function SpeechClientImplWithRequests({ userRole, sessionMetadata }: Spee
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
         {!isTeacher && isMobile && (
           <div className={styles.translationPanelMobile}>
-            <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} sessionMetadata={sessionMetadata} userRole={userRole as 'teacher' | 'student'} />
+            <SpeechTranslationPanel
+              targetLanguage={captionsLanguage}
+              hideCloseButton={true}
+              roomName={roomName}
+              sessionStartTime={sessionStartTime}
+              userRole={userRole as 'teacher' | 'student'}
+            />
           </div>
         )}
 
@@ -908,7 +921,7 @@ export function SpeechClientImplWithRequests({ userRole, sessionMetadata }: Spee
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver sessionMetadata={sessionMetadata} />}
+      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} />}
     </div>
   );
 }

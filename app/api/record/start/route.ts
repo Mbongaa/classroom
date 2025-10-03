@@ -10,6 +10,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
 import { createRecording, generateSessionId } from '@/lib/recording-utils';
 import { getClassroomByRoomCode, getClassroomById } from '@/lib/classroom-utils';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest) {
   // Require teacher authentication for recording operations
@@ -128,7 +129,37 @@ export async function GET(req: NextRequest) {
       },
     );
 
-    // Create database record with optional classroom link
+    // Check if a session already exists for this room
+    const supabase = createAdminClient();
+    const { data: existingSession } = await supabase
+      .from('sessions')
+      .select('id')
+      .eq('session_id', sessionId)
+      .maybeSingle();
+
+    let sessionUuid = existingSession?.id;
+
+    // If no session exists, create one
+    if (!sessionUuid) {
+      const { data: newSession, error: sessionError } = await supabase
+        .from('sessions')
+        .insert({
+          room_sid: roomSid,
+          room_name: displayRoomCode,
+          session_id: sessionId,
+          started_at: new Date().toISOString(),
+        })
+        .select('id')
+        .single();
+
+      if (sessionError) {
+        console.error('[Recording] Failed to create session:', sessionError);
+      } else {
+        sessionUuid = newSession.id;
+      }
+    }
+
+    // Create database record with optional classroom and session link
     const recording = await createRecording({
       roomSid,
       roomName: displayRoomCode, // Use clean room_code (MATH101) for display, not UUID
@@ -137,6 +168,7 @@ export async function GET(req: NextRequest) {
       teacherName,
       classroomId: classroom?.id || null, // Link to classroom UUID if exists
       createdBy: auth.user?.id,
+      sessionUuid, // Link to session if exists
     });
 
     return NextResponse.json({

@@ -1,12 +1,12 @@
 'use client';
 
 import React from 'react';
-import { decodePassphrase } from '@/lib/client-utils';
+import { decodePassphrase, generateSessionId } from '@/lib/client-utils';
 import { DebugMode } from '@/lib/Debug';
 import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import { SettingsMenu } from '@/lib/SettingsMenu';
-import { ConnectionDetails, SessionMetadata } from '@/lib/types';
+import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
 import { SpeechClientImplWithRequests as SpeechClientImpl } from './SpeechClientImplWithRequests';
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
@@ -294,7 +294,7 @@ function VideoConferenceComponent(props: {
   const e2eeEnabled = !!(e2eePassphrase && worker);
 
   const [e2eeSetupComplete, setE2eeSetupComplete] = React.useState(false);
-  const [sessionMetadata, setSessionMetadata] = React.useState<SessionMetadata | null>(null);
+  const [sessionStartTime, setSessionStartTime] = React.useState<number>(Date.now());
 
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
@@ -368,38 +368,8 @@ function VideoConferenceComponent(props: {
           connectOptions,
         )
         .then(async () => {
-          // Initialize session for transcript saving (works independently of video recording)
-          try {
-            const participantName = room.localParticipant?.identity || room.localParticipant?.name || props.userChoices.username;
-            console.log('[Session Init] Initializing session for room:', room.name, 'participant:', participantName);
-            const response = await fetch('/api/sessions/init', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                roomName: room.name,
-                roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
-                participantName: participantName,
-              }),
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              const metadata: SessionMetadata = {
-                sessionId: data.session.session_id,
-                recordingId: data.session.id, // UUID for linking translations
-                startTime: Date.now(),
-                isRecording: false, // Initially not recording (just transcriptions)
-              };
-              setSessionMetadata(metadata);
-              console.log('[Session Init] Session initialized:', metadata.sessionId);
-            } else {
-              console.error('[Session Init] Failed to initialize session:', await response.text());
-            }
-          } catch (error) {
-            console.error('[Session Init] Error initializing session:', error);
-          }
-
-          // Set participant language attribute for students and teachers in classroom mode
+          // Set participant language attribute FIRST for students and teachers in classroom mode
+          // This ensures TranscriptionSaver sees the correct language when it mounts
           if (
             (props.classroomRole === 'student' || props.classroomRole === 'teacher') &&
             props.selectedLanguage
@@ -427,8 +397,42 @@ function VideoConferenceComponent(props: {
 
               console.log('[DEBUG] Language attribute set successfully');
             } catch (error) {
-              console.error('Failed to set language attribute:', error);
+              console.error('[DEBUG] Failed to set language attribute:', error);
             }
+          }
+
+          // Initialize session for transcript saving AFTER language is set
+          try {
+            const participantName = room.localParticipant?.identity || room.localParticipant?.name || props.userChoices.username;
+            console.log('[Session Create] Creating session for room:', room.name, 'participant:', participantName);
+
+            // Generate session ID using the helper function
+            const sessionIdValue = generateSessionId(room.name);
+
+            const response = await fetch('/api/sessions/create', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                roomName: room.name,
+                roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
+                sessionId: sessionIdValue,
+              }),
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              // Set the session start time for child components
+              setSessionStartTime(Date.now());
+              console.log('[Session Create] Session created/retrieved:', data.session.session_id);
+            } else {
+              console.error('[Session Create] Failed to create session:', await response.text());
+              // Still set start time even if session creation fails (allows local operation)
+              setSessionStartTime(Date.now());
+            }
+          } catch (error) {
+            console.error('[Session Create] Error creating session:', error);
+            // Still set start time even if session creation fails (allows local operation)
+            setSessionStartTime(Date.now());
           }
 
           // Check if user is a student by parsing the token or checking URL
@@ -518,9 +522,9 @@ function VideoConferenceComponent(props: {
           <KeyboardShortcuts />
           {/* Conditionally render ClassroomClientImpl, SpeechClientImpl, or CustomVideoConference based on mode */}
           {isClassroom ? (
-            <ClassroomClientImpl userRole={userRole} sessionMetadata={sessionMetadata} />
+            <ClassroomClientImpl userRole={userRole} roomName={room.name} sessionStartTime={sessionStartTime} />
           ) : isSpeech ? (
-            <SpeechClientImpl userRole={userRole} sessionMetadata={sessionMetadata} />
+            <SpeechClientImpl userRole={userRole} roomName={room.name} sessionStartTime={sessionStartTime} />
           ) : (
             <CustomVideoConference
               chatMessageFormatter={formatChatMessageLinks}

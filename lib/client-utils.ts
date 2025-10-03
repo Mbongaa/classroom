@@ -23,3 +23,15 @@ export function randomString(length: number): string {
 export function isLowPowerDevice() {
   return navigator.hardwareConcurrency < 6;
 }
+
+/**
+ * Generate unique session ID for transcription tracking
+ * Format: ROOMNAME_YYYY-MM-DD_HH-MM
+ * Example: MATH101_2025-01-30_14-30
+ */
+export function generateSessionId(roomName: string): string {
+  const now = new Date();
+  const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+  const time = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-'); // HH-MM
+  return `${roomName}_${date}_${time}`;
+}

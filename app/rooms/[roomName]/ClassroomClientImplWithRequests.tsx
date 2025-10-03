@@ -51,16 +51,18 @@ interface PermissionNotification {
   grantedBy: string;
 }
 
-import { SessionMetadata } from '@/lib/types';
+// SessionMetadata no longer needed - using roomName and sessionStartTime directly
 
 interface ClassroomClientImplWithRequestsProps {
   userRole?: string | null;
-  sessionMetadata?: SessionMetadata | null;
+  roomName: string;
+  sessionStartTime: number;
 }
 
 export function ClassroomClientImplWithRequests({
   userRole,
-  sessionMetadata,
+  roomName,
+  sessionStartTime,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -864,7 +866,8 @@ export function ClassroomClientImplWithRequests({
               <TranslationPanel
                 captionsLanguage={captionsLanguage}
                 onClose={() => setShowTranslation(false)}
-                sessionMetadata={sessionMetadata}
+                roomName={roomName}
+                sessionStartTime={sessionStartTime}
                 userRole={userRole as 'teacher' | 'student'}
                 showCloseButton={true}
               />
@@ -1052,7 +1055,8 @@ export function ClassroomClientImplWithRequests({
             <TranslationPanel
               captionsLanguage={captionsLanguage}
               onClose={() => setShowTranslation(false)}
-              sessionMetadata={sessionMetadata}
+              roomName={roomName}
+              sessionStartTime={sessionStartTime}
               userRole={userRole as 'teacher' | 'student'}
               showCloseButton={true}
             />
@@ -1147,7 +1151,7 @@ export function ClassroomClientImplWithRequests({
       )}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver sessionMetadata={sessionMetadata} />}
+      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} />}
     </div>
   );
 }
