@@ -72,17 +72,21 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/rooms/create', {
+      const response = await fetch('/api/classrooms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           roomCode: roomCode.trim(),
-          roomType,
-          teacherName: teacherName.trim() || undefined,
-          language: language || undefined, // Language is already a code (en, es, etc.)
+          name: teacherName.trim() || roomCode.trim(), // Classroom name (teacher name or room code)
           description: description.trim() || undefined,
+          settings: {
+            language: language || 'en',
+            enable_recording: roomType === 'classroom',
+            enable_chat: true,
+            max_participants: 100,
+          },
         }),
       });
 

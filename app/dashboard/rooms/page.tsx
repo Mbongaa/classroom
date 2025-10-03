@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { PersistentRoom } from '@/lib/types';
+import { Classroom } from '@/lib/types';
 import { CreateRoomDialog } from '@/components/rooms/CreateRoomDialog';
 import { RoomCard } from '@/components/rooms/RoomCard';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import PulsatingLoader from '@/components/ui/pulsating-loader';
 
 export default function DashboardRoomsPage() {
   const router = useRouter();
-  const [rooms, setRooms] = useState<PersistentRoom[]>([]);
+  const [rooms, setRooms] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,16 +19,16 @@ export default function DashboardRoomsPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/rooms');
+      const response = await fetch('/api/classrooms');
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to fetch rooms');
+        setError(data.error || 'Failed to fetch classrooms');
         setLoading(false);
         return;
       }
 
-      setRooms(data.rooms || []);
+      setRooms(data.classrooms || []);
     } catch (err) {
       setError('Failed to fetch rooms. Please try again.');
     } finally {
@@ -101,7 +101,7 @@ export default function DashboardRoomsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rooms.map((room) => (
-              <RoomCard key={room.sid} room={room} onDelete={fetchRooms} />
+              <RoomCard key={room.id} room={room} onDelete={fetchRooms} />
             ))}
           </div>
         </>

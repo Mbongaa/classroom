@@ -35,7 +35,7 @@ export interface ClassroomMetadata {
   [key: string]: any;
 }
 
-// Persistent Rooms types
+// Persistent Rooms types (LEGACY - deprecated in favor of Classroom)
 export type RoomType = 'meeting' | 'classroom' | 'speech';
 
 export interface RoomMetadata {
@@ -54,4 +54,28 @@ export interface PersistentRoom {
   metadata: RoomMetadata;
   creationTime: number; // Unix timestamp
   numParticipants: number;
+}
+
+// Classroom types (Supabase-first architecture)
+export interface ClassroomSettings {
+  language: string;
+  enable_recording: boolean;
+  enable_chat: boolean;
+  max_participants: number;
+}
+
+export interface Classroom {
+  id: string; // UUID (also used as LiveKit room name)
+  organization_id: string;
+  room_code: string; // User-facing code (e.g., "MATH101")
+  teacher_id: string;
+  name: string; // Teacher/classroom name
+  description: string | null;
+  settings: ClassroomSettings;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  // Optional fields from API enrichment
+  numParticipants?: number;
+  isLive?: boolean;
 }

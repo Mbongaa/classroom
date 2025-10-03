@@ -82,20 +82,28 @@ export function PageClientImpl(props: {
     }
   }, []);
 
-  // Fetch room metadata to auto-populate language and teacher name (TEACHERS ONLY)
+  // Fetch classroom metadata to auto-populate language and teacher name (TEACHERS ONLY)
   React.useEffect(() => {
     const fetchRoomMetadata = async () => {
       try {
-        const response = await fetch(`/api/rooms/${props.roomName}/metadata`);
+        const response = await fetch(`/api/classrooms/${props.roomName}`);
         const data = await response.json();
 
-        if (data.metadata) {
-          // Store full metadata for use in preJoinDefaults
-          setRoomMetadata(data.metadata);
+        // Handle both new classroom structure and legacy metadata structure
+        const metadata = data.classroom
+          ? {
+              teacherName: data.classroom.name,
+              language: data.classroom.settings?.language,
+            }
+          : data.metadata || null;
+
+        if (metadata) {
+          // Store metadata for use in preJoinDefaults
+          setRoomMetadata(metadata);
 
           // Auto-populate language ONLY for teachers
-          if (data.metadata.language && classroomInfo?.role === 'teacher') {
-            setSelectedLanguage(data.metadata.language);
+          if (metadata.language && classroomInfo?.role === 'teacher') {
+            setSelectedLanguage(metadata.language);
           }
         }
       } catch (error) {
@@ -490,7 +498,6 @@ function VideoConferenceComponent(props: {
             />
           )}
           <DebugMode />
-          <RecordingIndicator />
         </LayoutContextProvider>
       </RoomContext.Provider>
     </div>

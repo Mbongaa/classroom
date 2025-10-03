@@ -29,6 +29,7 @@ import RequestIndicator from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
+import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import {
   StudentRequest,
   StudentRequestMessage,
@@ -122,8 +123,68 @@ export function ClassroomClientImplWithRequests({
   // State for mobile detection
   const [isMobile, setIsMobile] = React.useState(false);
 
+  // State for auto-recording (silent background operation for teachers)
+  const [recordingId, setRecordingId] = React.useState<string | null>(null);
+
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
+
+  // Auto-start recording when teacher connects
+  React.useEffect(() => {
+    // Only auto-record for teachers in connected rooms
+    if (!isTeacher || connectionState !== 'connected' || recordingId) {
+      return;
+    }
+
+    const startAutoRecording = async () => {
+      try {
+        const teacherName = localParticipant?.name || localParticipant?.identity || 'Teacher';
+        const params = new URLSearchParams({
+          roomName: room.name,
+          roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
+          teacherName: teacherName,
+        });
+
+        const response = await fetch(`/api/record/start?${params.toString()}`);
+        if (response.ok) {
+          const data = await response.json();
+          setRecordingId(data.recording?.id);
+          console.log('[Auto-Recording] Started:', data.recording?.sessionId);
+        } else {
+          console.error('[Auto-Recording] Failed to start:', response.status);
+        }
+      } catch (error) {
+        console.error('[Auto-Recording] Error:', error);
+      }
+    };
+
+    // Start recording after short delay to ensure room is fully connected
+    const timer = setTimeout(startAutoRecording, 2000);
+    return () => clearTimeout(timer);
+  }, [isTeacher, connectionState, room, localParticipant, recordingId]);
+
+  // Auto-stop recording when teacher leaves
+  React.useEffect(() => {
+    if (!isTeacher || !recordingId) return;
+
+    return () => {
+      // Cleanup: stop recording when component unmounts (teacher leaves)
+      const stopAutoRecording = async () => {
+        try {
+          const params = new URLSearchParams({
+            roomName: room.name,
+            recordingId: recordingId,
+          });
+          await fetch(`/api/record/stop?${params.toString()}`);
+          console.log('[Auto-Recording] Stopped on disconnect');
+        } catch (error) {
+          console.error('[Auto-Recording] Error stopping:', error);
+        }
+      };
+
+      stopAutoRecording();
+    };
+  }, [isTeacher, recordingId, room]);
 
   // Determine if current user can speak based on actual permissions
   const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish ?? false);
@@ -728,6 +789,7 @@ export function ClassroomClientImplWithRequests({
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
             <span className={styles.roomName}>bayaan.ai</span>
+            <RecordingIndicator />
           </div>
 
           <div className={styles.headerControls}>

@@ -33,6 +33,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^11.18.2",
+    "hls.js": "^1.6.13",
     "livekit-client": "2.15.7",
     "livekit-server-sdk": "2.13.3",
     "lucide-react": "^0.544.0",
@@ -46,6 +47,7 @@
     "tinykeys": "^3.0.0"
   },
   "devDependencies": {
+    "@types/hls.js": "^1.0.0",
     "@types/node": "22.17.2",
     "@types/react": "18.3.23",
     "@types/react-dom": "18.3.7",

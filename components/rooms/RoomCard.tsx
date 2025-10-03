@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { PersistentRoom } from '@/lib/types';
+import { Classroom } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -16,7 +16,7 @@ import {
 import { Trash2, Video } from 'lucide-react';
 
 interface RoomCardProps {
-  room: PersistentRoom;
+  room: Classroom;
   onDelete: () => void;
 }
 
@@ -25,28 +25,22 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
   const [deleting, setDeleting] = useState(false);
 
   const handleJoinRoom = () => {
-    const { name, metadata } = room;
-    let url = `/rooms/${name}`;
-
-    // Add appropriate query parameters based on room type
-    if (metadata.roomType === 'classroom') {
-      url += '?classroom=true&role=teacher';
-    } else if (metadata.roomType === 'speech') {
-      url += '?speech=true&role=teacher';
-    }
+    const { room_code } = room;
+    // All classrooms use classroom mode
+    let url = `/rooms/${room_code}?classroom=true&role=teacher`;
 
     router.push(url);
   };
 
   const handleDeleteRoom = async () => {
-    if (!confirm(`Are you sure you want to delete room "${room.name}"?`)) {
+    if (!confirm(`Are you sure you want to delete classroom "${room.room_code}"?`)) {
       return;
     }
 
     setDeleting(true);
 
     try {
-      const response = await fetch(`/api/rooms/${room.name}`, {
+      const response = await fetch(`/api/classrooms/${room.room_code}`, {
         method: 'DELETE',
       });
 
@@ -64,8 +58,8 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
     }
   };
 
-  const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -74,56 +68,37 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
     });
   };
 
-  const getRoomTypeBadgeVariant = () => {
-    switch (room.metadata.roomType) {
-      case 'meeting':
-        return 'meeting';
-      case 'classroom':
-        return 'classroom';
-      case 'speech':
-        return 'speech';
-      default:
-        return 'default';
-    }
-  };
-
   return (
     <Card className="flex flex-col">
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-2xl font-bold">{room.name}</CardTitle>
-          <Badge variant={getRoomTypeBadgeVariant()}>
-            {room.metadata.roomType.charAt(0).toUpperCase() + room.metadata.roomType.slice(1)}
-          </Badge>
+          <CardTitle className="text-2xl font-bold">{room.room_code}</CardTitle>
+          <Badge variant="classroom">Classroom</Badge>
         </div>
-        {room.metadata.description && (
-          <CardDescription>{room.metadata.description}</CardDescription>
-        )}
+        {room.description && <CardDescription>{room.description}</CardDescription>}
       </CardHeader>
 
       <CardContent className="flex-grow space-y-2">
-        {room.metadata.teacherName && (
+        {room.name && (
           <div className="text-sm">
-            <span className="text-slate-500 dark:text-slate-400">
-              {room.metadata.roomType === 'classroom' ? 'Teacher' : 'Speaker'}:
-            </span>{' '}
-            <span className="font-medium">{room.metadata.teacherName}</span>
+            <span className="text-slate-500 dark:text-slate-400">Teacher:</span>{' '}
+            <span className="font-medium">{room.name}</span>
           </div>
         )}
 
-        {room.metadata.language && (
+        {room.settings.language && (
           <div className="text-sm">
             <span className="text-slate-500 dark:text-slate-400">Language:</span>{' '}
-            <span>{room.metadata.language}</span>
+            <span>{room.settings.language}</span>
           </div>
         )}
 
         <div className="text-sm">
           <span className="text-slate-500 dark:text-slate-400">Created:</span>{' '}
-          <span>{formatDate(room.creationTime)}</span>
+          <span>{formatDate(room.created_at)}</span>
         </div>
 
-        {room.numParticipants > 0 && (
+        {room.isLive && room.numParticipants !== undefined && room.numParticipants > 0 && (
           <div className="text-sm">
             <span className="text-slate-500 dark:text-slate-400">Active participants:</span>{' '}
             <span className="font-medium text-green-500">{room.numParticipants}</span>

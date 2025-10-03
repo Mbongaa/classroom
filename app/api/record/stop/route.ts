@@ -1,6 +1,7 @@
 import { EgressClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
+import { updateRecording } from '@/lib/recording-utils';
 
 export async function GET(req: NextRequest) {
   // Require teacher authentication for recording operations
@@ -9,9 +10,10 @@ export async function GET(req: NextRequest) {
 
   try {
     const roomName = req.nextUrl.searchParams.get('roomName');
+    const recordingId = req.nextUrl.searchParams.get('recordingId');
 
-    if (roomName === null) {
-      return new NextResponse('Missing roomName parameter', { status: 403 });
+    if (!roomName) {
+      return new NextResponse('Missing roomName parameter', { status: 400 });
     }
 
     const { LIVEKIT_API_KEY, LIVEKIT_API_SECRET, LIVEKIT_URL } = process.env;
@@ -20,18 +22,34 @@ export async function GET(req: NextRequest) {
     hostURL.protocol = 'https:';
 
     const egressClient = new EgressClient(hostURL.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+
+    // Get active egresses for this room
     const activeEgresses = (await egressClient.listEgress({ roomName })).filter(
       (info) => info.status < 2,
     );
+
     if (activeEgresses.length === 0) {
       return new NextResponse('No active recording found', { status: 404 });
     }
+
+    // Stop all active egresses
     await Promise.all(activeEgresses.map((info) => egressClient.stopEgress(info.egressId)));
 
-    return new NextResponse(null, { status: 200 });
-  } catch (error) {
-    if (error instanceof Error) {
-      return new NextResponse(error.message, { status: 500 });
+    // Update database if recordingId provided
+    if (recordingId) {
+      await updateRecording(recordingId, {
+        ended_at: new Date().toISOString(),
+      });
     }
+
+    console.log(`[Recording Stop] Stopped ${activeEgresses.length} egress(es) for room: ${roomName}`);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('[Recording Stop] Failed:', error);
+    return new NextResponse(
+      error instanceof Error ? error.message : 'Unknown error',
+      { status: 500 },
+    );
   }
 }

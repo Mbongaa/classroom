@@ -1,9 +1,10 @@
 import { randomString } from '@/lib/client-utils';
 import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import { ConnectionDetails } from '@/lib/types';
-import { AccessToken, AccessTokenOptions, VideoGrant } from 'livekit-server-sdk';
+import { AccessToken, AccessTokenOptions, VideoGrant, RoomServiceClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getClassroomByRoomCode } from '@/lib/classroom-utils';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -36,47 +37,89 @@ export async function GET(request: NextRequest) {
     //   return new NextResponse('Authentication required for classroom sessions', { status: 401 });
     // }
 
-    // If user is authenticated, get their profile and verify permissions
+    // CLASSROOM LOOKUP AND LIVEKIT BRIDGE
+    // This is the critical mapping: user-facing room_code → LiveKit UUID
     let userRole = role; // Default to query param role
-    if (user && isClassroom) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, organization_id')
-        .eq('id', user.id)
-        .single();
+    let livekitRoomName = roomName; // Default to user-facing room name
+    let classroom = null;
 
-      if (profile) {
-        // If user is authenticated, use their actual role from the database
-        // Teachers and admins get teacher privileges
-        if (profile.role === 'teacher' || profile.role === 'admin') {
-          userRole = 'teacher';
-        } else {
-          userRole = 'student';
-        }
-
-        // Optional: Verify user is part of the classroom
-        // Check if classroom exists and user has access
-        const { data: classroom } = await supabase
-          .from('classrooms')
-          .select('id, organization_id')
-          .eq('room_code', roomName)
-          .eq('organization_id', profile.organization_id)
+    // If this is a classroom/speech session, look up in Supabase
+    if ((isClassroom || isSpeech) && roomName) {
+      // Get user's organization context if authenticated
+      let organizationId: string | undefined;
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role, organization_id')
+          .eq('id', user.id)
           .single();
 
-        if (classroom) {
-          // Log participation for analytics
-          await supabase.from('classroom_participants').upsert(
-            {
-              classroom_id: classroom.id,
-              user_id: user.id,
-              role: userRole,
-              last_attended_at: new Date().toISOString(),
-            },
-            {
-              onConflict: 'classroom_id,user_id',
-            },
-          );
+        if (profile) {
+          organizationId = profile.organization_id;
+
+          // Use actual role from database for authenticated users
+          if (profile.role === 'teacher' || profile.role === 'admin') {
+            userRole = 'teacher';
+          } else {
+            userRole = 'student';
+          }
         }
+      }
+
+      // Lookup classroom by room_code (user-facing identifier)
+      classroom = await getClassroomByRoomCode(roomName, organizationId);
+
+      if (classroom) {
+        // Use classroom.id (UUID) as LiveKit room name for uniqueness
+        livekitRoomName = classroom.id;
+
+        // Ensure LiveKit room exists (LAZY CREATION)
+        if (API_KEY && API_SECRET && LIVEKIT_URL) {
+          try {
+            const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
+
+            // Check if room exists
+            const existingRooms = await roomService.listRooms([livekitRoomName]);
+
+            if (existingRooms.length === 0) {
+              // Create LiveKit room on-demand
+              console.log(`Creating LiveKit room for classroom ${classroom.room_code} (${classroom.id})`);
+              await roomService.createRoom({
+                name: livekitRoomName, // Use UUID
+                emptyTimeout: 604800, // 7 days
+                metadata: '', // Supabase has all metadata
+              });
+            }
+          } catch (error) {
+            console.error('Error ensuring LiveKit room exists:', error);
+            // Continue anyway - token generation might still work
+          }
+        }
+
+        // Track participation for authenticated users
+        if (user) {
+          try {
+            await supabase.from('classroom_participants').upsert(
+              {
+                classroom_id: classroom.id,
+                user_id: user.id,
+                role: userRole,
+                last_attended_at: new Date().toISOString(),
+              },
+              {
+                onConflict: 'classroom_id,user_id',
+              },
+            );
+          } catch (error) {
+            console.error('Error tracking participation:', error);
+            // Don't fail the request if tracking fails
+          }
+        }
+      } else {
+        // Classroom not found in Supabase
+        console.warn(`Classroom not found: ${roomName}`);
+        // Fall back to using room_code directly (for non-classroom rooms or legacy)
+        livekitRoomName = roomName;
       }
     }
 
@@ -117,7 +160,7 @@ export async function GET(request: NextRequest) {
         name: participantName,
         metadata: enrichedMetadata,
       },
-      roomName,
+      livekitRoomName, // Use LiveKit room name (UUID for classrooms)
       isClassroom || isSpeech,
       userRole, // Use the verified role from database if authenticated
     );
@@ -125,7 +168,7 @@ export async function GET(request: NextRequest) {
     // Return connection details
     const data: ConnectionDetails = {
       serverUrl: livekitServerUrl,
-      roomName: roomName,
+      roomName: livekitRoomName, // LiveKit room name (UUID for classrooms)
       participantToken: participantToken,
       participantName: participantName,
     };

@@ -1,40 +1,21 @@
 import { useIsRecording } from '@livekit/components-react';
-import * as React from 'react';
-import toast from 'react-hot-toast';
 
+/**
+ * Simple "Live" indicator badge for recording status
+ * Shows animated red dot + "LIVE" text when recording is active
+ */
 export function RecordingIndicator() {
   const isRecording = useIsRecording();
-  const [wasRecording, setWasRecording] = React.useState(false);
 
-  React.useEffect(() => {
-    if (isRecording !== wasRecording) {
-      setWasRecording(isRecording);
-      if (isRecording) {
-        toast('This meeting is being recorded', {
-          duration: 3000,
-          icon: '🎥',
-          position: 'top-center',
-          className: 'lk-button',
-          style: {
-            backgroundColor: 'var(--lk-danger3)',
-            color: 'var(--lk-fg)',
-          },
-        });
-      }
-    }
-  }, [isRecording]);
+  if (!isRecording) return null;
 
   return (
-    <div
-      style={{
-        position: 'absolute',
-        top: '0',
-        left: '0',
-        width: '100%',
-        height: '100%',
-        boxShadow: isRecording ? 'var(--lk-danger3) 0px 0px 0px 3px inset' : 'none',
-        pointerEvents: 'none',
-      }}
-    ></div>
+    <div className="flex items-center gap-1 sm:gap-2">
+      <div className="relative">
+        <div className="w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full"></div>
+        <div className="absolute inset-0 w-2 h-2 sm:w-3 sm:h-3 bg-red-500 rounded-full animate-ping"></div>
+      </div>
+      <span className="text-xs sm:text-sm font-bold text-red-500 uppercase">Live</span>
+    </div>
   );
 }
