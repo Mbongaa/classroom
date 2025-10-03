@@ -3,7 +3,11 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signIn } from '@/lib/actions/auth';
+<<<<<<< HEAD
 import { Button } from '@/components/ui/moving-border';
+=======
+import { Button } from '@/components/ui/button';
+>>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton({ isFormValid }: { isFormValid: boolean }) {
@@ -63,6 +67,7 @@ export function LoginForm() {
     <div className="grid gap-6">
       <form action={handleSubmit}>
         <div className="grid gap-4">
+<<<<<<< HEAD
           <div className="grid gap-2">
             <FloatingLabelInput
               id="email"
@@ -89,14 +94,29 @@ export function LoginForm() {
               <p className="text-xs text-red-600 dark:text-red-400">{emailError}</p>
             )}
           </div>
+=======
+          <FloatingLabelInput
+            id="email"
+            name="email"
+            label="Email"
+            type="email"
+            autoCapitalize="none"
+            autoComplete="email"
+            autoCorrect="off"
+            required
+          />
+>>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
           <FloatingLabelInput
             id="password"
             name="password"
             label="Password"
             type="password"
             autoComplete="current-password"
+<<<<<<< HEAD
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+=======
+>>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
             required
           />
           {error && (
@@ -106,8 +126,13 @@ export function LoginForm() {
         </div>
       </form>
       <div className="flex flex-col items-center gap-2">
+<<<<<<< HEAD
         <span className="text-xs uppercase text-gray-600 dark:text-gray-400">Or</span>
         <div className="w-full border-t border-[#4b5563]" />
+=======
+        <span className="text-xs uppercase text-muted-foreground">Or</span>
+        <div className="w-full border-t" />
+>>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
       </div>
       <Button
         as="button"
