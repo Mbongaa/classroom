@@ -3,11 +3,7 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signUp } from '@/lib/actions/auth';
-<<<<<<< HEAD
 import { Button } from '@/components/ui/moving-border';
-=======
-import { Button } from '@/components/ui/button';
->>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton({ isFormValid }: { isFormValid: boolean }) {
@@ -107,26 +103,12 @@ export function SignupForm() {
             type="text"
             autoCapitalize="words"
             autoComplete="name"
-<<<<<<< HEAD
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
-=======
-            required
-          />
-          <FloatingLabelInput
-            id="email"
-            name="email"
-            label="Email"
-            type="email"
-            autoCapitalize="none"
-            autoComplete="email"
-            autoCorrect="off"
->>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
             required
           />
           <div className="grid gap-2">
             <FloatingLabelInput
-<<<<<<< HEAD
               id="email"
               name="email"
               label="Email"
@@ -153,8 +135,6 @@ export function SignupForm() {
           </div>
           <div className="grid gap-2">
             <FloatingLabelInput
-=======
->>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
               id="password"
               name="password"
               label="Password"
@@ -182,13 +162,8 @@ export function SignupForm() {
           </div>
 
           <div className="flex flex-col items-center gap-2">
-<<<<<<< HEAD
             <span className="text-xs uppercase text-gray-600 dark:text-gray-400">Organization Details</span>
             <div className="w-full border-t border-[#4b5563]" />
-=======
-            <span className="text-xs uppercase text-muted-foreground">Organization Details</span>
-            <div className="w-full border-t" />
->>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
           </div>
 
           <div className="grid gap-2">
@@ -208,11 +183,7 @@ export function SignupForm() {
 
           <div className="grid gap-2">
             <div className="flex items-center gap-2">
-<<<<<<< HEAD
               <span className="text-sm text-gray-600 dark:text-gray-400">bayaan.app/</span>
-=======
-              <span className="text-sm text-muted-foreground">bayaan.app/</span>
->>>>>>> e66ecb56e2d9ad214e8882b446a1a445ae07aca3
               <FloatingLabelInput
                 id="orgSlug"
                 name="orgSlug"

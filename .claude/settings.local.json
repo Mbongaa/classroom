@@ -80,7 +80,8 @@
       "WebFetch(domain:ui.shadcn.com)",
       "Bash(pnpm tsc:*)",
       "Bash(timeout 180 pnpm build)",
-      "WebFetch(domain:ui.aceternity.com)"
+      "WebFetch(domain:ui.aceternity.com)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
