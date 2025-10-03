@@ -79,3 +79,11 @@ export interface Classroom {
   numParticipants?: number;
   isLive?: boolean;
 }
+
+// Session and Recording types
+export interface SessionMetadata {
+  sessionId: string; // Human-readable session ID (e.g., "MATH101_2025-01-31_14-30")
+  recordingId: string; // Database UUID for linking translations
+  startTime: number; // Unix timestamp in milliseconds (for relative timestamp calculation)
+  isRecording: boolean; // True if video recording is active
+}

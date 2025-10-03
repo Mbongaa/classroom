@@ -28,6 +28,7 @@ import { StudentRequestDropdown } from '@/lib/StudentRequestDropdown';
 import RequestIndicator from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import TranslationPanel from '@/app/components/TranslationPanel';
+import TranscriptionSaver from '@/app/components/TranscriptionSaver';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import {
@@ -50,12 +51,16 @@ interface PermissionNotification {
   grantedBy: string;
 }
 
+import { SessionMetadata } from '@/lib/types';
+
 interface ClassroomClientImplWithRequestsProps {
   userRole?: string | null;
+  sessionMetadata?: SessionMetadata | null;
 }
 
 export function ClassroomClientImplWithRequests({
   userRole,
+  sessionMetadata,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -847,7 +852,7 @@ export function ClassroomClientImplWithRequests({
         {/* Video area - contains teacher video and sidebars */}
         <div className={styles.videoArea}>
           {/* Translation sidebar - only for students, toggleable from left (desktop only) */}
-          {!isTeacher && (
+          {!isTeacher && !isMobile && (
             <div
               ref={translationRef}
               className={`${styles.translationSidebar} ${styles.desktopOnly}`}
@@ -859,6 +864,8 @@ export function ClassroomClientImplWithRequests({
               <TranslationPanel
                 captionsLanguage={captionsLanguage}
                 onClose={() => setShowTranslation(false)}
+                sessionMetadata={sessionMetadata}
+                userRole={userRole as 'teacher' | 'student'}
                 showCloseButton={true}
               />
               <div
@@ -1040,11 +1047,13 @@ export function ClassroomClientImplWithRequests({
         </div>
 
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
-        {!isTeacher && showTranslation && (
+        {!isTeacher && isMobile && showTranslation && (
           <div className={styles.translationPanelMobile}>
             <TranslationPanel
               captionsLanguage={captionsLanguage}
               onClose={() => setShowTranslation(false)}
+              sessionMetadata={sessionMetadata}
+              userRole={userRole as 'teacher' | 'student'}
               showCloseButton={true}
             />
           </div>
@@ -1136,6 +1145,9 @@ export function ClassroomClientImplWithRequests({
           onDismiss={handleDismissNotification}
         />
       )}
+
+      {/* Invisible transcription saver for teachers only */}
+      {isTeacher && <TranscriptionSaver sessionMetadata={sessionMetadata} />}
     </div>
   );
 }

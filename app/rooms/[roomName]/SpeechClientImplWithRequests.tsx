@@ -24,6 +24,7 @@ import { SettingsMenu } from '@/lib/SettingsMenu';
 import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { QuestionBubble } from '@/lib/QuestionBubble';
 import SpeechTranslationPanel from '@/app/components/SpeechTranslationPanel';
+import TranscriptionSaver from '@/app/components/TranscriptionSaver';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
 import {
@@ -45,11 +46,14 @@ interface PermissionNotification {
   grantedBy: string;
 }
 
+import { SessionMetadata } from '@/lib/types';
+
 interface SpeechClientImplWithRequestsProps {
   userRole?: string | null;
+  sessionMetadata?: SessionMetadata | null;
 }
 
-export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithRequestsProps) {
+export function SpeechClientImplWithRequests({ userRole, sessionMetadata }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
   const connectionState = useConnectionState();
@@ -650,7 +654,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
         {/* Video area - contains teacher video and sidebars */}
         <div className={styles.videoArea}>
           {/* Translation sidebar - only for students, always visible (desktop only) */}
-          {!isTeacher && (
+          {!isTeacher && !isMobile && (
             <div
               ref={translationRef}
               className={`${styles.translationSidebar} ${styles.desktopOnly}`}
@@ -659,7 +663,7 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
                 width: `${translationResize.width}px`,
               }}
             >
-              <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} />
+              <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} sessionMetadata={sessionMetadata} userRole={userRole as 'teacher' | 'student'} />
               <div
                 className={styles.resizeHandle}
                 onMouseDown={translationResize.handleMouseDown}
@@ -827,9 +831,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
         </div>
 
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
-        {!isTeacher && (
+        {!isTeacher && isMobile && (
           <div className={styles.translationPanelMobile}>
-            <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} />
+            <SpeechTranslationPanel targetLanguage={captionsLanguage} hideCloseButton={true} sessionMetadata={sessionMetadata} userRole={userRole as 'teacher' | 'student'} />
           </div>
         )}
 
@@ -902,6 +906,9 @@ export function SpeechClientImplWithRequests({ userRole }: SpeechClientImplWithR
 
       {/* Additional UI elements */}
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
+
+      {/* Invisible transcription saver for teachers only */}
+      {isTeacher && <TranscriptionSaver sessionMetadata={sessionMetadata} />}
     </div>
   );
 }

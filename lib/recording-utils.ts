@@ -34,6 +34,17 @@ export interface TranslationEntry {
   created_at: string;
 }
 
+export interface Transcription {
+  id: string;
+  recording_id: string;
+  text: string;
+  language: string;
+  participant_identity: string;
+  participant_name: string;
+  timestamp_ms: number;
+  created_at: string;
+}
+
 /**
  * Generate unique session ID for recording
  * Format: ROOMCODE_YYYY-MM-DD_HH-MM
@@ -224,4 +235,52 @@ export async function getRecordingTranslations(
 
   if (error) throw new Error(`Failed to get translations: ${error.message}`);
   return (data || []) as TranslationEntry[];
+}
+
+/**
+ * Save transcription entry (original speaker language) during live session
+ */
+export async function saveTranscription(params: {
+  recordingId: string;
+  text: string;
+  language: string;
+  participantIdentity: string;
+  participantName: string;
+  timestampMs: number;
+}): Promise<Transcription> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('transcriptions')
+    .insert({
+      recording_id: params.recordingId,
+      text: params.text,
+      language: params.language,
+      participant_identity: params.participantIdentity,
+      participant_name: params.participantName,
+      timestamp_ms: params.timestampMs,
+    })
+    .select()
+    .single();
+
+  if (error) throw new Error(`Failed to save transcription: ${error.message}`);
+  return data as Transcription;
+}
+
+/**
+ * Get transcriptions for playback (original speaker language)
+ */
+export async function getRecordingTranscriptions(
+  recordingId: string,
+): Promise<Transcription[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('transcriptions')
+    .select('*')
+    .eq('recording_id', recordingId)
+    .order('timestamp_ms', { ascending: true });
+
+  if (error) throw new Error(`Failed to get transcriptions: ${error.message}`);
+  return (data || []) as Transcription[];
 }

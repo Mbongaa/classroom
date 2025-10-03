@@ -3,17 +3,22 @@ import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages } from 'lucide-react';
 import styles from './SpeechTranslationPanel.module.css';
+import { SessionMetadata } from '@/lib/types';
 
 interface SpeechTranslationPanelProps {
   targetLanguage: string;
   onClose?: () => void;
   hideCloseButton?: boolean;
+  sessionMetadata?: SessionMetadata | null;
+  userRole?: 'teacher' | 'student' | null;
 }
 
 const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   targetLanguage,
   onClose,
   hideCloseButton = false,
+  sessionMetadata,
+  userRole,
 }) => {
   const room = useRoomContext();
   const [translatedSegments, setTranslatedSegments] = useState<
@@ -27,6 +32,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   >([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(Date.now());
+  const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
 
   // Listen for transcription events from the room
   useEffect(() => {
@@ -41,37 +47,94 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
           language: s.language,
           text: s.text.substring(0, 50),
           final: s.final,
-          languageType: typeof s.language,
-          languageBytes: s.language ? Array.from(s.language).map((c) => c.charCodeAt(0)) : [],
         })),
       );
 
-      console.log('[DEBUG SpeechTranslationPanel] Filtering for language:', {
-        targetLanguage,
-        targetLanguageType: typeof targetLanguage,
-        targetLanguageBytes: targetLanguage
-          ? Array.from(targetLanguage).map((c) => c.charCodeAt(0))
-          : [],
-      });
+      // Save only what THIS participant is consuming (prevent N-participant multiplication)
+      if (sessionMetadata && userRole) {
+        const finalSegments = segments.filter(seg => seg.final);
 
-      // Filter segments for the selected language
+        // Detect speaker's original language based on role
+        // For teacher's client: teacher is local, students are remote
+        // For student's client: teacher is remote, student is local
+        const speakingLanguage = userRole === 'teacher'
+          ? room.localParticipant?.attributes?.speaking_language
+          : Array.from(room.remoteParticipants.values())
+              .find(p => p.attributes?.speaking_language !== undefined)
+              ?.attributes?.speaking_language;
+
+        // Teachers save ONLY transcription (original language)
+        if (userRole === 'teacher') {
+          const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
+          if (transcription) {
+            const segmentKey = `${transcription.id}-${transcription.language}`;
+            if (!savedSegmentIds.current.has(segmentKey)) {
+              savedSegmentIds.current.add(segmentKey);
+
+              const timestampMs = Date.now() - sessionMetadata.startTime;
+              fetch('/api/transcriptions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recordingId: sessionMetadata.recordingId,
+                  text: transcription.text,
+                  language: transcription.language,
+                  participantIdentity: room.localParticipant?.identity || 'unknown',
+                  participantName: room.localParticipant?.name || 'Speaker',
+                  timestampMs,
+                }),
+              })
+                .then(() => console.log('[SpeechTranslationPanel] Teacher saved TRANSCRIPTION:', transcription.language, timestampMs))
+                .catch(err => {
+                  console.error('[SpeechTranslationPanel] Save error:', err);
+                  savedSegmentIds.current.delete(segmentKey);
+                });
+            }
+          }
+        }
+
+        // Students save ONLY their caption language (translation)
+        if (userRole === 'student') {
+          const translation = finalSegments.find(seg => seg.language === targetLanguage);
+          if (translation && translation.language !== speakingLanguage) {
+            const segmentKey = `${translation.id}-${translation.language}`;
+            if (!savedSegmentIds.current.has(segmentKey)) {
+              savedSegmentIds.current.add(segmentKey);
+
+              const timestampMs = Date.now() - sessionMetadata.startTime;
+              // Get teacher's name from remote participants (for students)
+              const speaker = Array.from(room.remoteParticipants.values())
+                .find(p => p.attributes?.speaking_language !== undefined);
+              fetch('/api/recordings/translations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recordingId: sessionMetadata.recordingId,
+                  text: translation.text,
+                  language: translation.language,
+                  participantName: speaker?.name || 'Speaker',
+                  timestampMs,
+                }),
+              })
+                .then(() => console.log('[SpeechTranslationPanel] Student saved TRANSLATION:', translation.language, timestampMs))
+                .catch(err => {
+                  console.error('[SpeechTranslationPanel] Save error:', err);
+                  savedSegmentIds.current.delete(segmentKey);
+                });
+            }
+          }
+        }
+      }
+
+      // Filter segments for DISPLAY only (selected language)
       const filteredSegments = segments.filter((seg) => {
-        const matches = seg.language === targetLanguage && seg.final;
-        console.log(
-          `[DEBUG SpeechTranslationPanel] Segment language "${seg.language}" (final: ${seg.final}) vs "${targetLanguage}" = ${matches}`,
-        );
-        return matches;
+        return seg.language === targetLanguage && seg.final;
       });
 
-      console.log(
-        '[DEBUG SpeechTranslationPanel] Filtered segments count:',
-        filteredSegments.length,
-      );
-
-      // Process new segments
+      // Process new segments for display
       const newSegments = filteredSegments.map((seg, index) => ({
         id: seg.id || `seg-${Date.now()}-${index}`,
-        speaker: 'Speaker', // LiveKit v2.x TranscriptionSegment doesn't include participant
+        speaker: 'Speaker',
         text: seg.text,
         timestamp: Date.now(),
         isLatest: false,
@@ -101,7 +164,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, targetLanguage]);
+  }, [room, targetLanguage, sessionMetadata, userRole]);
 
   // Auto-scroll to latest translation
   useEffect(() => {

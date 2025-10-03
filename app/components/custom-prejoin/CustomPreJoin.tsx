@@ -392,7 +392,7 @@ export default function CustomPreJoin({
           autoCorrect="off"
           autoCapitalize="off"
           spellCheck="false"
-          autoFocus={typeof window !== 'undefined' && !/iPad|Tablet/.test(navigator.userAgent)}
+          autoFocus={false}
           required
         />
 

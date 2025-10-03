@@ -6,10 +6,14 @@ import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages } from 'lucide-react';
 import styles from './TranslationPanel.module.css';
 
+import { SessionMetadata } from '@/lib/types';
+
 interface TranslationPanelProps {
   captionsLanguage: string;
   onClose?: () => void;
   showCloseButton?: boolean;
+  sessionMetadata?: SessionMetadata | null;
+  userRole?: 'teacher' | 'student' | null;
 }
 
 interface TranslationEntry {
@@ -24,12 +28,15 @@ export default function TranslationPanel({
   captionsLanguage,
   onClose,
   showCloseButton = false,
+  sessionMetadata,
+  userRole,
 }: TranslationPanelProps) {
   const room = useRoomContext();
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
   const [isReceiving, setIsReceiving] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(Date.now());
+  const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
 
   useEffect(() => {
     if (!room) return;
@@ -43,36 +50,96 @@ export default function TranslationPanel({
           language: s.language,
           text: s.text.substring(0, 50),
           final: s.final,
-          languageType: typeof s.language,
-          languageBytes: s.language ? Array.from(s.language).map((c) => c.charCodeAt(0)) : [],
         })),
       );
 
-      console.log('[DEBUG TranslationPanel] Filtering for language:', {
-        captionsLanguage,
-        captionsLanguageType: typeof captionsLanguage,
-        captionsLanguageBytes: captionsLanguage
-          ? Array.from(captionsLanguage).map((c) => c.charCodeAt(0))
-          : [],
-      });
+      // Save only what THIS participant is consuming (prevent N-participant multiplication)
+      if (sessionMetadata && userRole) {
+        const finalSegments = segments.filter(seg => seg.final);
 
-      // Filter segments for the selected language
+        // Detect speaker's original language based on role
+        // For teacher's client: teacher is local, students are remote
+        // For student's client: teacher is remote, student is local
+        const speakingLanguage = userRole === 'teacher'
+          ? room.localParticipant?.attributes?.speaking_language
+          : Array.from(room.remoteParticipants.values())
+              .find(p => p.attributes?.speaking_language !== undefined)
+              ?.attributes?.speaking_language;
+
+        // Teachers save ONLY transcription (original language)
+        if (userRole === 'teacher') {
+          const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
+          if (transcription) {
+            const segmentKey = `${transcription.id}-${transcription.language}`;
+            if (!savedSegmentIds.current.has(segmentKey)) {
+              savedSegmentIds.current.add(segmentKey);
+
+              const timestampMs = Date.now() - sessionMetadata.startTime;
+              fetch('/api/transcriptions', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recordingId: sessionMetadata.recordingId,
+                  text: transcription.text,
+                  language: transcription.language,
+                  participantIdentity: room.localParticipant?.identity || 'unknown',
+                  participantName: room.localParticipant?.name || 'Teacher',
+                  timestampMs,
+                }),
+              })
+                .then(() => console.log('[TranslationPanel] Teacher saved TRANSCRIPTION:', transcription.language, timestampMs))
+                .catch(err => {
+                  console.error('[TranslationPanel] Save error:', err);
+                  savedSegmentIds.current.delete(segmentKey);
+                });
+            }
+          }
+        }
+
+        // Students save ONLY their caption language (translation)
+        if (userRole === 'student') {
+          const translation = finalSegments.find(seg => seg.language === captionsLanguage);
+          if (translation && translation.language !== speakingLanguage) {
+            const segmentKey = `${translation.id}-${translation.language}`;
+            if (!savedSegmentIds.current.has(segmentKey)) {
+              savedSegmentIds.current.add(segmentKey);
+
+              const timestampMs = Date.now() - sessionMetadata.startTime;
+              // Get teacher's name from remote participants (for students)
+              const teacher = Array.from(room.remoteParticipants.values())
+                .find(p => p.attributes?.speaking_language !== undefined);
+              fetch('/api/recordings/translations', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  recordingId: sessionMetadata.recordingId,
+                  text: translation.text,
+                  language: translation.language,
+                  participantName: teacher?.name || 'Teacher',
+                  timestampMs,
+                }),
+              })
+                .then(() => console.log('[TranslationPanel] Student saved TRANSLATION:', translation.language, timestampMs))
+                .catch(err => {
+                  console.error('[TranslationPanel] Save error:', err);
+                  savedSegmentIds.current.delete(segmentKey);
+                });
+            }
+          }
+        }
+      }
+
+      // Filter segments for DISPLAY only (selected language)
       const filteredSegments = segments.filter((seg) => {
-        const matches = seg.language === captionsLanguage;
-        console.log(
-          `[DEBUG TranslationPanel] Segment language "${seg.language}" vs "${captionsLanguage}" = ${matches}`,
-        );
-        return matches;
+        return seg.language === captionsLanguage;
       });
 
-      console.log('[DEBUG TranslationPanel] Filtered segments count:', filteredSegments.length);
-
-      // Add new translations to the list
+      // Add filtered translations to UI display
       const newEntries = filteredSegments.map((segment) => ({
         id: segment.id,
         text: segment.text,
         timestamp: new Date(),
-        participantName: 'Teacher', // Translations come from the teacher via agent
+        participantName: 'Teacher',
         language: segment.language,
       }));
 
@@ -104,7 +171,7 @@ export default function TranslationPanel({
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, captionsLanguage]);
+  }, [room, captionsLanguage, sessionMetadata, userRole]);
 
   // Auto-scroll to bottom when new translations arrive
   useEffect(() => {
