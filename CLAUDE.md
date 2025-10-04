@@ -296,3 +296,65 @@ Test files use `.test.ts` extension and are co-located with source files.
 - Environment variables must be set for LiveKit connection
 - Optional S3 configuration for recording storage
 - Optional Datadog integration for monitoring
+
+## WSL-to-Windows Environment Configuration
+
+**CRITICAL**: Claude Code is running in WSL (Linux subsystem), but the user operates in Windows.
+
+### Command Execution Rules
+
+**ALWAYS use Windows commands** when interacting with the project to avoid token waste on faulty Linux commands:
+
+```bash
+# ✅ CORRECT: Execute Windows commands from WSL
+cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm dev"
+cmd.exe /c "type C:\Users\HP\Desktop\meet\.env.local"
+powershell.exe -Command "Get-Process | Where-Object {\$_.ProcessName -like '*node*'}"
+
+# ❌ WRONG: Linux commands that will fail or be inefficient
+cat /mnt/c/Users/HP/Desktop/meet/.env.local  # Works but uses wrong environment
+pnpm dev  # May use wrong Node version or WSL environment
+```
+
+### Path Conversion
+
+- **WSL path**: `/mnt/c/Users/HP/Desktop/meet`
+- **Windows path**: `C:\Users\HP\Desktop\meet`
+- **Always use Windows paths** with `cmd.exe` and `powershell.exe`
+
+### Common Command Patterns
+
+```bash
+# File operations
+cmd.exe /c "type C:\path\to\file.txt"        # Read file
+cmd.exe /c "dir C:\path\to\directory"        # List directory
+
+# Development commands
+cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm install"
+cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm build"
+cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm dev"
+
+# Process management
+powershell.exe -Command "Get-Process | Where-Object {\$_.ProcessName -eq 'node'}"
+powershell.exe -Command "Stop-Process -Name 'node' -Force"
+
+# Environment checks
+cmd.exe /c "node --version"
+cmd.exe /c "pnpm --version"
+cmd.exe /c "npx shadcn@latest --version"
+```
+
+### Why This Matters
+
+- **Saves tokens**: Avoids retry cycles when Linux commands fail or use wrong environment
+- **Correct environment**: Uses Windows Node.js, npm, pnpm installations (not WSL versions)
+- **Process access**: Can interact with Windows processes (Claude Code, browsers, dev servers)
+- **File system**: Ensures proper file permissions and line endings (CRLF vs LF)
+
+### MCP Server Configuration
+
+The `.mcp.json` file is configured for Windows environment:
+- Uses `npx` (Windows executable, not WSL)
+- Paths resolve correctly in Windows context
+- MCP servers run in Windows Node.js environment
+- Claude Code loads MCP servers from Windows paths

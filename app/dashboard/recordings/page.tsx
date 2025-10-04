@@ -22,8 +22,9 @@ import {
 } from '@/components/ui/pagination';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 import Link from 'next/link';
-import { Play, Download, Trash2, Clock, Calendar, ArrowUpDown } from 'lucide-react';
+import { Play, Download, Trash2, Clock, Calendar, ArrowUpDown, GraduationCap } from 'lucide-react';
 import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
+import LearningPageDialog from '@/app/components/LearningPageDialog';
 
 interface Recording {
   id: string;
@@ -253,6 +254,15 @@ export default function RecordingsPage() {
                               Watch
                             </Link>
                           </Button>
+                          <LearningPageDialog
+                            recordingId={recording.id}
+                            roomName={recording.room_name}
+                            trigger={
+                              <Button size="sm" variant="secondary">
+                                <GraduationCap className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
                           <RecordingDownloadDialog
                             recording={recording}
                             trigger={
