@@ -52,9 +52,10 @@ interface SpeechClientImplWithRequestsProps {
   userRole?: string | null;
   roomName: string;
   sessionStartTime: number;
+  sessionId: string;
 }
 
-export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartTime }: SpeechClientImplWithRequestsProps) {
+export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartTime, sessionId }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
   const connectionState = useConnectionState();
@@ -142,9 +143,11 @@ export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartT
     const startAutoRecording = async () => {
       try {
         const teacherName = localParticipant?.name || localParticipant?.identity || 'Teacher';
+        // Get the room SID properly using the async method
+        const roomSid = await room.getSid();
         const params = new URLSearchParams({
           roomName: room.name,
-          roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
+          roomSid: roomSid || room.name, // Fallback to room.name if getSid() returns null
           teacherName: teacherName,
         });
 
@@ -669,6 +672,7 @@ export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartT
                 hideCloseButton={true}
                 roomName={roomName}
                 sessionStartTime={sessionStartTime}
+                sessionId={sessionId}
                 userRole={userRole as 'teacher' | 'student'}
               />
               <div
@@ -845,6 +849,7 @@ export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartT
               hideCloseButton={true}
               roomName={roomName}
               sessionStartTime={sessionStartTime}
+              sessionId={sessionId}
               userRole={userRole as 'teacher' | 'student'}
             />
           </div>
@@ -921,7 +926,7 @@ export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartT
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} />}
+      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />}
     </div>
   );
 }

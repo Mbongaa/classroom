@@ -218,6 +218,7 @@ export async function saveTranslationEntry(params: {
 
 /**
  * Get translations for playback (filtered by language and time range) - Phase 2 feature
+ * Queries by session_id since translations are linked to sessions, not recordings
  */
 export async function getRecordingTranslations(
   recordingId: string,
@@ -225,10 +226,23 @@ export async function getRecordingTranslations(
 ): Promise<TranslationEntry[]> {
   const supabase = createAdminClient();
 
+  // First, get the recording to find its session_uuid
+  const { data: recording, error: recordingError } = await supabase
+    .from('session_recordings')
+    .select('session_uuid')
+    .eq('id', recordingId)
+    .single();
+
+  if (recordingError || !recording?.session_uuid) {
+    console.error('[getRecordingTranslations] Recording or session not found:', recordingId, recordingError);
+    return [];
+  }
+
+  // Query translations by session_id (they're linked to sessions, not recordings)
   let query = supabase
     .from('translation_entries')
     .select('*')
-    .eq('recording_id', recordingId)
+    .eq('session_id', recording.session_uuid)
     .order('timestamp_ms', { ascending: true });
 
   if (language) {
@@ -238,6 +252,14 @@ export async function getRecordingTranslations(
   const { data, error } = await query;
 
   if (error) throw new Error(`Failed to get translations: ${error.message}`);
+
+  console.log('[getRecordingTranslations] Found translations:', {
+    recordingId,
+    sessionUuid: recording.session_uuid,
+    language,
+    count: data?.length || 0
+  });
+
   return (data || []) as TranslationEntry[];
 }
 
@@ -273,18 +295,39 @@ export async function saveTranscription(params: {
 
 /**
  * Get transcriptions for playback (original speaker language)
+ * Queries by session_id since transcriptions are linked to sessions, not recordings
  */
 export async function getRecordingTranscriptions(
   recordingId: string,
 ): Promise<Transcription[]> {
   const supabase = createAdminClient();
 
+  // First, get the recording to find its session_uuid
+  const { data: recording, error: recordingError } = await supabase
+    .from('session_recordings')
+    .select('session_uuid')
+    .eq('id', recordingId)
+    .single();
+
+  if (recordingError || !recording?.session_uuid) {
+    console.error('[getRecordingTranscriptions] Recording or session not found:', recordingId, recordingError);
+    return [];
+  }
+
+  // Query transcriptions by session_id (they're linked to sessions, not recordings)
   const { data, error } = await supabase
     .from('transcriptions')
     .select('*')
-    .eq('recording_id', recordingId)
+    .eq('session_id', recording.session_uuid)
     .order('timestamp_ms', { ascending: true });
 
   if (error) throw new Error(`Failed to get transcriptions: ${error.message}`);
+
+  console.log('[getRecordingTranscriptions] Found transcriptions:', {
+    recordingId,
+    sessionUuid: recording.session_uuid,
+    count: data?.length || 0
+  });
+
   return (data || []) as Transcription[];
 }

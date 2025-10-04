@@ -273,6 +273,7 @@ export function PageClientImpl(props: {
           options={{ codec: props.codec, hq: props.hq }}
           selectedLanguage={selectedLanguage}
           classroomRole={classroomInfo?.role}
+          roomName={props.roomName}
         />
       )}
     </main>
@@ -288,6 +289,7 @@ function VideoConferenceComponent(props: {
   };
   selectedLanguage?: string;
   classroomRole?: string;
+  roomName: string;
 }) {
   const keyProvider = new ExternalE2EEKeyProvider();
   const { worker, e2eePassphrase } = useSetupE2EE();
@@ -295,6 +297,7 @@ function VideoConferenceComponent(props: {
 
   const [e2eeSetupComplete, setE2eeSetupComplete] = React.useState(false);
   const [sessionStartTime, setSessionStartTime] = React.useState<number>(Date.now());
+  const [sessionId, setSessionId] = React.useState<string>('');
 
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
@@ -403,27 +406,46 @@ function VideoConferenceComponent(props: {
 
           // Initialize session for transcript saving AFTER language is set
           try {
-            const participantName = room.localParticipant?.identity || room.localParticipant?.name || props.userChoices.username;
-            console.log('[Session Create] Creating session for room:', room.name, 'participant:', participantName);
+            // CRITICAL: Wait for the real LiveKit room SID
+            // This is the unique identifier for this specific room instance
+            const realRoomSid = await room.getSid();
+            console.log('[Session Create] Got real LiveKit room SID:', realRoomSid);
 
-            // Generate session ID using the helper function
-            const sessionIdValue = generateSessionId(room.name);
+            const participantName = room.localParticipant?.identity || room.localParticipant?.name || props.userChoices.username;
+            console.log('[Session Create] Creating/joining session for room:', room.name, 'roomSid:', realRoomSid, 'participant:', participantName);
+
+            // Generate session ID only once and store in state
+            let sessionIdValue = sessionId;
+            if (!sessionIdValue) {
+              sessionIdValue = generateSessionId(props.roomName);
+              setSessionId(sessionIdValue);
+              console.log('[Session Create] Generated new sessionId:', sessionIdValue);
+            }
 
             const response = await fetch('/api/sessions/create', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                roomName: room.name,
-                roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
+                roomName: props.roomName,
+                roomSid: realRoomSid, // Use the actual LiveKit room SID
                 sessionId: sessionIdValue,
               }),
             });
 
             if (response.ok) {
               const data = await response.json();
+              // IMPORTANT: Use the session_id from the database
+              // This ensures all participants use the same session_id
+              if (data.existed) {
+                // Session already existed - use its session_id
+                setSessionId(data.session.session_id);
+                console.log('[Session Create] Joined existing session:', data.session.session_id, 'for room_sid:', realRoomSid);
+              } else {
+                // New session was created with our generated session_id
+                console.log('[Session Create] Created new session:', data.session.session_id, 'for room_sid:', realRoomSid);
+              }
               // Set the session start time for child components
               setSessionStartTime(Date.now());
-              console.log('[Session Create] Session created/retrieved:', data.session.session_id);
             } else {
               console.error('[Session Create] Failed to create session:', await response.text());
               // Still set start time even if session creation fails (allows local operation)
@@ -475,7 +497,7 @@ function VideoConferenceComponent(props: {
       room.off(RoomEvent.EncryptionError, handleEncryptionError);
       room.off(RoomEvent.MediaDevicesError, handleError);
     };
-  }, [e2eeSetupComplete, room, props.connectionDetails, props.userChoices]);
+  }, [e2eeSetupComplete, room, props.connectionDetails, props.userChoices, setSessionId]);
 
   const lowPowerMode = useLowCPUOptimizer(room);
 
@@ -522,9 +544,9 @@ function VideoConferenceComponent(props: {
           <KeyboardShortcuts />
           {/* Conditionally render ClassroomClientImpl, SpeechClientImpl, or CustomVideoConference based on mode */}
           {isClassroom ? (
-            <ClassroomClientImpl userRole={userRole} roomName={room.name} sessionStartTime={sessionStartTime} />
+            <ClassroomClientImpl userRole={userRole} roomName={props.roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />
           ) : isSpeech ? (
-            <SpeechClientImpl userRole={userRole} roomName={room.name} sessionStartTime={sessionStartTime} />
+            <SpeechClientImpl userRole={userRole} roomName={props.roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />
           ) : (
             <CustomVideoConference
               chatMessageFormatter={formatChatMessageLinks}

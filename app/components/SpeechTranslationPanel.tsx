@@ -3,7 +3,6 @@ import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages } from 'lucide-react';
 import styles from './SpeechTranslationPanel.module.css';
-import { generateSessionId } from '@/lib/client-utils';
 
 interface SpeechTranslationPanelProps {
   targetLanguage: string;
@@ -11,8 +10,13 @@ interface SpeechTranslationPanelProps {
   hideCloseButton?: boolean;
   roomName: string;
   sessionStartTime: number;
+  sessionId: string;
   userRole?: 'teacher' | 'student' | null;
 }
+
+// Retry configuration
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000; // Start with 1 second, exponential backoff
 
 const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   targetLanguage,
@@ -20,6 +24,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   hideCloseButton = false,
   roomName,
   sessionStartTime,
+  sessionId,
   userRole,
 }) => {
   const room = useRoomContext();
@@ -35,7 +40,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
-  const sessionId = generateSessionId(roomName);
 
   // Listen for transcription events from the room
   useEffect(() => {
@@ -57,46 +61,14 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
       if (userRole) {
         const finalSegments = segments.filter(seg => seg.final);
 
-        // Detect speaker's original language based on role
-        // For teacher's client: teacher is local, students are remote
+        // Detect speaker's original language (teacher's language from remote participants)
         // For student's client: teacher is remote, student is local
-        const speakingLanguage = userRole === 'teacher'
-          ? room.localParticipant?.attributes?.speaking_language
-          : Array.from(room.remoteParticipants.values())
-              .find(p => p.attributes?.speaking_language !== undefined)
-              ?.attributes?.speaking_language;
-
-        // Teachers save ONLY transcription (original language)
-        if (userRole === 'teacher') {
-          const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
-          if (transcription) {
-            const segmentKey = `${transcription.id}-${transcription.language}`;
-            if (!savedSegmentIds.current.has(segmentKey)) {
-              savedSegmentIds.current.add(segmentKey);
-
-              const timestampMs = Date.now() - sessionStartTime;
-              fetch('/api/transcriptions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  sessionId, // Use session_id instead of recording_id
-                  text: transcription.text,
-                  language: transcription.language,
-                  participantIdentity: room.localParticipant?.identity || 'unknown',
-                  participantName: room.localParticipant?.name || 'Speaker',
-                  timestampMs,
-                }),
-              })
-                .then(() => console.log('[SpeechTranslationPanel] Teacher saved TRANSCRIPTION:', transcription.language, timestampMs))
-                .catch(err => {
-                  console.error('[SpeechTranslationPanel] Save error:', err);
-                  savedSegmentIds.current.delete(segmentKey);
-                });
-            }
-          }
-        }
+        const speakingLanguage = Array.from(room.remoteParticipants.values())
+          .find(p => p.attributes?.speaking_language !== undefined)
+          ?.attributes?.speaking_language;
 
         // Students save ONLY their caption language (translation)
+        // Note: Teachers use TranscriptionSaver component for original transcriptions
         if (userRole === 'student') {
           const translation = finalSegments.find(seg => seg.language === targetLanguage);
           if (translation && translation.language !== speakingLanguage) {
@@ -108,22 +80,51 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
               // Get teacher's name from remote participants (for students)
               const speaker = Array.from(room.remoteParticipants.values())
                 .find(p => p.attributes?.speaking_language !== undefined);
-              fetch('/api/recordings/translations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  sessionId, // Use session_id instead of recording_id
-                  text: translation.text,
-                  language: translation.language,
-                  participantName: speaker?.name || 'Speaker',
-                  timestampMs,
-                }),
-              })
-                .then(() => console.log('[SpeechTranslationPanel] Student saved TRANSLATION:', translation.language, timestampMs))
-                .catch(err => {
-                  console.error('[SpeechTranslationPanel] Save error:', err);
-                  savedSegmentIds.current.delete(segmentKey);
-                });
+
+              // Save with retry logic
+              const saveWithRetry = async (attempt = 1): Promise<void> => {
+                try {
+                  const response = await fetch('/api/recordings/translations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      sessionId,
+                      text: translation.text,
+                      language: translation.language,
+                      participantName: room.localParticipant?.name || room.localParticipant?.identity || 'Student', // Save the student's name who receives the translation
+                      timestampMs,
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API error (${response.status}): ${errorText}`);
+                  }
+
+                  const data = await response.json();
+                  console.log('[SpeechTranslationPanel] ✅ Student saved TRANSLATION:',
+                    translation.language, timestampMs, 'Entry ID:', data.entry?.id);
+                } catch (err) {
+                  console.error(`[SpeechTranslationPanel] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`, err);
+
+                  // Retry with exponential backoff
+                  if (attempt < MAX_RETRIES) {
+                    const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+                    console.log(`[SpeechTranslationPanel] Retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return saveWithRetry(attempt + 1);
+                  } else {
+                    console.error('[SpeechTranslationPanel] ⚠️ FAILED after', MAX_RETRIES, 'attempts. Data lost:', {
+                      text: translation.text.substring(0, 100),
+                      timestamp: timestampMs,
+                      sessionId,
+                    });
+                    savedSegmentIds.current.delete(segmentKey); // Allow retry on next segment
+                  }
+                }
+              };
+
+              saveWithRetry();
             }
           }
         }

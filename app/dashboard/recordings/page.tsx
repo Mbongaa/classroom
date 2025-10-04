@@ -2,11 +2,28 @@
 
 import { useEffect, useState } from 'react';
 import { useUser } from '@/lib/contexts/UserContext';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 import Link from 'next/link';
-import { Play, Download, Trash2, Clock, Calendar } from 'lucide-react';
+import { Play, Download, Trash2, Clock, Calendar, ArrowUpDown } from 'lucide-react';
+import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
 
 interface Recording {
   id: string;
@@ -20,11 +37,18 @@ interface Recording {
   status: string;
 }
 
+type SortField = 'room_name' | 'started_at' | 'duration_seconds';
+type SortOrder = 'asc' | 'desc';
+
 export default function RecordingsPage() {
   const { user, profile, loading: userLoading } = useUser();
   const [recordings, setRecordings] = useState<Recording[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<SortField>('started_at');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     const fetchRecordings = async () => {
@@ -77,6 +101,46 @@ export default function RecordingsPage() {
       : `${m}:${s.toString().padStart(2, '0')}`;
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('desc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  };
+
+  // Sort recordings
+  const sortedRecordings = [...recordings].sort((a, b) => {
+    let aVal: any = a[sortField];
+    let bVal: any = b[sortField];
+
+    // Handle null values
+    if (aVal === null) return 1;
+    if (bVal === null) return -1;
+
+    // String comparison for room_name
+    if (sortField === 'room_name') {
+      aVal = aVal.toLowerCase();
+      bVal = bVal.toLowerCase();
+    }
+
+    if (aVal < bVal) return sortOrder === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortOrder === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedRecordings.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedRecordings = sortedRecordings.slice(startIndex, endIndex);
+
+  const goToPage = (page: number) => {
+    setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
   if (userLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -115,76 +179,155 @@ export default function RecordingsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {recordings.map((recording) => (
-            <Card key={recording.id}>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span className="truncate">{recording.room_name}</span>
-                  <span
-                    className={`text-xs px-2 py-1 rounded whitespace-nowrap ml-2 ${
-                      recording.status === 'COMPLETED'
-                        ? 'bg-green-500/20 text-green-500'
-                        : recording.status === 'ACTIVE'
-                        ? 'bg-blue-500/20 text-blue-500'
-                        : 'bg-red-500/20 text-red-500'
-                    }`}
-                  >
-                    {recording.status}
-                  </span>
-                </CardTitle>
-                <CardDescription className="truncate">{recording.teacher_name}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm text-muted-foreground mb-4">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{new Date(recording.started_at).toLocaleString()}</span>
-                  </div>
-                  {recording.duration_seconds && (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 flex-shrink-0" />
-                      <span>{formatDuration(recording.duration_seconds)}</span>
-                    </div>
-                  )}
-                </div>
-
-                {recording.status === 'COMPLETED' && recording.hls_playlist_url ? (
-                  <div className="flex gap-2">
-                    <Button asChild size="sm" className="flex-1">
-                      <Link href={`/dashboard/recordings/${recording.id}`}>
-                        <Play className="h-4 w-4 mr-2" />
-                        Watch
-                      </Link>
-                    </Button>
-                    {recording.mp4_url && (
-                      <Button asChild size="sm" variant="outline">
-                        <a href={recording.mp4_url} download>
-                          <Download className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    )}
+        <>
+          <div className="rounded-lg border border-[rgba(128,128,128,0.3)] bg-white dark:bg-black text-black dark:text-white shadow-sm">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-center">
                     <Button
+                      variant="ghost"
                       size="sm"
-                      variant="destructive"
-                      onClick={() => handleDelete(recording.id, recording.room_name)}
+                      onClick={() => handleSort('room_name')}
+                      className="h-8"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      Room Name
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
-                  </div>
-                ) : (
-                  <div className="text-sm text-muted-foreground text-center py-2">
-                    {recording.status === 'ACTIVE'
-                      ? 'Recording in progress...'
-                      : recording.status === 'FAILED'
-                      ? 'Recording failed'
-                      : 'Processing...'}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                  </TableHead>
+                  <TableHead className="text-center">Teacher</TableHead>
+                  <TableHead className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('started_at')}
+                      className="h-8"
+                    >
+                      Date & Time
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSort('duration_seconds')}
+                      className="h-8"
+                    >
+                      Duration
+                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </TableHead>
+                  <TableHead className="text-center pr-2">Status</TableHead>
+                  <TableHead className="text-center pl-2">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {paginatedRecordings.map((recording) => (
+                  <TableRow key={recording.id}>
+                    <TableCell className="font-medium text-center">{recording.room_name}</TableCell>
+                    <TableCell className="text-center">{recording.teacher_name}</TableCell>
+                    <TableCell className="whitespace-nowrap text-center">
+                      {new Date(recording.started_at).toLocaleString()}
+                    </TableCell>
+                    <TableCell className="text-center">{formatDuration(recording.duration_seconds)}</TableCell>
+                    <TableCell className="text-center pr-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
+                          recording.status === 'COMPLETED'
+                            ? 'bg-green-500/20 text-green-500'
+                            : recording.status === 'ACTIVE'
+                            ? 'bg-blue-500/20 text-blue-500'
+                            : 'bg-red-500/20 text-red-500'
+                        }`}
+                      >
+                        {recording.status}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-center pl-2">
+                      {recording.status === 'COMPLETED' && recording.hls_playlist_url ? (
+                        <div className="flex gap-2 justify-center">
+                          <Button asChild size="sm" variant="default">
+                            <Link href={`/dashboard/recordings/${recording.id}`}>
+                              <Play className="h-4 w-4 mr-2" />
+                              Watch
+                            </Link>
+                          </Button>
+                          <RecordingDownloadDialog
+                            recording={recording}
+                            trigger={
+                              <Button size="sm" variant="outline">
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            }
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDelete(recording.id, recording.room_name)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          {recording.status === 'ACTIVE'
+                            ? 'Recording...'
+                            : recording.status === 'FAILED'
+                            ? 'Failed'
+                            : 'Processing...'}
+                        </span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, sortedRecordings.length)} of{' '}
+                {sortedRecordings.length} recordings
+              </p>
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => goToPage(currentPage - 1)}
+                      className={
+                        currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'
+                      }
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink
+                        onClick={() => goToPage(page)}
+                        isActive={currentPage === page}
+                        className="cursor-pointer"
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() => goToPage(currentPage + 1)}
+                      className={
+                        currentPage === totalPages
+                          ? 'pointer-events-none opacity-50'
+                          : 'cursor-pointer'
+                      }
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

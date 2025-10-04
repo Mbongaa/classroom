@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { generateSessionId } from '@/lib/recording-utils';
 
 /**
  * POST /api/sessions/create
@@ -11,25 +10,26 @@ import { generateSessionId } from '@/lib/recording-utils';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { roomName, roomSid } = body;
+    const { roomName, roomSid, sessionId } = body;
 
-    if (!roomName || !roomSid) {
+    if (!roomName || !roomSid || !sessionId) {
       return NextResponse.json(
-        { error: 'Missing required fields: roomName, roomSid' },
+        { error: 'Missing required fields: roomName, roomSid, sessionId' },
         { status: 400 },
       );
     }
 
-    // Generate session ID (e.g., "MATH101_2025-01-31_14-30")
-    const sessionId = generateSessionId(roomName);
+    // Use client-provided session ID (generated on client to ensure consistency)
+    // Format: "MATH101_2025-01-31_14-30"
 
     const supabase = createAdminClient();
 
-    // Check if session already exists
+    // CRITICAL: Check if session already exists for this LiveKit room instance
+    // The room_sid is the unique identifier for this specific room instance
     const { data: existing, error: checkError } = await supabase
       .from('sessions')
       .select('*')
-      .eq('session_id', sessionId)
+      .eq('room_sid', roomSid) // Check by LiveKit room SID, not session_id
       .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') {
@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (existing) {
-      console.log(`[Session Create] Session already exists: ${sessionId}`);
+      console.log(`[Session Create] Session already exists for room_sid: ${roomSid}, session_id: ${existing.session_id}`);
+      // Important: Update the sessionId in the response to match what's in the database
+      // This ensures all participants use the same session_id
       return NextResponse.json({
         success: true,
         session: existing,

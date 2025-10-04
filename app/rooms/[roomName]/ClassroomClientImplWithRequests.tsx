@@ -27,7 +27,7 @@ import { HeaderRequestDropdown } from '@/lib/HeaderRequestDropdown';
 import { StudentRequestDropdown } from '@/lib/StudentRequestDropdown';
 import RequestIndicator from '@/lib/RequestIndicator';
 import { QuestionBubble } from '@/lib/QuestionBubble';
-import TranslationPanel from '@/app/components/TranslationPanel';
+import SpeechTranslationPanel from '@/app/components/SpeechTranslationPanel';
 import TranscriptionSaver from '@/app/components/TranscriptionSaver';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { RecordingIndicator } from '@/lib/RecordingIndicator';
@@ -57,12 +57,14 @@ interface ClassroomClientImplWithRequestsProps {
   userRole?: string | null;
   roomName: string;
   sessionStartTime: number;
+  sessionId: string;
 }
 
 export function ClassroomClientImplWithRequests({
   userRole,
   roomName,
   sessionStartTime,
+  sessionId,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -146,9 +148,11 @@ export function ClassroomClientImplWithRequests({
     const startAutoRecording = async () => {
       try {
         const teacherName = localParticipant?.name || localParticipant?.identity || 'Teacher';
+        // Get the room SID properly using the async method
+        const roomSid = await room.getSid();
         const params = new URLSearchParams({
           roomName: room.name,
-          roomSid: room.sid || room.name, // Fallback to room.name if sid not ready
+          roomSid: roomSid || room.name, // Fallback to room.name if getSid() returns null
           teacherName: teacherName,
         });
 
@@ -863,13 +867,14 @@ export function ClassroomClientImplWithRequests({
                 width: `${translationResize.width}px`,
               }}
             >
-              <TranslationPanel
-                captionsLanguage={captionsLanguage}
+              <SpeechTranslationPanel
+                targetLanguage={captionsLanguage}
                 onClose={() => setShowTranslation(false)}
+                hideCloseButton={false}
                 roomName={roomName}
                 sessionStartTime={sessionStartTime}
+                sessionId={sessionId}
                 userRole={userRole as 'teacher' | 'student'}
-                showCloseButton={true}
               />
               <div
                 className={styles.resizeHandle}
@@ -1052,13 +1057,14 @@ export function ClassroomClientImplWithRequests({
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
         {!isTeacher && isMobile && showTranslation && (
           <div className={styles.translationPanelMobile}>
-            <TranslationPanel
-              captionsLanguage={captionsLanguage}
+            <SpeechTranslationPanel
+              targetLanguage={captionsLanguage}
               onClose={() => setShowTranslation(false)}
+              hideCloseButton={false}
               roomName={roomName}
               sessionStartTime={sessionStartTime}
+              sessionId={sessionId}
               userRole={userRole as 'teacher' | 'student'}
-              showCloseButton={true}
             />
           </div>
         )}
@@ -1151,7 +1157,7 @@ export function ClassroomClientImplWithRequests({
       )}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} />}
+      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />}
     </div>
   );
 }

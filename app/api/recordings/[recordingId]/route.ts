@@ -7,10 +7,11 @@ import { getRecording } from '@/lib/recording-utils';
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { recordingId: string } },
+  { params }: { params: Promise<{ recordingId: string }> },
 ) {
   try {
-    const recording = await getRecording(params.recordingId);
+    const { recordingId } = await params;
+    const recording = await getRecording(recordingId);
 
     if (!recording) {
       return NextResponse.json({ error: 'Recording not found' }, { status: 404 });
@@ -32,11 +33,12 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { recordingId: string } },
+  { params }: { params: Promise<{ recordingId: string }> },
 ) {
   try {
+    const { recordingId } = await params;
     // TODO: Also delete S3 files here (implement in Phase 2)
-    // const recording = await getRecording(params.recordingId);
+    // const recording = await getRecording(recordingId);
     // Delete HLS segments and MP4 from S3...
 
     const { createAdminClient } = await import('@/lib/supabase/admin');
@@ -46,7 +48,7 @@ export async function DELETE(
     const { error } = await supabase
       .from('session_recordings')
       .delete()
-      .eq('id', params.recordingId);
+      .eq('id', recordingId);
 
     if (error) throw new Error(error.message);
 
