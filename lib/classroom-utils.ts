@@ -23,6 +23,9 @@ export interface Classroom {
     enable_chat: boolean;
     max_participants: number;
   };
+  translation_prompt_id: string | null;
+  transcription_language: string;
+  context_window_size: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -40,6 +43,7 @@ export interface CreateClassroomParams {
     enable_chat: boolean;
     max_participants: number;
   };
+  translationPromptId?: string | null;
 }
 
 /**
@@ -52,7 +56,7 @@ export interface CreateClassroomParams {
 export async function createClassroom(params: CreateClassroomParams): Promise<Classroom> {
   const supabase = createAdminClient();
 
-  const { data, error } = await supabase
+  const { data, error} = await supabase
     .from('classrooms')
     .insert({
       organization_id: params.organizationId,
@@ -61,6 +65,7 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
       name: params.name,
       description: params.description || null,
       settings: params.settings,
+      translation_prompt_id: params.translationPromptId || null,
       is_active: true,
     })
     .select()

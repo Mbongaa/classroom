@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
+import { PromptTemplateSelector } from '@/app/components/PromptTemplateSelector';
 
 interface CreateRoomDialogProps {
   onRoomCreated: () => void;
@@ -39,6 +40,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   const [teacherName, setTeacherName] = useState('');
   const [language, setLanguage] = useState('en'); // Default to English
   const [description, setDescription] = useState('');
+  const [translationPromptId, setTranslationPromptId] = useState<string | null>(null);
 
   const resetForm = () => {
     setRoomCode('');
@@ -46,6 +48,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     setTeacherName('');
     setLanguage('en');
     setDescription('');
+    setTranslationPromptId(null);
     setError('');
   };
 
@@ -87,6 +90,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
             enable_chat: true,
             max_participants: 100,
           },
+          translationPromptId: translationPromptId,
         }),
       });
 
@@ -192,6 +196,13 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                 isTeacher={roomType === 'classroom' || roomType === 'speech'}
               />
             </div>
+
+            {/* Translation Prompt Template (optional) */}
+            <PromptTemplateSelector
+              value={translationPromptId}
+              onChange={setTranslationPromptId}
+              disabled={loading}
+            />
 
             {/* Description (optional) */}
             <div className="grid gap-2">
