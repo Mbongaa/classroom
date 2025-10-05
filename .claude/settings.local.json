@@ -5,7 +5,12 @@
       "mcp__shadcn__get_project_registries",
       "mcp__shadcn__search_items_in_registries",
       "mcp__shadcn__get_item_examples_from_registries",
-      "WebFetch(domain:www.heroui.com)"
+      "WebFetch(domain:www.heroui.com)",
+      "Bash(cmd.exe /c \"cd C:\\Users\\HP\\Desktop\\meet && npx heroui-cli@latest component\")",
+      "Bash(cmd.exe /c \"type \"\"C:\\Users\\HP\\Desktop\\meet\\Gitingest - ZOOM MODULE BRAINSTORM\\mbongaa-dashboard-mosque--8a5edab282632443.txt\"\"\")",
+      "Bash(cmd.exe /c \"type \"\"C:\\Users\\HP\\Desktop\\meet\\Gitingest - ZOOM MODULE BRAINSTORM\\mbongaa-bayaan-server-8a5edab282632443.txt\"\"\")",
+      "Bash(cmd.exe:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": [],
     "ask": []

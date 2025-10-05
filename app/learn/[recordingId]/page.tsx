@@ -8,6 +8,7 @@ import PulsatingLoader from '@/components/ui/pulsating-loader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { TranscriptSegment } from '@/lib/types';
 
 interface LearningContentResponse {
   success: boolean;
@@ -19,6 +20,17 @@ interface LearningContentResponse {
     targetLanguage: string;
     transcriptionCount: number;
     generationTimeMs: number;
+  };
+  recording: {
+    hlsPlaylistUrl: string | null;
+    mp4Url: string | null;
+    durationSeconds: number | null;
+    status: string;
+    startedAt: string;
+  };
+  transcript: {
+    segments: TranscriptSegment[];
+    originalLanguage: string;
   };
 }
 
@@ -97,7 +109,7 @@ export default function LearningPage() {
   // Loading state
   if (loading) {
     return (
-      <div className="h-screen w-full flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 px-4 py-8">
+      <div className="h-screen w-full flex flex-col items-center justify-center bg-background px-4 py-8">
         <div className="text-center space-y-6 max-w-md">
           <PulsatingLoader />
           <div className="space-y-2">
@@ -118,7 +130,7 @@ export default function LearningPage() {
   // Error state
   if (error) {
     return (
-      <div className="h-screen w-full flex items-center justify-center bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900 px-4 py-8">
+      <div className="h-screen w-full flex items-center justify-center bg-background px-4 py-8">
         <Card className="max-w-md border-destructive/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
@@ -153,6 +165,23 @@ export default function LearningPage() {
           teacherName: learningContent.metadata.teacherName || undefined,
           targetLanguage: learningContent.metadata.targetLanguage,
         }}
+        recording={
+          learningContent.recording.hlsPlaylistUrl
+            ? {
+                hlsPlaylistUrl: learningContent.recording.hlsPlaylistUrl,
+                mp4Url: learningContent.recording.mp4Url || undefined,
+                durationSeconds: learningContent.recording.durationSeconds || undefined,
+              }
+            : undefined
+        }
+        transcript={
+          learningContent.transcript.segments.length > 0
+            ? {
+                segments: learningContent.transcript.segments,
+                originalLanguage: learningContent.transcript.originalLanguage,
+              }
+            : undefined
+        }
       />
     );
   }

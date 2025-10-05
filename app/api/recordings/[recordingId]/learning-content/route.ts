@@ -145,7 +145,15 @@ export async function POST(
       themes: learningContent.thematic_breakdown.length,
     });
 
-    // Return successful response
+    // Prepare transcript segments for client
+    const transcriptSegments = sortedTranscriptions.map((t) => ({
+      participant_name: t.participant_name || 'Speaker',
+      text: t.text.trim(),
+      timestamp_ms: t.timestamp_ms,
+      language: t.language,
+    }));
+
+    // Return successful response with recording data and transcript
     return NextResponse.json({
       success: true,
       data: learningContent,
@@ -156,6 +164,17 @@ export async function POST(
         targetLanguage,
         transcriptionCount: transcriptions.length,
         generationTimeMs: generationTime,
+      },
+      recording: {
+        hlsPlaylistUrl: recording.hls_playlist_url,
+        mp4Url: recording.mp4_url,
+        durationSeconds: recording.duration_seconds,
+        status: recording.status,
+        startedAt: recording.started_at,
+      },
+      transcript: {
+        segments: transcriptSegments,
+        originalLanguage: sortedTranscriptions[0]?.language || 'unknown',
       },
     });
   } catch (error) {

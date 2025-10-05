@@ -87,3 +87,11 @@ export interface SessionMetadata {
   startTime: number; // Unix timestamp in milliseconds (for relative timestamp calculation)
   isRecording: boolean; // True if video recording is active
 }
+
+// Transcript types
+export interface TranscriptSegment {
+  participant_name: string; // Speaker name
+  text: string; // Transcript text
+  timestamp_ms: number; // Timestamp in milliseconds
+  language: string; // Language code (e.g., "en", "ar", "es")
+}

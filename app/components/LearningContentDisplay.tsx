@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { LearningContent } from '@/lib/gemini/learning-content-generator';
 import { Button } from '@/components/ui/button';
-import { Tabs, Tab, Card, CardBody } from '@heroui/react';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
-import { GraduationCap, Lightbulb, Printer, Share2 } from 'lucide-react';
+import { GraduationCap, Printer, Share2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { TranscriptSegment } from '@/lib/types';
+import { LearningContentTabs } from './LearningContentTabs';
 
 interface LearningContentDisplayProps {
   content: LearningContent;
@@ -15,19 +16,34 @@ interface LearningContentDisplayProps {
     teacherName?: string;
     targetLanguage?: string;
   };
+  recording?: {
+    hlsPlaylistUrl: string;
+    mp4Url?: string;
+    durationSeconds?: number;
+  };
+  transcript?: {
+    segments: TranscriptSegment[];
+    originalLanguage: string;
+  };
 }
 
 /**
- * LearningContentDisplay - Single-Page App with HeroUI Vertical Tabs
+ * LearningContentDisplay - Single-Page App with Shadcn Tabs
  *
- * Fixed-height layout with professional vertical sidebar navigation.
- * Uses HeroUI tabs for beautiful animations and better UX.
+ * Fixed-height layout with professional responsive navigation.
+ * Uses custom Shadcn-based tabs for better mobile scroll behavior.
  */
 export default function LearningContentDisplay({
   content,
   metadata,
+  recording,
+  transcript,
 }: LearningContentDisplayProps) {
-  const { summary, thematic_breakdown } = content;
+  // Transcript toggle state
+  const [transcriptView, setTranscriptView] = useState<'original' | 'translated'>('original');
+  const [translatedSegments, setTranslatedSegments] = useState<TranscriptSegment[] | null>(null);
+  const [translating, setTranslating] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   const handlePrint = () => {
     window.print();
@@ -38,6 +54,58 @@ export default function LearningContentDisplay({
     const url = window.location.href;
     navigator.clipboard.writeText(url);
     toast.success('Link copied to clipboard!');
+  };
+
+  const handleTranscriptToggle = async () => {
+    if (!transcript) return;
+
+    if (transcriptView === 'original') {
+      // Switching to translated
+      if (!translatedSegments) {
+        // Need to fetch translation
+        await fetchTranslation();
+      }
+      setTranscriptView('translated');
+    } else {
+      // Switching to original
+      setTranscriptView('original');
+    }
+  };
+
+  const fetchTranslation = async () => {
+    if (!transcript || !metadata?.targetLanguage) return;
+
+    setTranslating(true);
+    setTranslationError(null);
+
+    try {
+      // Extract recordingId from URL or metadata
+      const pathParts = window.location.pathname.split('/');
+      const recordingId = pathParts[pathParts.length - 1];
+
+      const response = await fetch(`/api/recordings/${recordingId}/translate-transcript`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetLanguage: metadata.targetLanguage }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to translate transcript');
+      }
+
+      const data = await response.json();
+      setTranslatedSegments(data.translatedSegments);
+      toast.success('Transcript translated successfully!');
+    } catch (error) {
+      console.error('[LearningContentDisplay] Translation failed:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to translate transcript';
+      setTranslationError(errorMessage);
+      toast.error(errorMessage);
+      setTranscriptView('original'); // Fallback to original
+    } finally {
+      setTranslating(false);
+    }
   };
 
   return (
@@ -76,56 +144,19 @@ export default function LearningContentDisplay({
         </div>
       </header>
 
-      {/* Content Area with HeroUI Vertical Tabs */}
+      {/* Content Area with Shadcn Responsive Tabs */}
       <div className="flex-1 p-6">
-        <Tabs aria-label="Learning content sections" isVertical={true}>
-          {/* Summary Tab */}
-          <Tab key="summary" title="Summary">
-            <Card>
-              <CardBody>
-                <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-                  <Lightbulb className="h-6 w-6 text-yellow-500" />
-                  {summary.title}
-                </h2>
-                <div className="space-y-4">
-                  {summary.key_points.map((point, index) => (
-                    <div key={index} className="flex items-start gap-3 p-4 rounded-lg bg-default-100">
-                      <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                        {index + 1}
-                      </span>
-                      <span className="text-base leading-relaxed">{point}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardBody>
-            </Card>
-          </Tab>
-
-          {/* Theme Tabs */}
-          {thematic_breakdown.map((theme, index) => (
-            <Tab key={`theme-${index}`} title={`Theme ${index + 1}`}>
-              <Card>
-                <CardBody>
-                  <div className="flex items-start gap-3 mb-6">
-                    <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
-                      {index + 1}
-                    </span>
-                    <h2 className="text-2xl font-bold pt-1">
-                      {theme.theme_title}
-                    </h2>
-                  </div>
-                  <div className="space-y-4">
-                    {theme.theme_content.split('\n\n').map((paragraph, pIndex) => (
-                      <p key={pIndex} className="text-base leading-relaxed">
-                        {paragraph}
-                      </p>
-                    ))}
-                  </div>
-                </CardBody>
-              </Card>
-            </Tab>
-          ))}
-        </Tabs>
+        <LearningContentTabs
+          content={content}
+          metadata={metadata}
+          recording={recording}
+          transcript={transcript}
+          transcriptView={transcriptView}
+          translatedSegments={translatedSegments}
+          translating={translating}
+          translationError={translationError}
+          onTranscriptToggle={handleTranscriptToggle}
+        />
       </div>
 
       {/* Fixed Footer */}
