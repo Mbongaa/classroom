@@ -128,7 +128,9 @@ export function AppSidebar() {
                 </div>
                 {state === 'expanded' && (
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-semibold text-black dark:text-white">{profile.full_name || user.email}</span>
+                    <span className="font-semibold text-black dark:text-white">
+                      {profile.full_name || user.email}
+                    </span>
                     <span className="text-xs text-black dark:text-white">Profile</span>
                   </div>
                 )}

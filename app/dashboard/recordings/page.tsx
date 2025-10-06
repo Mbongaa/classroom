@@ -167,8 +167,12 @@ export default function RecordingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Session Recordings</h1>
-        <p className="text-slate-500 dark:text-slate-400">View and manage your classroom recordings</p>
+        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+          Session Recordings
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400">
+          View and manage your classroom recordings
+        </p>
       </div>
 
       {recordings.length === 0 ? (

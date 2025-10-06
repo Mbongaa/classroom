@@ -147,7 +147,9 @@ export default function RecordingPlaybackPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">{recording.room_name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+            {recording.room_name}
+          </h1>
           <p className="text-slate-500 dark:text-slate-400">
             {recording.teacher_name} • {new Date(recording.started_at).toLocaleString()}
           </p>
@@ -177,7 +179,9 @@ export default function RecordingPlaybackPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">{recording.room_name}</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+            {recording.room_name}
+          </h1>
           <p className="text-slate-500 dark:text-slate-400">
             {recording.teacher_name} • {new Date(recording.started_at).toLocaleString()}
             {recording.duration_seconds && ` • ${formatDuration(recording.duration_seconds)}`}
@@ -240,12 +244,16 @@ export default function RecordingPlaybackPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Recorded:</span>
-            <span className="text-black dark:text-white">{new Date(recording.started_at).toLocaleString()}</span>
+            <span className="text-black dark:text-white">
+              {new Date(recording.started_at).toLocaleString()}
+            </span>
           </div>
           {recording.duration_seconds && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">Duration:</span>
-              <span className="text-black dark:text-white">{formatDuration(recording.duration_seconds)}</span>
+              <span className="text-black dark:text-white">
+                {formatDuration(recording.duration_seconds)}
+              </span>
             </div>
           )}
         </CardContent>

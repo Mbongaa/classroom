@@ -45,7 +45,9 @@ export default function DashboardRoomsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Manage Classrooms</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+            Manage Classrooms
+          </h1>
           <p className="text-slate-500 dark:text-slate-400">
             Create and manage persistent room codes for recurring classes
           </p>
@@ -94,7 +96,12 @@ export default function DashboardRoomsPage() {
             <p className="text-slate-500 dark:text-slate-400">
               {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'} available
             </p>
-            <Button onClick={fetchRooms} variant="outline" size="sm" className="text-black dark:text-white">
+            <Button
+              onClick={fetchRooms}
+              variant="outline"
+              size="sm"
+              className="text-black dark:text-white"
+            >
               Refresh
             </Button>
           </div>

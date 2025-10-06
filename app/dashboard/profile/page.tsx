@@ -23,8 +23,12 @@ export default function ProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Profile Settings</h1>
-        <p className="text-slate-500 dark:text-slate-400">Manage your account settings and preferences.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
+          Profile Settings
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400">
+          Manage your account settings and preferences.
+        </p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

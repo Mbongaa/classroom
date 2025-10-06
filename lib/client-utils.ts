@@ -32,6 +32,6 @@ export function isLowPowerDevice() {
 export function generateSessionId(roomName: string): string {
   const now = new Date();
   const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
-  const time = now.toTimeString().split(' ')[0].substring(0, 5).replace(':', '-'); // HH-MM
+  const time = now.toISOString().split('T')[1].substring(0, 5).replace(':', '-'); // HH-MM (UTC)
   return `${roomName}_${date}_${time}`;
 }
