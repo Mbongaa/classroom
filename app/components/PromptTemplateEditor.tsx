@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -155,13 +155,15 @@ export function PromptTemplateEditor({
         <div className="space-y-4 py-4">
           {/* Template Name */}
           <div className="space-y-2">
-            <Label htmlFor="name">Template Name *</Label>
-            <Input
+            <FloatingLabelInput
               id="name"
+              name="name"
+              label="Template Name"
               placeholder="e.g., Formal Academic"
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={loading}
+              required
             />
           </div>
 
@@ -184,9 +186,10 @@ export function PromptTemplateEditor({
 
           {/* Description */}
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Input
+            <FloatingLabelInput
               id="description"
+              name="description"
+              label="Description"
               placeholder="Brief description of this template's purpose"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -208,45 +211,39 @@ export function PromptTemplateEditor({
               disabled={loading}
               className="font-mono text-sm"
             />
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-slate-500 dark:text-slate-400">
               Use {'{source_lang}'} and {'{target_lang}'} as placeholders for language names.
             </p>
           </div>
 
           {/* Preview Section */}
-          <div className="space-y-2 border-t pt-4">
+          <div className="space-y-2 border-t border-[rgba(128,128,128,0.3)] pt-4">
             <Label>Preview</Label>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              <div>
-                <Label htmlFor="previewSource" className="text-xs">
-                  Source Language
-                </Label>
-                <Input
-                  id="previewSource"
-                  value={previewLanguages.source}
-                  onChange={(e) =>
-                    setPreviewLanguages({ ...previewLanguages, source: e.target.value })
-                  }
-                  placeholder="Arabic"
-                  className="text-sm"
-                />
-              </div>
-              <div>
-                <Label htmlFor="previewTarget" className="text-xs">
-                  Target Language
-                </Label>
-                <Input
-                  id="previewTarget"
-                  value={previewLanguages.target}
-                  onChange={(e) =>
-                    setPreviewLanguages({ ...previewLanguages, target: e.target.value })
-                  }
-                  placeholder="Spanish"
-                  className="text-sm"
-                />
-              </div>
+              <FloatingLabelInput
+                id="previewSource"
+                name="previewSource"
+                label="Source Language"
+                value={previewLanguages.source}
+                onChange={(e) =>
+                  setPreviewLanguages({ ...previewLanguages, source: e.target.value })
+                }
+                placeholder="Arabic"
+                className="text-sm"
+              />
+              <FloatingLabelInput
+                id="previewTarget"
+                name="previewTarget"
+                label="Target Language"
+                value={previewLanguages.target}
+                onChange={(e) =>
+                  setPreviewLanguages({ ...previewLanguages, target: e.target.value })
+                }
+                placeholder="Spanish"
+                className="text-sm"
+              />
             </div>
-            <div className="p-3 bg-muted rounded-md text-sm">
+            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-md text-sm text-black dark:text-white">
               {preview || 'Enter prompt text to see preview...'}
             </div>
           </div>

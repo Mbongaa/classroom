@@ -26,6 +26,8 @@ export interface Classroom {
   translation_prompt_id: string | null;
   transcription_language: string;
   context_window_size: number;
+  max_delay: number;
+  punctuation_sensitivity: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -44,6 +46,9 @@ export interface CreateClassroomParams {
     max_participants: number;
   };
   translationPromptId?: string | null;
+  contextWindowSize?: number;
+  maxDelay?: number;
+  punctuationSensitivity?: number;
 }
 
 /**
@@ -66,6 +71,9 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
       description: params.description || null,
       settings: params.settings,
       translation_prompt_id: params.translationPromptId || null,
+      context_window_size: params.contextWindowSize ?? 12,
+      max_delay: params.maxDelay ?? 3.5,
+      punctuation_sensitivity: params.punctuationSensitivity ?? 0.5,
       is_active: true,
     })
     .select()

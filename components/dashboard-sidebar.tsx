@@ -91,8 +91,8 @@ export function AppSidebar() {
                       tooltip={state === 'collapsed' ? item.label : undefined}
                     >
                       <Link href={item.href}>
-                        <item.icon className="size-4" />
-                        <span>{item.label}</span>
+                        <item.icon className="size-4 text-black dark:text-white" />
+                        <span className="text-black dark:text-white">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -113,13 +113,13 @@ export function AppSidebar() {
               <Link href="/dashboard/profile">
                 <div
                   className={cn(
-                    'flex items-center justify-center rounded-lg border border-sidebar-border text-sidebar-foreground aspect-square',
+                    'flex items-center justify-center rounded-lg border border-[rgba(128,128,128,0.3)] text-sidebar-foreground aspect-square',
                     state === 'expanded' ? 'size-8' : 'size-5',
                   )}
                 >
                   <span
                     className={cn(
-                      'font-semibold',
+                      'font-semibold text-black dark:text-white',
                       state === 'expanded' ? 'text-xs' : 'text-[10px]',
                     )}
                   >
@@ -128,8 +128,8 @@ export function AppSidebar() {
                 </div>
                 {state === 'expanded' && (
                   <div className="flex flex-col gap-0.5 leading-none">
-                    <span className="font-semibold">{profile.full_name || user.email}</span>
-                    <span className="text-xs">Profile</span>
+                    <span className="font-semibold text-black dark:text-white">{profile.full_name || user.email}</span>
+                    <span className="text-xs text-black dark:text-white">Profile</span>
                   </div>
                 )}
               </Link>
@@ -140,8 +140,8 @@ export function AppSidebar() {
               onClick={handleSignOut}
               tooltip={state === 'collapsed' ? 'Sign Out' : undefined}
             >
-              <IconArrowLeft className="size-4" />
-              <span>Sign Out</span>
+              <IconArrowLeft className="size-4 text-black dark:text-white" />
+              <span className="text-black dark:text-white">Sign Out</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

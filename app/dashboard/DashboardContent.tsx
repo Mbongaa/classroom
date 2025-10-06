@@ -70,8 +70,8 @@ export function DashboardContent({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back, {userName}!</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Welcome back, {userName}!</h1>
+        <p className="text-slate-500 dark:text-slate-400">
           Here&apos;s what&apos;s happening with your classrooms today.
         </p>
       </div>
@@ -83,7 +83,7 @@ export function DashboardContent({
               <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
+              <div className="text-2xl font-bold text-black dark:text-white">{stat.value}</div>
               <p className="text-xs text-muted-foreground">{stat.description}</p>
               {stat.link && (
                 <Link href={stat.link}>
@@ -209,15 +209,15 @@ export function DashboardContent({
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="text-sm">
-              <p className="font-medium">1. Create a classroom</p>
+              <p className="font-medium text-black dark:text-white">1. Create a classroom</p>
               <p className="text-muted-foreground">Set up a recurring room code</p>
             </div>
             <div className="text-sm">
-              <p className="font-medium">2. Share with students</p>
+              <p className="font-medium text-black dark:text-white">2. Share with students</p>
               <p className="text-muted-foreground">Send them the room link</p>
             </div>
             <div className="text-sm">
-              <p className="font-medium">3. Start teaching</p>
+              <p className="font-medium text-black dark:text-white">3. Start teaching</p>
               <p className="text-muted-foreground">Go live with real-time translation</p>
             </div>
           </CardContent>

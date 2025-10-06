@@ -45,8 +45,8 @@ export default function DashboardRoomsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Manage Classrooms</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Manage Classrooms</h1>
+          <p className="text-slate-500 dark:text-slate-400">
             Create and manage persistent room codes for recurring classes
           </p>
         </div>
@@ -77,7 +77,7 @@ export default function DashboardRoomsPage() {
       {!loading && !error && rooms.length === 0 && (
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-12 border border-border rounded-lg bg-card">
-            <h2 className="text-xl font-semibold mb-2">No rooms yet</h2>
+            <h2 className="text-xl font-semibold mb-2 text-black dark:text-white">No rooms yet</h2>
             <p className="text-muted-foreground mb-6">
               Create your first persistent room to get started. Rooms can be reused for recurring
               sessions.
@@ -91,10 +91,10 @@ export default function DashboardRoomsPage() {
       {!loading && !error && rooms.length > 0 && (
         <>
           <div className="flex items-center justify-between">
-            <p className="text-muted-foreground">
+            <p className="text-slate-500 dark:text-slate-400">
               {rooms.length} {rooms.length === 1 ? 'room' : 'rooms'} available
             </p>
-            <Button onClick={fetchRooms} variant="outline" size="sm">
+            <Button onClick={fetchRooms} variant="outline" size="sm" className="text-black dark:text-white">
               Refresh
             </Button>
           </div>

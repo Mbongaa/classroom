@@ -10,11 +10,14 @@
       "Bash(cmd.exe /c \"type \"\"C:\\Users\\HP\\Desktop\\meet\\Gitingest - ZOOM MODULE BRAINSTORM\\mbongaa-dashboard-mosque--8a5edab282632443.txt\"\"\")",
       "Bash(cmd.exe /c \"type \"\"C:\\Users\\HP\\Desktop\\meet\\Gitingest - ZOOM MODULE BRAINSTORM\\mbongaa-bayaan-server-8a5edab282632443.txt\"\"\")",
       "Bash(cmd.exe:*)",
-      "mcp__sequential-thinking__sequentialthinking"
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__shadcn__view_items_in_registries"
     ],
     "deny": [],
     "ask": []
   },
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["shadcn"]
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

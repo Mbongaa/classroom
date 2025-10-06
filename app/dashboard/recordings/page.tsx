@@ -151,7 +151,7 @@ export default function RecordingsPage() {
   }
 
   if (!user || !profile) {
-    return <div>Not authenticated</div>;
+    return <div className="text-black dark:text-white">Not authenticated</div>;
   }
 
   if (error) {
@@ -167,8 +167,8 @@ export default function RecordingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Session Recordings</h1>
-        <p className="text-muted-foreground">View and manage your classroom recordings</p>
+        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Session Recordings</h1>
+        <p className="text-slate-500 dark:text-slate-400">View and manage your classroom recordings</p>
       </div>
 
       {recordings.length === 0 ? (
@@ -300,7 +300,7 @@ export default function RecordingsPage() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-slate-500 dark:text-slate-400">
                 Showing {startIndex + 1} to {Math.min(endIndex, sortedRecordings.length)} of{' '}
                 {sortedRecordings.length} recordings
               </p>

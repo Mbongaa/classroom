@@ -78,8 +78,8 @@ export default function PromptsPage() {
     <div className="container max-w-6xl py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Translation Prompt Templates</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">Translation Prompt Templates</h1>
+        <p className="text-slate-500 dark:text-slate-400">
           Create and manage reusable translation prompts for your classrooms. Use {'{source_lang}'}{' '}
           and {'{target_lang}'} placeholders to create language-agnostic templates.
         </p>
@@ -89,7 +89,7 @@ export default function PromptsPage() {
       <div className="flex justify-between items-center mb-6">
         <div className="flex gap-2">
           <Button onClick={handleCreateNew}>
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2 text-black dark:text-white" />
             Create New Template
           </Button>
         </div>
@@ -99,7 +99,7 @@ export default function PromptsPage() {
           disabled={loading}
           title="Refresh templates"
         >
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`h-4 w-4 text-black dark:text-white ${loading ? 'animate-spin' : ''}`} />
         </Button>
       </div>
 
@@ -131,25 +131,25 @@ export default function PromptsPage() {
 
       {/* Info Box */}
       <div className="mt-8 p-6 bg-muted rounded-lg">
-        <h3 className="font-semibold mb-2">How to Use Prompt Templates</h3>
+        <h3 className="font-semibold mb-2 text-black dark:text-white">How to Use Prompt Templates</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>
-            • <strong>Create templates</strong> with {'{source_lang}'} and {'{target_lang}'}{' '}
+            • <strong className="text-black dark:text-white">Create templates</strong> with {'{source_lang}'} and {'{target_lang}'}{' '}
             placeholders
           </li>
           <li>
-            • <strong>Select a template</strong> when creating a classroom
+            • <strong className="text-black dark:text-white">Select a template</strong> when creating a classroom
           </li>
           <li>
-            • <strong>Placeholders are automatically replaced</strong> with actual language names
+            • <strong className="text-black dark:text-white">Placeholders are automatically replaced</strong> with actual language names
             during translation
           </li>
           <li>
-            • <strong>One template works for all languages</strong> - students can request any
+            • <strong className="text-black dark:text-white">One template works for all languages</strong> - students can request any
             language and use the same custom prompt
           </li>
           <li>
-            • <strong>Public templates</strong> are provided by default and cannot be modified
+            • <strong className="text-black dark:text-white">Public templates</strong> are provided by default and cannot be modified
           </li>
         </ul>
       </div>

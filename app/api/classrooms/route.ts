@@ -32,7 +32,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { roomCode, name, description, settings, translationPromptId } = body;
+    const {
+      roomCode,
+      name,
+      description,
+      settings,
+      translationPromptId,
+      contextWindowSize,
+      maxDelay,
+      punctuationSensitivity,
+    } = body;
 
     // Validation
     if (!roomCode || typeof roomCode !== 'string') {
@@ -67,6 +76,9 @@ export async function POST(request: NextRequest) {
       description: description?.trim(),
       settings: classroomSettings,
       translationPromptId: translationPromptId || null,
+      contextWindowSize: contextWindowSize,
+      maxDelay: maxDelay,
+      punctuationSensitivity: punctuationSensitivity,
     });
 
     return NextResponse.json({

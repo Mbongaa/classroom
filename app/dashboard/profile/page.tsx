@@ -17,14 +17,14 @@ export default function ProfilePage() {
   }
 
   if (!user || !profile) {
-    return <div>Not authenticated</div>;
+    return <div className="text-black dark:text-white">Not authenticated</div>;
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
-        <p className="text-muted-foreground">Manage your account settings and preferences.</p>
+        <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">Profile Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400">Manage your account settings and preferences.</p>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -45,19 +45,19 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium">Email</p>
+              <p className="text-sm font-medium text-black dark:text-white">Email</p>
               <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
             <div>
-              <p className="text-sm font-medium">Role</p>
+              <p className="text-sm font-medium text-black dark:text-white">Role</p>
               <p className="text-sm text-muted-foreground capitalize">{profile.role}</p>
             </div>
             <div>
-              <p className="text-sm font-medium">Organization</p>
+              <p className="text-sm font-medium text-black dark:text-white">Organization</p>
               <p className="text-sm text-muted-foreground">{profile.organization?.name || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-sm font-medium">Member Since</p>
+              <p className="text-sm font-medium text-black dark:text-white">Member Since</p>
               <p className="text-sm text-muted-foreground">
                 {new Date(profile.created_at).toLocaleDateString()}
               </p>

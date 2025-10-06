@@ -22,8 +22,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Slider } from '@/components/ui/slider';
 import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
 import { PromptTemplateSelector } from '@/app/components/PromptTemplateSelector';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CreateRoomDialogProps {
   onRoomCreated: () => void;
@@ -42,6 +44,12 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   const [description, setDescription] = useState('');
   const [translationPromptId, setTranslationPromptId] = useState<string | null>(null);
 
+  // Advanced STT settings
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [contextWindowSize, setContextWindowSize] = useState(12);
+  const [maxDelay, setMaxDelay] = useState(3.5);
+  const [punctuationSensitivity, setPunctuationSensitivity] = useState(0.5);
+
   const resetForm = () => {
     setRoomCode('');
     setRoomType('meeting');
@@ -49,6 +57,10 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     setLanguage('en');
     setDescription('');
     setTranslationPromptId(null);
+    setShowAdvanced(false);
+    setContextWindowSize(12);
+    setMaxDelay(3.5);
+    setPunctuationSensitivity(0.5);
     setError('');
   };
 
@@ -91,6 +103,9 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
             max_participants: 100,
           },
           translationPromptId: translationPromptId,
+          contextWindowSize: contextWindowSize,
+          maxDelay: maxDelay,
+          punctuationSensitivity: punctuationSensitivity,
         }),
       });
 
@@ -216,6 +231,94 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                 maxLength={500}
                 rows={3}
               />
+            </div>
+
+            {/* Advanced Settings (collapsible) */}
+            <div className="rounded-lg bg-secondary/30">
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full flex items-center justify-between p-3 hover:bg-secondary/50 rounded-lg"
+                onClick={() => setShowAdvanced(!showAdvanced)}
+                disabled={loading}
+              >
+                <span className="font-medium text-sm">Advanced Settings</span>
+                {showAdvanced ? (
+                  <ChevronUp className="h-4 w-4" />
+                ) : (
+                  <ChevronDown className="h-4 w-4" />
+                )}
+              </Button>
+
+              {showAdvanced && (
+                <div className="grid gap-4 p-4 pt-2">
+                  {/* Context Window Size */}
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="contextWindow">Context Window Size</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {contextWindowSize} pairs
+                      </span>
+                    </div>
+                    <Slider
+                      id="contextWindow"
+                      min={3}
+                      max={20}
+                      step={1}
+                      value={[contextWindowSize]}
+                      onValueChange={(value) => setContextWindowSize(value[0])}
+                      disabled={loading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of previous sentence pairs to include for translation context (higher =
+                      more context, more tokens)
+                    </p>
+                  </div>
+
+                  {/* Max Delay */}
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="maxDelay">Max Delay</Label>
+                      <span className="text-sm text-muted-foreground">{maxDelay.toFixed(1)}s</span>
+                    </div>
+                    <Slider
+                      id="maxDelay"
+                      min={1.0}
+                      max={5.0}
+                      step={0.5}
+                      value={[maxDelay]}
+                      onValueChange={(value) => setMaxDelay(value[0])}
+                      disabled={loading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Maximum delay before finalizing transcription (higher = more accurate, more
+                      latency)
+                    </p>
+                  </div>
+
+                  {/* Punctuation Sensitivity */}
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="punctuation">Punctuation Sensitivity</Label>
+                      <span className="text-sm text-muted-foreground">
+                        {punctuationSensitivity.toFixed(2)}
+                      </span>
+                    </div>
+                    <Slider
+                      id="punctuation"
+                      min={0.0}
+                      max={1.0}
+                      step={0.1}
+                      value={[punctuationSensitivity]}
+                      onValueChange={(value) => setPunctuationSensitivity(value[0])}
+                      disabled={loading}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      How aggressive to be with adding punctuation (0 = minimal, 1 = maximum)
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Error message */}
