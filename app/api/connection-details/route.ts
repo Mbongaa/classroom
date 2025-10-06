@@ -138,6 +138,9 @@ export async function GET(request: NextRequest) {
     if (participantName === null) {
       return new NextResponse('Missing required query parameter: participantName', { status: 400 });
     }
+    if (!livekitRoomName) {
+      return new NextResponse('Invalid room configuration', { status: 500 });
+    }
 
     // Generate participant token
     if (!randomParticipantPostfix) {

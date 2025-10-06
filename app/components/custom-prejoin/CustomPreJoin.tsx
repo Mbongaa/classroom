@@ -103,7 +103,7 @@ export default function CustomPreJoin({
     };
 
     getDevices();
-  }, [isSpeechListener]);
+  }, [isSpeechListener, audioDeviceId, videoDeviceId]);
 
   // Initialize video track
   React.useEffect(() => {
@@ -140,7 +140,7 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [videoEnabled, videoDeviceId]);
+  }, [videoEnabled, videoDeviceId, isSpeechListener, localVideoTrack]);
 
   // Initialize audio track
   React.useEffect(() => {
@@ -173,7 +173,7 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [audioEnabled, audioDeviceId, isSpeechListener]);
+  }, [audioEnabled, audioDeviceId, isSpeechListener, localAudioTrack]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

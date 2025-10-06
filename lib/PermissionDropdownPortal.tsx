@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Participant } from 'livekit-client';
 
@@ -24,7 +24,7 @@ export function PermissionDropdownPortal({
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Calculate dropdown position relative to trigger button
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (triggerRef.current && isOpen) {
       const triggerRect = triggerRef.current.getBoundingClientRect();
       const menuHeight = 200; // Approximate menu height
@@ -49,7 +49,7 @@ export function PermissionDropdownPortal({
 
       setDropdownPosition({ top, left });
     }
-  };
+  }, [isOpen]);
 
   // Update position when opening or window resizes
   useEffect(() => {
@@ -63,7 +63,7 @@ export function PermissionDropdownPortal({
         window.removeEventListener('scroll', updatePosition, true);
       };
     }
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

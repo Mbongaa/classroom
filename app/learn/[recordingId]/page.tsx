@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import LearningContentDisplay from '@/app/components/LearningContentDisplay';
 import { LearningContent } from '@/lib/gemini/learning-content-generator';
@@ -58,13 +58,7 @@ export default function LearningPage() {
   const [error, setError] = useState<string | null>(null);
   const [learningContent, setLearningContent] = useState<LearningContentResponse | null>(null);
 
-  useEffect(() => {
-    if (recordingId && targetLanguage) {
-      fetchLearningContent();
-    }
-  }, [recordingId, targetLanguage]);
-
-  const fetchLearningContent = async () => {
+  const fetchLearningContent = useCallback(async () => {
     setLoading(true);
     setError(null);
 
@@ -104,7 +98,13 @@ export default function LearningPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recordingId, targetLanguage]);
+
+  useEffect(() => {
+    if (recordingId && targetLanguage) {
+      fetchLearningContent();
+    }
+  }, [recordingId, targetLanguage, fetchLearningContent]);
 
   // Loading state
   if (loading) {

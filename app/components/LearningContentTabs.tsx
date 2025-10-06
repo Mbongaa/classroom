@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@heroui/react';
@@ -59,11 +59,12 @@ export function LearningContentTabs({
   const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   // Build tabs array dynamically
-  const tabs: TabData[] = [];
+  const tabs: TabData[] = useMemo(() => {
+    const tabsArray: TabData[] = [];
 
-  // Recording tab
-  if (recording) {
-    tabs.push({
+    // Recording tab
+    if (recording) {
+      tabsArray.push({
       id: 'recording',
       label: 'Recording',
       icon: Video,
@@ -95,12 +96,12 @@ export function LearningContentTabs({
           </div>
         </div>
       ),
-    });
-  }
+      });
+    }
 
-  // Transcript tab
-  if (transcript && transcript.segments.length > 0) {
-    tabs.push({
+    // Transcript tab
+    if (transcript && transcript.segments.length > 0) {
+      tabsArray.push({
       id: 'transcript',
       label: 'Transcript',
       icon: FileText,
@@ -175,11 +176,11 @@ export function LearningContentTabs({
           </div>
         </div>
       ),
-    });
-  }
+      });
+    }
 
-  // Summary tab
-  tabs.push({
+    // Summary tab
+    tabsArray.push({
     id: 'summary',
     label: 'Summary',
     icon: Lightbulb,
@@ -209,11 +210,11 @@ export function LearningContentTabs({
         </div>
       </div>
     ),
-  });
+    });
 
-  // Theme tabs
-  thematic_breakdown.forEach((theme, index) => {
-    tabs.push({
+    // Theme tabs
+    thematic_breakdown.forEach((theme, index) => {
+      tabsArray.push({
       id: `theme-${index}`,
       label: `Theme ${index + 1}`,
       icon: ({ className }) => (
@@ -246,15 +247,18 @@ export function LearningContentTabs({
           </div>
         </div>
       ),
+      });
     });
-  });
+
+    return tabsArray;
+  }, [recording, transcript, transcriptView, translating, translationError, translatedSegments, metadata, onTranscriptToggle, summary, thematic_breakdown]);
 
   // Set initial active tab
   useEffect(() => {
     if (tabs.length > 0 && !activeTab) {
       setActiveTab(tabs[0].id);
     }
-  }, [tabs.length, activeTab]);
+  }, [tabs, activeTab]);
 
   // Update indicator position
   useEffect(() => {

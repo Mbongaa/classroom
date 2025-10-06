@@ -166,7 +166,7 @@ export async function GET(req: NextRequest) {
       sessionId,
       egressId: egressInfo.egressId,
       teacherName,
-      classroomId: classroom?.id || null, // Link to classroom UUID if exists
+      classroomId: classroom?.id ?? undefined, // Link to classroom UUID if exists
       createdBy: auth.user?.id,
       sessionUuid, // Link to session if exists
     });

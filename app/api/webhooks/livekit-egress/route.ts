@@ -167,10 +167,10 @@ export async function POST(request: NextRequest) {
         await updateRecording(recording.id, {
           status: 'COMPLETED',
           ended_at: endedAtDate,
-          hls_playlist_url: hlsUrl,
-          mp4_url: mp4Url,
-          duration_seconds: durationSeconds,
-          size_bytes: totalSize,
+          hls_playlist_url: hlsUrl ?? undefined,
+          mp4_url: mp4Url ?? undefined,
+          duration_seconds: durationSeconds ?? undefined,
+          size_bytes: totalSize ?? undefined,
         });
         break;
 

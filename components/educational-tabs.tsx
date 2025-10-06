@@ -144,7 +144,7 @@ export function EducationalTabs() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">What you'll learn</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">What you&apos;ll learn</h3>
               <ul className="space-y-3">
                 {activeTabData.content.map((item, index) => (
                   <li

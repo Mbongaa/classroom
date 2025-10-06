@@ -12,7 +12,7 @@ import {
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -28,7 +28,8 @@ export async function PATCH(
   }
 
   try {
-    const templateId = params.id;
+    const { id } = await params;
+    const templateId = id;
 
     // Check if template exists and belongs to organization
     const existing = await getPromptTemplate(templateId);
@@ -80,7 +81,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -96,7 +97,8 @@ export async function DELETE(
   }
 
   try {
-    const templateId = params.id;
+    const { id } = await params;
+    const templateId = id;
 
     // Delete prompt template (function handles authorization checks)
     await deletePromptTemplate(templateId, profile.organization_id);

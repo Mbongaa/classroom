@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Participant } from 'livekit-client';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -31,7 +31,7 @@ export function AvatarWithDropdown({
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Calculate dropdown position relative to avatar
-  const updatePosition = () => {
+  const updatePosition = useCallback(() => {
     if (avatarRef.current && isOpen) {
       const avatarRect = avatarRef.current.getBoundingClientRect();
       const menuHeight = 200; // Approximate menu height
@@ -56,7 +56,7 @@ export function AvatarWithDropdown({
 
       setDropdownPosition({ top, left });
     }
-  };
+  }, [isOpen]);
 
   useEffect(() => {
     updatePosition();
@@ -67,7 +67,7 @@ export function AvatarWithDropdown({
       window.removeEventListener('resize', updatePosition);
       window.removeEventListener('scroll', updatePosition);
     };
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   // Close on click outside
   useEffect(() => {

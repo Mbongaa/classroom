@@ -263,7 +263,7 @@ export function FocusLayout({ tracks }: { tracks: TrackReference[] }) {
     } else if (!focusedTrack && participantTracks.length > 0) {
       setFocusedTrack(participantTracks[0]);
     }
-  }, [participantTracks]);
+  }, [participantTracks, focusedTrack]);
 
   const otherTracks = participantTracks.filter((track) => track !== focusedTrack);
 
