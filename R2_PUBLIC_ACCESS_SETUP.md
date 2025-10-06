@@ -3,6 +3,7 @@
 ## ❗ Why This Is Needed
 
 Your recordings are saved to R2, but **videos won't play** because:
+
 - ❌ Current: Using private R2 endpoint (requires authentication)
 - ✅ Needed: Public URL so browsers can access videos
 
@@ -83,6 +84,7 @@ For production, use a custom domain instead of r2.dev:
 ## 🔒 Security Note
 
 **Public bucket means**:
+
 - ✅ Anyone with URL can watch videos
 - ✅ Videos are NOT listed publicly (need exact URL)
 - ⚠️ For private recordings, use signed URLs (Phase 2 feature)
@@ -92,6 +94,7 @@ For production, use a custom domain instead of r2.dev:
 ## ✅ All Fixes Summary
 
 After setup:
+
 - ✅ Issue 1 (URLs): Fixed with public domain
 - ✅ Issue 2 (room_sid): Fixed with null check
 - ✅ Issue 3 (duration): Fixed with timestamp fallback

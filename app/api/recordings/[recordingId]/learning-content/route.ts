@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRecording, getRecordingTranscriptions } from '@/lib/recording-utils';
-import {
-  LearningContentGenerator,
-  LearningContent,
-} from '@/lib/gemini/learning-content-generator';
+import { LearningContentGenerator, LearningContent } from '@/lib/gemini/learning-content-generator';
 
 /**
  * POST /api/recordings/[recordingId]/learning-content

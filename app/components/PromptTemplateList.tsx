@@ -2,13 +2,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Edit, Trash2, Eye } from 'lucide-react';
 import { previewPrompt } from '@/lib/prompt-utils';
@@ -26,7 +20,7 @@ export function PromptTemplateList({ templates, onEdit, onDelete }: PromptTempla
   const handleDeleteClick = (template: PromptTemplate) => {
     if (
       window.confirm(
-        `Delete "${template.name}"?\n\nThis will permanently delete this template. Classrooms using this template will no longer have a custom prompt assigned.`
+        `Delete "${template.name}"?\n\nThis will permanently delete this template. Classrooms using this template will no longer have a custom prompt assigned.`,
       )
     ) {
       onDelete(template.id);
@@ -80,9 +74,7 @@ export function PromptTemplateList({ templates, onEdit, onDelete }: PromptTempla
                     </Badge>
                   )}
                 </div>
-                {template.description && (
-                  <CardDescription>{template.description}</CardDescription>
-                )}
+                {template.description && <CardDescription>{template.description}</CardDescription>}
               </div>
               <div className="flex gap-2">
                 <Button

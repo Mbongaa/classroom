@@ -17,7 +17,7 @@ const LIVEKIT_URL = process.env.LIVEKIT_URL;
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   try {
     const { roomCode } = await params;
@@ -141,13 +141,13 @@ export async function GET(
         error: 'Classroom not found',
         roomExists: false,
       },
-      { status: 404 }
+      { status: 404 },
     );
   } catch (error: any) {
     console.error('Error fetching classroom:', error);
     return NextResponse.json(
       { error: 'Failed to fetch classroom', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -158,7 +158,7 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ roomCode: string }> }
+  { params }: { params: Promise<{ roomCode: string }> },
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -167,10 +167,7 @@ export async function DELETE(
   const { user, profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -209,7 +206,7 @@ export async function DELETE(
 
     return NextResponse.json(
       { error: 'Failed to delete classroom', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

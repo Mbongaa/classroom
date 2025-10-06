@@ -1157,7 +1157,13 @@ export function ClassroomClientImplWithRequests({
       )}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />}
+      {isTeacher && (
+        <TranscriptionSaver
+          roomName={roomName}
+          sessionStartTime={sessionStartTime}
+          sessionId={sessionId}
+        />
+      )}
     </div>
   );
 }

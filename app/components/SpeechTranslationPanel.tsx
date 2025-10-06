@@ -59,18 +59,18 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
 
       // Save only what THIS participant is consuming (prevent N-participant multiplication)
       if (userRole) {
-        const finalSegments = segments.filter(seg => seg.final);
+        const finalSegments = segments.filter((seg) => seg.final);
 
         // Detect speaker's original language (teacher's language from remote participants)
         // For student's client: teacher is remote, student is local
-        const speakingLanguage = Array.from(room.remoteParticipants.values())
-          .find(p => p.attributes?.speaking_language !== undefined)
-          ?.attributes?.speaking_language;
+        const speakingLanguage = Array.from(room.remoteParticipants.values()).find(
+          (p) => p.attributes?.speaking_language !== undefined,
+        )?.attributes?.speaking_language;
 
         // Students save ONLY their caption language (translation)
         // Note: Teachers use TranscriptionSaver component for original transcriptions
         if (userRole === 'student') {
-          const translation = finalSegments.find(seg => seg.language === targetLanguage);
+          const translation = finalSegments.find((seg) => seg.language === targetLanguage);
           if (translation && translation.language !== speakingLanguage) {
             const segmentKey = `${translation.id}-${translation.language}`;
             if (!savedSegmentIds.current.has(segmentKey)) {
@@ -78,8 +78,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
 
               const timestampMs = Date.now() - sessionStartTime;
               // Get teacher's name from remote participants (for students)
-              const speaker = Array.from(room.remoteParticipants.values())
-                .find(p => p.attributes?.speaking_language !== undefined);
+              const speaker = Array.from(room.remoteParticipants.values()).find(
+                (p) => p.attributes?.speaking_language !== undefined,
+              );
 
               // Save with retry logic
               const saveWithRetry = async (attempt = 1): Promise<void> => {
@@ -91,7 +92,8 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                       sessionId,
                       text: translation.text,
                       language: translation.language,
-                      participantName: room.localParticipant?.name || room.localParticipant?.identity || 'Student', // Save the student's name who receives the translation
+                      participantName:
+                        room.localParticipant?.name || room.localParticipant?.identity || 'Student', // Save the student's name who receives the translation
                       timestampMs,
                     }),
                   });
@@ -102,23 +104,36 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                   }
 
                   const data = await response.json();
-                  console.log('[SpeechTranslationPanel] ✅ Student saved TRANSLATION:',
-                    translation.language, timestampMs, 'Entry ID:', data.entry?.id);
+                  console.log(
+                    '[SpeechTranslationPanel] ✅ Student saved TRANSLATION:',
+                    translation.language,
+                    timestampMs,
+                    'Entry ID:',
+                    data.entry?.id,
+                  );
                 } catch (err) {
-                  console.error(`[SpeechTranslationPanel] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`, err);
+                  console.error(
+                    `[SpeechTranslationPanel] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`,
+                    err,
+                  );
 
                   // Retry with exponential backoff
                   if (attempt < MAX_RETRIES) {
                     const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
                     console.log(`[SpeechTranslationPanel] Retrying in ${delay}ms...`);
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise((resolve) => setTimeout(resolve, delay));
                     return saveWithRetry(attempt + 1);
                   } else {
-                    console.error('[SpeechTranslationPanel] ⚠️ FAILED after', MAX_RETRIES, 'attempts. Data lost:', {
-                      text: translation.text.substring(0, 100),
-                      timestamp: timestampMs,
-                      sessionId,
-                    });
+                    console.error(
+                      '[SpeechTranslationPanel] ⚠️ FAILED after',
+                      MAX_RETRIES,
+                      'attempts. Data lost:',
+                      {
+                        text: translation.text.substring(0, 100),
+                        timestamp: timestampMs,
+                        sessionId,
+                      },
+                    );
                     savedSegmentIds.current.delete(segmentKey); // Allow retry on next segment
                   }
                 }

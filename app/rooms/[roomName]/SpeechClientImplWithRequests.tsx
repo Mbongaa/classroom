@@ -55,7 +55,12 @@ interface SpeechClientImplWithRequestsProps {
   sessionId: string;
 }
 
-export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartTime, sessionId }: SpeechClientImplWithRequestsProps) {
+export function SpeechClientImplWithRequests({
+  userRole,
+  roomName,
+  sessionStartTime,
+  sessionId,
+}: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
   const connectionState = useConnectionState();
@@ -926,7 +931,13 @@ export function SpeechClientImplWithRequests({ userRole, roomName, sessionStartT
       {process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU === 'true' && <SettingsMenu />}
 
       {/* Invisible transcription saver for teachers only */}
-      {isTeacher && <TranscriptionSaver roomName={roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />}
+      {isTeacher && (
+        <TranscriptionSaver
+          roomName={roomName}
+          sessionStartTime={sessionStartTime}
+          sessionId={sessionId}
+        />
+      )}
     </div>
   );
 }

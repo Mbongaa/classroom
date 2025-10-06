@@ -157,12 +157,16 @@ export function SignupForm() {
             {touched.password && passwordError ? (
               <p className="text-xs text-red-600 dark:text-red-400">{passwordError}</p>
             ) : (
-              <p className="text-xs text-gray-600 dark:text-gray-400">Must be at least 8 characters</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                Must be at least 8 characters
+              </p>
             )}
           </div>
 
           <div className="flex flex-col items-center gap-2">
-            <span className="text-xs uppercase text-gray-600 dark:text-gray-400">Organization Details</span>
+            <span className="text-xs uppercase text-gray-600 dark:text-gray-400">
+              Organization Details
+            </span>
             <div className="w-full border-t border-[#4b5563]" />
           </div>
 

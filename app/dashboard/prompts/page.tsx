@@ -80,8 +80,8 @@ export default function PromptsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Translation Prompt Templates</h1>
         <p className="text-muted-foreground">
-          Create and manage reusable translation prompts for your classrooms. Use {'{source_lang}'} and{' '}
-          {'{target_lang}'} placeholders to create language-agnostic templates.
+          Create and manage reusable translation prompts for your classrooms. Use {'{source_lang}'}{' '}
+          and {'{target_lang}'} placeholders to create language-agnostic templates.
         </p>
       </div>
 

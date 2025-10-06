@@ -58,20 +58,21 @@ export default function TranslationPanel({
 
       // Save only what THIS participant is consuming (prevent N-participant multiplication)
       if (userRole) {
-        const finalSegments = segments.filter(seg => seg.final);
+        const finalSegments = segments.filter((seg) => seg.final);
 
         // Detect speaker's original language based on role
         // For teacher's client: teacher is local, students are remote
         // For student's client: teacher is remote, student is local
-        const speakingLanguage = userRole === 'teacher'
-          ? room.localParticipant?.attributes?.speaking_language
-          : Array.from(room.remoteParticipants.values())
-              .find(p => p.attributes?.speaking_language !== undefined)
-              ?.attributes?.speaking_language;
+        const speakingLanguage =
+          userRole === 'teacher'
+            ? room.localParticipant?.attributes?.speaking_language
+            : Array.from(room.remoteParticipants.values()).find(
+                (p) => p.attributes?.speaking_language !== undefined,
+              )?.attributes?.speaking_language;
 
         // Teachers save ONLY transcription (original language)
         if (userRole === 'teacher') {
-          const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
+          const transcription = finalSegments.find((seg) => seg.language === speakingLanguage);
           if (transcription) {
             const segmentKey = `${transcription.id}-${transcription.language}`;
             if (!savedSegmentIds.current.has(segmentKey)) {
@@ -90,8 +91,14 @@ export default function TranslationPanel({
                   timestampMs,
                 }),
               })
-                .then(() => console.log('[TranslationPanel] Teacher saved TRANSCRIPTION:', transcription.language, timestampMs))
-                .catch(err => {
+                .then(() =>
+                  console.log(
+                    '[TranslationPanel] Teacher saved TRANSCRIPTION:',
+                    transcription.language,
+                    timestampMs,
+                  ),
+                )
+                .catch((err) => {
                   console.error('[TranslationPanel] Save error:', err);
                   savedSegmentIds.current.delete(segmentKey);
                 });
@@ -101,7 +108,7 @@ export default function TranslationPanel({
 
         // Students save ONLY their caption language (translation)
         if (userRole === 'student') {
-          const translation = finalSegments.find(seg => seg.language === captionsLanguage);
+          const translation = finalSegments.find((seg) => seg.language === captionsLanguage);
           if (translation && translation.language !== speakingLanguage) {
             const segmentKey = `${translation.id}-${translation.language}`;
             if (!savedSegmentIds.current.has(segmentKey)) {
@@ -109,8 +116,9 @@ export default function TranslationPanel({
 
               const timestampMs = Date.now() - sessionStartTime;
               // Get teacher's name from remote participants (for students)
-              const teacher = Array.from(room.remoteParticipants.values())
-                .find(p => p.attributes?.speaking_language !== undefined);
+              const teacher = Array.from(room.remoteParticipants.values()).find(
+                (p) => p.attributes?.speaking_language !== undefined,
+              );
               fetch('/api/recordings/translations', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -122,8 +130,14 @@ export default function TranslationPanel({
                   timestampMs,
                 }),
               })
-                .then(() => console.log('[TranslationPanel] Student saved TRANSLATION:', translation.language, timestampMs))
-                .catch(err => {
+                .then(() =>
+                  console.log(
+                    '[TranslationPanel] Student saved TRANSLATION:',
+                    translation.language,
+                    timestampMs,
+                  ),
+                )
+                .catch((err) => {
                   console.error('[TranslationPanel] Save error:', err);
                   savedSegmentIds.current.delete(segmentKey);
                 });

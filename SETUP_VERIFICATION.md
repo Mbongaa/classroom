@@ -55,19 +55,23 @@
 #### For Local Testing (Use This Now):
 
 **Step 1: Download Ngrok**
+
 - Go to: https://ngrok.com/download
 - Install ngrok
 
 **Step 2: Start Ngrok**
+
 ```bash
 ngrok http 3000
 ```
 
 **Step 3: Copy the HTTPS URL**
+
 - Ngrok will show: `Forwarding https://abc123.ngrok-free.app -> http://localhost:3000`
 - Copy the HTTPS URL: `https://abc123.ngrok-free.app`
 
 **Step 4: Add to LiveKit Cloud**
+
 1. Go to: https://cloud.livekit.io/projects
 2. Select your project: "jamaa-app-4bix2j1v"
 3. Click "Settings" (left sidebar)
@@ -89,11 +93,13 @@ ngrok http 3000
 ### **YES - Partial Testing** (recordings start but won't complete)
 
 You can test:
+
 - ✅ Recording starts automatically
 - ✅ Database row created with `status = 'ACTIVE'`
 - ✅ R2 files get uploaded
 
 You CANNOT test:
+
 - ❌ Recording completion (stays "ACTIVE" forever)
 - ❌ Playback (no URLs in database)
 - ❌ Dashboard recordings (status never updates)
@@ -103,6 +109,7 @@ You CANNOT test:
 ### **YES - Full Testing** (after TODO 1 + TODO 2)
 
 After completing both TODOs above, you can test:
+
 - ✅ Recording starts automatically when teacher joins
 - ✅ Recording stops automatically when teacher leaves
 - ✅ Status updates to "COMPLETED" (via webhook)
@@ -114,28 +121,33 @@ After completing both TODOs above, you can test:
 ## 🚀 Quick Start (Do This Now):
 
 **1. Run Database Migrations** (5 min)
-   - Open Supabase SQL Editor
-   - Run both migration files
+
+- Open Supabase SQL Editor
+- Run both migration files
 
 **2. Start Ngrok** (2 min)
-   ```bash
-   ngrok http 3000
-   ```
-   - Copy the HTTPS URL
+
+```bash
+ngrok http 3000
+```
+
+- Copy the HTTPS URL
 
 **3. Configure LiveKit Webhook** (3 min)
-   - Go to LiveKit Cloud → Settings → Webhooks
-   - Add ngrok URL + `/api/webhooks/livekit-egress`
-   - Enable egress events
+
+- Go to LiveKit Cloud → Settings → Webhooks
+- Add ngrok URL + `/api/webhooks/livekit-egress`
+- Enable egress events
 
 **4. Test** (5 min)
-   - Join as teacher: http://localhost:3000/rooms/TEST101?classroom=true&role=teacher
-   - Check console: `[Auto-Recording] Started`
-   - Wait 30 seconds, leave room
-   - Check console: `[Auto-Recording] Stopped`
-   - Wait 60 seconds
-   - Check Supabase: status should be "COMPLETED"
-   - Go to `/dashboard/recordings` and click "Watch"
+
+- Join as teacher: http://localhost:3000/rooms/TEST101?classroom=true&role=teacher
+- Check console: `[Auto-Recording] Started`
+- Wait 30 seconds, leave room
+- Check console: `[Auto-Recording] Stopped`
+- Wait 60 seconds
+- Check Supabase: status should be "COMPLETED"
+- Go to `/dashboard/recordings` and click "Watch"
 
 ---
 

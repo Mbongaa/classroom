@@ -21,7 +21,9 @@ export async function POST(request: NextRequest) {
         hasTimestamp: timestampMs !== undefined,
       });
       return NextResponse.json(
-        { error: 'Missing required fields: sessionId, text, language, participantName, timestampMs' },
+        {
+          error: 'Missing required fields: sessionId, text, language, participantName, timestampMs',
+        },
         { status: 400 },
       );
     }
@@ -37,10 +39,7 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !session) {
       console.error('[Translation API] Session not found:', sessionId, sessionError);
-      return NextResponse.json(
-        { error: `Session not found: ${sessionId}` },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: `Session not found: ${sessionId}` }, { status: 404 });
     }
 
     // Save translation with session reference (no recording needed)

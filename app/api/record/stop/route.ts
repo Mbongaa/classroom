@@ -42,14 +42,15 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    console.log(`[Recording Stop] Stopped ${activeEgresses.length} egress(es) for room: ${roomName}`);
+    console.log(
+      `[Recording Stop] Stopped ${activeEgresses.length} egress(es) for room: ${roomName}`,
+    );
 
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('[Recording Stop] Failed:', error);
-    return new NextResponse(
-      error instanceof Error ? error.message : 'Unknown error',
-      { status: 500 },
-    );
+    return new NextResponse(error instanceof Error ? error.message : 'Unknown error', {
+      status: 500,
+    });
   }
 }

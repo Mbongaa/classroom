@@ -23,10 +23,9 @@ export async function GET(req: NextRequest) {
     const teacherName = req.nextUrl.searchParams.get('teacherName');
 
     if (!roomCode || !roomSid || !teacherName) {
-      return new NextResponse(
-        'Missing required parameters: roomName, roomSid, teacherName',
-        { status: 400 },
-      );
+      return new NextResponse('Missing required parameters: roomName, roomSid, teacherName', {
+        status: 400,
+      });
     }
 
     const { profile } = auth;
@@ -182,9 +181,8 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error('Failed to start recording:', error);
-    return new NextResponse(
-      error instanceof Error ? error.message : 'Unknown error',
-      { status: 500 },
-    );
+    return new NextResponse(error instanceof Error ? error.message : 'Unknown error', {
+      status: 500,
+    });
   }
 }

@@ -56,7 +56,7 @@ export interface CreateClassroomParams {
 export async function createClassroom(params: CreateClassroomParams): Promise<Classroom> {
   const supabase = createAdminClient();
 
-  const { data, error} = await supabase
+  const { data, error } = await supabase
     .from('classrooms')
     .insert({
       organization_id: params.organizationId,
@@ -75,7 +75,7 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
     // Handle unique constraint violation
     if (error.code === '23505') {
       throw new Error(
-        `Room code "${params.roomCode}" already exists in your organization. Please choose a different code.`
+        `Room code "${params.roomCode}" already exists in your organization. Please choose a different code.`,
       );
     }
     throw new Error(`Failed to create classroom: ${error.message}`);
@@ -93,7 +93,7 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
  */
 export async function getClassroomByRoomCode(
   roomCode: string,
-  organizationId?: string
+  organizationId?: string,
 ): Promise<Classroom | null> {
   const supabase = createAdminClient();
 
@@ -175,7 +175,7 @@ export async function listClassrooms(organizationId: string): Promise<Classroom[
 export async function deleteClassroom(
   roomCode: string,
   teacherId: string,
-  organizationId: string
+  organizationId: string,
 ): Promise<void> {
   const supabase = createAdminClient();
 
@@ -204,7 +204,7 @@ export async function updateClassroom(
     name?: string;
     description?: string;
     settings?: Partial<Classroom['settings']>;
-  }
+  },
 ): Promise<Classroom> {
   const supabase = createAdminClient();
 

@@ -354,6 +354,7 @@ cmd.exe /c "npx shadcn@latest --version"
 ### MCP Server Configuration
 
 The `.mcp.json` file is configured for Windows environment:
+
 - Uses `npx` (Windows executable, not WSL)
 - Paths resolve correctly in Windows context
 - MCP servers run in Windows Node.js environment

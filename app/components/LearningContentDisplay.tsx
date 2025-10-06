@@ -99,7 +99,8 @@ export default function LearningContentDisplay({
       toast.success('Transcript translated successfully!');
     } catch (error) {
       console.error('[LearningContentDisplay] Translation failed:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to translate transcript';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to translate transcript';
       setTranslationError(errorMessage);
       toast.error(errorMessage);
       setTranscriptView('original'); // Fallback to original

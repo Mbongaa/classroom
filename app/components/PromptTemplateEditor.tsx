@@ -147,8 +147,8 @@ export function PromptTemplateEditor({
             {template ? 'Edit Translation Prompt Template' : 'Create Translation Prompt Template'}
           </DialogTitle>
           <DialogDescription>
-            Create reusable prompts with {'{source_lang}'} and {'{target_lang}'} placeholders. These will be
-            substituted with actual language names during translation.
+            Create reusable prompts with {'{source_lang}'} and {'{target_lang}'} placeholders. These
+            will be substituted with actual language names during translation.
           </DialogDescription>
         </DialogHeader>
 

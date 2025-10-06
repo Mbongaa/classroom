@@ -192,9 +192,7 @@ export function PageClientImpl(props: {
                   {/* Enhanced welcome message for students */}
                   {classroomInfo.role === 'student' && (
                     <div className={styles.welcomeSection}>
-                      <div className={styles.welcomeTitle}>
-                        📚 Welcome to the Classroom!
-                      </div>
+                      <div className={styles.welcomeTitle}>📚 Welcome to the Classroom!</div>
                       <div className={styles.welcomeText}>
                         You&apos;re joining as a student. You&apos;ll be able to:
                         <ul className={styles.welcomeList}>
@@ -237,9 +235,7 @@ export function PageClientImpl(props: {
                       </div>
 
                       {classroomInfo.pin && (
-                        <div className={styles.pinInfo}>
-                          🔒 Classroom PIN: {classroomInfo.pin}
-                        </div>
+                        <div className={styles.pinInfo}>🔒 Classroom PIN: {classroomInfo.pin}</div>
                       )}
                       <div className={styles.infoNote}>
                         Students will join directly as listeners
@@ -358,6 +354,19 @@ function VideoConferenceComponent(props: {
     };
   }, []);
 
+  const router = useRouter();
+  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const handleError = React.useCallback((error: Error) => {
+    console.error(error);
+    alert(`Encountered an unexpected error, check the console logs for details: ${error.message}`);
+  }, []);
+  const handleEncryptionError = React.useCallback((error: Error) => {
+    console.error(error);
+    alert(
+      `Encountered an unexpected encryption error, check the console logs for details: ${error.message}`,
+    );
+  }, []);
+
   React.useEffect(() => {
     room.on(RoomEvent.Disconnected, handleOnLeave);
     room.on(RoomEvent.EncryptionError, handleEncryptionError);
@@ -411,8 +420,18 @@ function VideoConferenceComponent(props: {
             const realRoomSid = await room.getSid();
             console.log('[Session Create] Got real LiveKit room SID:', realRoomSid);
 
-            const participantName = room.localParticipant?.identity || room.localParticipant?.name || props.userChoices.username;
-            console.log('[Session Create] Creating/joining session for room:', room.name, 'roomSid:', realRoomSid, 'participant:', participantName);
+            const participantName =
+              room.localParticipant?.identity ||
+              room.localParticipant?.name ||
+              props.userChoices.username;
+            console.log(
+              '[Session Create] Creating/joining session for room:',
+              room.name,
+              'roomSid:',
+              realRoomSid,
+              'participant:',
+              participantName,
+            );
 
             // Generate session ID only once and store in state
             let sessionIdValue = sessionId;
@@ -439,10 +458,20 @@ function VideoConferenceComponent(props: {
               if (data.existed) {
                 // Session already existed - use its session_id
                 setSessionId(data.session.session_id);
-                console.log('[Session Create] Joined existing session:', data.session.session_id, 'for room_sid:', realRoomSid);
+                console.log(
+                  '[Session Create] Joined existing session:',
+                  data.session.session_id,
+                  'for room_sid:',
+                  realRoomSid,
+                );
               } else {
                 // New session was created with our generated session_id
-                console.log('[Session Create] Created new session:', data.session.session_id, 'for room_sid:', realRoomSid);
+                console.log(
+                  '[Session Create] Created new session:',
+                  data.session.session_id,
+                  'for room_sid:',
+                  realRoomSid,
+                );
               }
               // Set the session start time for child components
               setSessionStartTime(Date.now());
@@ -497,22 +526,23 @@ function VideoConferenceComponent(props: {
       room.off(RoomEvent.EncryptionError, handleEncryptionError);
       room.off(RoomEvent.MediaDevicesError, handleError);
     };
-  }, [e2eeSetupComplete, room, props.connectionDetails, props.userChoices, setSessionId, connectOptions, handleEncryptionError, handleError, handleOnLeave, props.classroomRole, props.roomName, props.selectedLanguage, sessionId]);
+  }, [
+    e2eeSetupComplete,
+    room,
+    props.connectionDetails,
+    props.userChoices,
+    setSessionId,
+    connectOptions,
+    handleEncryptionError,
+    handleError,
+    handleOnLeave,
+    props.classroomRole,
+    props.roomName,
+    props.selectedLanguage,
+    sessionId,
+  ]);
 
   const lowPowerMode = useLowCPUOptimizer(room);
-
-  const router = useRouter();
-  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
-  const handleError = React.useCallback((error: Error) => {
-    console.error(error);
-    alert(`Encountered an unexpected error, check the console logs for details: ${error.message}`);
-  }, []);
-  const handleEncryptionError = React.useCallback((error: Error) => {
-    console.error(error);
-    alert(
-      `Encountered an unexpected encryption error, check the console logs for details: ${error.message}`,
-    );
-  }, []);
 
   React.useEffect(() => {
     if (lowPowerMode) {
@@ -544,9 +574,19 @@ function VideoConferenceComponent(props: {
           <KeyboardShortcuts />
           {/* Conditionally render ClassroomClientImpl, SpeechClientImpl, or CustomVideoConference based on mode */}
           {isClassroom ? (
-            <ClassroomClientImpl userRole={userRole} roomName={props.roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />
+            <ClassroomClientImpl
+              userRole={userRole}
+              roomName={props.roomName}
+              sessionStartTime={sessionStartTime}
+              sessionId={sessionId}
+            />
           ) : isSpeech ? (
-            <SpeechClientImpl userRole={userRole} roomName={props.roomName} sessionStartTime={sessionStartTime} sessionId={sessionId} />
+            <SpeechClientImpl
+              userRole={userRole}
+              roomName={props.roomName}
+              sessionStartTime={sessionStartTime}
+              sessionId={sessionId}
+            />
           ) : (
             <CustomVideoConference
               chatMessageFormatter={formatChatMessageLinks}

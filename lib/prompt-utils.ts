@@ -44,13 +44,16 @@ export function validatePromptTemplate(promptText: string): {
   error?: string;
 } {
   // Check for at least one language placeholder
-  const hasSourceLang = promptText.includes('{source_lang}') || promptText.includes('{source_language}');
-  const hasTargetLang = promptText.includes('{target_lang}') || promptText.includes('{target_language}');
+  const hasSourceLang =
+    promptText.includes('{source_lang}') || promptText.includes('{source_language}');
+  const hasTargetLang =
+    promptText.includes('{target_lang}') || promptText.includes('{target_language}');
 
   if (!hasSourceLang && !hasTargetLang) {
     return {
       valid: false,
-      error: 'Prompt must include at least one of: {source_lang}, {source_language}, {target_lang}, or {target_language}',
+      error:
+        'Prompt must include at least one of: {source_lang}, {source_language}, {target_lang}, or {target_language}',
     };
   }
 
@@ -75,7 +78,7 @@ export function validatePromptTemplate(promptText: string): {
 export function previewPrompt(
   promptText: string,
   sourceLang: string = 'Arabic',
-  targetLang: string = 'Spanish'
+  targetLang: string = 'Spanish',
 ): string {
   return promptText
     .replace(/{source_lang}/g, sourceLang)
@@ -137,7 +140,7 @@ export async function getPromptTemplate(templateId: string): Promise<PromptTempl
  * @throws Error if creation fails or name already exists in organization
  */
 export async function createPromptTemplate(
-  params: CreatePromptTemplateParams
+  params: CreatePromptTemplateParams,
 ): Promise<PromptTemplate> {
   const supabase = createAdminClient();
 
@@ -165,7 +168,7 @@ export async function createPromptTemplate(
     // Handle unique constraint violation
     if (error.code === '23505') {
       throw new Error(
-        `A template named "${params.name}" already exists in your organization. Please choose a different name.`
+        `A template named "${params.name}" already exists in your organization. Please choose a different name.`,
       );
     }
     throw new Error(`Failed to create prompt template: ${error.message}`);
@@ -183,7 +186,7 @@ export async function createPromptTemplate(
  */
 export async function updatePromptTemplate(
   templateId: string,
-  params: UpdatePromptTemplateParams
+  params: UpdatePromptTemplateParams,
 ): Promise<PromptTemplate> {
   const supabase = createAdminClient();
 
@@ -214,7 +217,7 @@ export async function updatePromptTemplate(
   if (error) {
     if (error.code === '23505') {
       throw new Error(
-        `A template named "${params.name}" already exists in your organization. Please choose a different name.`
+        `A template named "${params.name}" already exists in your organization. Please choose a different name.`,
       );
     }
     throw new Error(`Failed to update prompt template: ${error.message}`);
@@ -232,7 +235,7 @@ export async function updatePromptTemplate(
  */
 export async function deletePromptTemplate(
   templateId: string,
-  organizationId: string
+  organizationId: string,
 ): Promise<void> {
   const supabase = createAdminClient();
 

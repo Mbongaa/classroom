@@ -83,7 +83,9 @@ export async function GET(request: NextRequest) {
 
             if (existingRooms.length === 0) {
               // Create LiveKit room on-demand
-              console.log(`Creating LiveKit room for classroom ${classroom.room_code} (${classroom.id})`);
+              console.log(
+                `Creating LiveKit room for classroom ${classroom.room_code} (${classroom.id})`,
+              );
               await roomService.createRoom({
                 name: livekitRoomName, // Use UUID
                 emptyTimeout: 604800, // 7 days

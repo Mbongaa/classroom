@@ -45,10 +45,7 @@ export async function DELETE(
     const supabase = createAdminClient();
 
     // Delete from database (cascade will delete translation_entries)
-    const { error } = await supabase
-      .from('session_recordings')
-      .delete()
-      .eq('id', recordingId);
+    const { error } = await supabase.from('session_recordings').delete().eq('id', recordingId);
 
     if (error) throw new Error(error.message);
 

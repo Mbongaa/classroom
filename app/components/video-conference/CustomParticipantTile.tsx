@@ -203,9 +203,7 @@ export function CustomParticipantTile({
             <div className="flex items-center justify-between">
               {/* Participant Name */}
               <div className="flex items-center gap-2">
-                <span
-                  className="text-sm font-medium truncate max-w-[150px] text-black dark:text-white"
-                >
+                <span className="text-sm font-medium truncate max-w-[150px] text-black dark:text-white">
                   {participant.name || participant.identity}
                 </span>
               </div>

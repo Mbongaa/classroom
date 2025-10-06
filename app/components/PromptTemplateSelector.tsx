@@ -93,9 +93,15 @@ export function PromptTemplateSelector({
         )}
       </div>
 
-      <Select value={value || 'none'} onValueChange={handleValueChange} disabled={disabled || loading}>
+      <Select
+        value={value || 'none'}
+        onValueChange={handleValueChange}
+        disabled={disabled || loading}
+      >
         <SelectTrigger id="prompt-template">
-          <SelectValue placeholder={loading ? 'Loading templates...' : 'Select a template (optional)'} />
+          <SelectValue
+            placeholder={loading ? 'Loading templates...' : 'Select a template (optional)'}
+          />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">

@@ -27,10 +27,7 @@ export async function POST(request: NextRequest) {
   const { user, profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -45,7 +42,7 @@ export async function POST(request: NextRequest) {
     if (!ROOM_CODE_REGEX.test(roomCode)) {
       return NextResponse.json(
         { error: 'Room code must be 4-20 alphanumeric characters or hyphens' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -87,7 +84,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating classroom:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to create classroom' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -104,10 +101,7 @@ export async function GET(request: NextRequest) {
   const { profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -151,7 +145,7 @@ export async function GET(request: NextRequest) {
     console.error('Error listing classrooms:', error);
     return NextResponse.json(
       { error: 'Failed to list classrooms', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

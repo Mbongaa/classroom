@@ -1,7 +1,7 @@
 # Session Recording Architecture
 
 **Complete Documentation of Session, Transcription, and Translation System**
-*Fixed with Opus | Last Updated: January 2025*
+_Fixed with Opus | Last Updated: January 2025_
 
 ---
 
@@ -94,12 +94,13 @@
 
 **Critical Design Decision**: Sessions are **independent** from video recordings.
 
-| Concept | Purpose | Always Exists? |
-|---------|---------|----------------|
-| **Session** | Track room activity for transcriptions/translations | ✅ YES - Created when participants join |
-| **Recording** | Video/audio file from LiveKit Egress | ❌ NO - Only when recording is started |
+| Concept       | Purpose                                             | Always Exists?                          |
+| ------------- | --------------------------------------------------- | --------------------------------------- |
+| **Session**   | Track room activity for transcriptions/translations | ✅ YES - Created when participants join |
+| **Recording** | Video/audio file from LiveKit Egress                | ❌ NO - Only when recording is started  |
 
 **Why This Matters**:
+
 - You can have transcriptions/translations without video recording
 - Transcriptions survive even if recording fails
 - Cleaner data model (no "fake" recordings with `transcript-` prefixes)
@@ -119,6 +120,7 @@ function generateSessionId(roomName: string): string {
 ```
 
 **Properties**:
+
 - Human-readable
 - Time-based (grouped by day/hour)
 - Room-specific
@@ -282,36 +284,40 @@ useEffect(() => {
 **File**: `app/api/sessions/create/route.ts`
 
 **Request Body**:
+
 ```typescript
 {
-  roomName: string;  // e.g., "MATH101"
-  roomSid: string;   // LiveKit room SID
+  roomName: string; // e.g., "MATH101"
+  roomSid: string; // LiveKit room SID
 }
 ```
 
 **Response**:
+
 ```typescript
 {
   success: true;
   session: {
-    id: UUID;              // Used as session_id in child tables
-    session_id: string;    // "MATH101_2025-01-31_14-30"
+    id: UUID; // Used as session_id in child tables
+    session_id: string; // "MATH101_2025-01-31_14-30"
     room_name: string;
     room_sid: string;
     started_at: string;
     created_at: string;
-  };
-  existed: boolean;  // true if session already existed
+  }
+  existed: boolean; // true if session already existed
 }
 ```
 
 **Logic**:
+
 1. Generate session ID using `generateSessionId(roomName)`
 2. Check if session already exists (prevents duplicates for same hour)
 3. If exists: Return existing session
 4. If not: Create new session and return
 
 **Database Operation**:
+
 ```sql
 -- Check existing
 SELECT * FROM sessions WHERE session_id = 'MATH101_2025-01-31_14-30';
@@ -335,15 +341,14 @@ Save **original speaker language** (e.g., Arabic) for teachers.
 **File**: `app/components/TranscriptionSaver.tsx`
 
 **Usage**:
+
 ```tsx
 // Mounted only by TEACHERS
-<TranscriptionSaver
-  roomName={room.name}
-  sessionStartTime={sessionStartTime}
-/>
+<TranscriptionSaver roomName={room.name} sessionStartTime={sessionStartTime} />
 ```
 
 **Component Logic**:
+
 ```typescript
 // TranscriptionSaver.tsx
 
@@ -357,13 +362,13 @@ export default function TranscriptionSaver({ roomName, sessionStartTime }) {
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // 1. Filter for FINAL segments only (avoid duplicates)
-      const finalSegments = segments.filter(seg => seg.final);
+      const finalSegments = segments.filter((seg) => seg.final);
 
       // 2. Get teacher's speaking language from participant attributes
       const speakingLanguage = room.localParticipant?.attributes?.speaking_language;
 
       // 3. Find transcription in teacher's speaking language
-      const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
+      const transcription = finalSegments.find((seg) => seg.language === speakingLanguage);
 
       if (transcription) {
         const segmentKey = `${transcription.id}-${transcription.language}`;
@@ -409,18 +414,20 @@ export default function TranscriptionSaver({ roomName, sessionStartTime }) {
 **File**: `app/api/transcriptions/route.ts`
 
 **Request Body**:
+
 ```typescript
 {
-  sessionId: string;          // "MATH101_2025-01-31_14-30"
-  text: string;               // Transcribed text
-  language: string;           // Speaker's language (e.g., "ar")
+  sessionId: string; // "MATH101_2025-01-31_14-30"
+  text: string; // Transcribed text
+  language: string; // Speaker's language (e.g., "ar")
   participantIdentity: string; // LiveKit identity
-  participantName: string;    // Display name
-  timestampMs: number;        // Milliseconds from session start
+  participantName: string; // Display name
+  timestampMs: number; // Milliseconds from session start
 }
 ```
 
 **Logic**:
+
 ```typescript
 // 1. Get session UUID from session_id string
 const { data: session } = await supabase
@@ -433,8 +440,8 @@ const { data: session } = await supabase
 const { data: entry } = await supabase
   .from('transcriptions')
   .insert({
-    session_id: session.id,      // UUID reference
-    recording_id: null,          // No recording needed
+    session_id: session.id, // UUID reference
+    recording_id: null, // No recording needed
     text,
     language,
     participant_identity: participantIdentity,
@@ -446,13 +453,14 @@ const { data: entry } = await supabase
 ```
 
 **Response**:
+
 ```typescript
 {
   success: true;
   entry: {
     id: UUID;
     timestampMs: number;
-  };
+  }
 }
 ```
 
@@ -469,10 +477,11 @@ Save **translated text** in student's target language (e.g., English).
 **File**: `app/components/SpeechTranslationPanel.tsx`
 
 **Usage**:
+
 ```tsx
 // Mounted by STUDENTS
 <SpeechTranslationPanel
-  targetLanguage={selectedLanguage}  // e.g., "en"
+  targetLanguage={selectedLanguage} // e.g., "en"
   roomName={room.name}
   sessionStartTime={sessionStartTime}
   userRole="student"
@@ -480,6 +489,7 @@ Save **translated text** in student's target language (e.g., English).
 ```
 
 **Component Logic**:
+
 ```typescript
 // SpeechTranslationPanel.tsx
 
@@ -487,7 +497,7 @@ export default function SpeechTranslationPanel({
   targetLanguage,
   roomName,
   sessionStartTime,
-  userRole
+  userRole,
 }) {
   const room = useRoomContext();
   const savedSegmentIds = useRef<Set<string>>(new Set());
@@ -498,15 +508,15 @@ export default function SpeechTranslationPanel({
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // 1. Filter for FINAL segments only
-      const finalSegments = segments.filter(seg => seg.final);
+      const finalSegments = segments.filter((seg) => seg.final);
 
       // 2. Get speaker's original language
-      const speakingLanguage = Array.from(room.remoteParticipants.values())
-        .find(p => p.attributes?.speaking_language !== undefined)
-        ?.attributes?.speaking_language;
+      const speakingLanguage = Array.from(room.remoteParticipants.values()).find(
+        (p) => p.attributes?.speaking_language !== undefined,
+      )?.attributes?.speaking_language;
 
       // 3. Find translation in student's target language
-      const translation = finalSegments.find(seg => seg.language === targetLanguage);
+      const translation = finalSegments.find((seg) => seg.language === targetLanguage);
 
       // 4. Only save if it's a translation (not original language)
       if (translation && translation.language !== speakingLanguage) {
@@ -518,8 +528,9 @@ export default function SpeechTranslationPanel({
           const timestampMs = Date.now() - sessionStartTime;
 
           // 5. Get teacher's name from remote participants
-          const speaker = Array.from(room.remoteParticipants.values())
-            .find(p => p.attributes?.speaking_language !== undefined);
+          const speaker = Array.from(room.remoteParticipants.values()).find(
+            (p) => p.attributes?.speaking_language !== undefined,
+          );
 
           // 6. Save to translations API
           fetch('/api/recordings/translations', {
@@ -553,17 +564,19 @@ export default function SpeechTranslationPanel({
 **File**: `app/api/recordings/translations/route.ts`
 
 **Request Body**:
+
 ```typescript
 {
-  sessionId: string;       // "MATH101_2025-01-31_14-30"
-  text: string;            // Translated text
-  language: string;        // Target language (e.g., "en")
+  sessionId: string; // "MATH101_2025-01-31_14-30"
+  text: string; // Translated text
+  language: string; // Target language (e.g., "en")
   participantName: string; // Speaker's name
-  timestampMs: number;     // Milliseconds from session start
+  timestampMs: number; // Milliseconds from session start
 }
 ```
 
 **Logic**:
+
 ```typescript
 // 1. Get session UUID from session_id string
 const { data: session } = await supabase
@@ -576,8 +589,8 @@ const { data: session } = await supabase
 const { data: entry } = await supabase
   .from('translation_entries')
   .insert({
-    session_id: session.id,      // UUID reference
-    recording_id: null,          // No recording needed
+    session_id: session.id, // UUID reference
+    recording_id: null, // No recording needed
     text,
     language,
     participant_name: participantName,
@@ -588,13 +601,14 @@ const { data: entry } = await supabase
 ```
 
 **Response**:
+
 ```typescript
 {
   success: true;
   entry: {
     id: UUID;
     timestampMs: number;
-  };
+  }
 }
 ```
 
@@ -609,18 +623,19 @@ Sessions can optionally have a video recording via LiveKit Egress.
 ### Linking Sessions to Recordings
 
 **When Recording Starts**:
+
 ```typescript
 // lib/recording-utils.ts
 
 export async function createRecording(params: {
   roomSid: string;
   roomName: string;
-  sessionId: string;        // String format "MATH101_2025-01-31_14-30"
-  egressId: string;         // LiveKit egress ID (e.g., "EG_...")
+  sessionId: string; // String format "MATH101_2025-01-31_14-30"
+  egressId: string; // LiveKit egress ID (e.g., "EG_...")
   teacherName: string;
   classroomId?: string;
   createdBy?: string;
-  sessionUuid?: string;     // UUID from sessions table
+  sessionUuid?: string; // UUID from sessions table
 }): Promise<Recording> {
   const supabase = createAdminClient();
 
@@ -629,8 +644,8 @@ export async function createRecording(params: {
     .insert({
       room_sid: params.roomSid,
       room_name: params.roomName,
-      session_id: params.sessionId,      // String
-      session_uuid: params.sessionUuid,  // UUID link to sessions table
+      session_id: params.sessionId, // String
+      session_uuid: params.sessionUuid, // UUID link to sessions table
       livekit_egress_id: params.egressId,
       teacher_name: params.teacherName,
       classroom_id: params.classroomId || null,
@@ -656,6 +671,7 @@ Session (sessions table)
 ```
 
 **Query Example**:
+
 ```sql
 -- Get session with optional recording
 SELECT
@@ -867,15 +883,15 @@ const currentTimestamp = videoPlayer.currentTime * 1000; // Convert to ms
 
 // Show original transcription
 const currentTranscription = data.transcriptions.find(
-  t => t.timestamp_ms <= currentTimestamp &&
-       t.timestamp_ms + 5000 > currentTimestamp // 5s display window
+  (t) => t.timestamp_ms <= currentTimestamp && t.timestamp_ms + 5000 > currentTimestamp, // 5s display window
 );
 
 // Show translation for selected language
 const currentTranslation = data.translations.find(
-  t => t.language === selectedLanguage &&
-       t.timestamp_ms <= currentTimestamp &&
-       t.timestamp_ms + 5000 > currentTimestamp
+  (t) =>
+    t.language === selectedLanguage &&
+    t.timestamp_ms <= currentTimestamp &&
+    t.timestamp_ms + 5000 > currentTimestamp,
 );
 ```
 
@@ -886,84 +902,99 @@ const currentTranslation = data.translations.find(
 ### Session APIs
 
 #### POST /api/sessions/create
+
 **Purpose**: Create or retrieve session for transcript tracking
 **Auth**: None (unauthenticated participants need this)
 **Body**:
+
 ```typescript
 {
-  roomName: string;  // e.g., "MATH101"
-  roomSid: string;   // LiveKit room SID
+  roomName: string; // e.g., "MATH101"
+  roomSid: string; // LiveKit room SID
 }
 ```
+
 **Response**:
+
 ```typescript
 {
   success: boolean;
   session: Session;
-  existed: boolean;  // true if session already existed
+  existed: boolean; // true if session already existed
 }
 ```
 
 ### Transcription APIs
 
 #### POST /api/transcriptions
+
 **Purpose**: Save original speaker language transcription
 **Auth**: None (allows anon for unauthenticated participants)
 **Body**:
+
 ```typescript
 {
-  sessionId: string;          // "ROOMNAME_YYYY-MM-DD_HH-MM"
+  sessionId: string; // "ROOMNAME_YYYY-MM-DD_HH-MM"
   text: string;
-  language: string;           // Speaker's original language
+  language: string; // Speaker's original language
   participantIdentity: string;
   participantName: string;
-  timestampMs: number;        // Milliseconds from session start
+  timestampMs: number; // Milliseconds from session start
 }
 ```
+
 **Response**:
+
 ```typescript
 {
   success: boolean;
   entry: {
     id: UUID;
     timestampMs: number;
-  };
+  }
 }
 ```
 
 ### Translation APIs
 
 #### POST /api/recordings/translations
+
 **Purpose**: Save translated text in student's target language
 **Auth**: None (allows anon for unauthenticated participants)
 **Body**:
+
 ```typescript
 {
-  sessionId: string;       // "ROOMNAME_YYYY-MM-DD_HH-MM"
-  text: string;            // Translated text
-  language: string;        // Target language
+  sessionId: string; // "ROOMNAME_YYYY-MM-DD_HH-MM"
+  text: string; // Translated text
+  language: string; // Target language
   participantName: string; // Speaker's name
-  timestampMs: number;     // Milliseconds from session start
+  timestampMs: number; // Milliseconds from session start
 }
 ```
+
 **Response**:
+
 ```typescript
 {
   success: boolean;
   entry: {
     id: UUID;
     timestampMs: number;
-  };
+  }
 }
 ```
 
 ### Recording APIs
 
 #### GET /api/recordings
+
 **Purpose**: List all recordings or filter by room
 **Query Params**:
+
 - `roomName` (optional): Filter by specific room
-**Response**:
+  **Response**:
+
 ```typescript
 {
   recordings: Recording[];
@@ -979,15 +1010,18 @@ const currentTranslation = data.translations.find(
 ### Planned Features
 
 #### 1. Session Playback UI
+
 **Goal**: Video player with synchronized transcriptions/translations
 
 **Components Needed**:
+
 - Session browser (list all sessions for a room)
 - Video player with caption tracks
 - Language selector for translations
 - Timeline visualization
 
 **Example Implementation**:
+
 ```typescript
 // app/playback/[sessionId]/page.tsx
 
@@ -1046,23 +1080,26 @@ export default function SessionPlayback({ params }: { params: { sessionId: strin
 ```
 
 #### 2. Export Functionality
+
 **Goal**: Export session transcripts as SRT/VTT files
 
 **Features**:
+
 - SRT format for video editors
 - VTT format for web players
 - Bilingual exports (original + translation)
 
 **Example**:
+
 ```typescript
 // lib/export-utils.ts
 
 export function exportToSRT(
   entries: (Transcription | TranslationEntry)[],
-  language: string
+  language: string,
 ): string {
   return entries
-    .filter(e => e.language === language)
+    .filter((e) => e.language === language)
     .map((entry, index) => {
       const startTime = formatSRTTime(entry.timestamp_ms);
       const endTime = formatSRTTime(entry.timestamp_ms + 5000); // 5s duration
@@ -1087,9 +1124,11 @@ function formatSRTTime(ms: number): string {
 ```
 
 #### 3. Session Analytics
+
 **Goal**: Analytics dashboard for session insights
 
 **Metrics**:
+
 - Total sessions per room
 - Average session duration
 - Languages used
@@ -1097,6 +1136,7 @@ function formatSRTTime(ms: number): string {
 - Translation coverage
 
 **Example Queries**:
+
 ```sql
 -- Sessions per room (last 30 days)
 SELECT
@@ -1130,9 +1170,11 @@ GROUP BY s.id, s.session_id, s.room_name;
 ```
 
 #### 4. Search Functionality
+
 **Goal**: Full-text search across transcriptions
 
 **Implementation**:
+
 ```sql
 -- Add full-text search index
 CREATE INDEX idx_transcriptions_text_search
@@ -1161,6 +1203,7 @@ ORDER BY relevance DESC;
 #### Adding Features to Existing Sessions
 
 **Add Speaker Identification**:
+
 ```sql
 ALTER TABLE transcriptions
 ADD COLUMN speaker_id UUID REFERENCES participants(id);
@@ -1173,6 +1216,7 @@ WHERE t.participant_identity = p.identity;
 ```
 
 **Add Confidence Scores**:
+
 ```sql
 ALTER TABLE transcriptions
 ADD COLUMN confidence FLOAT CHECK (confidence >= 0 AND confidence <= 1);
@@ -1182,6 +1226,7 @@ ADD COLUMN confidence FLOAT CHECK (confidence >= 0 AND confidence <= 1);
 ```
 
 **Add Edit History**:
+
 ```sql
 CREATE TABLE transcription_edits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -1204,11 +1249,13 @@ CREATE TABLE transcription_edits (
 **Problem**: Each participant saves the same transcription, causing N duplicates.
 
 **Solution**: Role-based saving implemented
+
 - Teachers save ONLY transcriptions (original language)
 - Students save ONLY translations (their target language)
 - Deduplication via `savedSegmentIds` ref
 
 **Code**:
+
 ```typescript
 // Check before saving
 if (!savedSegmentIds.current.has(segmentKey)) {
@@ -1245,12 +1292,14 @@ useEffect(() => {
 **Problem**: Timestamps don't align with video playback.
 
 **Solution**: Use consistent timestamp calculation:
+
 ```typescript
 // Always calculate from sessionStartTime
 const timestampMs = Date.now() - sessionStartTime;
 ```
 
 **Validation**:
+
 - Session starts at `started_at` timestamp
 - First transcription should have `timestamp_ms ≈ 0-1000ms`
 - Video playback uses `timestamp_ms / 1000` for seconds
@@ -1260,6 +1309,7 @@ const timestampMs = Date.now() - sessionStartTime;
 **Problem**: Translations not appearing for some segments.
 
 **Debug Checklist**:
+
 1. Check if LiveKit Agent is running (Opus integration)
 2. Verify `targetLanguage` matches segments received
 3. Check `speaking_language` attribute is set correctly
@@ -1327,6 +1377,7 @@ CREATE INDEX idx_translation_playback ON translation_entries(recording_id, langu
 ```
 
 **Query Performance**:
+
 - Session lookup by session_id: O(log n) via B-tree index
 - Transcriptions for session: O(log n) via session_id index
 - Playback sync queries: O(log n) via composite indexes
@@ -1334,6 +1385,7 @@ CREATE INDEX idx_translation_playback ON translation_entries(recording_id, langu
 #### Memory Management
 
 **Client-Side**:
+
 ```typescript
 // SpeechTranslationPanel.tsx
 // Keep only last 100 segments to prevent memory issues
@@ -1343,6 +1395,7 @@ if (updated.length > 100) {
 ```
 
 **Server-Side**:
+
 - No in-memory caching (stateless API)
 - Supabase connection pooling handles concurrent requests
 - Pagination recommended for large result sets
@@ -1352,6 +1405,7 @@ if (updated.length > 100) {
 #### Row-Level Security (RLS)
 
 **Sessions Table**:
+
 ```sql
 -- Anyone can insert (unauthenticated participants need this)
 CREATE POLICY "Anyone can insert sessions"
@@ -1367,6 +1421,7 @@ CREATE POLICY "Anyone can view sessions"
 ```
 
 **Transcriptions/Translations**:
+
 ```sql
 -- Anyone can insert (sessions are unauthenticated)
 CREATE POLICY "Allow transcription inserts"
@@ -1394,6 +1449,7 @@ CREATE POLICY "Organization members can view transcriptions"
 ```
 
 **Considerations**:
+
 - Unauthenticated participants can save transcriptions/translations
 - Authenticated users can view only their organization's data
 - No PII stored (participant names are display names, not real names)
@@ -1418,6 +1474,7 @@ This architecture provides a robust, scalable foundation for session recording w
 ### Migration Success 🎉
 
 The **20251204_create_sessions_table.sql** migration successfully:
+
 - Created sessions table as source of truth
 - Migrated existing fake recording data to sessions
 - Cleaned up legacy entries

@@ -12,7 +12,14 @@ export async function POST(request: NextRequest) {
     const { sessionId, text, language, participantIdentity, participantName, timestampMs } = body;
 
     // Validate required fields
-    if (!sessionId || !text || !language || !participantIdentity || !participantName || timestampMs === undefined) {
+    if (
+      !sessionId ||
+      !text ||
+      !language ||
+      !participantIdentity ||
+      !participantName ||
+      timestampMs === undefined
+    ) {
       console.error('[Transcription API] Missing required fields:', {
         hasSessionId: !!sessionId,
         hasText: !!text,
@@ -21,10 +28,7 @@ export async function POST(request: NextRequest) {
         hasParticipantName: !!participantName,
         hasTimestamp: timestampMs !== undefined,
       });
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const supabase = createAdminClient();
@@ -38,10 +42,7 @@ export async function POST(request: NextRequest) {
 
     if (sessionError || !session) {
       console.error('[Transcription API] Session not found:', sessionId, sessionError);
-      return NextResponse.json(
-        { error: `Session not found: ${sessionId}` },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: `Session not found: ${sessionId}` }, { status: 404 });
     }
 
     // Save transcription with session reference (no recording needed)

@@ -12,9 +12,7 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange={true}
     >
-      <HeroUIProvider>
-        {children}
-      </HeroUIProvider>
+      <HeroUIProvider>{children}</HeroUIProvider>
     </ThemeProvider>
   );
 }

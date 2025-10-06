@@ -28,14 +28,18 @@ export default function LoginPage() {
               real-time translation feature is a game-changer for our multilingual
               classrooms.&rdquo;
             </p>
-            <footer className="text-sm text-gray-600 dark:text-gray-400">Dr. Sarah Johnson, Educational Director</footer>
+            <footer className="text-sm text-gray-600 dark:text-gray-400">
+              Dr. Sarah Johnson, Educational Director
+            </footer>
           </blockquote>
         </div>
       </div>
       <div className="lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
           <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">Welcome back</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">
+              Welcome back
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Enter your email to sign in to your account
             </p>

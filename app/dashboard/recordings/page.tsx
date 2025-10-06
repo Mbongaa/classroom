@@ -231,15 +231,17 @@ export default function RecordingsPage() {
                     <TableCell className="whitespace-nowrap text-center">
                       {new Date(recording.started_at).toLocaleString()}
                     </TableCell>
-                    <TableCell className="text-center">{formatDuration(recording.duration_seconds)}</TableCell>
+                    <TableCell className="text-center">
+                      {formatDuration(recording.duration_seconds)}
+                    </TableCell>
                     <TableCell className="text-center pr-2">
                       <span
                         className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
                           recording.status === 'COMPLETED'
                             ? 'bg-green-500/20 text-green-500'
                             : recording.status === 'ACTIVE'
-                            ? 'bg-blue-500/20 text-blue-500'
-                            : 'bg-red-500/20 text-red-500'
+                              ? 'bg-blue-500/20 text-blue-500'
+                              : 'bg-red-500/20 text-red-500'
                         }`}
                       >
                         {recording.status}
@@ -284,8 +286,8 @@ export default function RecordingsPage() {
                           {recording.status === 'ACTIVE'
                             ? 'Recording...'
                             : recording.status === 'FAILED'
-                            ? 'Failed'
-                            : 'Processing...'}
+                              ? 'Failed'
+                              : 'Processing...'}
                         </span>
                       )}
                     </TableCell>

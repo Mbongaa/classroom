@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
-import {
-  listPromptTemplates,
-  createPromptTemplate,
-  type PromptTemplate,
-} from '@/lib/prompt-utils';
+import { listPromptTemplates, createPromptTemplate, type PromptTemplate } from '@/lib/prompt-utils';
 
 /**
  * GET /api/prompts
@@ -18,10 +14,7 @@ export async function GET(request: NextRequest) {
   const { profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -34,7 +27,7 @@ export async function GET(request: NextRequest) {
     console.error('Error listing prompt templates:', error);
     return NextResponse.json(
       { error: 'Failed to list prompt templates', details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -51,10 +44,7 @@ export async function POST(request: NextRequest) {
   const { user, profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -88,7 +78,7 @@ export async function POST(request: NextRequest) {
     console.error('Error creating prompt template:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to create prompt template' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -145,6 +145,7 @@ Query logic: Try mosque DB first → If not found, try classroom DB → Fallback
 ### Configuration Strategy
 
 **Environment Variables**:
+
 ```bash
 # Existing (mosque)
 SUPABASE_URL=https://bpsahvbdlkzemwjdgxmq.supabase.co
@@ -199,11 +200,13 @@ COMMENT ON COLUMN classrooms.translation_prompt IS 'Custom prompt for AI transla
 ```
 
 **Pros**:
+
 - ✅ Simple (just add columns)
 - ✅ No joins needed
 - ✅ Fast queries
 
 **Cons**:
+
 - ❌ One prompt per classroom (can't have multiple templates)
 - ❌ No reusable prompt library
 
@@ -251,11 +254,13 @@ CREATE INDEX idx_classroom_prompts_active ON classroom_prompts(classroom_id, is_
 ```
 
 **Pros**:
+
 - ✅ Reusable prompt library
 - ✅ Multiple prompts per classroom
 - ✅ Organization-wide templates
 
 **Cons**:
+
 - ❌ More complex (joins required)
 - ❌ More tables to manage
 
@@ -270,6 +275,7 @@ Use Option A (simple columns) to get working quickly, then migrate to Option B i
 ### File Changes Overview
 
 **Files to modify**:
+
 1. `config.py` - Add classroom database config
 2. `database.py` - Add classroom query function
 3. `main.py` - Add classroom query fallback
@@ -402,6 +408,7 @@ async def query_classroom_by_id(classroom_uuid: str, classroom_config: 'Supabase
 **Location**: After mosque database query (~line 186)
 
 **BEFORE** (existing code):
+
 ```python
 room_data = await query_room_by_name(job.room.name)
 
@@ -416,6 +423,7 @@ except Exception as e:
 ```
 
 **AFTER** (with classroom fallback):
+
 ```python
 room_data = await query_room_by_name(job.room.name)
 
@@ -449,6 +457,7 @@ except Exception as e:
 **Location**: `_initialize_prompt` method (~line 169)
 
 **BEFORE** (existing code):
+
 ```python
 # PRIORITY 1: Custom prompt from metadata (classroom flow)
 custom_prompt = self.tenant_context.get('customPrompt')
@@ -457,6 +466,7 @@ if custom_prompt:
 ```
 
 **AFTER** (add direct prompt support):
+
 ```python
 # PRIORITY 1A: Direct prompt from database (classroom database flow)
 direct_prompt = self.tenant_context.get('translation_prompt')
@@ -485,6 +495,7 @@ if custom_prompt:
 ```
 
 **Priority System**:
+
 1. Direct prompt from classroom DB (new)
 2. Custom prompt from metadata (fallback)
 3. Template lookup via RPC (mosque flow)
@@ -941,10 +952,7 @@ export function TranslationPromptEditor({ classroomId }: { classroomId: string }
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: { roomCode: string } }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: { roomCode: string } }) {
   const supabase = await createClient();
   const { translation_prompt, transcription_language, translation_language } = await request.json();
 
@@ -991,6 +999,7 @@ WHERE room_code = 'aqeedah';
 ### Step 2: Bayaan Server Configuration
 
 **Update `.env` file**:
+
 ```bash
 # Existing mosque database
 SUPABASE_URL=https://bpsahvbdlkzemwjdgxmq.supabase.co
@@ -1002,6 +1011,7 @@ CLASSROOM_SUPABASE_SERVICE_ROLE_KEY=eyJhbG...
 ```
 
 **Restart Bayaan server**:
+
 ```bash
 # Should see in startup logs:
 🔧 Configuration loaded:
@@ -1014,11 +1024,13 @@ CLASSROOM_SUPABASE_SERVICE_ROLE_KEY=eyJhbG...
 ### Step 3: Test Classroom Flow
 
 1. **Join classroom as teacher**:
+
    ```
    http://localhost:3000/rooms/aqeedah?classroom=true&role=teacher
    ```
 
 2. **Check Bayaan logs** - should see:
+
    ```
    🔍 Looking up room context for: 8b13fc9f-5002-4508-9bec-1d385facf782
    🔍 Querying database for room: 8b13fc9f-5002-4508-9bec-1d385facf782
@@ -1030,6 +1042,7 @@ CLASSROOM_SUPABASE_SERVICE_ROLE_KEY=eyJhbG...
    ```
 
 3. **Verify translation uses custom prompt**:
+
    ```
    ✅ Using direct prompt from database: Arabic → Dutch
    📝 Direct prompt: Explain concepts clearly and simply in Dutch...
@@ -1085,6 +1098,7 @@ SPEECHMATICS_API_KEY=...
 ### Database Approach (This Document)
 
 **Pros**:
+
 - ✅ Uses proven pattern (mosque dashboard architecture)
 - ✅ Persistent storage of prompts
 - ✅ Simple adapter code (~60 lines)
@@ -1094,11 +1108,13 @@ SPEECHMATICS_API_KEY=...
 - ✅ Tested and reliable architecture
 
 **Cons**:
+
 - ⚠️ Requires database schema changes (but minimal)
 - ⚠️ Requires Bayaan server code changes (~60 lines)
 - ⚠️ Needs classroom database credentials in Bayaan
 
 **Complexity**:
+
 - Database: ⭐⭐☆☆☆ (Add 3 columns)
 - Server: ⭐⭐☆☆☆ (~60 lines)
 - Testing: ⭐⭐⭐☆☆ (Need to verify both flows)
@@ -1106,11 +1122,13 @@ SPEECHMATICS_API_KEY=...
 ### Metadata Approach (Previously Attempted)
 
 **Pros**:
+
 - ✅ No database changes
 - ✅ Stateless (metadata travels with room)
 - ✅ Self-contained in LiveKit
 
 **Cons**:
+
 - ❌ Complex LiveKit metadata timing issues
 - ❌ Metadata may be empty when agent joins
 - ❌ Room creation vs room update race conditions
@@ -1119,6 +1137,7 @@ SPEECHMATICS_API_KEY=...
 - ❌ Non-standard pattern (not proven)
 
 **Complexity**:
+
 - Database: ⭐☆☆☆☆ (None)
 - Server: ⭐⭐⭐⭐☆ (Complex metadata handling)
 - Testing: ⭐⭐⭐⭐⭐ (Many edge cases)
@@ -1170,7 +1189,9 @@ SPEECHMATICS_API_KEY=...
 ### Issue: Bayaan still using default prompt
 
 **Check**:
+
 1. Classroom database columns exist:
+
    ```sql
    SELECT column_name FROM information_schema.columns
    WHERE table_name = 'classrooms'
@@ -1178,11 +1199,13 @@ SPEECHMATICS_API_KEY=...
    ```
 
 2. Classroom has prompt set:
+
    ```sql
    SELECT room_code, translation_prompt FROM classrooms WHERE room_code = 'aqeedah';
    ```
 
 3. Bayaan environment variables set:
+
    ```bash
    echo $CLASSROOM_SUPABASE_URL
    echo $CLASSROOM_SUPABASE_SERVICE_ROLE_KEY
@@ -1197,6 +1220,7 @@ SPEECHMATICS_API_KEY=...
 ### Issue: Mosque dashboard broken after changes
 
 **Verify**:
+
 - Mosque database queries still work (no code changes to mosque flow)
 - Environment variables for mosque database unchanged
 - Logs show mosque rooms being found: `✅ Found room in database: room_id=...`
@@ -1204,6 +1228,7 @@ SPEECHMATICS_API_KEY=...
 ### Issue: Can't connect to classroom database
 
 **Check**:
+
 1. Service role key has correct permissions
 2. Supabase URL is correct
 3. Network connectivity to classroom Supabase project
@@ -1273,10 +1298,12 @@ Uses custom classroom prompt
 ### Database Access
 
 **Bayaan needs**:
+
 - READ access to `classrooms` table
 - NO WRITE access needed
 
 **Recommended RLS Policy**:
+
 ```sql
 -- Create service role that can only read classrooms
 -- Service role key bypasses RLS by default, so no policy needed
@@ -1290,11 +1317,13 @@ GRANT SELECT ON classrooms TO bayaan_agent;
 ### Data Privacy
 
 **What Bayaan can access**:
+
 - ✅ Classroom UUID, room_code, name
 - ✅ Translation settings (languages, prompt)
 - ✅ Organization ID (mapped to mosque_id)
 
 **What Bayaan CANNOT access** (not queried):
+
 - ❌ Teacher personal info
 - ❌ Student data
 - ❌ Chat history
@@ -1439,6 +1468,7 @@ async def _initialize_prompt(self):
 5. **Backward Compatible**: Mosque dashboard completely unaffected
 
 **Next Steps**:
+
 1. Run database migration (5 minutes)
 2. Update Bayaan server code (30 minutes)
 3. Add environment variables (2 minutes)

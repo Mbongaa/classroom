@@ -1,9 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Download, FileText, Globe } from 'lucide-react';
@@ -24,7 +36,10 @@ interface RecordingDownloadDialogProps {
 
 type FormatType = 'srt' | 'vtt' | 'txt';
 
-export default function RecordingDownloadDialog({ recording, trigger }: RecordingDownloadDialogProps) {
+export default function RecordingDownloadDialog({
+  recording,
+  trigger,
+}: RecordingDownloadDialogProps) {
   const [open, setOpen] = useState(false);
   const [transcriptionFormat, setTranscriptionFormat] = useState<FormatType>('srt');
   const [translationLanguage, setTranslationLanguage] = useState('es');
@@ -118,7 +133,10 @@ export default function RecordingDownloadDialog({ recording, trigger }: Recordin
           <TabsContent value="transcription" className="space-y-4 mt-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Format</label>
-              <Select value={transcriptionFormat} onValueChange={(value) => setTranscriptionFormat(value as FormatType)}>
+              <Select
+                value={transcriptionFormat}
+                onValueChange={(value) => setTranscriptionFormat(value as FormatType)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -160,7 +178,10 @@ export default function RecordingDownloadDialog({ recording, trigger }: Recordin
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Format</label>
-              <Select value={translationFormat} onValueChange={(value) => setTranslationFormat(value as FormatType)}>
+              <Select
+                value={translationFormat}
+                onValueChange={(value) => setTranslationFormat(value as FormatType)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>

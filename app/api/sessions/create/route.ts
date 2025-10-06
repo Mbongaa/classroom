@@ -38,7 +38,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (existing) {
-      console.log(`[Session Create] Session already exists for room_sid: ${roomSid}, session_id: ${existing.session_id}`);
+      console.log(
+        `[Session Create] Session already exists for room_sid: ${roomSid}, session_id: ${existing.session_id}`,
+      );
       // Important: Update the sessionId in the response to match what's in the database
       // This ensures all participants use the same session_id
       return NextResponse.json({

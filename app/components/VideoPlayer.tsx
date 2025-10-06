@@ -101,7 +101,9 @@ export default function VideoPlayer({
 
   if (error) {
     return (
-      <div className={`flex flex-col items-center justify-center p-8 rounded-lg bg-destructive/10 ${className}`}>
+      <div
+        className={`flex flex-col items-center justify-center p-8 rounded-lg bg-destructive/10 ${className}`}
+      >
         <AlertCircle className="h-12 w-12 text-destructive mb-4" />
         <p className="text-destructive text-center">{error}</p>
       </div>

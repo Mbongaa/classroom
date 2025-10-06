@@ -158,8 +158,8 @@ export default function RecordingPlaybackPage() {
             {recording.status === 'ACTIVE'
               ? 'Recording is still in progress...'
               : recording.status === 'FAILED'
-              ? 'Recording failed. Please try again.'
-              : 'Recording is being processed...'}
+                ? 'Recording failed. Please try again.'
+                : 'Recording is being processed...'}
           </p>
           <Button asChild className="mt-4">
             <Link href="/dashboard/recordings">

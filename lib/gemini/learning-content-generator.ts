@@ -226,7 +226,9 @@ Begin your response with the opening brace { of the JSON object.`;
     } catch (error) {
       console.error('[LearningContentGenerator] Failed to parse response:', error);
       console.error('[LearningContentGenerator] Raw response:', response.substring(0, 500));
-      throw new Error(`Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to parse AI response: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
     }
   }
 

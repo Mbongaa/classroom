@@ -7,22 +7,26 @@
 ## 📦 What Was Implemented
 
 ### ✅ Database Layer
+
 - Extended `session_recordings` table with session tracking columns
 - Created `translation_entries` table (Phase 2 ready)
 - Added performance indexes for fast queries
 
 ### ✅ Backend APIs
+
 - **Recording Start**: HLS + MP4 output with session ID generation
 - **Recording Stop**: Graceful egress termination with database updates
 - **Webhook Handler**: Automatic status updates when egress completes
 - **Recording APIs**: List, get, and delete recordings
 
 ### ✅ Frontend UI
+
 - **Recordings List**: Grid view with status badges, duration, and actions
 - **Playback Page**: HLS video player with native iOS + hls.js fallback
 - **Download Support**: Optional MP4 downloads
 
 ### ✅ Session Tracking
+
 - Unique session IDs: `MATH101_2025-01-30_14-30`
 - Multiple sessions per persistent room
 - Session-based recording organization
@@ -43,6 +47,7 @@
 6. Repeat for `supabase/migrations/20250131_create_translation_entries.sql`
 
 **Verify Tables**:
+
 ```sql
 -- Check new columns exist
 SELECT column_name, data_type
@@ -61,6 +66,7 @@ SELECT table_name FROM information_schema.tables WHERE table_name = 'translation
 #### Option A: Cloudflare R2 (FREE, Zero Egress Fees) ⭐ RECOMMENDED
 
 **Why R2?**
+
 - ✅ Free tier: 10 GB storage + 10M reads/month
 - ✅ **Zero egress fees** (AWS charges $0.09/GB for downloads = $$$ for video)
 - ✅ S3-compatible API (works with LiveKit)
@@ -119,6 +125,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 **Where to find Supabase Service Role Key**:
+
 1. Supabase Dashboard → Project Settings → API
 2. Copy "service_role" key (under "Project API keys")
 3. ⚠️ Never expose this key to client-side code!
@@ -167,6 +174,7 @@ LIMIT 1;
 ### Test 2: Start Recording
 
 **Steps**:
+
 1. Start dev server: `pnpm dev`
 2. Join a classroom as teacher: `/rooms/MATH101?classroom=true&role=teacher`
 3. Open browser console (F12)
@@ -181,6 +189,7 @@ LIMIT 1;
 ```
 
 **Expected**:
+
 - New row with `status = 'ACTIVE'`
 - `session_id` format: `MATH101_2025-01-31_10-30`
 - `room_sid` and `room_name` populated
@@ -190,6 +199,7 @@ LIMIT 1;
 ### Test 3: Egress Processing (Wait 30-60 seconds after stopping)
 
 **Steps**:
+
 1. Stop recording
 2. Wait 30-60 seconds for LiveKit to process
 3. Check webhook logs in terminal (should see "[LiveKit Webhook] Received:")
@@ -202,6 +212,7 @@ WHERE session_id = 'MATH101_2025-01-31_10-30';
 ```
 
 **Expected**:
+
 - `status = 'COMPLETED'`
 - `hls_playlist_url` populated (S3/R2 URL)
 - `mp4_url` populated (if MP4 enabled)
@@ -212,6 +223,7 @@ WHERE session_id = 'MATH101_2025-01-31_10-30';
 ### Test 4: Verify S3/R2 Files
 
 **For Cloudflare R2**:
+
 1. Go to R2 dashboard → Your bucket
 2. Navigate to folder: `MATH101/MATH101_2025-01-31_10-30/`
 3. Verify files exist:
@@ -220,6 +232,7 @@ WHERE session_id = 'MATH101_2025-01-31_10-30';
    - `session.mp4` (if MP4 enabled)
 
 **For AWS S3**:
+
 ```bash
 aws s3 ls s3://livekit-recordings/MATH101/
 ```
@@ -229,6 +242,7 @@ aws s3 ls s3://livekit-recordings/MATH101/
 ### Test 5: Playback
 
 **Steps**:
+
 1. Navigate to: `/dashboard/recordings`
 2. Verify recording card appears
 3. Status badge should show "COMPLETED" (green)
@@ -238,6 +252,7 @@ aws s3 ls s3://livekit-recordings/MATH101/
 7. Test download MP4 (if available)
 
 **Browser Testing**:
+
 - ✅ Chrome/Edge: Uses hls.js
 - ✅ Safari (macOS/iOS): Native HLS support
 - ✅ Firefox: Uses hls.js
@@ -247,6 +262,7 @@ aws s3 ls s3://livekit-recordings/MATH101/
 ### Test 6: Multiple Sessions (Critical!)
 
 **Steps**:
+
 1. Record session on Monday 10:00 AM → `MATH101_2025-01-27_10-00`
 2. Record session on Wednesday 2:00 PM → `MATH101_2025-01-29_14-00`
 3. Go to `/dashboard/recordings`
@@ -274,6 +290,7 @@ Currently, recording APIs exist but UI controls are not integrated. You need to:
 **2. Link Persistent Rooms to Recordings**
 
 In `/manage-rooms` or room cards, add:
+
 - "View Recordings" button per room
 - Filter recordings by `room_name`
 - Show recording count badge
@@ -288,7 +305,7 @@ In `/manage-rooms` or room cards, add:
 
 ```typescript
 const response = await fetch(
-  `/api/record/start?roomName=${roomName}&roomSid=${room.sid}&teacherName=${teacherName}`
+  `/api/record/start?roomName=${roomName}&roomSid=${room.sid}&teacherName=${teacherName}`,
 );
 ```
 
@@ -299,12 +316,14 @@ const response = await fetch(
 **Symptoms**: Recording stays "ACTIVE" forever, never shows "COMPLETED"
 
 **Checks**:
+
 1. Verify webhook URL is publicly accessible (use ngrok for local testing)
 2. Check LiveKit Cloud webhook configuration
 3. Check server logs for webhook errors
 4. Verify Supabase service role key is set
 
 **Test Webhook Manually**:
+
 ```bash
 curl -X POST http://localhost:3000/api/webhooks/livekit-egress \
   -H "Content-Type: application/json" \
@@ -318,12 +337,14 @@ curl -X POST http://localhost:3000/api/webhooks/livekit-egress \
 **Symptoms**: Blank video player, HLS error in console
 
 **Checks**:
+
 1. Verify HLS playlist URL is accessible (open in browser)
 2. Check S3/R2 bucket has public read access
 3. Check CORS headers on bucket
 4. Verify hls.js is installed: `pnpm list hls.js`
 
 **R2 CORS Configuration**:
+
 ```json
 [
   {
@@ -341,12 +362,14 @@ curl -X POST http://localhost:3000/api/webhooks/livekit-egress \
 ### Issue: "Failed to create recording" database error
 
 **Check**:
+
 1. Verify migrations ran successfully
 2. Check Supabase logs for errors
 3. Verify service role key is correct
 4. Check RLS policies allow insert
 
 **Test Database Access**:
+
 ```sql
 -- Try manual insert
 INSERT INTO session_recordings (room_sid, room_name, session_id, livekit_egress_id, teacher_name, status)
@@ -445,18 +468,21 @@ translation_entries: (Phase 2)
 ## 💰 Cost Estimates
 
 ### Cloudflare R2 (FREE Tier)
+
 - Storage: 10 GB (~20 hours of 1080p HLS)
 - Reads: 10M requests/month
 - Egress: **FREE** (unlimited downloads!)
 - **Cost**: $0/month
 
 ### AWS S3 (If not using R2)
+
 - Storage: $0.023/GB (~$0.46 for 20 GB)
 - Egress: $0.09/GB (~$18 for 200 GB downloads!)
 - Requests: $0.0004 per 1,000 GET
 - **Cost**: ~$19/month for moderate usage
 
 ### LiveKit Cloud Egress
+
 - Room Composite: ~$0.0040/minute
 - 1 hour session: ~$0.24
 - 20 sessions/month: ~$4.80/month
@@ -469,6 +495,7 @@ translation_entries: (Phase 2)
 ## 📝 Files Created/Modified
 
 ### New Files (10):
+
 1. `supabase/migrations/20250131_add_recording_columns.sql`
 2. `supabase/migrations/20250131_create_translation_entries.sql`
 3. `lib/recording-utils.ts`
@@ -478,6 +505,7 @@ translation_entries: (Phase 2)
 7. `app/dashboard/recordings/[recordingId]/page.tsx`
 
 ### Modified Files (3):
+
 1. `app/api/record/start/route.ts` - Added HLS + session tracking
 2. `app/api/record/stop/route.ts` - Added database updates
 3. `app/dashboard/recordings/page.tsx` - Real recordings list
@@ -488,6 +516,7 @@ translation_entries: (Phase 2)
 ## ✅ Quick Start Checklist
 
 Before testing:
+
 - [ ] Run database migrations in Supabase SQL Editor
 - [ ] Setup Cloudflare R2 or AWS S3 bucket
 - [ ] Get R2/S3 credentials (access key + secret)

@@ -9,6 +9,7 @@ All code is now in place for dual database custom prompts. This guide shows you 
 ## 📋 What Was Implemented
 
 ### Frontend (Next.js App):
+
 - ✅ Database migration with `translation_prompt_templates` table
 - ✅ Dedicated prompts management page at `/dashboard/prompts`
 - ✅ Prompt template CRUD (Create, Read, Update, Delete)
@@ -17,6 +18,7 @@ All code is now in place for dual database custom prompts. This guide shows you 
 - ✅ Menu link added to dashboard sidebar
 
 ### Backend (Bayaan Server):
+
 - ✅ Dual database configuration (mosque + classroom)
 - ✅ Classroom database query function with RPC call
 - ✅ Fallback chain: mosque DB → classroom DB → defaults
@@ -42,6 +44,7 @@ supabase db push
 ```
 
 **Verify migration:**
+
 ```sql
 -- Check that columns were added
 \d classrooms
@@ -81,6 +84,7 @@ OPENAI_API_KEY=...
 ```
 
 **Where to get classroom database credentials:**
+
 1. Go to your classroom Supabase project dashboard
 2. Settings → API → Project URL (use this for CLASSROOM_SUPABASE_URL)
 3. Settings → API → service_role key (use this for CLASSROOM_SUPABASE_SERVICE_ROLE_KEY)
@@ -107,6 +111,7 @@ python main.py
 ### Test 1: Create Prompt Templates
 
 1. **Start your Next.js app:**
+
    ```bash
    cd /mnt/c/Users/HP/Desktop/meet
    pnpm dev
@@ -146,6 +151,7 @@ python main.py
    - Click "Create Room"
 
 3. **Verify in database:**
+
    ```sql
    SELECT room_code, name, translation_prompt_id FROM classrooms
    WHERE room_code = 'test-prompt';
@@ -163,6 +169,7 @@ python main.py
    - Join the room
 
 2. **Check Bayaan logs** - You should see:
+
    ```
    🔍 Looking up room context for: 8b13fc9f-5002-4508-9bec-1d385facf782
    🔍 Querying database for room: 8b13fc9f-5002-4508-9bec-1d385facf782
@@ -180,12 +187,14 @@ python main.py
    - Select Spanish from language dropdown
 
 4. **Check Bayaan logs for translator creation:**
+
    ```
    🌍 Participant student_123 attributes changed: {'captions_language': 'es'}
    🆕 Added translator for ROOM ... language: Spanish
    ```
 
 5. **Check prompt initialization:**
+
    ```
    ✅ Using direct prompt from database: Arabic → Spanish
    📝 Direct prompt: You are translating religious content from Arabic to Spanish. Use reverent language...
@@ -198,6 +207,7 @@ python main.py
 ### Test 4: Verify Spanish Uses Custom Prompt
 
 **What to verify:**
+
 - Student selects Spanish (not pre-configured in classroom)
 - Bayaan creates Spanish translator with `tenant_context` containing `translation_prompt`
 - Translator `_initialize_prompt()` detects direct prompt
@@ -205,6 +215,7 @@ python main.py
 - Uses custom prompt: "You are translating religious content from Arabic to Spanish..."
 
 **Expected Bayaan logs:**
+
 ```
 🌍 Participant attributes changed: {'captions_language': 'es'}
 🆕 Added translator for language: Spanish
@@ -219,6 +230,7 @@ python main.py
 1. **Create a mosque room via mosque dashboard**
 2. **Join the mosque room**
 3. **Check Bayaan logs:**
+
    ```
    🔍 Querying database for room: mosque_546012_khutbah_20251006
    ✅ Found room in database: room_id=123, mosque_id=546012
@@ -237,6 +249,7 @@ python main.py
 2. **Create demo room** (not a persistent classroom)
 3. **Join room**
 4. **Check Bayaan logs:**
+
    ```
    🔍 Querying database for room: demo-room-xyz
    (mosque query: not found)
@@ -271,11 +284,13 @@ python main.py
 ### Issue: Prompts page shows "Failed to load templates"
 
 **Check:**
+
 1. Migration ran successfully
 2. RLS policies are in place
 3. User is authenticated as teacher
 
 **Debug:**
+
 ```sql
 -- Check RLS policies
 SELECT * FROM pg_policies WHERE tablename = 'translation_prompt_templates';
@@ -289,12 +304,14 @@ SELECT COUNT(*) FROM translation_prompt_templates;
 ### Issue: Bayaan not using custom prompt
 
 **Check Bayaan logs for:**
+
 1. ✅ Classroom database configured in startup
 2. ✅ Classroom found: `Found classroom in classroom database`
 3. ✅ Prompt present: `Classroom has custom prompt: ...`
 4. ✅ Direct prompt used: `Using direct prompt from database`
 
 **Debug:**
+
 ```sql
 -- Check if classroom has prompt assigned
 SELECT c.room_code, c.translation_prompt_id, pt.name, pt.prompt_text
@@ -353,11 +370,13 @@ Result:
 ## 🎉 Ready to Test!
 
 Once you:
+
 1. ✅ Run the migration
 2. ✅ Add classroom database credentials to Bayaan .env
 3. ✅ Restart Bayaan server
 
 You'll be able to:
+
 - Manage prompts at `/dashboard/prompts`
 - Select prompts when creating classrooms
 - Have custom translation behavior for any language students select!

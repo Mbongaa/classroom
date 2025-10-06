@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
-import {
-  getPromptTemplate,
-  updatePromptTemplate,
-  deletePromptTemplate,
-} from '@/lib/prompt-utils';
+import { getPromptTemplate, updatePromptTemplate, deletePromptTemplate } from '@/lib/prompt-utils';
 
 /**
  * PATCH /api/prompts/[id]
  * Update a prompt template
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Require teacher authentication
   const auth = await requireTeacher();
   if (!auth.success) return auth.response;
@@ -21,10 +14,7 @@ export async function PATCH(
   const { profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -38,16 +28,13 @@ export async function PATCH(
     }
 
     if (existing.is_public) {
-      return NextResponse.json(
-        { error: 'Public templates cannot be modified' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Public templates cannot be modified' }, { status: 403 });
     }
 
     if (existing.organization_id !== profile.organization_id) {
       return NextResponse.json(
         { error: 'You do not have permission to modify this template' },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -70,7 +57,7 @@ export async function PATCH(
     console.error('Error updating prompt template:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to update prompt template' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -81,7 +68,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   // Require teacher authentication
   const auth = await requireTeacher();
@@ -90,10 +77,7 @@ export async function DELETE(
   const { profile } = auth;
 
   if (!profile?.organization_id) {
-    return NextResponse.json(
-      { error: 'User profile is missing organization' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
   }
 
   try {
@@ -110,7 +94,7 @@ export async function DELETE(
     console.error('Error deleting prompt template:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to delete prompt template' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

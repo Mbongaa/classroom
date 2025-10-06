@@ -65,14 +65,126 @@ export function LearningContentTabs({
     // Recording tab
     if (recording) {
       tabsArray.push({
-      id: 'recording',
-      label: 'Recording',
-      icon: Video,
+        id: 'recording',
+        label: 'Recording',
+        icon: Video,
+        content: (
+          <div className="h-full">
+            <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+              <Video className="h-6 w-6 text-primary" />
+              Lecture Recording
+            </h2>
+            <div
+              className="overflow-y-auto"
+              style={{
+                height: 'calc(100vh - 20rem)',
+                maxHeight: 'calc(100vh - 20rem)',
+              }}
+            >
+              <VideoPlayer
+                hlsPlaylistUrl={recording.hlsPlaylistUrl}
+                mp4Url={recording.mp4Url}
+                recordingId={metadata?.roomName || 'recording'}
+                showDownload={true}
+              />
+              {recording.durationSeconds && (
+                <div className="mt-4 text-sm text-muted-foreground">
+                  Duration: {Math.floor(recording.durationSeconds / 60)} minutes{' '}
+                  {recording.durationSeconds % 60} seconds
+                </div>
+              )}
+            </div>
+          </div>
+        ),
+      });
+    }
+
+    // Transcript tab
+    if (transcript && transcript.segments.length > 0) {
+      tabsArray.push({
+        id: 'transcript',
+        label: 'Transcript',
+        icon: FileText,
+        content: (
+          <div className="h-full">
+            {/* Header with Toggle */}
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold flex items-center gap-2">
+                <FileText className="h-6 w-6 text-primary" />
+                Lecture Transcript
+              </h2>
+
+              {/* Language Toggle */}
+              <div className="flex items-center gap-3 print:hidden">
+                <span
+                  className={`text-sm ${transcriptView === 'original' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
+                >
+                  Original ({transcript.originalLanguage.toUpperCase()})
+                </span>
+                <Switch
+                  isSelected={transcriptView === 'translated'}
+                  onValueChange={onTranscriptToggle}
+                  isDisabled={translating}
+                  size="sm"
+                />
+                <span
+                  className={`text-sm ${transcriptView === 'translated' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
+                >
+                  Translated ({metadata?.targetLanguage?.toUpperCase() || 'EN'})
+                </span>
+              </div>
+            </div>
+
+            {/* Transcript Content with Scroll */}
+            <div
+              className="overflow-y-auto"
+              style={{
+                height: 'calc(100vh - 24rem)',
+                maxHeight: 'calc(100vh - 24rem)',
+              }}
+            >
+              {translating ? (
+                <div className="flex flex-col items-center justify-center p-12">
+                  <PulsatingLoader />
+                  <p className="mt-4 text-muted-foreground">Translating transcript...</p>
+                </div>
+              ) : translationError && transcriptView === 'translated' ? (
+                <div className="p-8 text-center text-destructive">
+                  <p>{translationError}</p>
+                  <Button onClick={() => onTranscriptToggle()} variant="outline" className="mt-4">
+                    View Original
+                  </Button>
+                </div>
+              ) : (
+                <TranscriptDisplay
+                  segments={
+                    transcriptView === 'original'
+                      ? transcript.segments
+                      : translatedSegments || transcript.segments
+                  }
+                  language={
+                    transcriptView === 'original'
+                      ? transcript.originalLanguage
+                      : metadata?.targetLanguage || 'en'
+                  }
+                />
+              )}
+            </div>
+          </div>
+        ),
+      });
+    }
+
+    // Summary tab
+    tabsArray.push({
+      id: 'summary',
+      label: 'Summary',
+      icon: Lightbulb,
       content: (
         <div className="h-full">
           <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-            <Video className="h-6 w-6 text-primary" />
-            Lecture Recording
+            <Lightbulb className="h-6 w-6 text-yellow-500" />
+            {summary.title}
           </h2>
           <div
             className="overflow-y-auto"
@@ -81,177 +193,72 @@ export function LearningContentTabs({
               maxHeight: 'calc(100vh - 20rem)',
             }}
           >
-            <VideoPlayer
-              hlsPlaylistUrl={recording.hlsPlaylistUrl}
-              mp4Url={recording.mp4Url}
-              recordingId={metadata?.roomName || 'recording'}
-              showDownload={true}
-            />
-            {recording.durationSeconds && (
-              <div className="mt-4 text-sm text-muted-foreground">
-                Duration: {Math.floor(recording.durationSeconds / 60)} minutes{' '}
-                {recording.durationSeconds % 60} seconds
-              </div>
-            )}
-          </div>
-        </div>
-      ),
-      });
-    }
-
-    // Transcript tab
-    if (transcript && transcript.segments.length > 0) {
-      tabsArray.push({
-      id: 'transcript',
-      label: 'Transcript',
-      icon: FileText,
-      content: (
-        <div className="h-full">
-          {/* Header with Toggle */}
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2">
-              <FileText className="h-6 w-6 text-primary" />
-              Lecture Transcript
-            </h2>
-
-            {/* Language Toggle */}
-            <div className="flex items-center gap-3 print:hidden">
-              <span
-                className={`text-sm ${transcriptView === 'original' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-              >
-                Original ({transcript.originalLanguage.toUpperCase()})
-              </span>
-              <Switch
-                isSelected={transcriptView === 'translated'}
-                onValueChange={onTranscriptToggle}
-                isDisabled={translating}
-                size="sm"
-              />
-              <span
-                className={`text-sm ${transcriptView === 'translated' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}
-              >
-                Translated ({metadata?.targetLanguage?.toUpperCase() || 'EN'})
-              </span>
-            </div>
-          </div>
-
-          {/* Transcript Content with Scroll */}
-          <div
-            className="overflow-y-auto"
-            style={{
-              height: 'calc(100vh - 24rem)',
-              maxHeight: 'calc(100vh - 24rem)',
-            }}
-          >
-            {translating ? (
-              <div className="flex flex-col items-center justify-center p-12">
-                <PulsatingLoader />
-                <p className="mt-4 text-muted-foreground">Translating transcript...</p>
-              </div>
-            ) : translationError && transcriptView === 'translated' ? (
-              <div className="p-8 text-center text-destructive">
-                <p>{translationError}</p>
-                <Button
-                  onClick={() => onTranscriptToggle()}
-                  variant="outline"
-                  className="mt-4"
-                >
-                  View Original
-                </Button>
-              </div>
-            ) : (
-              <TranscriptDisplay
-                segments={
-                  transcriptView === 'original'
-                    ? transcript.segments
-                    : translatedSegments || transcript.segments
-                }
-                language={
-                  transcriptView === 'original'
-                    ? transcript.originalLanguage
-                    : metadata?.targetLanguage || 'en'
-                }
-              />
-            )}
-          </div>
-        </div>
-      ),
-      });
-    }
-
-    // Summary tab
-    tabsArray.push({
-    id: 'summary',
-    label: 'Summary',
-    icon: Lightbulb,
-    content: (
-      <div className="h-full">
-        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-          <Lightbulb className="h-6 w-6 text-yellow-500" />
-          {summary.title}
-        </h2>
-        <div
-          className="overflow-y-auto"
-          style={{
-            height: 'calc(100vh - 20rem)',
-            maxHeight: 'calc(100vh - 20rem)',
-          }}
-        >
-          <div className="space-y-4">
-            {summary.key_points.map((point, index) => (
-              <div key={index} className="flex items-start gap-3 p-4 rounded-lg bg-default-100">
-                <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
-                  {index + 1}
-                </span>
-                <span className="text-base leading-relaxed">{point}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-    });
-
-    // Theme tabs
-    thematic_breakdown.forEach((theme, index) => {
-      tabsArray.push({
-      id: `theme-${index}`,
-      label: `Theme ${index + 1}`,
-      icon: ({ className }) => (
-        <span className={cn('flex items-center justify-center text-sm font-bold', className)}>
-          {index + 1}
-        </span>
-      ),
-      content: (
-        <div className="h-full">
-          <div className="flex items-start gap-3 mb-6">
-            <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
-              {index + 1}
-            </span>
-            <h2 className="text-2xl font-bold pt-1">{theme.theme_title}</h2>
-          </div>
-          <div
-            className="overflow-y-auto"
-            style={{
-              height: 'calc(100vh - 20rem)',
-              maxHeight: 'calc(100vh - 20rem)',
-            }}
-          >
             <div className="space-y-4">
-              {theme.theme_content.split('\n\n').map((paragraph, pIndex) => (
-                <p key={pIndex} className="text-base leading-relaxed">
-                  {paragraph}
-                </p>
+              {summary.key_points.map((point, index) => (
+                <div key={index} className="flex items-start gap-3 p-4 rounded-lg bg-default-100">
+                  <span className="flex-shrink-0 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                    {index + 1}
+                  </span>
+                  <span className="text-base leading-relaxed">{point}</span>
+                </div>
               ))}
             </div>
           </div>
         </div>
       ),
+    });
+
+    // Theme tabs
+    thematic_breakdown.forEach((theme, index) => {
+      tabsArray.push({
+        id: `theme-${index}`,
+        label: `Theme ${index + 1}`,
+        icon: ({ className }) => (
+          <span className={cn('flex items-center justify-center text-sm font-bold', className)}>
+            {index + 1}
+          </span>
+        ),
+        content: (
+          <div className="h-full">
+            <div className="flex items-start gap-3 mb-6">
+              <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
+                {index + 1}
+              </span>
+              <h2 className="text-2xl font-bold pt-1">{theme.theme_title}</h2>
+            </div>
+            <div
+              className="overflow-y-auto"
+              style={{
+                height: 'calc(100vh - 20rem)',
+                maxHeight: 'calc(100vh - 20rem)',
+              }}
+            >
+              <div className="space-y-4">
+                {theme.theme_content.split('\n\n').map((paragraph, pIndex) => (
+                  <p key={pIndex} className="text-base leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        ),
       });
     });
 
     return tabsArray;
-  }, [recording, transcript, transcriptView, translating, translationError, translatedSegments, metadata, onTranscriptToggle, summary, thematic_breakdown]);
+  }, [
+    recording,
+    transcript,
+    transcriptView,
+    translating,
+    translationError,
+    translatedSegments,
+    metadata,
+    onTranscriptToggle,
+    summary,
+    thematic_breakdown,
+  ]);
 
   // Set initial active tab
   useEffect(() => {

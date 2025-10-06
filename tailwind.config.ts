@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-const {heroui} = require("@heroui/theme");
+const { heroui } = require('@heroui/theme');
 
 const config: Config = {
   darkMode: ['class'],

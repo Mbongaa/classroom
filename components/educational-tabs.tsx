@@ -1,97 +1,97 @@
-"use client"
+'use client';
 
-import { useState, useRef, useEffect } from "react"
-import { Card } from "@/components/ui/card"
-import { BookOpen, Code, Lightbulb, Rocket, GraduationCap } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { useState, useRef, useEffect } from 'react';
+import { Card } from '@/components/ui/card';
+import { BookOpen, Code, Lightbulb, Rocket, GraduationCap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const tabs = [
   {
-    id: "fundamentals",
-    label: "Fundamentals",
+    id: 'fundamentals',
+    label: 'Fundamentals',
     icon: BookOpen,
-    title: "Core Fundamentals",
-    description: "Master the essential building blocks of modern development",
+    title: 'Core Fundamentals',
+    description: 'Master the essential building blocks of modern development',
     content: [
-      "Understanding data structures and algorithms",
-      "Object-oriented programming principles",
-      "Functional programming concepts",
-      "Design patterns and best practices",
+      'Understanding data structures and algorithms',
+      'Object-oriented programming principles',
+      'Functional programming concepts',
+      'Design patterns and best practices',
     ],
   },
   {
-    id: "web-dev",
-    label: "Web Development",
+    id: 'web-dev',
+    label: 'Web Development',
     icon: Code,
-    title: "Web Development",
-    description: "Build modern, responsive web applications",
+    title: 'Web Development',
+    description: 'Build modern, responsive web applications',
     content: [
-      "HTML5, CSS3, and modern JavaScript",
-      "React, Next.js, and component architecture",
-      "State management and data fetching",
-      "Performance optimization techniques",
+      'HTML5, CSS3, and modern JavaScript',
+      'React, Next.js, and component architecture',
+      'State management and data fetching',
+      'Performance optimization techniques',
     ],
   },
   {
-    id: "problem-solving",
-    label: "Problem Solving",
+    id: 'problem-solving',
+    label: 'Problem Solving',
     icon: Lightbulb,
-    title: "Problem Solving",
-    description: "Develop critical thinking and analytical skills",
+    title: 'Problem Solving',
+    description: 'Develop critical thinking and analytical skills',
     content: [
-      "Breaking down complex problems",
-      "Algorithm design and optimization",
-      "Debugging strategies and techniques",
-      "Code review and refactoring",
+      'Breaking down complex problems',
+      'Algorithm design and optimization',
+      'Debugging strategies and techniques',
+      'Code review and refactoring',
     ],
   },
   {
-    id: "deployment",
-    label: "Deployment",
+    id: 'deployment',
+    label: 'Deployment',
     icon: Rocket,
-    title: "Deployment & DevOps",
-    description: "Ship your applications to production",
+    title: 'Deployment & DevOps',
+    description: 'Ship your applications to production',
     content: [
-      "CI/CD pipelines and automation",
-      "Cloud platforms and serverless",
-      "Monitoring and error tracking",
-      "Security and performance best practices",
+      'CI/CD pipelines and automation',
+      'Cloud platforms and serverless',
+      'Monitoring and error tracking',
+      'Security and performance best practices',
     ],
   },
   {
-    id: "career",
-    label: "Career Growth",
+    id: 'career',
+    label: 'Career Growth',
     icon: GraduationCap,
-    title: "Career Development",
-    description: "Advance your professional journey",
+    title: 'Career Development',
+    description: 'Advance your professional journey',
     content: [
-      "Building a strong portfolio",
-      "Technical interview preparation",
-      "Networking and personal branding",
-      "Continuous learning strategies",
+      'Building a strong portfolio',
+      'Technical interview preparation',
+      'Networking and personal branding',
+      'Continuous learning strategies',
     ],
   },
-]
+];
 
 export function EducationalTabs() {
-  const [activeTab, setActiveTab] = useState(tabs[0].id)
-  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0, left: 0, width: 0 })
-  const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({})
+  const [activeTab, setActiveTab] = useState(tabs[0].id);
+  const [indicatorStyle, setIndicatorStyle] = useState({ top: 0, height: 0, left: 0, width: 0 });
+  const tabRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
 
   useEffect(() => {
-    const activeButton = tabRefs.current[activeTab]
+    const activeButton = tabRefs.current[activeTab];
     if (activeButton) {
-      const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = activeButton
+      const { offsetTop, offsetHeight, offsetLeft, offsetWidth } = activeButton;
       setIndicatorStyle({
         top: offsetTop,
         height: offsetHeight,
         left: offsetLeft,
         width: offsetWidth,
-      })
+      });
     }
-  }, [activeTab])
+  }, [activeTab]);
 
-  const activeTabData = tabs.find((tab) => tab.id === activeTab) || tabs[0]
+  const activeTabData = tabs.find((tab) => tab.id === activeTab) || tabs[0];
 
   return (
     <div className="grid gap-6 md:grid-cols-[240px_1fr] lg:grid-cols-[280px_1fr]">
@@ -109,25 +109,32 @@ export function EducationalTabs() {
           />
 
           {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.id
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
 
             return (
               <button
                 key={tab.id}
                 ref={(el) => {
-                  tabRefs.current[tab.id] = el
+                  tabRefs.current[tab.id] = el;
                 }}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative z-10 flex min-w-[140px] items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors duration-200 md:min-w-0 md:w-full",
-                  isActive ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
+                  'relative z-10 flex min-w-[140px] items-center gap-3 rounded-lg px-4 py-3 text-left transition-colors duration-200 md:min-w-0 md:w-full',
+                  isActive
+                    ? 'text-primary-foreground'
+                    : 'text-muted-foreground hover:text-foreground',
                 )}
               >
-                <Icon className={cn("h-5 w-5 shrink-0 transition-transform duration-300", isActive && "scale-110")} />
+                <Icon
+                  className={cn(
+                    'h-5 w-5 shrink-0 transition-transform duration-300',
+                    isActive && 'scale-110',
+                  )}
+                />
                 <span className="text-sm font-medium">{tab.label}</span>
               </button>
-            )
+            );
           })}
         </div>
       </div>
@@ -144,7 +151,9 @@ export function EducationalTabs() {
             </div>
 
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">What you&apos;ll learn</h3>
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                What you&apos;ll learn
+              </h3>
               <ul className="space-y-3">
                 {activeTabData.content.map((item, index) => (
                   <li
@@ -152,7 +161,7 @@ export function EducationalTabs() {
                     className="animate-in fade-in slide-in-from-left-2 flex items-start gap-3"
                     style={{
                       animationDelay: `${index * 100}ms`,
-                      animationFillMode: "backwards",
+                      animationFillMode: 'backwards',
                     }}
                   >
                     <div className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
@@ -174,5 +183,5 @@ export function EducationalTabs() {
         </div>
       </Card>
     </div>
-  )
+  );
 }

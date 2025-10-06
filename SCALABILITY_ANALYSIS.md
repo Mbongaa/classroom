@@ -11,6 +11,7 @@
 ✅ **VERDICT: Your classroom implementation CAN support 1 speaker with 1000+ listeners**
 
 **Key Findings:**
+
 - Core video streaming architecture: **Production-ready**
 - LiveKit official capacity: **1 publisher + 3,000 subscribers** (verified)
 - Current implementation: **Follows best practices**
@@ -84,34 +85,37 @@ Students (1000 subscribers)
 **File:** `app/api/connection-details/route.ts`
 
 #### Teacher Permissions
+
 ```typescript
 // Lines 157-169
 grant = {
   room: roomName,
   roomJoin: true,
-  canPublish: true,        // ✅ Can broadcast video/audio
-  canPublishData: true,    // ✅ Can send chat messages
-  canSubscribe: true,      // ✅ Can receive (for monitoring)
+  canPublish: true, // ✅ Can broadcast video/audio
+  canPublishData: true, // ✅ Can send chat messages
+  canSubscribe: true, // ✅ Can receive (for monitoring)
   canUpdateOwnMetadata: true,
-  roomAdmin: true,         // ✅ Full room control
-  roomRecord: true,        // ✅ Can record sessions
+  roomAdmin: true, // ✅ Full room control
+  roomRecord: true, // ✅ Can record sessions
 };
 ```
 
 #### Student Permissions (Listen-Only)
+
 ```typescript
 // Lines 171-180
 grant = {
   room: roomName,
   roomJoin: true,
-  canPublish: false,       // ✅ CRITICAL: No media publishing
-  canPublishData: true,    // ✅ Chat enabled
-  canSubscribe: true,      // ✅ Can receive teacher's stream
+  canPublish: false, // ✅ CRITICAL: No media publishing
+  canPublishData: true, // ✅ Chat enabled
+  canSubscribe: true, // ✅ Can receive teacher's stream
   canUpdateOwnMetadata: true,
 };
 ```
 
 **Why This Is Optimal:**
+
 - Students cannot publish media → minimal client resource usage
 - Students only subscribe → predictable bandwidth (download only)
 - Server handles all distribution → no peer-to-peer complexity
@@ -133,11 +137,11 @@ const roomOptions: RoomOptions = {
 
   // Publish settings with simulcast
   publishDefaults: {
-    dtx: false,  // Discontinuous transmission
+    dtx: false, // Discontinuous transmission
     videoSimulcastLayers: hq
-      ? [VideoPresets.h1080, VideoPresets.h720]  // High quality layers
-      : [VideoPresets.h540, VideoPresets.h216],  // Standard quality layers
-    red: !e2eeEnabled,  // ✅ Redundancy encoding for reliability
+      ? [VideoPresets.h1080, VideoPresets.h720] // High quality layers
+      : [VideoPresets.h540, VideoPresets.h216], // Standard quality layers
+    red: !e2eeEnabled, // ✅ Redundancy encoding for reliability
     videoCodec,
   },
 
@@ -147,8 +151,8 @@ const roomOptions: RoomOptions = {
   },
 
   // Critical optimizations
-  adaptiveStream: true,  // ✅ Auto-adjusts quality based on network
-  dynacast: true,        // ✅ Pauses unused simulcast layers
+  adaptiveStream: true, // ✅ Auto-adjusts quality based on network
+  dynacast: true, // ✅ Pauses unused simulcast layers
   e2ee: e2eeEnabled ? { keyProvider, worker } : undefined,
 };
 ```
@@ -179,11 +183,12 @@ const roomOptions: RoomOptions = {
 ```typescript
 // Lines 343-347
 const connectOptions: RoomConnectOptions = {
-  autoSubscribe: true,  // ✅ Appropriate for webinar/classroom
+  autoSubscribe: true, // ✅ Appropriate for webinar/classroom
 };
 ```
 
 **Why `autoSubscribe: true` is correct here:**
+
 - In a classroom, ALL students want to receive the teacher's stream
 - Manual subscription would add unnecessary complexity
 - Teacher typically has 1-2 tracks (camera + screen share)
@@ -202,21 +207,22 @@ await roomService.updateParticipant(
   studentIdentity,
   // Metadata update (tracks role changes)
   JSON.stringify({
-    role: updatedRole,  // 'student' or 'student_speaker'
+    role: updatedRole, // 'student' or 'student_speaker'
     permissionStatus: action,
     updatedAt: Date.now(),
   }),
   // Permission update (THIS IS THE KEY!)
   {
-    canPublish: action === 'grant',  // ✅ Dynamic permission change
+    canPublish: action === 'grant', // ✅ Dynamic permission change
     canPublishData: true,
     canSubscribe: true,
     canUpdateMetadata: false,
-  }
+  },
 );
 ```
 
 **Why This Is Optimal:**
+
 - Uses LiveKit's official `updateParticipant()` API
 - Changes permissions WITHOUT requiring reconnection
 - Server-authoritative (secure)
@@ -261,6 +267,7 @@ if (!isStudent) {
 ```
 
 **Why This Is Optimal:**
+
 - Students never attempt to publish (minimizes client resource usage)
 - Graceful error handling prevents UI blocking
 - Permission-based errors are silenced (expected behavior)
@@ -272,26 +279,26 @@ if (!isStudent) {
 
 ### Strong Points ✅
 
-| Component | Implementation | Scale Impact |
-|-----------|---------------|--------------|
-| **Permission Model** | Students: `canPublish: false` | Minimal client CPU/bandwidth usage |
-| **Simulcast** | 2 quality layers (h540, h216) | Efficient multi-quality delivery |
-| **Dynacast** | Auto layer management | Saves teacher upload bandwidth |
-| **Adaptive Stream** | Network-aware quality | Handles poor connections gracefully |
-| **Server-Side Updates** | `updateParticipant()` API | No reconnection overhead |
-| **Error Handling** | Graceful media failures | Students don't block on permission errors |
-| **Token TTL** | 5 minutes | Forces re-authentication periodically |
-| **Connection Options** | `autoSubscribe: true` | Appropriate for broadcast scenarios |
+| Component               | Implementation                | Scale Impact                              |
+| ----------------------- | ----------------------------- | ----------------------------------------- |
+| **Permission Model**    | Students: `canPublish: false` | Minimal client CPU/bandwidth usage        |
+| **Simulcast**           | 2 quality layers (h540, h216) | Efficient multi-quality delivery          |
+| **Dynacast**            | Auto layer management         | Saves teacher upload bandwidth            |
+| **Adaptive Stream**     | Network-aware quality         | Handles poor connections gracefully       |
+| **Server-Side Updates** | `updateParticipant()` API     | No reconnection overhead                  |
+| **Error Handling**      | Graceful media failures       | Students don't block on permission errors |
+| **Token TTL**           | 5 minutes                     | Forces re-authentication periodically     |
+| **Connection Options**  | `autoSubscribe: true`         | Appropriate for broadcast scenarios       |
 
 ### SDK Versions ✅
 
 ```json
 {
-  "livekit-client": "2.15.7",           // ✅ Latest stable
-  "livekit-server-sdk": "2.13.3",       // ✅ Latest stable
+  "livekit-client": "2.15.7", // ✅ Latest stable
+  "livekit-server-sdk": "2.13.3", // ✅ Latest stable
   "@livekit/components-react": "2.9.14", // ✅ Latest stable
-  "react": "18.3.1",                    // ✅ Latest stable
-  "next": "15.2.4"                      // ✅ Latest stable
+  "react": "18.3.1", // ✅ Latest stable
+  "next": "15.2.4" // ✅ Latest stable
 }
 ```
 
@@ -306,6 +313,7 @@ All packages are at recommended versions with no known scalability issues.
 **Location:** `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx`
 
 #### Issue: Permission Update Broadcasts
+
 ```typescript
 // Lines 209-220
 const handlePermissionUpdate = React.useCallback(
@@ -319,7 +327,7 @@ const handlePermissionUpdate = React.useCallback(
 
     const encoder = new TextEncoder();
     room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
-      reliable: true,  // ⚠️ Sends to ALL participants
+      reliable: true, // ⚠️ Sends to ALL participants
     });
   },
   [room],
@@ -327,6 +335,7 @@ const handlePermissionUpdate = React.useCallback(
 ```
 
 **Problem:**
+
 - Broadcasts to ALL 1000 students when only 1 needs notification
 - Creates 1000 unnecessary messages per permission change
 - Uses reliable delivery (TCP-like) which scales poorly
@@ -352,19 +361,17 @@ const handlePermissionUpdate = React.useCallback(
 
     const encoder = new TextEncoder();
     // ✅ Send only to the specific student
-    room.localParticipant.publishData(
-      encoder.encode(JSON.stringify(message)),
-      {
-        reliable: true,
-        destinationIdentities: [participantIdentity], // ✅ CRITICAL CHANGE
-      }
-    );
+    room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+      reliable: true,
+      destinationIdentities: [participantIdentity], // ✅ CRITICAL CHANGE
+    });
   },
   [room],
 );
 ```
 
 **Benefits:**
+
 - Reduces messages from 1000 to 1 per update
 - 99.9% reduction in data channel traffic
 - Lower latency for targeted recipient
@@ -383,7 +390,7 @@ const message: RequestDisplayMultilingualMessage = {
     requestId,
     originalQuestion: targetRequest.originalQuestion || targetRequest.question || '',
     originalLanguage: targetRequest.studentLanguage,
-    translations,  // ⚠️ Could be large object with many languages
+    translations, // ⚠️ Could be large object with many languages
     studentName: targetRequest.studentName,
     display: true,
   },
@@ -391,11 +398,12 @@ const message: RequestDisplayMultilingualMessage = {
 
 const encoder = new TextEncoder();
 room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
-  reliable: true,  // ⚠️ Broadcasts to all 1000 students
+  reliable: true, // ⚠️ Broadcasts to all 1000 students
 });
 ```
 
 **Problem:**
+
 - Translation object could be 10+ languages × 100+ characters
 - Sent to all 1000 students even if most don't need it
 - Each broadcast could be 5-10 KB
@@ -405,29 +413,26 @@ room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
 #### Solution: Server-Side Broadcasting or Lossy Delivery
 
 **Option 1: Server-Side Broadcasting**
+
 ```typescript
 // Store displayed questions in database
-await supabase
-  .from('displayed_questions')
-  .insert({
-    room_name: roomName,
-    question_id: requestId,
-    translations: translations,
-    displayed_at: new Date().toISOString(),
-  });
+await supabase.from('displayed_questions').insert({
+  room_name: roomName,
+  question_id: requestId,
+  translations: translations,
+  displayed_at: new Date().toISOString(),
+});
 
 // Students poll or use realtime subscriptions
 // Much more scalable for large audiences
 ```
 
 **Option 2: Use Lossy Delivery for Non-Critical Data**
+
 ```typescript
-room.localParticipant.publishData(
-  encoder.encode(JSON.stringify(message)),
-  {
-    reliable: false,  // ✅ Lossy = faster, less overhead
-  }
-);
+room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
+  reliable: false, // ✅ Lossy = faster, less overhead
+});
 ```
 
 ---
@@ -461,6 +466,7 @@ React.useEffect(() => {
 ```
 
 **Problem:**
+
 - Every student fetches metadata on join
 - With 1000 students joining within minutes: **1000 API calls**
 - Potential API rate limiting
@@ -483,10 +489,7 @@ import Redis from 'ioredis';
 
 const redis = new Redis(process.env.REDIS_URL);
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { roomName: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { roomName: string } }) {
   const { roomName } = params;
 
   // Try cache first
@@ -517,6 +520,7 @@ export async function GET(
 ```
 
 **Benefits:**
+
 - Reduces database queries by 99%
 - Sub-millisecond response times
 - Handles burst traffic gracefully
@@ -556,7 +560,7 @@ const handleRequestSubmit = React.useCallback(
 
     const encoder = new TextEncoder();
     room.localParticipant.publishData(encoder.encode(JSON.stringify(message)), {
-      reliable: true,  // ⚠️ Teacher receives all requests via data channel
+      reliable: true, // ⚠️ Teacher receives all requests via data channel
     });
   },
   [localParticipant, room],
@@ -564,6 +568,7 @@ const handleRequestSubmit = React.useCallback(
 ```
 
 **Problem:**
+
 - Teacher's client receives ALL requests via data channel
 - With 1000 students, could receive hundreds of requests simultaneously
 - Client-side queue management doesn't scale
@@ -601,10 +606,7 @@ export async function POST(request: NextRequest) {
     .gte('created_at', new Date(Date.now() - 60000).toISOString()); // Last minute
 
   if (recentRequests && recentRequests.length >= 1) {
-    return NextResponse.json(
-      { error: 'Rate limit: 1 request per minute' },
-      { status: 429 }
-    );
+    return NextResponse.json({ error: 'Rate limit: 1 request per minute' }, { status: 429 });
   }
 
   // Insert request
@@ -649,6 +651,7 @@ export async function GET(request: NextRequest) {
 ```
 
 **Database Schema:**
+
 ```sql
 CREATE TABLE classroom_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -666,6 +669,7 @@ CREATE TABLE classroom_requests (
 ```
 
 **Teacher Polling (replaces data channel):**
+
 ```typescript
 // Poll server every 5 seconds for new requests
 React.useEffect(() => {
@@ -683,6 +687,7 @@ React.useEffect(() => {
 ```
 
 **Benefits:**
+
 - Scales to unlimited students
 - Built-in rate limiting (1 request per minute per student)
 - Teacher's client load is constant
@@ -698,9 +703,11 @@ React.useEffect(() => {
 #### 1.1 Data Channel Optimization
 
 **Files to Modify:**
+
 - `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx`
 
 **Changes:**
+
 1. Add `destinationIdentities` to permission updates
 2. Consider lossy delivery for non-critical broadcasts
 3. Remove redundant broadcasts (rely on LiveKit events)
@@ -714,9 +721,11 @@ React.useEffect(() => {
 #### 1.2 Metadata Caching
 
 **Files to Create:**
+
 - Redis integration in `app/api/rooms/[roomName]/metadata/route.ts`
 
 **Changes:**
+
 1. Install Redis client: `pnpm add ioredis`
 2. Add Redis connection configuration
 3. Implement cache-first fetch with 5-minute TTL
@@ -733,13 +742,16 @@ React.useEffect(() => {
 #### 2.1 Server-Side Request Queue
 
 **Files to Create:**
+
 - `app/api/classroom-requests/route.ts`
 - Database migration for `classroom_requests` table
 
 **Files to Modify:**
+
 - `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx` (replace data channel with API calls)
 
 **Changes:**
+
 1. Create Supabase table with indexes
 2. Implement POST/GET API endpoints
 3. Add rate limiting (1 req/min per student)
@@ -755,9 +767,11 @@ React.useEffect(() => {
 #### 2.2 Connection Pooling & Rate Limiting
 
 **Files to Create:**
+
 - `middleware.ts` (Next.js middleware for rate limiting)
 
 **Changes:**
+
 1. Install rate limiting: `pnpm add @upstash/ratelimit @upstash/redis`
 2. Implement per-IP rate limiting for API endpoints
 3. Add connection throttling for metadata fetches
@@ -773,9 +787,11 @@ React.useEffect(() => {
 #### 3.1 Progressive Quality Degradation
 
 **Files to Modify:**
+
 - `app/rooms/[roomName]/PageClientImpl.tsx`
 
 **Changes:**
+
 1. Monitor client network quality
 2. Auto-switch to audio-only if bandwidth < 500 kbps
 3. Show quality indicator to students
@@ -787,9 +803,11 @@ React.useEffect(() => {
 #### 3.2 Analytics & Monitoring
 
 **Files to Create:**
+
 - `app/api/classroom-analytics/route.ts`
 
 **Changes:**
+
 1. Track participant join/leave events
 2. Monitor bandwidth usage per student
 3. Log quality degradation events
@@ -826,6 +844,7 @@ lk load-test \
 ```
 
 **Progressive Load Test:**
+
 ```bash
 # Test 1: 100 students
 --subscribers 100
@@ -853,11 +872,13 @@ lk load-test \
 #### Step 2: Simulated Real-World Testing
 
 **Tools:**
+
 - LiveKit load test CLI (simulates real clients)
 - Playwright for UI testing
 - Network throttling tools
 
 **Test Scenarios:**
+
 ```typescript
 // Test scenario 1: Mass join
 // All 1000 students join within 60 seconds
@@ -883,24 +904,28 @@ lk load-test \
 #### Beta Testing Plan
 
 **Week 1: Small Group (50-100 students)**
+
 - Test core functionality
 - Gather initial feedback
 - Monitor system metrics
 - Identify obvious issues
 
 **Week 2: Medium Group (200-500 students)**
+
 - Test scalability improvements
 - Monitor data channel performance
 - Test permission system under load
 - Gather performance metrics
 
 **Week 3: Large Group (800-1000 students)**
+
 - Full-scale test
 - Monitor all systems
 - Test degradation scenarios
 - Validate optimizations
 
 **Metrics to Track:**
+
 ```typescript
 interface SessionMetrics {
   // Connection metrics
@@ -910,15 +935,15 @@ interface SessionMetrics {
   averageJoinTime: number;
 
   // Quality metrics
-  averageVideoQuality: string;  // '720p', '480p', etc.
-  averageLatency: number;       // milliseconds
-  packetLoss: number;           // percentage
+  averageVideoQuality: string; // '720p', '480p', etc.
+  averageLatency: number; // milliseconds
+  packetLoss: number; // percentage
 
   // Performance metrics
-  teacherUploadBandwidth: number;  // Mbps
-  studentDownloadBandwidth: number;  // Mbps
-  serverCPU: number;              // percentage
-  serverMemory: number;           // MB
+  teacherUploadBandwidth: number; // Mbps
+  studentDownloadBandwidth: number; // Mbps
+  serverCPU: number; // percentage
+  serverMemory: number; // MB
 
   // Feature usage
   chatMessagesCount: number;
@@ -934,6 +959,7 @@ interface SessionMetrics {
 #### Identify Breaking Points
 
 **Test 1: Gradual Load Increase**
+
 ```bash
 # Start at 100, increase by 100 every 5 minutes
 for i in {100..2000..100}; do
@@ -943,6 +969,7 @@ done
 ```
 
 **Test 2: Burst Load**
+
 ```bash
 # Simulate 1000 students joining in 10 seconds
 lk load-test \
@@ -951,6 +978,7 @@ lk load-test \
 ```
 
 **Test 3: Sustained High Load**
+
 ```bash
 # 1000 students for 2 hours
 lk load-test \
@@ -975,12 +1003,14 @@ lk load-test \
 #### Recommended Tier
 
 **For 1000+ students:**
+
 - **Tier:** Production or Enterprise
 - **Regions:** Multi-region for geographic distribution
 - **SFU Servers:** Auto-scaling enabled
 - **Bandwidth:** Expect 5-10 Mbps upload (teacher), 2-5 Mbps download per student
 
 **Cost Estimate (LiveKit Cloud):**
+
 ```
 1 teacher broadcasting:
 - Upload: ~5 Mbps (720p with simulcast)
@@ -1017,6 +1047,7 @@ export function getLiveKitURL(baseUrl: string, region?: string): string {
 ```
 
 **Benefits:**
+
 - Reduced latency (closer servers)
 - Better reliability (region failover)
 - Improved video quality
@@ -1028,6 +1059,7 @@ export function getLiveKitURL(baseUrl: string, region?: string): string {
 #### Current: Supabase PostgreSQL
 
 **Recommended Indexes:**
+
 ```sql
 -- Classroom lookups
 CREATE INDEX idx_classrooms_room_code ON classrooms(room_code);
@@ -1043,13 +1075,14 @@ CREATE INDEX idx_requests_created ON classroom_requests(created_at);
 ```
 
 **Connection Pooling:**
+
 ```typescript
 // lib/supabase/config.ts
 export const supabaseConfig = {
   db: {
     pool: {
       min: 2,
-      max: 10,  // Increase for high load
+      max: 10, // Increase for high load
     },
   },
 };
@@ -1060,6 +1093,7 @@ export const supabaseConfig = {
 ### Redis Cache (Recommended)
 
 **Purpose:**
+
 - Room metadata caching
 - Rate limiting counters
 - Session state management
@@ -1067,9 +1101,11 @@ export const supabaseConfig = {
 **Setup Options:**
 
 1. **Upstash Redis (Serverless):**
+
    ```bash
    pnpm add @upstash/redis
    ```
+
    - Pay-per-request pricing
    - No connection management
    - Perfect for Next.js Edge
@@ -1080,6 +1116,7 @@ export const supabaseConfig = {
    - More control
 
 **Usage:**
+
 ```typescript
 import { Redis } from '@upstash/redis';
 
@@ -1103,29 +1140,34 @@ await redis.expire(`rate:${studentId}:${roomName}`, 60);
 #### Recommended Tools
 
 **1. LiveKit Dashboard (Built-in):**
+
 - Real-time participant count
 - Bandwidth usage
 - Room health metrics
 - WebRTC stats
 
 **2. Datadog (Already Integrated!):**
+
 ```typescript
 // package.json shows: "@datadog/browser-logs": "^5.23.3"
 // Already configured! ✅
 ```
 
 **Monitor:**
+
 - API response times
 - Database query performance
 - Error rates
 - Custom metrics (participants, requests, etc.)
 
 **3. Sentry (Error Tracking):**
+
 ```bash
 pnpm add @sentry/nextjs
 ```
 
 **Track:**
+
 - Connection failures
 - Permission update errors
 - API errors
@@ -1191,43 +1233,44 @@ export class ClassroomAnalytics {
 
 #### Teacher (Broadcasting)
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Upload Bandwidth | 5-10 Mbps | With simulcast (2 layers) |
-| CPU Usage | 20-40% | Modern laptop (i5/M1+) |
-| Memory Usage | 200-500 MB | Browser process |
-| Latency | 50-150ms | To LiveKit server |
+| Metric           | Value      | Notes                     |
+| ---------------- | ---------- | ------------------------- |
+| Upload Bandwidth | 5-10 Mbps  | With simulcast (2 layers) |
+| CPU Usage        | 20-40%     | Modern laptop (i5/M1+)    |
+| Memory Usage     | 200-500 MB | Browser process           |
+| Latency          | 50-150ms   | To LiveKit server         |
 
 #### Student (Receiving)
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| Download Bandwidth | 1-3 Mbps | Adaptive (480p-720p) |
-| CPU Usage | 10-20% | Modern laptop |
-| Memory Usage | 100-200 MB | Browser process |
-| Latency | 100-300ms | End-to-end (teacher → student) |
+| Metric             | Value      | Notes                          |
+| ------------------ | ---------- | ------------------------------ |
+| Download Bandwidth | 1-3 Mbps   | Adaptive (480p-720p)           |
+| CPU Usage          | 10-20%     | Modern laptop                  |
+| Memory Usage       | 100-200 MB | Browser process                |
+| Latency            | 100-300ms  | End-to-end (teacher → student) |
 
 #### Server (LiveKit SFU)
 
-| Metric | Value | Notes |
-|--------|-------|-------|
-| CPU per 100 students | ~10-20% | Single core |
-| Memory per 100 students | ~500 MB | Including buffers |
-| Bandwidth (aggregate) | 200-300 Mbps | For 100 students |
-| Max participants (single SFU) | 3000+ | Official benchmark |
+| Metric                        | Value        | Notes              |
+| ----------------------------- | ------------ | ------------------ |
+| CPU per 100 students          | ~10-20%      | Single core        |
+| Memory per 100 students       | ~500 MB      | Including buffers  |
+| Bandwidth (aggregate)         | 200-300 Mbps | For 100 students   |
+| Max participants (single SFU) | 3000+        | Official benchmark |
 
 ### Quality Levels
 
 #### Video Quality Matrix
 
-| Connection | Resolution | Bitrate | FPS | Experience |
-|------------|-----------|---------|-----|------------|
-| Excellent (>5 Mbps) | 720p | 2-3 Mbps | 30 | Perfect |
-| Good (2-5 Mbps) | 540p | 1-2 Mbps | 30 | Great |
-| Fair (1-2 Mbps) | 360p | 500-1000 kbps | 24 | Acceptable |
-| Poor (<1 Mbps) | Audio only | 64 kbps | - | Functional |
+| Connection          | Resolution | Bitrate       | FPS | Experience |
+| ------------------- | ---------- | ------------- | --- | ---------- |
+| Excellent (>5 Mbps) | 720p       | 2-3 Mbps      | 30  | Perfect    |
+| Good (2-5 Mbps)     | 540p       | 1-2 Mbps      | 30  | Great      |
+| Fair (1-2 Mbps)     | 360p       | 500-1000 kbps | 24  | Acceptable |
+| Poor (<1 Mbps)      | Audio only | 64 kbps       | -   | Functional |
 
 **Automatic Adaptation:**
+
 - LiveKit's adaptive streaming selects appropriate layer
 - Students don't need to manually adjust
 - Graceful degradation under poor conditions
@@ -1239,6 +1282,7 @@ export class ClassroomAnalytics {
 ### For Teachers
 
 **Pre-Session:**
+
 1. Use wired Ethernet connection (not WiFi)
 2. Close bandwidth-intensive applications
 3. Test camera/microphone 5 minutes before
@@ -1246,6 +1290,7 @@ export class ClassroomAnalytics {
 5. Ensure upload bandwidth ≥10 Mbps
 
 **During Session:**
+
 1. Monitor participant count in header
 2. Watch for video quality indicators
 3. Use screen share sparingly (doubles bandwidth)
@@ -1253,6 +1298,7 @@ export class ClassroomAnalytics {
 5. Grant speaking permissions selectively
 
 **Technical Setup:**
+
 ```
 Recommended:
 - Connection: Wired Ethernet
@@ -1267,18 +1313,21 @@ Recommended:
 ### For Students
 
 **Pre-Session:**
+
 1. WiFi acceptable (wired preferred)
 2. Close other browser tabs/applications
 3. Test audio before joining
 4. Join 2-3 minutes early
 
 **During Session:**
+
 1. Keep camera/microphone off (enforced by permissions)
 2. Use chat for questions
 3. Raise hand feature for voice questions
 4. Refresh page if experiencing issues
 
 **Minimum Requirements:**
+
 ```
 Required:
 - Connection: WiFi or Wired
@@ -1293,6 +1342,7 @@ Required:
 ### For Developers
 
 **Code Quality:**
+
 1. Use TypeScript strict mode
 2. Implement error boundaries
 3. Add logging for debugging
@@ -1300,6 +1350,7 @@ Required:
 5. Test on low-bandwidth connections
 
 **Deployment:**
+
 1. Use environment variables for all secrets
 2. Enable Vercel Edge Functions for low latency
 3. Configure CDN for static assets
@@ -1307,6 +1358,7 @@ Required:
 5. Have rollback plan ready
 
 **Security:**
+
 1. Validate all JWT tokens server-side
 2. Rate limit all API endpoints
 3. Never expose API keys client-side
@@ -1322,10 +1374,12 @@ Required:
 #### Issue 1: Students Can't Join
 
 **Symptoms:**
+
 - Connection timeout
 - "Failed to join room" error
 
 **Diagnosis:**
+
 ```typescript
 // Check token validity
 console.log('Token expires:', decodeJWT(token).exp);
@@ -1335,6 +1389,7 @@ console.log('Can reach server:', await ping(LIVEKIT_URL));
 ```
 
 **Solutions:**
+
 1. Verify LIVEKIT_URL is accessible
 2. Check token expiration (5 min TTL)
 3. Verify student has internet connection
@@ -1345,11 +1400,13 @@ console.log('Can reach server:', await ping(LIVEKIT_URL));
 #### Issue 2: Video Quality Poor
 
 **Symptoms:**
+
 - Pixelated video
 - Low FPS
 - Buffering
 
 **Diagnosis:**
+
 ```typescript
 // Check network quality
 room.on(RoomEvent.MediaDevicesError, (error) => {
@@ -1363,6 +1420,7 @@ room.on(RoomEvent.ConnectionQualityChanged, (quality, participant) => {
 ```
 
 **Solutions:**
+
 1. Check teacher upload bandwidth (need ≥5 Mbps)
 2. Reduce video quality preset (h720 → h540)
 3. Verify simulcast is enabled
@@ -1373,10 +1431,12 @@ room.on(RoomEvent.ConnectionQualityChanged, (quality, participant) => {
 #### Issue 3: High Latency
 
 **Symptoms:**
+
 - Audio/video delay >500ms
 - Out-of-sync audio
 
 **Diagnosis:**
+
 ```typescript
 // Measure RTT
 const stats = await room.localParticipant.getStats();
@@ -1384,6 +1444,7 @@ console.log('Round-trip time:', stats.rtt);
 ```
 
 **Solutions:**
+
 1. Use closer LiveKit region
 2. Check if teacher/students on VPN
 3. Verify internet routing (traceroute)
@@ -1394,10 +1455,12 @@ console.log('Round-trip time:', stats.rtt);
 #### Issue 4: Data Channel Slowness
 
 **Symptoms:**
+
 - Chat messages delayed
 - Permission updates slow
 
 **Diagnosis:**
+
 ```typescript
 // Monitor data channel
 room.on(RoomEvent.DataReceived, (data, participant) => {
@@ -1408,6 +1471,7 @@ room.on(RoomEvent.DataReceived, (data, participant) => {
 ```
 
 **Solutions:**
+
 1. Implement targeted delivery (not broadcast)
 2. Use lossy delivery for non-critical data
 3. Move to server-side queue for requests
@@ -1424,6 +1488,7 @@ If you eventually need to support >3000 concurrent students in a single session:
 #### Option 1: Multi-SFU Architecture
 
 **LiveKit Distributed Mesh:**
+
 - Multiple SFU servers in a mesh
 - Automatic load distribution
 - Transparent to clients
@@ -1436,11 +1501,13 @@ If you eventually need to support >3000 concurrent students in a single session:
 #### Option 2: Broadcast/Streaming Hybrid
 
 **For 10,000+ students:**
+
 1. Use LiveKit for teacher + first 100 students (interactive)
 2. Use RTMP streaming for remaining 9900 (view-only)
 3. Hybrid approach: LiveKit for quality, streaming for scale
 
 **Implementation:**
+
 ```typescript
 // app/rooms/[roomName]/PageClientImpl.tsx
 const participantCount = room.participants.size;
@@ -1463,25 +1530,27 @@ Your classroom implementation is **architecturally sound** and **ready for 1000 
 ### Summary of Findings
 
 ✅ **Core Strengths:**
+
 - Correct permission model (broadcast/webinar pattern)
 - Proper LiveKit SDK usage
 - Simulcast, dynacast, adaptive streaming enabled
 - Server-side permission management
 
 ⚠️ **Areas for Optimization:**
+
 - Data channel broadcasting (targeted delivery recommended)
 - Room metadata caching (99% reduction in API calls)
 - Request queue management (server-side recommended)
 
 ### Confidence Assessment
 
-| Component | Current State | 1000 Users Ready? |
-|-----------|---------------|-------------------|
-| Video Streaming | ✅ Production-ready | YES |
-| Permission System | ✅ Production-ready | YES |
-| Chat/Data Channels | ⚠️ Needs optimization | MOSTLY |
-| Request System | ⚠️ Needs optimization | MOSTLY |
-| Infrastructure | ✅ Adequate | YES |
+| Component          | Current State         | 1000 Users Ready? |
+| ------------------ | --------------------- | ----------------- |
+| Video Streaming    | ✅ Production-ready   | YES               |
+| Permission System  | ✅ Production-ready   | YES               |
+| Chat/Data Channels | ⚠️ Needs optimization | MOSTLY            |
+| Request System     | ⚠️ Needs optimization | MOSTLY            |
+| Infrastructure     | ✅ Adequate           | YES               |
 
 **Overall Verdict:** ✅ **READY with optimizations recommended**
 

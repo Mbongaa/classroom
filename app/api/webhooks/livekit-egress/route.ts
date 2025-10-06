@@ -146,9 +146,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Convert nanoseconds to seconds
-        let durationSeconds = duration
-          ? Math.floor(Number(duration) / 1000000000)
-          : null;
+        let durationSeconds = duration ? Math.floor(Number(duration) / 1000000000) : null;
 
         const endedAtDate = endedAt
           ? new Date(Number(endedAt) / 1000000).toISOString()
@@ -162,7 +160,9 @@ export async function POST(request: NextRequest) {
           console.log(`[LiveKit Webhook] Duration calculated from timestamps: ${durationSeconds}s`);
         }
 
-        console.log(`[LiveKit Webhook] Updating recording with duration: ${durationSeconds}s, size: ${totalSize} bytes`);
+        console.log(
+          `[LiveKit Webhook] Updating recording with duration: ${durationSeconds}s, size: ${totalSize} bytes`,
+        );
 
         await updateRecording(recording.id, {
           status: 'COMPLETED',

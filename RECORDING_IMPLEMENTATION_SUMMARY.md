@@ -25,6 +25,7 @@
 ### Feature Description
 
 Automatic recording of classroom and speech sessions with:
+
 - 🎥 **Auto-start/stop**: Recording starts automatically when teacher joins, stops when leaves
 - 🎬 **HLS Streaming**: Segmented video for fast seeking and streaming
 - 📥 **MP4 Downloads**: Optional full video download
@@ -83,21 +84,25 @@ Students watch: /dashboard/recordings/[id]
 ### Technology Stack
 
 **Recording**:
+
 - LiveKit Egress (Room Composite with HLS + MP4 output)
 - Cloudflare R2 (S3-compatible storage)
 - HLS Protocol (6-second segments)
 
 **Storage**:
+
 - Cloudflare R2 (FREE tier: 10 GB + 10M reads/month)
 - Zero egress fees (unlimited downloads)
 - Public r2.dev domain for playback
 
 **Database**:
+
 - Supabase PostgreSQL
 - Extended `session_recordings` table
 - Created `translation_entries` table (Phase 2 ready)
 
 **Frontend**:
+
 - Next.js 15 App Router
 - React 18
 - hls.js for cross-browser HLS support
@@ -110,10 +115,12 @@ Students watch: /dashboard/recordings/[id]
 ### Auto-Recording Logic
 
 **Location**:
+
 - `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx:131-186`
 - `app/rooms/[roomName]/SpeechClientImplWithRequests.tsx:129-184`
 
 **Trigger Conditions**:
+
 ```typescript
 if (!isTeacher || connectionState !== 'connected' || recordingId) {
   return; // Don't start recording
@@ -121,12 +128,14 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 ```
 
 **Start Logic**:
+
 - Wait 2 seconds after connection (ensures room stability)
 - Extract teacher name from local participant
 - Call recording API with room details
 - Store recording ID in state
 
 **Stop Logic**:
+
 - useEffect cleanup function
 - Triggers when teacher disconnects or component unmounts
 - Calls stop API with recording ID
@@ -138,10 +147,12 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 **Format**: `{ROOM_NAME}_{YYYY-MM-DD}_{HH-MM}`
 
 **Examples**:
+
 - `MATH101_2025-10-03_14-30`
 - `eagl-9jj7_2025-10-03_17-57`
 
 **Purpose**:
+
 - Unique identifier per recording session
 - Multiple sessions per persistent room
 - Human-readable timestamps
@@ -156,11 +167,13 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 #### **POST /api/record/start**
 
 **Query Parameters**:
+
 - `roomName`: LiveKit room name
 - `roomSid`: LiveKit room SID (fallback to roomName if not ready)
 - `teacherName`: Teacher's display name
 
 **Process**:
+
 1. Validate teacher authentication
 2. Generate unique session ID
 3. Configure HLS output (6-second segments)
@@ -170,6 +183,7 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 7. Return recording metadata
 
 **Response**:
+
 ```json
 {
   "success": true,
@@ -187,16 +201,19 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 #### **GET /api/record/stop**
 
 **Query Parameters**:
+
 - `roomName`: LiveKit room name
 - `recordingId`: Database recording ID (optional)
 
 **Process**:
+
 1. Validate teacher authentication
 2. List active egresses for room
 3. Stop all active egresses
 4. Update database (set ended_at)
 
 **Response**:
+
 ```json
 {
   "success": true
@@ -208,18 +225,21 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 #### **POST /api/webhooks/livekit-egress**
 
 **Webhook Events Handled**:
+
 - `egress_started` → Update status to ACTIVE
 - `egress_updated` → Log progress
 - `egress_ended` → Extract URLs, update to COMPLETED
 - Non-egress events → Ignore gracefully (return 200)
 
 **Data Extraction**:
+
 - HLS URL from `segmentResults[].playlistLocation`
 - MP4 URL from `fileResults[].filename`
 - File sizes from both results
 - Duration calculated from timestamps (fallback)
 
 **URL Processing**:
+
 - Detects full URLs from LiveKit
 - Extracts path after bucket name
 - Prepends R2 public domain
@@ -230,12 +250,14 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 ### Playback UI
 
 **List Page**: `/dashboard/recordings`
+
 - Grid layout with recording cards
 - Status badges (ACTIVE, COMPLETED, FAILED)
 - Duration and timestamp display
 - Watch, Download, Delete actions
 
 **Playback Page**: `/dashboard/recordings/[recordingId]`
+
 - HLS video player with hls.js
 - Native HLS support for iOS Safari
 - Automatic error recovery
@@ -249,41 +271,42 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 ### New Files (11)
 
 **Database Migrations** (2):
+
 1. `supabase/migrations/20250131_add_recording_columns.sql`
    - Extends `session_recordings` with session tracking columns
 2. `supabase/migrations/20250131_create_translation_entries.sql`
    - Creates table for Phase 2 translation cards
 
-**Backend Utilities** (1):
-3. `lib/recording-utils.ts`
-   - Session ID generation
-   - Database CRUD operations
-   - TypeScript interfaces
+**Backend Utilities** (1): 3. `lib/recording-utils.ts`
 
-**API Routes** (3):
-4. `app/api/webhooks/livekit-egress/route.ts`
-   - Webhook handler for egress events
+- Session ID generation
+- Database CRUD operations
+- TypeScript interfaces
+
+**API Routes** (3): 4. `app/api/webhooks/livekit-egress/route.ts`
+
+- Webhook handler for egress events
+
 5. `app/api/recordings/route.ts`
    - List all recordings
 6. `app/api/recordings/[recordingId]/route.ts`
    - Get/delete single recording
 
-**Frontend** (2):
-7. `app/dashboard/recordings/[recordingId]/page.tsx`
-   - HLS video playback page
+**Frontend** (2): 7. `app/dashboard/recordings/[recordingId]/page.tsx`
+
+- HLS video playback page
+
 8. Updated: `app/dashboard/recordings/page.tsx`
    - Recordings list (replaced placeholder)
 
-**Documentation** (3):
-9. `RECORDING_SETUP_GUIDE.md`
-10. `RECORDING_QUICK_TEST.md`
-11. `R2_PUBLIC_ACCESS_SETUP.md`
+**Documentation** (3): 9. `RECORDING_SETUP_GUIDE.md` 10. `RECORDING_QUICK_TEST.md` 11. `R2_PUBLIC_ACCESS_SETUP.md`
 
 ---
 
 ### Modified Files (6)
 
 **Backend**:
+
 1. `app/api/record/start/route.ts`
    - Added session ID generation
    - Switched to HLS segmented output
@@ -294,17 +317,17 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
    - Added database updates
    - Added recording ID parameter
 
-**Frontend**:
-3. `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx`
-   - Added auto-recording logic (lines 125-186)
+**Frontend**: 3. `app/rooms/[roomName]/ClassroomClientImplWithRequests.tsx`
+
+- Added auto-recording logic (lines 125-186)
 
 4. `app/rooms/[roomName]/SpeechClientImplWithRequests.tsx`
    - Added auto-recording logic (lines 123-184)
 
-**Configuration**:
-5. `.env.local`
-   - Added S3/R2 configuration
-   - Added R2 public domain
+**Configuration**: 5. `.env.local`
+
+- Added S3/R2 configuration
+- Added R2 public domain
 
 6. `.env.example`
    - Updated S3/R2 documentation
@@ -317,6 +340,7 @@ if (!isTeacher || connectionState !== 'connected' || recordingId) {
 ### Extended `session_recordings` Table
 
 **New Columns Added**:
+
 ```sql
 room_sid TEXT              -- LiveKit room SID
 room_name TEXT             -- Room code (MATH101, etc.)
@@ -327,6 +351,7 @@ teacher_name TEXT         -- Teacher display name
 ```
 
 **Indexes Added**:
+
 ```sql
 CREATE INDEX idx_session_recordings_room_name ON session_recordings(room_name);
 CREATE INDEX idx_session_recordings_session_id ON session_recordings(session_id);
@@ -360,6 +385,7 @@ CREATE INDEX idx_translation_playback
 ### Environment Variables
 
 **Required for Recording**:
+
 ```bash
 # LiveKit
 LIVEKIT_URL=wss://your-project.livekit.cloud
@@ -387,6 +413,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ### LiveKit Cloud Configuration
 
 **Webhook Setup**:
+
 1. Dashboard → Settings → Webhooks
 2. Add webhook URL: `https://your-domain.com/api/webhooks/livekit-egress`
 3. Enable events:
@@ -400,12 +427,14 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ### Cloudflare R2 Configuration
 
 **Bucket Settings**:
+
 - Name: `livekit-recordings`
 - Location: Automatic
 - Public Access: **Enabled** ✅
 - Public Domain: `https://pub-xxxxx.r2.dev`
 
 **CORS Policy** (Required):
+
 ```json
 [
   {
@@ -418,6 +447,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 ```
 
 **File Structure**:
+
 ```
 livekit-recordings/
 ├── MATH101/
@@ -440,6 +470,7 @@ livekit-recordings/
 ### Manual Test Procedure
 
 **1. Start Recording**:
+
 ```
 1. Visit: http://localhost:3000/rooms/TEST?classroom=true&role=teacher
 2. Join as teacher
@@ -448,6 +479,7 @@ livekit-recordings/
 ```
 
 **2. Stop Recording**:
+
 ```
 1. Leave room (close tab or navigate away)
 2. Check terminal logs: "[Auto-Recording] Stopped on disconnect"
@@ -457,6 +489,7 @@ livekit-recordings/
 ```
 
 **3. Test Playback**:
+
 ```
 1. Visit: http://localhost:3000/dashboard/recordings
 2. Verify recording card shows "COMPLETED" status
@@ -471,22 +504,26 @@ livekit-recordings/
 ### Verification Checklist
 
 **Database**:
+
 - [ ] New columns exist in `session_recordings` table
 - [ ] `translation_entries` table created
 - [ ] Indexes created successfully
 
 **Recording Start**:
+
 - [ ] Database row created with status="ACTIVE"
 - [ ] session_id format correct: `ROOM_YYYY-MM-DD_HH-MM`
 - [ ] teacher_name populated
 - [ ] Console log: "[Auto-Recording] Started"
 
 **Recording Stop**:
+
 - [ ] Console log: "[Auto-Recording] Stopped"
 - [ ] LiveKit egress stops
 - [ ] Files uploaded to R2 bucket
 
 **Webhook Processing**:
+
 - [ ] Webhook receives egress_ended event
 - [ ] status updated to "COMPLETED"
 - [ ] hls_playlist_url populated with clean URL
@@ -495,6 +532,7 @@ livekit-recordings/
 - [ ] size_bytes populated
 
 **Playback**:
+
 - [ ] Recording appears in /dashboard/recordings
 - [ ] Status badge shows green "COMPLETED"
 - [ ] Click "Watch" loads playback page
@@ -509,6 +547,7 @@ livekit-recordings/
 ### Issue 1: Recording Never Completes (Status Stays "ACTIVE")
 
 **Symptoms**:
+
 - Recording starts fine
 - Files uploaded to R2
 - Database never updates to "COMPLETED"
@@ -516,6 +555,7 @@ livekit-recordings/
 **Root Cause**: Webhook not reaching server
 
 **Solutions**:
+
 1. **Local Testing**: Use ngrok
    ```bash
    ngrok http 3000
@@ -532,6 +572,7 @@ livekit-recordings/
 ### Issue 2: Video Won't Play (Network Error)
 
 **Symptoms**:
+
 - Recording shows "COMPLETED"
 - Click "Watch" shows HLS player error
 - Console: "Fatal network error"
@@ -539,6 +580,7 @@ livekit-recordings/
 **Root Cause**: CORS not configured on R2 bucket
 
 **Solution**: Add CORS policy in R2 Dashboard → Settings → CORS:
+
 ```json
 [
   {
@@ -555,6 +597,7 @@ livekit-recordings/
 ### Issue 3: 403 Access Denied on Videos
 
 **Symptoms**:
+
 - HLS playlist downloads
 - Video segments get 403 error
 - MP4 gets 401/403 error
@@ -568,6 +611,7 @@ livekit-recordings/
 ### Issue 4: Duplicate URLs in Database
 
 **Symptoms**:
+
 ```
 hls_playlist_url: https://pub-xxx.r2.dev/https://734bee...r2.cloudflarestorage.com/...
 ```
@@ -575,6 +619,7 @@ hls_playlist_url: https://pub-xxx.r2.dev/https://734bee...r2.cloudflarestorage.c
 **Root Cause**: S3_ENDPOINT included bucket name
 
 **Solution**:
+
 1. Remove `/livekit-recordings` from S3_ENDPOINT
 2. Should be: `https://ACCOUNT_ID.r2.cloudflarestorage.com`
 3. Code automatically extracts path from LiveKit's full URLs
@@ -584,13 +629,15 @@ hls_playlist_url: https://pub-xxx.r2.dev/https://734bee...r2.cloudflarestorage.c
 ### Issue 5: room_sid = "undefined"
 
 **Symptoms**:
+
 - Database shows room_sid as string "undefined"
 
 **Root Cause**: Race condition - room.sid not ready when recording starts
 
 **Solution**: Use fallback
+
 ```typescript
-roomSid: room.sid || room.name
+roomSid: room.sid || room.name;
 ```
 
 **Impact**: None (room_sid is just metadata, doesn't affect functionality)
@@ -600,11 +647,13 @@ roomSid: room.sid || room.name
 ### Issue 6: duration_seconds = null
 
 **Symptoms**:
+
 - Recording completes but duration not calculated
 
 **Root Cause**: LiveKit webhook doesn't always provide duration field
 
 **Solution**: Fallback calculation from timestamps
+
 ```typescript
 const durationSeconds = duration
   ? Math.floor(Number(duration) / 1000000000)
@@ -620,6 +669,7 @@ const durationSeconds = duration
 **Goal**: Sync timestamped translation cards with video playback
 
 **Implementation**:
+
 1. **Translation Capture** (during live session):
    - Modify `TranslationPanel.tsx` to accept `recordingMetadata` prop
    - Calculate `timestamp_ms = Date.now() - recording.startTime`
@@ -644,6 +694,7 @@ const durationSeconds = duration
 **Goal**: Students input email to get recording access
 
 **Implementation**:
+
 1. **Email Collection**:
    - Add email field to lobby/prejoin
    - Create `recording_access` table
@@ -667,6 +718,7 @@ const durationSeconds = duration
 **Goal**: Link recordings to persistent rooms and organizations
 
 **Implementation**:
+
 1. **Create Classroom Mapping**:
    - When creating persistent room, create `classrooms` table entry
    - Store classroom_id in room metadata
@@ -688,12 +740,14 @@ const durationSeconds = duration
 ### Cloudflare R2 (Current Setup)
 
 **Free Tier Limits**:
+
 - Storage: 10 GB (~20 hours of 1080p video)
 - Class A operations: 1M/month (uploads)
 - Class B operations: 10M/month (downloads)
 - Egress: **FREE unlimited**
 
 **Estimated Usage** (20 sessions/month, 30 min each):
+
 - Storage: ~6 GB
 - Downloads: ~500 GB (if 50 students watch each)
 - **Cost: $0/month** (within free tier!)
@@ -705,6 +759,7 @@ const durationSeconds = duration
 **Pricing**: ~$0.0040/minute
 
 **Estimated Cost** (20 sessions/month, 30 min each):
+
 - Minutes: 20 × 30 = 600 minutes
 - Cost: 600 × $0.0040 = **$2.40/month**
 
@@ -713,11 +768,13 @@ const durationSeconds = duration
 ### Total Monthly Cost
 
 **Current Implementation**: **~$2.50/month**
+
 - LiveKit Egress: $2.40
 - R2 Storage: $0 (free tier)
 - Bandwidth: $0 (R2 free egress)
 
 **With AWS S3** (comparison): **~$22/month**
+
 - LiveKit Egress: $2.40
 - S3 Storage: $0.50
 - S3 Egress: $18 (for 200 GB downloads @ $0.09/GB)
@@ -732,23 +789,27 @@ const durationSeconds = duration
 ### Recording Settings
 
 **Video**:
+
 - Codec: VP9, VP8, H264 (auto-selected)
 - Resolution: Up to 1280×720 (teacher camera)
 - Bitrate: Adaptive (high/medium/low layers)
 - Layout: Speaker-focused (teacher prominence)
 
 **Audio**:
+
 - Codec: Opus
 - Features: AGC, echo cancellation, noise suppression
 - Bitrate: Adaptive
 
 **HLS Output**:
+
 - Segment duration: 6 seconds
 - Protocol: HLS_PROTOCOL
 - Format: .m3u8 playlist + .ts segments
 - Seeking: Full scrubbing support
 
 **MP4 Output**:
+
 - Format: MP4 (H.264 + AAC)
 - Single file download
 - Optional (can disable to save storage)
@@ -758,18 +819,21 @@ const durationSeconds = duration
 ### Performance Characteristics
 
 **Recording Start**:
+
 - Trigger delay: 2 seconds after teacher connects
 - API response time: ~1-2 seconds
 - LiveKit egress start: ~3-5 seconds
 - Total: **~6-9 seconds** from join to recording active
 
 **Recording Stop**:
+
 - API response time: ~1 second
 - LiveKit processing: 30-60 seconds
 - Webhook delivery: <5 seconds
 - Total: **~35-65 seconds** from stop to playback ready
 
 **Playback**:
+
 - First frame: 5-10 seconds (HLS buffering)
 - Seeking: <2 seconds (6-second segment granularity)
 - Download: Instant (direct MP4 link)
@@ -781,16 +845,19 @@ const durationSeconds = duration
 ### Current Implementation
 
 **Access Control**:
+
 - Recording APIs: Teacher authentication required (`requireTeacher()`)
 - Playback: Organization member authentication (via Supabase RLS)
 - Webhook: Public endpoint (validates egress events only)
 
 **Data Protection**:
+
 - R2 bucket: Public read access (required for playback)
 - Database: Row-level security enabled
 - API keys: Server-side only (never exposed to client)
 
 **CORS**:
+
 - Wildcard allowed origins (for testing)
 - Should restrict to specific domains in production
 
@@ -799,6 +866,7 @@ const durationSeconds = duration
 ### Phase 2 Security Enhancements
 
 **Planned Improvements**:
+
 1. **Signed URLs**: Generate time-limited signed URLs for R2 files
 2. **Token-Based Access**: Require access tokens for playback
 3. **Audit Logs**: Track who watches which recordings
@@ -812,6 +880,7 @@ const durationSeconds = duration
 ### Achieved Results
 
 **Functional**:
+
 - ✅ 100% automatic recording (no teacher action needed)
 - ✅ Zero failed recordings in testing
 - ✅ Multi-session support verified
@@ -819,11 +888,13 @@ const durationSeconds = duration
 - ✅ Mobile playback supported (iOS/Android)
 
 **Performance**:
+
 - ✅ Recording starts within 10 seconds
 - ✅ Playback ready within 60 seconds of stop
 - ✅ Zero cost for storage/bandwidth (R2 free tier)
 
 **Data Quality**:
+
 - ✅ Unique session IDs (no collisions)
 - ✅ Accurate duration calculation
 - ✅ File sizes tracked correctly
@@ -836,17 +907,20 @@ const durationSeconds = duration
 ### Key Log Messages
 
 **Recording Start**:
+
 ```
 [Auto-Recording] Started: ROOM_2025-10-03_17-57
 ```
 
 **Recording Stop**:
+
 ```
 [Auto-Recording] Stopped on disconnect
 [Recording Stop] Stopped 1 egress(es) for room: ROOM
 ```
 
 **Webhook Processing**:
+
 ```
 [LiveKit Webhook] Egress completed for recording: uuid
 [LiveKit Webhook] Processing 3 segment results
@@ -861,6 +935,7 @@ const durationSeconds = duration
 ### Common Log Patterns
 
 **Success Pattern**:
+
 ```
 [Auto-Recording] Started
   ↓
@@ -874,6 +949,7 @@ const durationSeconds = duration
 ```
 
 **Failure Patterns**:
+
 - No "[Auto-Recording] Started" → Check connection state, teacher role
 - No webhook logs → Webhook URL wrong or ngrok down
 - "Invalid payload" errors → Wrong webhook events enabled
@@ -886,14 +962,17 @@ const durationSeconds = duration
 ### Regular Tasks
 
 **Daily**:
+
 - Monitor R2 storage usage (dashboard)
 - Check failed recordings (status="FAILED")
 
 **Weekly**:
+
 - Review webhook logs for errors
 - Clean up test recordings
 
 **Monthly**:
+
 - Verify CORS policy still active
 - Check R2 free tier limits
 - Archive old recordings if needed
@@ -903,10 +982,12 @@ const durationSeconds = duration
 ### Backup & Recovery
 
 **Database Backups**:
+
 - Supabase automatic backups (daily)
 - Recording metadata preserved
 
 **Video Files**:
+
 - R2 bucket versioning (optional)
 - Download important recordings to local storage
 - Consider S3 lifecycle policies for archival
@@ -916,6 +997,7 @@ const durationSeconds = duration
 ## Production Deployment Checklist
 
 Before going live:
+
 - [ ] Update R2_PUBLIC_DOMAIN to production domain
 - [ ] Restrict CORS to specific origins (not wildcard)
 - [ ] Configure LiveKit webhook with production URL
@@ -932,6 +1014,7 @@ Before going live:
 ### What We Built
 
 **Phase 1 Complete**:
+
 - ✅ Automatic recording for classroom/speech sessions
 - ✅ HLS streaming playback
 - ✅ MP4 downloads
@@ -954,11 +1037,13 @@ Before going live:
 ### Next Steps
 
 **Immediate**:
+
 1. Configure R2 CORS policy (if video playback has errors)
 2. Test with real classroom sessions
 3. Monitor for any edge cases
 
 **Phase 2** (Future):
+
 1. Translation cards overlay during playback
 2. Email-based student access system
 3. Persistent room → classroom linkage

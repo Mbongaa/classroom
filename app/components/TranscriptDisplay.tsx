@@ -42,9 +42,7 @@ export default function TranscriptDisplay({
       {groupedSegments.map((group, index) => (
         <div key={index}>
           {/* Speaker Name as Heading */}
-          <h3 className="text-lg font-bold mb-3 text-foreground">
-            {group.speaker}
-          </h3>
+          <h3 className="text-lg font-bold mb-3 text-foreground">{group.speaker}</h3>
 
           {/* Combined Text as Paragraph */}
           <p className="text-base leading-relaxed text-foreground/90 whitespace-pre-wrap">
@@ -55,9 +53,7 @@ export default function TranscriptDisplay({
 
       {/* Metadata Footer */}
       <div className="mt-8 pt-4 border-t border-border text-xs text-muted-foreground text-center print:hidden">
-        <p>
-          Lecture transcript • Language: {language.toUpperCase()}
-        </p>
+        <p>Lecture transcript • Language: {language.toUpperCase()}</p>
       </div>
     </div>
   );

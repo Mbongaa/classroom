@@ -22,6 +22,7 @@
    - `supabase/migrations/20250131_create_translation_entries.sql`
 
 **Verify migrations worked**:
+
 ```sql
 -- Run this query in Supabase SQL Editor
 SELECT column_name, data_type
@@ -62,6 +63,7 @@ pnpm dev
    - Button should disable briefly while processing
 
 4. **Verify in Console** (Press F12):
+
    ```
    [Recording] Started { success: true, recording: { ... } }
    ```
@@ -89,6 +91,7 @@ pnpm dev
    - Click "Stop Recording" button
 
 3. **Verify in Console**:
+
    ```
    [Recording] Stopped { success: true }
    ```
@@ -109,6 +112,7 @@ pnpm dev
    ```
 
 **Expected after 30-60 seconds**:
+
 - `status`: "COMPLETED"
 - `hls_playlist_url`: "https://...r2.cloudflarestorage.com/...index.m3u8"
 - `mp4_url`: "https://...r2.cloudflarestorage.com/...session.mp4"
@@ -148,6 +152,7 @@ pnpm dev
 **Check**: Did you restart the dev server after adding env variables?
 
 **Solution**:
+
 ```bash
 # Stop server (Ctrl+C)
 pnpm dev
@@ -185,11 +190,13 @@ pnpm dev
 **Check Browser Console** for errors.
 
 **Common Causes**:
+
 1. **CORS Error**: R2 bucket needs CORS configuration
 2. **URL Wrong**: Check `hls_playlist_url` is accessible in browser
 3. **Public Access**: R2 bucket needs public access enabled
 
 **Fix CORS** (R2 Dashboard → Your Bucket → Settings → CORS):
+
 ```json
 [
   {
@@ -202,6 +209,7 @@ pnpm dev
 ```
 
 **Enable Public Access** (R2 Dashboard → Your Bucket → Settings):
+
 - Enable "Allow Access" or connect custom domain
 
 ---
@@ -209,11 +217,13 @@ pnpm dev
 ### Issue: No "Recording" tab in settings menu
 
 **Check**:
+
 1. `.env.local` has `NEXT_PUBLIC_LK_RECORD_ENDPOINT=/api/record`
 2. Dev server was restarted after adding this
 3. Settings menu icon appears (⚙️)
 
 **Verify**:
+
 ```bash
 # Print environment variables
 echo $NEXT_PUBLIC_LK_RECORD_ENDPOINT
@@ -238,6 +248,7 @@ After completing all steps, you should have:
 ## 📊 What's Working Now
 
 **Phase 1 Complete**:
+
 - ✅ Session tracking (unique IDs per recording)
 - ✅ HLS streaming playback
 - ✅ MP4 downloads
@@ -245,6 +256,7 @@ After completing all steps, you should have:
 - ✅ Multi-session support (same room, different sessions)
 
 **Phase 2 (Next)**:
+
 - ⏳ Translation cards overlay UI
 - ⏳ Email-based access system
 - ⏳ Seek-to-translation functionality
@@ -254,6 +266,7 @@ After completing all steps, you should have:
 ## 🎯 Quick Test Commands
 
 **Test webhook manually** (before configuring ngrok):
+
 ```bash
 curl -X POST http://localhost:3000/api/webhooks/livekit-egress \
   -H "Content-Type: application/json" \
@@ -261,6 +274,7 @@ curl -X POST http://localhost:3000/api/webhooks/livekit-egress \
 ```
 
 **Check database via Supabase**:
+
 ```sql
 -- See all recordings
 SELECT room_name, session_id, status, started_at

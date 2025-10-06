@@ -43,7 +43,11 @@ interface SentenceBuffer {
  * OPTIMIZATION: Accumulates chunks until sentence boundary detected (punctuation)
  * or timeout occurs, then saves complete sentences to reduce database writes by ~90%.
  */
-export default function TranscriptionSaver({ roomName, sessionStartTime, sessionId }: TranscriptionSaverProps) {
+export default function TranscriptionSaver({
+  roomName,
+  sessionStartTime,
+  sessionId,
+}: TranscriptionSaverProps) {
   const room = useRoomContext();
   const savedSegmentIds = useRef<Set<string>>(new Set());
 
@@ -69,11 +73,14 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
 
     // Sort chunks by timestamp to handle out-of-order arrival
     const sortedChunks = [...sentenceBuffer.current.chunks].sort(
-      (a, b) => a.timestamp_ms - b.timestamp_ms
+      (a, b) => a.timestamp_ms - b.timestamp_ms,
     );
 
     // Combine text with proper spacing
-    const fullText = sortedChunks.map(c => c.text).join(' ').trim();
+    const fullText = sortedChunks
+      .map((c) => c.text)
+      .join(' ')
+      .trim();
 
     // Skip if result is empty
     if (!fullText) {
@@ -113,23 +120,36 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
         }
 
         const data = await response.json();
-        console.log('[TranscriptionSaver] ✅ Saved complete sentence:',
-          speakingLanguage, sentenceTimestamp, 'Entry ID:', data.entry?.id);
+        console.log(
+          '[TranscriptionSaver] ✅ Saved complete sentence:',
+          speakingLanguage,
+          sentenceTimestamp,
+          'Entry ID:',
+          data.entry?.id,
+        );
       } catch (err) {
-        console.error(`[TranscriptionSaver] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`, err);
+        console.error(
+          `[TranscriptionSaver] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`,
+          err,
+        );
 
         // Retry with exponential backoff
         if (attempt < MAX_RETRIES) {
           const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
           console.log(`[TranscriptionSaver] Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           return saveWithRetry(attempt + 1);
         } else {
-          console.error('[TranscriptionSaver] ⚠️ FAILED after', MAX_RETRIES, 'attempts. Data lost:', {
-            text: fullText.substring(0, 100),
-            timestamp: sentenceTimestamp,
-            sessionId,
-          });
+          console.error(
+            '[TranscriptionSaver] ⚠️ FAILED after',
+            MAX_RETRIES,
+            'attempts. Data lost:',
+            {
+              text: fullText.substring(0, 100),
+              timestamp: sentenceTimestamp,
+              sessionId,
+            },
+          );
           // Could add user notification here (toast/alert)
         }
       }
@@ -147,7 +167,11 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
       const timeSinceLastUpdate = Date.now() - sentenceBuffer.current.lastUpdateTime;
 
       if (timeSinceLastUpdate > FLUSH_TIMEOUT && sentenceBuffer.current.chunks.length > 0) {
-        console.log('[TranscriptionSaver] Timeout flush - no new chunks for', FLUSH_TIMEOUT / 1000, 'seconds');
+        console.log(
+          '[TranscriptionSaver] Timeout flush - no new chunks for',
+          FLUSH_TIMEOUT / 1000,
+          'seconds',
+        );
         flushSentence();
       }
     }, 1000); // Check every second
@@ -169,7 +193,7 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
       // Only process final segments to avoid duplicates
-      const finalSegments = segments.filter(seg => seg.final);
+      const finalSegments = segments.filter((seg) => seg.final);
 
       // Get teacher's speaking language from local participant attributes
       const speakingLanguage = room.localParticipant?.attributes?.speaking_language;
@@ -180,17 +204,18 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
       }
 
       // Debug log to trace what we're receiving
-      console.log('[DEBUG TranscriptionSaver] Received segments:',
-        segments.map(s => ({
+      console.log(
+        '[DEBUG TranscriptionSaver] Received segments:',
+        segments.map((s) => ({
           id: s.id,
           language: s.language,
           text: s.text.substring(0, 50),
           final: s.final,
-        }))
+        })),
       );
 
       // Find transcription in teacher's speaking language
-      const transcription = finalSegments.find(seg => seg.language === speakingLanguage);
+      const transcription = finalSegments.find((seg) => seg.language === speakingLanguage);
 
       if (transcription) {
         const segmentKey = `${transcription.id}-${transcription.language}`;
@@ -247,7 +272,10 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
     // Only log if we have a speaking language set
     const speakingLanguage = room.localParticipant?.attributes?.speaking_language;
     if (speakingLanguage) {
-      console.log('[TranscriptionSaver] Listening for transcriptions, speaking language:', speakingLanguage);
+      console.log(
+        '[TranscriptionSaver] Listening for transcriptions, speaking language:',
+        speakingLanguage,
+      );
     } else {
       console.log('[TranscriptionSaver] Waiting for speaking language to be set...');
     }
@@ -256,7 +284,13 @@ export default function TranscriptionSaver({ roomName, sessionStartTime, session
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, sessionId, sessionStartTime, flushSentence, room?.localParticipant?.attributes?.speaking_language]);
+  }, [
+    room,
+    sessionId,
+    sessionStartTime,
+    flushSentence,
+    room?.localParticipant?.attributes?.speaking_language,
+  ]);
 
   // No UI - this component is invisible
   return null;

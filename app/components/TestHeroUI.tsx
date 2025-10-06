@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import {Tabs, Tab, Card, CardBody, Switch} from "@heroui/react";
+import { Tabs, Tab, Card, CardBody, Switch } from '@heroui/react';
 
 export default function TestHeroUI() {
   const [isVertical, setIsVertical] = React.useState(true);

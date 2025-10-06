@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-const {heroui} = require("@heroui/theme");
+const { heroui } = require('@heroui/theme');
 
 // Minimal config with ONLY HeroUI to test if it works
 const config: Config = {
@@ -12,7 +12,7 @@ const config: Config = {
   theme: {
     extend: {},
   },
-  darkMode: "class",
+  darkMode: 'class',
   plugins: [heroui()],
 };
 

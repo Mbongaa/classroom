@@ -109,10 +109,7 @@ export async function updateRecording(
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  const { error } = await supabase
-    .from('session_recordings')
-    .update(updates)
-    .eq('id', recordingId);
+  const { error } = await supabase.from('session_recordings').update(updates).eq('id', recordingId);
 
   if (error) throw new Error(`Failed to update recording: ${error.message}`);
 }
@@ -234,7 +231,11 @@ export async function getRecordingTranslations(
     .single();
 
   if (recordingError || !recording?.session_uuid) {
-    console.error('[getRecordingTranslations] Recording or session not found:', recordingId, recordingError);
+    console.error(
+      '[getRecordingTranslations] Recording or session not found:',
+      recordingId,
+      recordingError,
+    );
     return [];
   }
 
@@ -257,7 +258,7 @@ export async function getRecordingTranslations(
     recordingId,
     sessionUuid: recording.session_uuid,
     language,
-    count: data?.length || 0
+    count: data?.length || 0,
   });
 
   return (data || []) as TranslationEntry[];
@@ -297,9 +298,7 @@ export async function saveTranscription(params: {
  * Get transcriptions for playback (original speaker language)
  * Queries by session_id since transcriptions are linked to sessions, not recordings
  */
-export async function getRecordingTranscriptions(
-  recordingId: string,
-): Promise<Transcription[]> {
+export async function getRecordingTranscriptions(recordingId: string): Promise<Transcription[]> {
   const supabase = createAdminClient();
 
   // First, get the recording to find its session_uuid
@@ -310,7 +309,11 @@ export async function getRecordingTranscriptions(
     .single();
 
   if (recordingError || !recording?.session_uuid) {
-    console.error('[getRecordingTranscriptions] Recording or session not found:', recordingId, recordingError);
+    console.error(
+      '[getRecordingTranscriptions] Recording or session not found:',
+      recordingId,
+      recordingError,
+    );
     return [];
   }
 
@@ -326,7 +329,7 @@ export async function getRecordingTranscriptions(
   console.log('[getRecordingTranscriptions] Found transcriptions:', {
     recordingId,
     sessionUuid: recording.session_uuid,
-    count: data?.length || 0
+    count: data?.length || 0,
   });
 
   return (data || []) as Transcription[];

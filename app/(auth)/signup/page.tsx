@@ -28,14 +28,18 @@ export default function SignupPage() {
               hosting live sessions with real-time translation for our international
               students.&rdquo;
             </p>
-            <footer className="text-sm text-gray-600 dark:text-gray-400">Prof. Michael Chen, University of California</footer>
+            <footer className="text-sm text-gray-600 dark:text-gray-400">
+              Prof. Michael Chen, University of California
+            </footer>
           </blockquote>
         </div>
       </div>
       <div className="lg:p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
           <div className="flex flex-col space-y-2 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">Create your organization</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-black dark:text-white">
+              Create your organization
+            </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Enter your information to get started with Bayaan Classroom
             </p>
