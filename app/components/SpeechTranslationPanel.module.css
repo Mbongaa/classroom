@@ -369,14 +369,36 @@
 
   .translationList {
     padding: 12px;
-    gap: 8px;
+    gap: 6px;
   }
 
   .translationItem {
-    padding: 12px;
+    padding: 8px;
+  }
+
+  .translationHeader {
+    margin-bottom: 4px;
+  }
+
+  .speaker {
+    font-size: 11px;
+  }
+
+  .timestamp {
+    font-size: 10px;
+  }
+
+  .translationText {
+    font-size: 15px !important;
+    line-height: 1.5;
+  }
+
+  .latestIndicator {
+    top: 8px;
+    right: 8px;
   }
 
   .statusBar {
-    padding: 10px 16px;
+    display: none !important;
   }
 }

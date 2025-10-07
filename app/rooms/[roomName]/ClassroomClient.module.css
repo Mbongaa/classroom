@@ -742,10 +742,10 @@
 
   /* CONDITIONAL: When translation is active - fine-tuned camera tile sizes for sweet spot */
   .mainContainer.withTranslation .mainVideoGrid:has(> :only-child) > * {
-    width: 45vw !important; /* Fine-tune: 50vw → 45vw */
-    height: 45vw !important;
-    max-width: 170px !important;
-    max-height: 170px !important;
+    width: 58vw !important;
+    height: 58vw !important;
+    max-width: 220px !important;
+    max-height: 220px !important;
   }
 
   /* Override for screen share on mobile - use full available space */
@@ -765,17 +765,17 @@
   }
 
   .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(2):last-child) > * {
-    width: 32vw !important; /* Fine-tune: 35vw → 32vw */
-    height: 32vw !important;
-    max-width: 130px !important;
-    max-height: 130px !important;
+    width: 42vw !important;
+    height: 42vw !important;
+    max-width: 170px !important;
+    max-height: 170px !important;
   }
 
   .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(3)) > * {
-    width: 28vw !important; /* Fine-tune: 30vw → 28vw */
-    height: 28vw !important;
-    max-width: 115px !important;
-    max-height: 115px !important;
+    width: 38vw !important;
+    height: 38vw !important;
+    max-width: 155px !important;
+    max-height: 155px !important;
   }
 
   .translationSidebar {
@@ -789,11 +789,10 @@
   }
 
   .studentsSection {
-    height: 110px; /* Compact on mobile */
-    /* Fixed size to eliminate flex competition */
-    flex: 0 0 110px;
-    min-height: 80px;
-    max-height: 120px;
+    height: auto !important;
+    min-height: 40px !important;
+    max-height: 50px !important;
+    flex: 0 0 auto !important;
   }
 
   /* Ensure main container uses proper flex layout for mobile panels */
@@ -808,7 +807,7 @@
   }
 
   .studentsGrid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    display: none !important;
   }
 
   .studentTile {

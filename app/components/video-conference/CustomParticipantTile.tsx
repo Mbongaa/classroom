@@ -199,11 +199,14 @@ export function CustomParticipantTile({
         {/* Overlay Information */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Top Bar */}
-          <div className="absolute top-0 left-0 right-0 p-2 bg-gradient-to-b from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent">
+          <div className="absolute top-0 left-0 right-0 p-2">
             <div className="flex items-center justify-between">
               {/* Participant Name */}
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium truncate max-w-[150px] text-black dark:text-white">
+                <span
+                  className="text-sm font-medium truncate max-w-[150px] text-white"
+                  style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
+                >
                   {participant.name || participant.identity}
                 </span>
               </div>
@@ -213,7 +216,7 @@ export function CustomParticipantTile({
           </div>
 
           {/* Bottom Bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-2">
             <div className="flex items-center justify-between">
               {/* Media Status Icons */}
               <div className="flex items-center gap-2">
@@ -267,12 +270,6 @@ export function CustomParticipantTile({
               )}
             </div>
           </div>
-
-          {/* Left Side Gradient */}
-          <div className="absolute top-0 bottom-0 left-0 w-16 bg-gradient-to-r from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent" />
-
-          {/* Right Side Gradient */}
-          <div className="absolute top-0 bottom-0 right-0 w-16 bg-gradient-to-l from-white/40 via-white/15 dark:from-black/70 dark:via-black/30 to-transparent" />
 
           {/* Additional Metadata */}
           {showMetadata && metadata.additionalInfo && (
