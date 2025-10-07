@@ -197,7 +197,10 @@ function createParticipantToken(
   role: string = 'student',
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
-  at.ttl = '5m';
+  at.ttl = '15m';
+  // Add grace period to handle clock skew between Vercel and LiveKit servers
+  // This prevents "token expired" errors on cold starts
+  at.notBefore = Math.floor(Date.now() / 1000) - 10; // 10 seconds in the past
 
   let grant: VideoGrant;
 
