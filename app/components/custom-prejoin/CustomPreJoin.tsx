@@ -32,6 +32,7 @@ interface CustomPreJoinProps {
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
   isTeacher?: boolean;
+  isStudent?: boolean;
   isSpeechListener?: boolean;
 }
 
@@ -43,16 +44,18 @@ export default function CustomPreJoin({
   selectedLanguage = '',
   onLanguageChange,
   isTeacher = false,
+  isStudent = false,
   isSpeechListener = false,
 }: CustomPreJoinProps) {
   // State management
   const [username, setUsername] = React.useState(defaults?.username || '');
-  // Force disable media for speech listeners
+  // Force disable media for students and speech listeners
+  const shouldDisableMedia = isStudent || isSpeechListener;
   const [videoEnabled, setVideoEnabled] = React.useState(
-    isSpeechListener ? false : defaults?.videoEnabled !== undefined ? defaults.videoEnabled : true,
+    shouldDisableMedia ? false : defaults?.videoEnabled !== undefined ? defaults.videoEnabled : true,
   );
   const [audioEnabled, setAudioEnabled] = React.useState(
-    isSpeechListener ? false : defaults?.audioEnabled !== undefined ? defaults.audioEnabled : true,
+    shouldDisableMedia ? false : defaults?.audioEnabled !== undefined ? defaults.audioEnabled : true,
   );
   const [videoDeviceId, setVideoDeviceId] = React.useState<string>('');
   const [audioDeviceId, setAudioDeviceId] = React.useState<string>('');
@@ -73,10 +76,13 @@ export default function CustomPreJoin({
   const [videoDevices, setVideoDevices] = React.useState<MediaDeviceInfo[]>([]);
   const [audioDevices, setAudioDevices] = React.useState<MediaDeviceInfo[]>([]);
 
+  // Determine if media controls should be hidden (for students and speech listeners)
+  const shouldHideMedia = isStudent || isSpeechListener;
+
   // Get media devices
   React.useEffect(() => {
-    // Skip all media device setup for speech listeners
-    if (isSpeechListener) return;
+    // Skip all media device setup for students and speech listeners
+    if (shouldHideMedia) return;
 
     const getDevices = async () => {
       try {
@@ -103,12 +109,12 @@ export default function CustomPreJoin({
     };
 
     getDevices();
-  }, [isSpeechListener, audioDeviceId, videoDeviceId]);
+  }, [shouldHideMedia, audioDeviceId, videoDeviceId]);
 
   // Initialize video track
   React.useEffect(() => {
-    // Skip video track initialization for speech listeners
-    if (isSpeechListener) return;
+    // Skip video track initialization for students and speech listeners
+    if (shouldHideMedia) return;
 
     let track: any = null;
 
@@ -127,8 +133,8 @@ export default function CustomPreJoin({
           console.error('Failed to create video track:', error);
           setVideoEnabled(false);
         }
-      } else if (localVideoTrack) {
-        localVideoTrack.stop();
+      } else {
+        // When disabled, clear the state
         setLocalVideoTrack(null);
       }
     };
@@ -140,12 +146,12 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [videoEnabled, videoDeviceId, isSpeechListener, localVideoTrack]);
+  }, [videoEnabled, videoDeviceId, shouldHideMedia]);
 
   // Initialize audio track
   React.useEffect(() => {
-    // Skip audio track initialization for speech listeners
-    if (isSpeechListener) return;
+    // Skip audio track initialization for students and speech listeners
+    if (shouldHideMedia) return;
 
     let track: any = null;
 
@@ -160,8 +166,8 @@ export default function CustomPreJoin({
           console.error('Failed to create audio track:', error);
           setAudioEnabled(false);
         }
-      } else if (localAudioTrack) {
-        localAudioTrack.stop();
+      } else {
+        // When disabled, clear the state
         setLocalAudioTrack(null);
       }
     };
@@ -173,7 +179,7 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [audioEnabled, audioDeviceId, isSpeechListener, localAudioTrack]);
+  }, [audioEnabled, audioDeviceId, shouldHideMedia]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -213,8 +219,8 @@ export default function CustomPreJoin({
       data-lk-theme="default"
       style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
     >
-      {/* Video preview area - Hidden for speech listeners */}
-      {!isSpeechListener && (
+      {/* Video preview area - Hidden for students and speech listeners */}
+      {!shouldHideMedia && (
         <div
           className="lk-video-container w-full"
           style={{
@@ -263,8 +269,8 @@ export default function CustomPreJoin({
         </div>
       )}
 
-      {/* Media controls - Hidden for speech listeners */}
-      {!isSpeechListener && (
+      {/* Media controls - Hidden for students and speech listeners */}
+      {!shouldHideMedia && (
         <div
           style={{
             display: 'flex',

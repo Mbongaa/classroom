@@ -255,6 +255,9 @@ export function PageClientImpl(props: {
                 selectedLanguage={selectedLanguage}
                 onLanguageChange={setSelectedLanguage}
                 isTeacher={classroomInfo?.role === 'teacher'}
+                isStudent={
+                  classroomInfo?.role === 'student' && classroomInfo?.mode === 'classroom'
+                }
                 isSpeechListener={
                   classroomInfo?.mode === 'speech' && classroomInfo?.role === 'student'
                 }

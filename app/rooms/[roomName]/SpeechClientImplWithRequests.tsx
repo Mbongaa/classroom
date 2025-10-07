@@ -198,7 +198,8 @@ export function SpeechClientImplWithRequests({
   }, [isTeacher, recordingId, room]);
 
   // Determine if current user can speak based on actual permissions
-  const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish ?? false);
+  // Use strict equality to prevent showing controls before token permissions are applied
+  const canSpeak = isTeacher || (localParticipant?.permissions?.canPublish === true);
 
   // Separate teacher and students based on metadata (optimized)
   const { teacher, allStudents, speakingStudents } = React.useMemo(() => {
