@@ -17,7 +17,9 @@
       "WebFetch(domain:vercel.com)",
       "Bash(curl:*)",
       "mcp__context7__resolve-library-id",
-      "mcp__context7__get-library-docs"
+      "mcp__context7__get-library-docs",
+      "Bash(test:*)",
+      "Read(//mnt/c/Users/HP/Desktop/**)"
     ],
     "deny": [],
     "ask": []
