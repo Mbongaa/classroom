@@ -22,6 +22,7 @@
     "@heroui/system": "^2.4.23",
     "@heroui/tabs": "^2.2.24",
     "@heroui/theme": "^2.4.23",
+    "@livekit/agents": "^1.0.10",
     "@livekit/components-react": "2.9.14",
     "@livekit/components-styles": "1.1.6",
     "@livekit/krisp-noise-filter": "0.3.4",
