@@ -12,8 +12,11 @@ from livekit.agents import (
     WorkerOptions,
     cli,
 )
+from livekit.plugins import silero
 
 from config import config
+from audio_processor import AudioProcessor
+from translator import GeminiTranslator
 
 # Setup logging
 logging.basicConfig(
@@ -36,6 +39,38 @@ def prewarm(proc: JobProcess):
 
     config.print_config()
     logger.info('✅ Configuration validated')
+
+    # Load Silero VAD model
+    logger.info('🧠 Loading Silero VAD model...')
+    try:
+        vad = silero.VAD.load()
+        proc.userdata['vad'] = vad
+        logger.info('✅ Silero VAD model loaded successfully')
+    except Exception as e:
+        logger.error(f'❌ Failed to load Silero VAD: {e}')
+        raise
+
+    # Initialize Gemini translator (if API key available)
+    translator = None
+    if config.GEMINI_API_KEY:
+        try:
+            translator = GeminiTranslator(config.GEMINI_API_KEY)
+            proc.userdata['translator'] = translator
+            logger.info('✅ Gemini translator initialized')
+        except Exception as e:
+            logger.warning(f'⚠️ Failed to initialize translator: {e}')
+            logger.warning('⚠️ Agent will run without translation')
+    else:
+        logger.warning('⚠️ No GEMINI_API_KEY - translation disabled')
+
+    # Initialize audio processor (in-memory mode)
+    # Note: room will be set in entrypoint
+    proc.userdata['audio_processor_config'] = {
+        'vad': vad,
+        'translator': translator
+    }
+    logger.info('✅ Audio processor config prepared')
+
     logger.info('✅ Agent prewarmed successfully')
 
 
@@ -68,6 +103,14 @@ async def entrypoint(ctx: JobContext):
     def on_participant_disconnected(participant: rtc.RemoteParticipant):
         logger.info(f'👋 Participant disconnected: {participant.identity}')
 
+    # Create audio processor for this room
+    processor_config = ctx.proc.userdata['audio_processor_config']
+    audio_processor = AudioProcessor(
+        vad_model=processor_config['vad'],
+        translator=processor_config['translator'],
+        room=ctx.room
+    )
+
     # Event: Track subscribed
     @ctx.room.on('track_subscribed')
     def on_track_subscribed(
@@ -88,7 +131,37 @@ async def entrypoint(ctx: JobContext):
             return
 
         logger.info(f'🎤 Teacher audio track detected: {participant.identity}')
-        logger.info(f'✅ Ready to process audio (VAD integration in Phase 2)')
+
+        # Process teacher audio with VAD
+        asyncio.create_task(
+            audio_processor.process_track(track, participant, ctx.room.name)
+        )
+
+        logger.info(f'✅ Audio processing started for: {participant.identity}')
+
+    # Event: Participant attribute changes (for language selection)
+    @ctx.room.on('participant_attributes_changed')
+    def on_attributes_changed(
+        changed_attributes: dict,
+        participant: rtc.RemoteParticipant
+    ):
+        logger.info(f'🔄 Attributes changed: {participant.identity}', extra={
+            'changes': changed_attributes
+        })
+
+        # Handle speaking_language (teacher)
+        if 'speaking_language' in changed_attributes:
+            speaking_lang = changed_attributes['speaking_language']
+            logger.info(f'🎤 Teacher language: {speaking_lang}')
+
+        # Handle captions_language (student)
+        if 'captions_language' in changed_attributes:
+            captions_lang = changed_attributes['captions_language']
+            logger.info(f'📝 Student requested language: {captions_lang}')
+
+            # Add language to active translations
+            audio_processor.add_language(captions_lang)
+            logger.info(f'✅ Active languages: {audio_processor.get_active_languages()}')
 
     logger.info('🎯 Agent ready and listening')
     logger.info('📡 Waiting for teacher to join and speak...')

@@ -72,29 +72,27 @@ def prewarm(proc: JobProcess):
 ```python
 import asyncio
 import logging
-import os
+import io
 import wave
-import numpy as np
 from datetime import datetime
-from pathlib import Path
 
 from livekit import rtc
-from livekit.agents import utils
+from livekit.plugins import silero
+from livekit.agents import vad
 
 logger = logging.getLogger('voice-segmenter.audio_processor')
 
 
 class AudioProcessor:
-    """Process audio with VAD and save segments"""
+    """Process audio with VAD segmentation (in-memory only)"""
 
-    def __init__(self, vad, output_dir: str = 'segments'):
+    def __init__(self, vad):
         self.vad = vad
-        self.output_dir = Path(output_dir)
+        self.active_languages = set()
         self.segment_count = 0
+        self.total_segments_processed = 0
 
-        # Create output directory
-        self.output_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f'📁 Output directory: {self.output_dir.absolute()}')
+        logger.info('✅ Audio processor initialized (in-memory mode)')
 
     async def process_track(
         self,
@@ -104,94 +102,132 @@ class AudioProcessor:
     ):
         """Process audio track with VAD segmentation"""
         logger.info(f'🎧 Starting audio processing for: {participant.identity}')
-
-        # Create room-specific directory
-        room_dir = self.output_dir / self.sanitize_filename(room_name)
-        room_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f'📂 Saving segments to: {room_dir}')
+        logger.info(f'📂 Processing room: {room_name}')
 
         try:
-            # Create audio stream
+            # Create audio stream from track
             audio_stream = rtc.AudioStream(track)
-            logger.info(f'✅ Audio stream created')
+            logger.info('✅ Audio stream created')
 
-            # Apply VAD
+            # Apply VAD to stream
             logger.info('🔊 Starting VAD segmentation...')
             vad_stream = self.vad.stream()
 
-            # Process audio frames
-            async for event in audio_stream:
-                # Push audio to VAD
-                vad_stream.push_frame(event.frame)
+            # Create two concurrent tasks:
+            # 1. Push audio frames to VAD
+            # 2. Process VAD events
+            async def push_audio_frames():
+                """Push audio frames from track to VAD"""
+                try:
+                    async for event in audio_stream:
+                        vad_stream.push_frame(event.frame)
+                except Exception as e:
+                    logger.error(f'Error pushing audio frames: {e}')
+                finally:
+                    await vad_stream.aclose()
+
+            async def process_vad_events():
+                """Process VAD events and extract speech segments"""
+                try:
+                    async for vad_event in vad_stream:
+                        if vad_event.type == vad.VADEventType.START_OF_SPEECH:
+                            logger.debug('🎤 Speech started')
+
+                        elif vad_event.type == vad.VADEventType.END_OF_SPEECH:
+                            logger.info('🎤 Speech ended')
+
+                            # Get speech frames from VAD event
+                            if vad_event.frames and len(vad_event.frames) > 0:
+                                self.segment_count += 1
+                                self.total_segments_processed += 1
+
+                                # Get sample rate from first frame
+                                sample_rate = vad_event.frames[0].sample_rate if hasattr(vad_event.frames[0], 'sample_rate') else 16000
+
+                                # Calculate duration
+                                total_samples = sum(len(frame.data) // 2 for frame in vad_event.frames)
+                                duration = total_samples / sample_rate
+
+                                # Convert to WAV bytes (in-memory)
+                                wav_bytes = self.convert_to_wav_bytes(
+                                    vad_event.frames,
+                                    sample_rate=sample_rate
+                                )
+
+                                if wav_bytes:
+                                    size_kb = len(wav_bytes) / 1024
+
+                                    logger.info(f'✅ Speech segment detected', extra={
+                                        'segment': self.segment_count,
+                                        'duration': f'{duration:.1f}s',
+                                        'size': f'{size_kb:.1f}KB',
+                                        'sample_rate': sample_rate,
+                                        'languages': list(self.active_languages)
+                                    })
+
+                                    # TODO Phase 3: Send wav_bytes to Gemini translator
+                                    logger.info(f'💾 WAV bytes prepared (in-memory, ready for translation)')
+
+                except Exception as e:
+                    logger.error(f'Error processing VAD events: {e}')
+
+            # Run both tasks concurrently
+            await asyncio.gather(
+                push_audio_frames(),
+                process_vad_events()
+            )
 
         except Exception as e:
             logger.error(f'❌ Audio processing error: {e}')
 
-    async def handle_vad_events(self, vad_stream, room_dir: Path):
-        """Handle VAD events and save segments"""
-        speech_buffer = []  # Buffer for current speech segment
+    def convert_to_wav_bytes(self, frames, sample_rate=16000):
+        """
+        Convert audio frames to WAV format bytes (in-memory, no file I/O)
 
-        async for event in vad_stream:
-            if event.type == utils.vad.VADEventType.START_OF_SPEECH:
-                logger.debug('🎤 Speech started')
-                speech_buffer = []  # Reset buffer
+        Args:
+            frames: List of audio frames from VAD
+            sample_rate: Sample rate from audio frames
 
-            elif event.type == utils.vad.VADEventType.INFERENCE_DONE:
-                # Collect audio frames
-                if event.frames:
-                    speech_buffer.extend(event.frames)
-
-            elif event.type == utils.vad.VADEventType.END_OF_SPEECH:
-                logger.info('🎤 Speech ended, saving segment...')
-
-                if speech_buffer:
-                    self.segment_count += 1
-                    await self.save_segment(speech_buffer, room_dir)
-                    speech_buffer = []
-
-    async def save_segment(self, frames, room_dir: Path):
-        """Save audio segment as .wav file"""
+        Returns:
+            bytes: WAV formatted audio data ready for Gemini API
+        """
         try:
-            # Generate filename with timestamp
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            filename = f'segment_{self.segment_count:03d}_{timestamp}.wav'
-            filepath = room_dir / filename
+            # Create in-memory buffer (no disk I/O!)
+            buffer = io.BytesIO()
 
-            # Convert frames to numpy array
-            audio_data = self.frames_to_audio(frames)
-
-            # Save as WAV file
-            with wave.open(str(filepath), 'wb') as wav_file:
+            # Write WAV format to buffer
+            with wave.open(buffer, 'wb') as wav_file:
                 wav_file.setnchannels(1)  # Mono
                 wav_file.setsampwidth(2)  # 16-bit
-                wav_file.setframerate(16000)  # 16kHz
-                wav_file.writeframes(audio_data.tobytes())
+                wav_file.setframerate(sample_rate)
 
-            file_size_kb = filepath.stat().st_size / 1024
-            duration_sec = len(audio_data) / 16000
+                # Write all frames to buffer
+                for frame in frames:
+                    wav_file.writeframes(frame.data.tobytes())
 
-            logger.info(f'💾 Segment saved: {filename}', extra={
-                'size': f'{file_size_kb:.1f}KB',
-                'duration': f'{duration_sec:.1f}s',
-                'count': self.segment_count
-            })
+            # Get bytes from buffer
+            buffer.seek(0)
+            wav_bytes = buffer.read()
+
+            logger.debug(f'✅ Converted {len(frames)} frames to {len(wav_bytes)} bytes')
+
+            return wav_bytes
 
         except Exception as e:
-            logger.error(f'❌ Failed to save segment: {e}')
+            logger.error(f'❌ Failed to convert frames to WAV bytes: {e}')
+            return None
 
-    def frames_to_audio(self, frames) -> np.ndarray:
-        """Convert audio frames to numpy array"""
-        # Combine all frames into single audio array
-        audio_data = np.concatenate([
-            np.frombuffer(frame.data, dtype=np.int16)
-            for frame in frames
-        ])
-        return audio_data
+    def add_language(self, language_code: str):
+        """Add language to active translation list"""
+        if language_code not in self.active_languages:
+            self.active_languages.add(language_code)
+            logger.info(f'➕ Language added: {language_code}')
 
-    @staticmethod
-    def sanitize_filename(name: str) -> str:
-        """Remove invalid characters from filename"""
-        return ''.join(c if c.isalnum() or c in ('-', '_') else '_' for c in name)
+    def remove_language(self, language_code: str):
+        """Remove language from active translation list"""
+        if language_code in self.active_languages:
+            self.active_languages.remove(language_code)
+            logger.info(f'➖ Language removed: {language_code}')
 ```
 
 ---
@@ -200,13 +236,14 @@ class AudioProcessor:
 
 **File**: `agents/voice-segmenter/agent.py`
 
-**Add import at top**:
+**Add imports at top**:
 
 ```python
+from livekit.plugins import silero
 from audio_processor import AudioProcessor
 ```
 
-**Update `prewarm()` to create processor**:
+**Update `prewarm()` to load VAD and create processor**:
 
 ```python
 def prewarm(proc: JobProcess):
@@ -225,46 +262,46 @@ def prewarm(proc: JobProcess):
         logger.error(f'❌ Failed to load Silero VAD: {e}')
         raise
 
-    # ✅ NEW: Create audio processor
-    proc.userdata['audio_processor'] = AudioProcessor(
-        vad=vad,
-        output_dir=config.OUTPUT_DIR
-    )
-    logger.info('✅ Audio processor initialized')
+    # Create audio processor (in-memory mode)
+    proc.userdata['audio_processor'] = AudioProcessor(vad)
+    logger.info('✅ Audio processor initialized (in-memory mode)')
 
     logger.info('✅ Agent prewarmed successfully')
 ```
 
-**Update `on_track_subscribed()` to process audio**:
+**Update `entrypoint()` to integrate audio processor**:
 
 ```python
-@ctx.room.on('track_subscribed')
-def on_track_subscribed(
-    track: rtc.Track,
-    publication: rtc.TrackPublication,
-    participant: rtc.RemoteParticipant
-):
-    logger.info(f'🎵 Track subscribed: {track.kind} from {participant.identity}')
+async def entrypoint(ctx: JobContext):
+    # ... existing connection code ...
 
-    if track.kind != rtc.TrackKind.KIND_AUDIO:
-        logger.debug(f'⏭️ Skipping non-audio track')
-        return
-
-    if not is_teacher(participant):
-        logger.debug(f'⏭️ Skipping non-teacher audio')
-        return
-
-    logger.info(f'🎤 Teacher audio track detected: {participant.identity}')
-
-    # ✅ NEW: Process audio with VAD
+    # Get audio processor
     audio_processor = ctx.proc.userdata['audio_processor']
 
-    # Create task to process audio
-    asyncio.create_task(
-        audio_processor.process_track(track, participant, ctx.room.name)
-    )
+    @ctx.room.on('track_subscribed')
+    def on_track_subscribed(
+        track: rtc.Track,
+        publication: rtc.TrackPublication,
+        participant: rtc.RemoteParticipant
+    ):
+        logger.info(f'🎵 Track subscribed: {track.kind} from {participant.identity}')
 
-    logger.info(f'✅ Audio processing started for: {participant.identity}')
+        if track.kind != rtc.TrackKind.KIND_AUDIO:
+            logger.debug(f'⏭️ Skipping non-audio track')
+            return
+
+        if not is_teacher(participant):
+            logger.debug(f'⏭️ Skipping non-teacher audio')
+            return
+
+        logger.info(f'🎤 Teacher audio track detected: {participant.identity}')
+
+        # Process teacher audio with VAD
+        asyncio.create_task(
+            audio_processor.process_track(track, participant, ctx.room.name)
+        )
+
+        logger.info(f'✅ Audio processing started for: {participant.identity}')
 ```
 
 ---
