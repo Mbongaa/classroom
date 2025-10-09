@@ -1,0 +1,16 @@
+# LiveKit Core 
+livekit 
+livekit-agents 
+livekit-plugins-silero 
+ 
+# Audio Processing 
+numpy 
+scipy 
+soundfile 
+ 
+# AI/Translation 
+google-generativeai 
+ 
+# Utilities 
+python-dotenv 
+aiofiles
