@@ -25,6 +25,26 @@ class GeminiTranslator:
         """
         genai.configure(api_key=api_key)
 
+        # Configure safety settings for translation tasks
+        safety_settings = [
+            {
+                "category": "HARM_CATEGORY_HARASSMENT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_HATE_SPEECH",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            },
+            {
+                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
+                "threshold": "BLOCK_ONLY_HIGH"
+            }
+        ]
+
         # Use Gemini 2.5 Flash (same as Next.js gemini-translator.ts)
         self.model = genai.GenerativeModel(
             'gemini-2.5-flash',
@@ -33,7 +53,8 @@ class GeminiTranslator:
                 'max_output_tokens': 1000,
                 'top_p': 0.95,
                 'top_k': 40
-            }
+            },
+            safety_settings=safety_settings
         )
 
         self.cache = {}  # Translation cache
@@ -97,20 +118,64 @@ class GeminiTranslator:
                 'data': base64.b64encode(wav_bytes).decode('utf-8')
             }
 
-            # Call Gemini API with audio + prompt
-            response = await self.model.generate_content_async([
-                audio_part,
-                prompt
-            ])
+            # Try up to 2 times with different prompts
+            for attempt in range(2):
+                try:
+                    # Use simpler prompt on retry
+                    if attempt == 1:
+                        logger.info('🔄 Retrying with simpler prompt')
+                        prompt = self._build_simple_prompt(source_language, target_languages)
 
-            response_text = response.text
+                    # Call Gemini API with audio + prompt
+                    response = await self.model.generate_content_async([
+                        audio_part,
+                        prompt
+                    ])
 
-            logger.debug(f'📥 Gemini response received', extra={
-                'response_length': len(response_text)
-            })
+                    # Check if response was blocked by safety filters
+                    if not response.candidates or not response.candidates[0].content.parts:
+                        # Check the finish reason
+                        finish_reason = response.candidates[0].finish_reason if response.candidates else None
 
-            # Parse response
-            result = self._parse_response(response_text, target_languages)
+                        if finish_reason == 2:  # SAFETY
+                            logger.warning(f'⚠️ Response blocked by safety filters (attempt {attempt + 1})', extra={
+                                'finish_reason': finish_reason,
+                                'target_languages': target_languages,
+                                'attempt': attempt + 1
+                            })
+
+                            if attempt == 0:
+                                # Try again with simpler prompt
+                                continue
+                            else:
+                                # Final attempt failed, return filtered message
+                                return {
+                                    'transcription': '[Content filtered for safety]',
+                                    'translations': {lang: '[Content filtered for safety]' for lang in target_languages}
+                                }
+                        else:
+                            logger.warning('⚠️ No valid response from Gemini', extra={
+                                'finish_reason': finish_reason
+                            })
+                            raise ValueError(f'No valid response from Gemini, finish_reason: {finish_reason}')
+
+                    # Success! Process the response
+                    response_text = response.text
+
+                    logger.debug(f'📥 Gemini response received', extra={
+                        'response_length': len(response_text),
+                        'attempt': attempt + 1
+                    })
+
+                    # Parse response
+                    result = self._parse_response(response_text, target_languages)
+                    break  # Success, exit retry loop
+
+                except ValueError as e:
+                    if attempt == 0:
+                        continue  # Try again
+                    else:
+                        raise  # Re-raise on final attempt
 
             self.stats['successful_requests'] += 1
 
@@ -137,7 +202,7 @@ class GeminiTranslator:
         if target_languages:
             language_names = self._get_language_names(target_languages)
 
-            return f"""You are a professional simultaneous interpreter for classroom lectures.
+            return f"""You are an audio transcription and translation system.
 
 TASK:
 1. Transcribe the audio from {source_language} to text
@@ -152,12 +217,12 @@ Return ONLY a JSON object with this exact format (no markdown, no code blocks):
   }}
 }}
 
-CRITICAL RULES:
+REQUIREMENTS:
 1. Return ONLY the JSON object, nothing else
 2. Include transcription field (original text)
 3. Include translations for ALL these language codes: {', '.join(target_languages)}
-4. Keep translations natural and accurate
-5. Maintain classroom/lecture tone
+4. Keep translations accurate and natural
+5. Preserve the meaning and tone of the original
 6. Be concise but complete
 
 JSON:"""
@@ -171,6 +236,33 @@ Return ONLY a JSON object:
 }}
 
 JSON:"""
+
+    def _build_simple_prompt(self, source_language: str, target_languages: List[str]) -> str:
+        """Build a simpler prompt for retry attempts (less likely to trigger safety filters)"""
+
+        if target_languages:
+            language_names = self._get_language_names(target_languages)
+
+            return f"""Transcribe and translate this audio.
+
+Source: {source_language}
+Target: {', '.join(language_names)}
+
+Return JSON:
+{{
+  "transcription": "text",
+  "translations": {{
+    {', '.join([f'"{lang}": "translation"' for lang in target_languages])}
+  }}
+}}"""
+        else:
+            # Transcription only
+            return f"""Transcribe audio to text.
+
+Return JSON:
+{{
+  "transcription": "text"
+}}"""
 
     def _parse_response(
         self,
