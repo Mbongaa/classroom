@@ -554,21 +554,24 @@ function VideoConferenceComponent(props: {
   }, [lowPowerMode]);
 
   // Check if we're in classroom or speech mode (client-side only)
-  const [isClassroom, setIsClassroom] = React.useState(false);
-  const [isSpeech, setIsSpeech] = React.useState(false);
-  const [userRole, setUserRole] = React.useState<string | null>(null);
+  // Use lazy initialization to read URL params BEFORE first render
+  const [isClassroom, setIsClassroom] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    const url = new URL(window.location.href);
+    return url.searchParams.get('classroom') === 'true';
+  });
 
-  React.useEffect(() => {
-    // Only access window on client side
-    const currentUrl = new URL(window.location.href);
-    const classroomParam = currentUrl.searchParams.get('classroom') === 'true';
-    const speechParam = currentUrl.searchParams.get('speech') === 'true';
-    const roleParam = currentUrl.searchParams.get('role');
+  const [isSpeech, setIsSpeech] = React.useState(() => {
+    if (typeof window === 'undefined') return false;
+    const url = new URL(window.location.href);
+    return url.searchParams.get('speech') === 'true';
+  });
 
-    setIsClassroom(classroomParam);
-    setIsSpeech(speechParam);
-    setUserRole(roleParam);
-  }, []);
+  const [userRole, setUserRole] = React.useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    const url = new URL(window.location.href);
+    return url.searchParams.get('role');
+  });
 
   return (
     <div className="lk-room-container" data-lk-theme="default">

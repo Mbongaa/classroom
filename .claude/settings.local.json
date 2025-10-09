@@ -15,7 +15,9 @@
       "WebSearch",
       "WebFetch(domain:docs.livekit.io)",
       "WebFetch(domain:vercel.com)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__get-library-docs"
     ],
     "deny": [],
     "ask": []
