@@ -1,0 +1,98 @@
+# Render Blueprint for LiveKit Meet App
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: livekit-meet
+    runtime: node
+    plan: starter  # Change to 'free' for free tier (spins down after 15min inactivity)
+    region: oregon  # Choose: oregon, frankfurt, singapore, ohio
+    buildCommand: pnpm install --frozen-lockfile && pnpm build
+    startCommand: pnpm start
+
+    # Health check (Next.js responds on root path)
+    healthCheckPath: /
+
+    envVars:
+      # ============================================
+      # REQUIRED - LiveKit Credentials
+      # ============================================
+      # Get these from: https://cloud.livekit.io/
+      - key: LIVEKIT_API_KEY
+        sync: false  # Set manually in Render dashboard
+
+      - key: LIVEKIT_API_SECRET
+        sync: false
+
+      - key: LIVEKIT_URL
+        sync: false
+        # Example: wss://your-project.livekit.cloud
+
+      # ============================================
+      # REQUIRED - Node Environment
+      # ============================================
+      - key: NODE_ENV
+        value: production
+
+      # ============================================
+      # OPTIONAL - Recording Storage (S3/Cloudflare R2)
+      # ============================================
+      # Recommended: Use Cloudflare R2 (free tier, zero egress)
+      # Get R2 credentials: https://dash.cloudflare.com/ → R2
+
+      - key: S3_ACCESS_KEY
+        sync: false
+
+      - key: S3_SECRET_KEY
+        sync: false
+
+      - key: S3_BUCKET
+        value: livekit-recordings
+
+      - key: S3_REGION
+        value: auto  # For R2 use "auto", for AWS use "us-east-1"
+
+      - key: S3_ENDPOINT
+        sync: false
+        # For R2: https://your-account-id.r2.cloudflarestorage.com
+        # For AWS: leave empty
+
+      - key: R2_PUBLIC_DOMAIN
+        sync: false
+        # Example: https://pub-xxxxx.r2.dev
+
+      # ============================================
+      # OPTIONAL - Supabase (for persistent rooms)
+      # ============================================
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+        # Example: https://your-project-ref.supabase.co
+
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+
+      # ============================================
+      # OPTIONAL - Translation (Google Gemini)
+      # ============================================
+      - key: GEMINI_API_KEY
+        sync: false
+        # Get from: https://aistudio.google.com/apikey
+
+      # ============================================
+      # OPTIONAL - Monitoring (Datadog)
+      # ============================================
+      - key: NEXT_PUBLIC_DATADOG_CLIENT_TOKEN
+        sync: false
+
+      - key: NEXT_PUBLIC_DATADOG_SITE
+        sync: false
+        # Example: datadoghq.com or datadoghq.eu
+
+      # ============================================
+      # PUBLIC - Client Settings
+      # ============================================
+      - key: NEXT_PUBLIC_SHOW_SETTINGS_MENU
+        value: true
+
+      - key: NEXT_PUBLIC_LK_RECORD_ENDPOINT
+        value: /api/record

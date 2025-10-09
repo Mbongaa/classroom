@@ -19,7 +19,8 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__get-library-docs",
       "Bash(test:*)",
-      "Read(//mnt/c/Users/HP/Desktop/**)"
+      "Read(//mnt/c/Users/HP/Desktop/**)",
+      "Bash(git commit:*)"
     ],
     "deny": [],
     "ask": []
