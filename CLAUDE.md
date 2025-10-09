@@ -36,6 +36,23 @@ pnpm format:write    # Auto-format code with Prettier
 pnpm test        # Run tests with Vitest
 ```
 
+### Git Operations
+
+**IMPORTANT**: Claude Code should ONLY perform local git operations:
+
+```bash
+# ✅ ALLOWED: Local git operations
+git add [files]        # Stage changes
+git commit -m "..."    # Commit with descriptive message
+
+# ❌ NOT ALLOWED: Remote operations
+git push              # User will handle pushing
+git pull              # User will handle pulling
+git fetch             # User will handle fetching
+```
+
+**Rule**: Claude Code may stage and commit changes locally to maintain a clean git history, but should NEVER push to remote repositories. The user will handle all remote git operations.
+
 ### Environment Setup
 
 1. Copy `.env.example` to `.env.local`
