@@ -35,6 +35,10 @@ class AudioProcessor:
         self.segment_count = 0
         self.total_segments_processed = 0
 
+        # Source language tracking (teacher's language)
+        self.source_language = 'English'  # Default language name
+        self.source_language_code = 'en'  # Default language code
+
         logger.info('✅ Audio processor initialized (in-memory mode)')
 
     async def process_track(
@@ -147,7 +151,7 @@ class AudioProcessor:
             result = await self.translator.process_audio_segment(
                 wav_bytes,
                 target_languages,
-                source_language='English'  # TODO: Get from teacher attributes
+                source_language=self.source_language  # Use tracked teacher language
             )
 
             transcription = result.get('transcription', '')
@@ -155,7 +159,15 @@ class AudioProcessor:
 
             logger.info(f'📝 Transcription: "{transcription}"')
 
-            # Publish translations to LiveKit
+            # Publish original transcription first (in source language)
+            if self.room and transcription:
+                await self.publish_transcription(
+                    transcription,
+                    self.source_language_code
+                )
+                logger.info(f'✅ Published original transcription in {self.source_language}')
+
+            # Then publish translations to LiveKit
             if self.room and translations:
                 for lang_code, translation_text in translations.items():
                     await self.publish_transcription(
@@ -252,12 +264,43 @@ class AudioProcessor:
         """Get list of active languages"""
         return list(self.active_languages)
 
+    def set_source_language(self, language_code: str):
+        """
+        Set the source language (teacher's language)
+
+        Args:
+            language_code: Language code (e.g., 'en', 'es', 'ar')
+        """
+        self.source_language_code = language_code
+        self.source_language = self._get_language_name(language_code)
+        logger.info(f'🎤 Source language set to: {self.source_language} ({language_code})')
+
+    def _get_language_name(self, code: str) -> str:
+        """Map language code to full name"""
+        names = {
+            'en': 'English',
+            'es': 'Spanish',
+            'fr': 'French',
+            'de': 'German',
+            'nl': 'Dutch',
+            'ar': 'Arabic',
+            'zh': 'Chinese',
+            'ja': 'Japanese',
+            'ko': 'Korean',
+            'pt': 'Portuguese',
+            'ru': 'Russian',
+            'hi': 'Hindi',
+            'it': 'Italian'
+        }
+        return names.get(code, code.upper())
+
     def get_statistics(self):
         """Get processing statistics"""
         stats = {
             'total_segments': self.total_segments_processed,
             'active_languages': len(self.active_languages),
-            'languages': list(self.active_languages)
+            'languages': list(self.active_languages),
+            'source_language': f'{self.source_language} ({self.source_language_code})'
         }
 
         if self.translator:

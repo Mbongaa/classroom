@@ -154,6 +154,10 @@ async def entrypoint(ctx: JobContext):
             speaking_lang = changed_attributes['speaking_language']
             logger.info(f'🎤 Teacher language: {speaking_lang}')
 
+            # Set the source language for transcription
+            audio_processor.set_source_language(speaking_lang)
+            logger.info(f'✅ Updated source language for transcription')
+
         # Handle captions_language (student)
         if 'captions_language' in changed_attributes:
             captions_lang = changed_attributes['captions_language']
