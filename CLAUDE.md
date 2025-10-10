@@ -38,20 +38,19 @@ pnpm test        # Run tests with Vitest
 
 ### Git Operations
 
-**IMPORTANT**: Claude Code should ONLY perform local git operations:
+**IMPORTANT**: Claude Code should NOT perform ANY git operations:
 
 ```bash
-# ✅ ALLOWED: Local git operations
-git add [files]        # Stage changes
-git commit -m "..."    # Commit with descriptive message
-
-# ❌ NOT ALLOWED: Remote operations
+# ❌ NOT ALLOWED: ANY git operations
+git add               # User will handle staging
+git commit            # User will handle committing
 git push              # User will handle pushing
 git pull              # User will handle pulling
 git fetch             # User will handle fetching
+git status            # Only allowed for checking current state if explicitly requested
 ```
 
-**Rule**: Claude Code may stage and commit changes locally to maintain a clean git history, but should NEVER push to remote repositories. The user will handle all remote git operations.
+**Rule**: Claude Code should NOT perform ANY git operations (no add, commit, push, or any other git commands). The user will handle ALL git operations themselves. Exception: `git status` may be used to check the current state when explicitly requested.
 
 ### Environment Setup
 

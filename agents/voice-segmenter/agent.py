@@ -139,7 +139,7 @@ async def entrypoint(ctx: JobContext):
 
         logger.info(f'✅ Audio processing started for: {participant.identity}')
 
-    # Event: Participant attribute changes (for language selection)
+    # Event: Participant attribute changes (for language selection and custom prompts)
     @ctx.room.on('participant_attributes_changed')
     def on_attributes_changed(
         changed_attributes: dict,
@@ -166,6 +166,21 @@ async def entrypoint(ctx: JobContext):
             # Add language to active translations
             audio_processor.add_language(captions_lang)
             logger.info(f'✅ Active languages: {audio_processor.get_active_languages()}')
+
+        # Handle custom translation prompt (teacher)
+        if 'translation_prompt' in changed_attributes:
+            custom_prompt = changed_attributes['translation_prompt']
+            logger.info(f'📋 Custom translation prompt received', extra={
+                'prompt_length': len(custom_prompt),
+                'from_participant': participant.identity
+            })
+
+            # Set the custom prompt in the translator
+            if audio_processor.translator:
+                audio_processor.translator.set_custom_prompt(custom_prompt)
+                logger.info('✅ Custom translation prompt set successfully')
+            else:
+                logger.warning('⚠️ No translator available to set custom prompt')
 
     logger.info('🎯 Agent ready and listening')
     logger.info('📡 Waiting for teacher to join and speak...')

@@ -21,7 +21,9 @@
       "Bash(test:*)",
       "Read(//mnt/c/Users/HP/Desktop/**)",
       "Bash(git commit:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npx:*)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "deny": [],
     "ask": []

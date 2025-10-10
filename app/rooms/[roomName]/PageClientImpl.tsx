@@ -416,6 +416,36 @@ function VideoConferenceComponent(props: {
             }
           }
 
+          // Fetch and set custom translation prompt for teachers
+          if (props.classroomRole === 'teacher') {
+            try {
+              console.log('[Translation Prompt] Fetching custom prompt for room:', props.roomName);
+
+              const promptResponse = await fetch(`/api/classrooms/${props.roomName}/prompt`);
+              const promptData = await promptResponse.json();
+
+              if (promptData.prompt_text) {
+                console.log('[Translation Prompt] Setting custom prompt:', {
+                  name: promptData.prompt_name,
+                  category: promptData.prompt_category,
+                  textLength: promptData.prompt_text.length,
+                });
+
+                // Set the custom translation prompt as a participant attribute
+                await room.localParticipant.setAttributes({
+                  'translation_prompt': promptData.prompt_text,
+                });
+
+                console.log('[Translation Prompt] Custom prompt set successfully');
+              } else {
+                console.log('[Translation Prompt] No custom prompt set for this classroom, using default');
+              }
+            } catch (error) {
+              console.error('[Translation Prompt] Failed to fetch or set custom prompt:', error);
+              // Continue without custom prompt - agent will use default
+            }
+          }
+
           // Initialize session for transcript saving AFTER language is set
           try {
             // CRITICAL: Wait for the real LiveKit room SID

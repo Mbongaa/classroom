@@ -58,6 +58,7 @@ class GeminiTranslator:
         )
 
         self.cache = {}  # Translation cache
+        self.custom_prompt = None  # Custom translation prompt from teacher
         self.stats = {
             'total_requests': 0,
             'successful_requests': 0,
@@ -196,9 +197,50 @@ class GeminiTranslator:
                 'translations': {lang: '[Translation unavailable]' for lang in target_languages}
             }
 
+    def set_custom_prompt(self, prompt_text: str):
+        """
+        Set a custom translation prompt from the teacher/classroom settings
+
+        Args:
+            prompt_text: Custom prompt template with placeholders
+        """
+        self.custom_prompt = prompt_text
+        logger.info(f'📋 Custom translation prompt set', extra={
+            'prompt_length': len(prompt_text),
+            'has_source_placeholder': '{source_lang}' in prompt_text,
+            'has_target_placeholder': '{target_lang}' in prompt_text
+        })
+
     def _build_prompt(self, source_language: str, target_languages: List[str]) -> str:
         """Build prompt for Gemini multimodal processing"""
 
+        # Use custom prompt if available
+        if self.custom_prompt and target_languages:
+            language_names = self._get_language_names(target_languages)
+
+            # Replace placeholders in custom prompt
+            prompt = self.custom_prompt
+            prompt = prompt.replace('{source_lang}', source_language)
+            prompt = prompt.replace('{target_lang}', ', '.join(language_names))
+
+            # Ensure JSON format instruction is included
+            if 'JSON' not in prompt:
+                prompt += f"""
+
+Return ONLY a JSON object with this exact format (no markdown, no code blocks):
+{{
+  "transcription": "Original transcribed text here",
+  "translations": {{
+    {', '.join([f'"{lang}": "Translation in {self._get_language_names([lang])[0]}"' for lang in target_languages])}
+  }}
+}}
+
+JSON:"""
+
+            logger.debug(f'📋 Using custom translation prompt for {source_language} → {language_names}')
+            return prompt
+
+        # Default prompts (when no custom prompt is set)
         if target_languages:
             language_names = self._get_language_names(target_languages)
 
@@ -240,6 +282,22 @@ JSON:"""
     def _build_simple_prompt(self, source_language: str, target_languages: List[str]) -> str:
         """Build a simpler prompt for retry attempts (less likely to trigger safety filters)"""
 
+        # If we have a custom prompt, try simplifying it first
+        if self.custom_prompt and target_languages:
+            language_names = self._get_language_names(target_languages)
+
+            # Simple version: just the core task
+            return f"""Transcribe {source_language} audio and translate to {', '.join(language_names)}.
+
+Return JSON format:
+{{
+  "transcription": "original text",
+  "translations": {{
+    {', '.join([f'"{lang}": "translation"' for lang in target_languages])}
+  }}
+}}"""
+
+        # Default simple prompts
         if target_languages:
             language_names = self._get_language_names(target_languages)
 
