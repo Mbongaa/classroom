@@ -23,7 +23,9 @@
       "Bash(git commit:*)",
       "Bash(git add:*)",
       "Bash(npx:*)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "deny": [],
     "ask": []

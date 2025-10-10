@@ -1,25 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
 # Virtual Environment
 venv/
-__pycache__/
-*.pyc
+env/
+ENV/
+env.bak/
+venv.bak/
 
-# Environment & Credentials
-.env
-*.json
-!package.json
-
-# Service Account Keys (CRITICAL - DO NOT COMMIT)
-bayaan-meets-36b41e23f9cc.json
-vertex-ai-credentials.json
-*-key.json
-service-account*.json
-
-# Output Files
-segments/
+# Logs
 logs/
-*.wav
-*.txt
+*.log
 
-# OS Files
+# Segments (temporary audio files)
+segments/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
 .DS_Store
 Thumbs.db
+
+# Environment variables and credentials
+.env
+.env.local
+.env.production
+.env.staging
+
+# Service account keys and other credentials
+*.json
+!render.yaml
+
+# Temporary files
+*.tmp
+*.temp

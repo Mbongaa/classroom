@@ -1,0 +1,67 @@
+# Render deployment configuration for Voice Segmenter Agent
+# Deploy as Background Worker (persistent service)
+
+services:
+  - type: pserv  # Background worker (persistent service)
+    name: voice-segmenter-agent
+    runtime: image
+    plan: starter  # $7/month (512MB RAM, 0.5 CPU)
+    region: oregon  # Closest to Europe
+
+    # Scaling configuration
+    scaling:
+      minInstances: 1  # Always-on (required for LiveKit agent)
+      maxInstances: 1  # Single instance (increase if needed)
+      targetCPUPercent: 70
+      targetMemoryPercent: 70
+
+    # Docker build configuration
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+
+    # Environment variables
+    # IMPORTANT: Set these in Render Dashboard for security
+    envVars:
+      # LiveKit Configuration (set in dashboard)
+      - key: LIVEKIT_URL
+        sync: false  # Do not sync, set manually
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+
+      # Vertex AI Configuration
+      - key: GOOGLE_CLOUD_PROJECT
+        value: bayaan-meets
+      - key: GOOGLE_CLOUD_LOCATION
+        value: europe-west1
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: bayaan-meets-36b41e23f9cc.json
+
+      # Translation Context
+      - key: TRANSLATION_CONTEXT_ENABLED
+        value: true
+      - key: TRANSLATION_CONTEXT_WINDOW
+        value: 10
+
+      # Output Configuration
+      - key: OUTPUT_DIR
+        value: segments
+      - key: SAVE_AUDIO
+        value: true
+      - key: SAVE_TRANSLATIONS
+        value: false
+
+      # Logging
+      - key: LOG_LEVEL
+        value: INFO
+
+    # Health check configuration (optional)
+    # LiveKit agents don't expose HTTP, so disable health checks
+    healthCheckPath: null
+
+    # Auto-deploy settings
+    autoDeploy: true  # Auto-deploy on git push
+
+    # Maximum shutdown time (for graceful shutdown)
+    maxShutdownDelaySeconds: 300
