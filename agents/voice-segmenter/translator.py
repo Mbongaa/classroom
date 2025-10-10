@@ -1,61 +1,59 @@
 """
 Gemini translator for audio transcription and multi-language translation
-Uses Gemini multimodal API to process audio bytes directly (no file I/O)
+Uses Gemini multimodal API via Vertex AI to process audio bytes directly (no file I/O)
 """
 
 import logging
 import json
-import base64
 from typing import List, Dict
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 logger = logging.getLogger('voice-segmenter.translator')
 
 
 class GeminiTranslator:
-    """Handle audio transcription and translation using Gemini API"""
+    """Handle audio transcription and translation using Gemini API via Vertex AI"""
 
-    def __init__(self, api_key: str):
+    def __init__(self, project_id: str, location: str = 'us-central1'):
         """
-        Initialize Gemini translator
+        Initialize Gemini translator for Vertex AI
 
         Args:
-            api_key: Google Gemini API key
+            project_id: Google Cloud project ID
+            location: Vertex AI region (default: us-central1)
         """
-        genai.configure(api_key=api_key)
+        # Initialize client for Vertex AI
+        self.client = genai.Client(
+            vertexai=True,
+            project=project_id,
+            location=location,
+            http_options=types.HttpOptions(api_version='v1')  # Use stable v1 API
+        )
+
+        # Model name
+        self.model_name = 'gemini-2.5-flash'
 
         # Configure safety settings for translation tasks
-        safety_settings = [
-            {
-                "category": "HARM_CATEGORY_HARASSMENT",
-                "threshold": "BLOCK_ONLY_HIGH"
-            },
-            {
-                "category": "HARM_CATEGORY_HATE_SPEECH",
-                "threshold": "BLOCK_ONLY_HIGH"
-            },
-            {
-                "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT",
-                "threshold": "BLOCK_ONLY_HIGH"
-            },
-            {
-                "category": "HARM_CATEGORY_DANGEROUS_CONTENT",
-                "threshold": "BLOCK_ONLY_HIGH"
-            }
+        self.safety_settings = [
+            types.SafetySetting(
+                category='HARM_CATEGORY_HARASSMENT',
+                threshold='BLOCK_ONLY_HIGH'
+            ),
+            types.SafetySetting(
+                category='HARM_CATEGORY_HATE_SPEECH',
+                threshold='BLOCK_ONLY_HIGH'
+            ),
+            types.SafetySetting(
+                category='HARM_CATEGORY_SEXUALLY_EXPLICIT',
+                threshold='BLOCK_ONLY_HIGH'
+            ),
+            types.SafetySetting(
+                category='HARM_CATEGORY_DANGEROUS_CONTENT',
+                threshold='BLOCK_ONLY_HIGH'
+            )
         ]
-
-        # Use Gemini 2.5 Flash (same as Next.js gemini-translator.ts)
-        self.model = genai.GenerativeModel(
-            'gemini-2.5-flash',
-            generation_config={
-                'temperature': 0.3,
-                'max_output_tokens': 1000,
-                'top_p': 0.95,
-                'top_k': 40
-            },
-            safety_settings=safety_settings
-        )
 
         self.cache = {}  # Translation cache
         self.custom_prompt = None  # Custom translation prompt from teacher
@@ -66,7 +64,7 @@ class GeminiTranslator:
             'cache_hits': 0
         }
 
-        logger.info('✅ Gemini translator initialized (model: gemini-2.5-flash)')
+        logger.info(f'✅ Gemini translator initialized via Vertex AI (project: {project_id}, location: {location}, model: {self.model_name})')
 
     async def process_audio_segment(
         self,
@@ -113,11 +111,11 @@ class GeminiTranslator:
             # Build prompt for transcription + translation
             prompt = self._build_prompt(source_language, target_languages)
 
-            # Prepare audio data for Gemini (base64 encoded)
-            audio_part = {
-                'mime_type': 'audio/wav',
-                'data': base64.b64encode(wav_bytes).decode('utf-8')
-            }
+            # Prepare audio data for Vertex AI
+            audio_part = types.Part.from_bytes(
+                data=wav_bytes,
+                mime_type='audio/wav'
+            )
 
             # Try up to 2 times with different prompts
             for attempt in range(2):
@@ -127,11 +125,18 @@ class GeminiTranslator:
                         logger.info('🔄 Retrying with simpler prompt')
                         prompt = self._build_simple_prompt(source_language, target_languages)
 
-                    # Call Gemini API with audio + prompt
-                    response = await self.model.generate_content_async([
-                        audio_part,
-                        prompt
-                    ])
+                    # Call Vertex AI API with audio + prompt
+                    response = await self.client.aio.models.generate_content(
+                        model=self.model_name,
+                        contents=[audio_part, types.Part.from_text(text=prompt)],
+                        config=types.GenerateContentConfig(
+                            temperature=0.3,
+                            max_output_tokens=1000,
+                            top_p=0.95,
+                            top_k=40,
+                            safety_settings=self.safety_settings
+                        )
+                    )
 
                     # Check if response was blocked by safety filters
                     if not response.candidates or not response.candidates[0].content.parts:
@@ -180,7 +185,7 @@ class GeminiTranslator:
 
             self.stats['successful_requests'] += 1
 
-            logger.info(f'✅ Translation completed', extra={
+            logger.info(f'✅ Translation completed via Vertex AI', extra={
                 'transcription': result['transcription'][:50] + '...' if len(result['transcription']) > 50 else result['transcription'],
                 'languages': list(result['translations'].keys())
             })
@@ -189,7 +194,7 @@ class GeminiTranslator:
 
         except Exception as e:
             self.stats['failed_requests'] += 1
-            logger.error(f'❌ Gemini processing failed: {e}', exc_info=True)
+            logger.error(f'❌ Vertex AI processing failed: {e}', exc_info=True)
 
             # Return empty result on error
             return {

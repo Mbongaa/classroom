@@ -50,18 +50,21 @@ def prewarm(proc: JobProcess):
         logger.error(f'❌ Failed to load Silero VAD: {e}')
         raise
 
-    # Initialize Gemini translator (if API key available)
+    # Initialize Vertex AI translator (if project configured)
     translator = None
-    if config.GEMINI_API_KEY:
+    if config.GOOGLE_CLOUD_PROJECT:
         try:
-            translator = GeminiTranslator(config.GEMINI_API_KEY)
+            translator = GeminiTranslator(
+                project_id=config.GOOGLE_CLOUD_PROJECT,
+                location=config.GOOGLE_CLOUD_LOCATION
+            )
             proc.userdata['translator'] = translator
-            logger.info('✅ Gemini translator initialized')
+            logger.info('✅ Vertex AI translator initialized')
         except Exception as e:
-            logger.warning(f'⚠️ Failed to initialize translator: {e}')
+            logger.warning(f'⚠️ Failed to initialize Vertex AI translator: {e}')
             logger.warning('⚠️ Agent will run without translation')
     else:
-        logger.warning('⚠️ No GEMINI_API_KEY - translation disabled')
+        logger.warning('⚠️ No GOOGLE_CLOUD_PROJECT - translation disabled')
 
     # Initialize audio processor (in-memory mode)
     # Note: room will be set in entrypoint
@@ -131,6 +134,31 @@ async def entrypoint(ctx: JobContext):
             return
 
         logger.info(f'🎤 Teacher audio track detected: {participant.identity}')
+
+        # Read teacher's existing attributes (fixes race condition)
+        # This ensures we catch attributes even if teacher set them before agent joined
+        if participant.attributes:
+            logger.info(f'📖 Reading teacher attributes', extra={
+                'participant': participant.identity,
+                'attributes': dict(participant.attributes)
+            })
+
+            # Check for speaking language
+            if 'speaking_language' in participant.attributes:
+                speaking_lang = participant.attributes['speaking_language']
+                audio_processor.set_source_language(speaking_lang)
+                logger.info(f'🎤 Initial source language set: {speaking_lang}')
+
+            # Check for custom translation prompt
+            if 'translation_prompt' in participant.attributes:
+                custom_prompt = participant.attributes['translation_prompt']
+                if audio_processor.translator:
+                    audio_processor.translator.set_custom_prompt(custom_prompt)
+                    logger.info(f'📋 Initial custom prompt set', extra={
+                        'prompt_length': len(custom_prompt)
+                    })
+                else:
+                    logger.warning('⚠️ No translator available for custom prompt')
 
         # Process teacher audio with VAD
         asyncio.create_task(

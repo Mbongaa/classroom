@@ -1,0 +1,25 @@
+# Virtual Environment
+venv/
+__pycache__/
+*.pyc
+
+# Environment & Credentials
+.env
+*.json
+!package.json
+
+# Service Account Keys (CRITICAL - DO NOT COMMIT)
+bayaan-meets-36b41e23f9cc.json
+vertex-ai-credentials.json
+*-key.json
+service-account*.json
+
+# Output Files
+segments/
+logs/
+*.wav
+*.txt
+
+# OS Files
+.DS_Store
+Thumbs.db

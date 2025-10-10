@@ -8,8 +8,9 @@ numpy
 scipy 
 soundfile 
  
-# AI/Translation 
-google-generativeai 
+# AI/Translation (Vertex AI)
+google-genai
+google-auth 
  
 # Utilities 
 python-dotenv 
