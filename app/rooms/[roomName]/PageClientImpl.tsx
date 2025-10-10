@@ -376,12 +376,31 @@ function VideoConferenceComponent(props: {
     room.on(RoomEvent.MediaDevicesError, handleError);
 
     if (e2eeSetupComplete) {
-      room
-        .connect(
-          props.connectionDetails.serverUrl,
-          props.connectionDetails.participantToken,
-          connectOptions,
-        )
+      // Helper function to connect with retry logic for clock skew issues
+      const connectWithRetry = async (attempt = 1): Promise<void> => {
+        try {
+          await room.connect(
+            props.connectionDetails.serverUrl,
+            props.connectionDetails.participantToken,
+            connectOptions,
+          );
+        } catch (error: any) {
+          // Retry if it's a clock skew issue (token not valid yet)
+          if (
+            (error.message?.includes('not valid yet') ||
+             error.message?.includes('Token is not active yet') ||
+             error.message?.includes('nbf')) &&
+            attempt < 3
+          ) {
+            console.warn(`Token validation failed (attempt ${attempt}/3), likely clock skew. Retrying in 2 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return connectWithRetry(attempt + 1);
+          }
+          throw error; // Re-throw if not a clock skew issue or max retries reached
+        }
+      };
+
+      connectWithRetry()
         .then(async () => {
           // Set participant language attribute FIRST for students and teachers in classroom mode
           // This ensures TranscriptionSaver sees the correct language when it mounts

@@ -197,7 +197,14 @@ function createParticipantToken(
   role: string = 'student',
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
-  at.ttl = '15m'; // Increased from 5m to handle cold starts and user configuration time
+
+  // CRITICAL FIX: Set longer TTL and handle clock skew
+  at.ttl = '4h'; // 4 hours - Extended TTL for better user experience and production stability
+
+  // CRITICAL FIX: Account for clock skew between servers
+  // Set 'not before' claim to 10 seconds in the past to handle server time differences
+  // This prevents "Token is not valid yet" errors when server clocks are slightly out of sync
+  at.nbf = Math.floor(Date.now() / 1000) - 10;
 
   let grant: VideoGrant;
 

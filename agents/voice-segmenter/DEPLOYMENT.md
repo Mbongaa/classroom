@@ -134,12 +134,37 @@ LOG_LEVEL = INFO
 
 ---
 
-### **Step 4: Deploy**
+### **Step 4: Add Service Account Secret File** ⚠️ **CRITICAL**
+
+**BEFORE deploying**, you MUST add the service account JSON as a Secret File:
+
+1. **In Render Dashboard** (while creating the service):
+   - Scroll down to **"Secret Files"** section
+   - Click **"Add Secret File"**
+
+2. **Configure the secret file**:
+   - **Filename**: `bayaan-meets-36b41e23f9cc.json`
+   - **Contents**: Open your local `bayaan-meets-36b41e23f9cc.json` file and paste the entire JSON content
+   - Click **"Save"**
+
+3. **Render will mount this file** at runtime:
+   - Path: `/home/appuser/agent/bayaan-meets-36b41e23f9cc.json`
+   - Agent reads it via `GOOGLE_APPLICATION_CREDENTIALS` env var
+
+**Why this is required**:
+- ✅ JSON file is NOT in Git repo (protected by .gitignore - good!)
+- ✅ Dockerfile does NOT copy it (secure!)
+- ✅ Render provides it at runtime via Secret Files
+
+---
+
+### **Step 5: Deploy**
 
 1. **Click "Create Background Worker"**
 2. Render will:
    - Pull your code from GitHub
-   - Build Docker image
+   - Build Docker image (without JSON file)
+   - Mount Secret File at runtime
    - Start the agent
 3. **Monitor Logs**:
    - Click on your service → **"Logs"** tab
@@ -147,7 +172,7 @@ LOG_LEVEL = INFO
 
 ---
 
-### **Step 5: Verify Deployment**
+### **Step 6: Verify Deployment**
 
 #### **Check Logs**:
 

@@ -17,6 +17,7 @@ segments/
 logs/
 *.wav
 *.txt
+!requirements.txt
 
 # Development files
 setup-vertex-ai.cmd

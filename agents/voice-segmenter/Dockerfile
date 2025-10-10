@@ -33,9 +33,10 @@ COPY audio_processor.py .
 COPY translator.py .
 COPY config.py .
 
-# Copy service account credentials
-# IMPORTANT: This will be in the Docker image - ensure .gitignore protects it
-COPY bayaan-meets-36b41e23f9cc.json .
+# Service account credentials NOT copied here
+# Will be provided via Render Secret Files at runtime
+# Render will mount: bayaan-meets-36b41e23f9cc.json
+# Path: /home/appuser/agent/bayaan-meets-36b41e23f9cc.json
 
 # Set ownership
 RUN chown -R appuser:appuser /home/appuser
