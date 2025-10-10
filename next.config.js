@@ -53,9 +53,6 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 const nextConfig = {
   reactStrictMode: false,
   productionBrowserSourceMaps: true,
-  experimental: {
-    nodeMiddleware: true, // Required for middleware with Node.js runtime
-  },
   images: {
     formats: ['image/webp'],
   },
