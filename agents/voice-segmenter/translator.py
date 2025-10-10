@@ -1,11 +1,13 @@
 """
 Gemini translator for audio transcription and multi-language translation
 Uses Gemini multimodal API via Vertex AI to process audio bytes directly (no file I/O)
+Includes conversation memory for better translation coherence
 """
 
 import logging
 import json
 from typing import List, Dict
+from collections import deque
 
 from google import genai
 from google.genai import types
@@ -57,6 +59,12 @@ class GeminiTranslator:
 
         self.cache = {}  # Translation cache
         self.custom_prompt = None  # Custom translation prompt from teacher
+
+        # Conversation memory (sliding window for context)
+        self.context_enabled = True
+        self.max_context_segments = 10  # Number of segment pairs to remember
+        self.conversation_history = deque(maxlen=self.max_context_segments * 2)  # 10 pairs = 20 messages
+
         self.stats = {
             'total_requests': 0,
             'successful_requests': 0,
@@ -65,6 +73,7 @@ class GeminiTranslator:
         }
 
         logger.info(f'✅ Gemini translator initialized via Vertex AI (project: {project_id}, location: {location}, model: {self.model_name})')
+        logger.info(f'🧠 Conversation memory: {"ENABLED" if self.context_enabled else "DISABLED"} (window: {self.max_context_segments} segments)')
 
     async def process_audio_segment(
         self,
@@ -111,6 +120,9 @@ class GeminiTranslator:
             # Build prompt for transcription + translation
             prompt = self._build_prompt(source_language, target_languages)
 
+            # Build conversation context (TEXT history only, not audio!)
+            context_parts = self._build_context_parts()
+
             # Prepare audio data for Vertex AI
             audio_part = types.Part.from_bytes(
                 data=wav_bytes,
@@ -125,10 +137,13 @@ class GeminiTranslator:
                         logger.info('🔄 Retrying with simpler prompt')
                         prompt = self._build_simple_prompt(source_language, target_languages)
 
-                    # Call Vertex AI API with audio + prompt
+                    # Build contents: [text context] + [current audio] + [prompt]
+                    contents = context_parts + [audio_part, types.Part.from_text(text=prompt)]
+
+                    # Call Vertex AI API with context + audio + prompt
                     response = await self.client.aio.models.generate_content(
                         model=self.model_name,
-                        contents=[audio_part, types.Part.from_text(text=prompt)],
+                        contents=contents,  # Includes conversation history!
                         config=types.GenerateContentConfig(
                             temperature=0.3,
                             max_output_tokens=1000,
@@ -185,9 +200,13 @@ class GeminiTranslator:
 
             self.stats['successful_requests'] += 1
 
+            # Update conversation history for context in next request
+            self._update_history(result['transcription'], result['translations'])
+
             logger.info(f'✅ Translation completed via Vertex AI', extra={
                 'transcription': result['transcription'][:50] + '...' if len(result['transcription']) > 50 else result['transcription'],
-                'languages': list(result['translations'].keys())
+                'languages': list(result['translations'].keys()),
+                'context_size': f'{len(self.conversation_history)} msgs' if self.context_enabled else 'disabled'
             })
 
             return result
@@ -215,6 +234,61 @@ class GeminiTranslator:
             'has_source_placeholder': '{source_lang}' in prompt_text,
             'has_target_placeholder': '{target_lang}' in prompt_text
         })
+
+    def _build_context_parts(self) -> List:
+        """
+        Build conversation history as Gemini Content parts (TEXT ONLY, not audio)
+
+        Returns:
+            List of Content objects representing conversation history
+        """
+        if not self.context_enabled or not self.conversation_history:
+            return []
+
+        context_parts = []
+        for msg in self.conversation_history:
+            content = types.Content(
+                role=msg['role'],  # 'user' or 'model'
+                parts=[types.Part.from_text(text=msg['content'])]  # TEXT only!
+            )
+            context_parts.append(content)
+
+        logger.debug(f'📚 Built context with {len(self.conversation_history)} messages ({len(self.conversation_history) // 2} pairs)')
+        return context_parts
+
+    def _update_history(self, transcription: str, translations: Dict[str, str]):
+        """
+        Update conversation history with latest transcription and translation
+
+        Args:
+            transcription: Original transcribed text
+            translations: Dictionary of language_code: translated_text
+        """
+        if not self.context_enabled:
+            return
+
+        # Add original transcription (user message)
+        self.conversation_history.append({
+            'role': 'user',
+            'content': transcription
+        })
+
+        # Add translations (model response)
+        # Format: "en: Peace be upon you, es: Paz sea con vosotros"
+        translation_text = ', '.join([f"{lang}: {text}" for lang, text in translations.items()])
+        self.conversation_history.append({
+            'role': 'model',
+            'content': translation_text
+        })
+
+        logger.debug(f'💾 History updated: {len(self.conversation_history)} messages ({len(self.conversation_history) // 2} pairs)')
+
+    def clear_context(self):
+        """Clear conversation history"""
+        if self.context_enabled and self.conversation_history:
+            size = len(self.conversation_history)
+            self.conversation_history.clear()
+            logger.info(f'🧹 Conversation history cleared ({size} messages removed)')
 
     def _build_prompt(self, source_language: str, target_languages: List[str]) -> str:
         """Build prompt for Gemini multimodal processing"""
@@ -396,7 +470,10 @@ Return JSON:
         return {
             **self.stats,
             'cache_size': len(self.cache),
-            'success_rate': (self.stats['successful_requests'] / max(1, self.stats['total_requests'])) * 100
+            'success_rate': (self.stats['successful_requests'] / max(1, self.stats['total_requests'])) * 100,
+            'context_enabled': self.context_enabled,
+            'context_size': len(self.conversation_history) if self.context_enabled else 0,
+            'context_pairs': len(self.conversation_history) // 2 if self.context_enabled else 0
         }
 
     def clear_cache(self):
