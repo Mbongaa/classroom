@@ -385,14 +385,15 @@ function VideoConferenceComponent(props: {
             connectOptions,
           );
         } catch (error: any) {
-          // Retry if it's a clock skew issue (token not valid yet)
+          // Retry for genuine clock skew issues between distributed servers
+          // Note: The previous token generation bug has been fixed, but legitimate clock skew can still occur
           if (
             (error.message?.includes('not valid yet') ||
              error.message?.includes('Token is not active yet') ||
              error.message?.includes('nbf')) &&
             attempt < 3
           ) {
-            console.warn(`Token validation failed (attempt ${attempt}/3), likely clock skew. Retrying in 2 seconds...`);
+            console.warn(`Token validation failed (attempt ${attempt}/3), possible clock skew between servers. Retrying in 2 seconds...`);
             await new Promise(resolve => setTimeout(resolve, 2000));
             return connectWithRetry(attempt + 1);
           }

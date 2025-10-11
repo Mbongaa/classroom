@@ -198,13 +198,8 @@ async function createParticipantToken(
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
 
-  // CRITICAL FIX: Set longer TTL for better user experience and production stability
+  // Set longer TTL for better user experience and production stability
   at.ttl = '4h'; // 4 hours - Prevents token expiration during normal usage
-
-  // CLOCK SKEW MITIGATION: Add a small delay before returning the token
-  // This ensures the token's internal nbf (not before) timestamp is slightly in the past
-  // when it reaches the client, preventing "Token is not valid yet" errors
-  await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
 
   let grant: VideoGrant;
 
@@ -246,7 +241,7 @@ async function createParticipantToken(
   }
 
   at.addGrant(grant);
-  return at.toJwt();
+  return await at.toJwt();
 }
 
 function getCookieExpirationTime(): string {
