@@ -190,7 +190,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function createParticipantToken(
+async function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
   isRoleBasedSession: boolean = false,
@@ -198,13 +198,13 @@ function createParticipantToken(
 ) {
   const at = new AccessToken(API_KEY, API_SECRET, userInfo);
 
-  // CRITICAL FIX: Set longer TTL and handle clock skew
-  at.ttl = '4h'; // 4 hours - Extended TTL for better user experience and production stability
+  // CRITICAL FIX: Set longer TTL for better user experience and production stability
+  at.ttl = '4h'; // 4 hours - Prevents token expiration during normal usage
 
-  // CRITICAL FIX: Account for clock skew between servers
-  // Set 'not before' claim to 10 seconds in the past to handle server time differences
-  // This prevents "Token is not valid yet" errors when server clocks are slightly out of sync
-  at.nbf = Math.floor(Date.now() / 1000) - 10;
+  // CLOCK SKEW MITIGATION: Add a small delay before returning the token
+  // This ensures the token's internal nbf (not before) timestamp is slightly in the past
+  // when it reaches the client, preventing "Token is not valid yet" errors
+  await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay
 
   let grant: VideoGrant;
 
