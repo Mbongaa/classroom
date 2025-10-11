@@ -192,8 +192,10 @@ class GeminiTranslator:
                     result = self._parse_response(response_text, target_languages)
                     break  # Success, exit retry loop
 
-                except ValueError as e:
+                except (ValueError, ConnectionError, TimeoutError, OSError) as e:
+                    # Network errors, parsing errors, or OS-level connection issues
                     if attempt == 0:
+                        logger.warning(f'⚠️ Attempt {attempt + 1} failed ({type(e).__name__}: {str(e)}), retrying...')
                         continue  # Try again
                     else:
                         raise  # Re-raise on final attempt
@@ -297,6 +299,13 @@ class GeminiTranslator:
         if self.custom_prompt and target_languages:
             language_names = self._get_language_names(target_languages)
 
+            # Log validation: codes → names mapping
+            logger.info(f'🔤 Language mapping validation:', extra={
+                'codes': target_languages,
+                'resolved_names': language_names,
+                'mapping': {code: name for code, name in zip(target_languages, language_names)}
+            })
+
             # Replace placeholders in custom prompt
             prompt = self.custom_prompt
             prompt = prompt.replace('{source_lang}', source_language)
@@ -322,6 +331,13 @@ JSON:"""
         # Default prompts (when no custom prompt is set)
         if target_languages:
             language_names = self._get_language_names(target_languages)
+
+            # Log validation: codes → names mapping
+            logger.info(f'🔤 Language mapping validation (default prompt):', extra={
+                'codes': target_languages,
+                'resolved_names': language_names,
+                'mapping': {code: name for code, name in zip(target_languages, language_names)}
+            })
 
             return f"""You are an audio transcription and translation system.
 
@@ -406,7 +422,7 @@ Return JSON:
         response_text: str,
         expected_languages: List[str]
     ) -> Dict[str, any]:
-        """Parse Gemini JSON response"""
+        """Parse Gemini JSON response with robust error handling"""
         try:
             # Clean response (remove markdown if present)
             cleaned = response_text.strip()
@@ -416,8 +432,26 @@ Return JSON:
             # Try to find JSON object
             if '{' in cleaned:
                 start = cleaned.index('{')
-                end = cleaned.rindex('}') + 1
-                cleaned = cleaned[start:end]
+
+                # Safely find the end of JSON, handle truncated responses
+                try:
+                    end = cleaned.rindex('}') + 1
+                    cleaned = cleaned[start:end]
+                except ValueError:
+                    # No closing brace found - response is truncated
+                    logger.warning('⚠️ Truncated JSON response detected, attempting repair')
+                    cleaned = cleaned[start:]
+
+                    # Attempt to repair incomplete JSON
+                    # Count opening and closing braces to determine what's missing
+                    open_braces = cleaned.count('{')
+                    close_braces = cleaned.count('}')
+                    missing_braces = open_braces - close_braces
+
+                    if missing_braces > 0:
+                        # Add missing closing braces
+                        cleaned += '}' * missing_braces
+                        logger.debug(f'🔧 Added {missing_braces} closing braces to repair JSON')
 
             # Parse JSON
             parsed = json.loads(cleaned)
@@ -437,9 +471,24 @@ Return JSON:
                 'translations': translations
             }
 
+        except json.JSONDecodeError as e:
+            logger.error(f'❌ JSON decode error: {e}', extra={
+                'response': response_text[:200],
+                'error_position': f'line {e.lineno}, col {e.colno}'
+            })
+
+            # Attempt to extract transcription at least
+            transcription = self._extract_transcription_fallback(response_text)
+
+            return {
+                'transcription': transcription,
+                'translations': {lang: transcription for lang in expected_languages}
+            }
+
         except Exception as e:
             logger.error(f'❌ Failed to parse Gemini response: {e}', extra={
-                'response': response_text[:200]
+                'response': response_text[:200],
+                'error_type': type(e).__name__
             })
 
             # Return empty result
@@ -448,9 +497,34 @@ Return JSON:
                 'translations': {}
             }
 
+    def _extract_transcription_fallback(self, response_text: str) -> str:
+        """Extract transcription from malformed response as fallback"""
+        try:
+            # Try to find transcription field even in malformed JSON
+            if '"transcription"' in response_text:
+                # Extract text after "transcription": "
+                start = response_text.find('"transcription"')
+                if start != -1:
+                    # Find the opening quote after the colon
+                    quote_start = response_text.find('"', start + len('"transcription"') + 1)
+                    if quote_start != -1:
+                        # Find the closing quote (handle escaped quotes)
+                        quote_end = quote_start + 1
+                        while quote_end < len(response_text):
+                            if response_text[quote_end] == '"' and response_text[quote_end - 1] != '\\':
+                                transcription = response_text[quote_start + 1:quote_end]
+                                logger.info(f'✅ Extracted transcription from malformed response')
+                                return transcription
+                            quote_end += 1
+        except Exception as e:
+            logger.debug(f'Fallback extraction failed: {e}')
+
+        return '[Translation unavailable]'
+
     def _get_language_names(self, codes: List[str]) -> List[str]:
         """Map language codes to full names for Gemini prompt"""
         names = {
+            # Common ISO 639-1 codes
             'en': 'English',
             'es': 'Spanish',
             'fr': 'French',
@@ -461,7 +535,60 @@ Return JSON:
             'ja': 'Japanese',
             'ko': 'Korean',
             'pt': 'Portuguese',
-            'ru': 'Russian'
+            'ru': 'Russian',
+            'tr': 'Turkish',
+            'it': 'Italian',
+            'pl': 'Polish',
+            'sv': 'Swedish',
+            'no': 'Norwegian',
+            'da': 'Danish',
+            'fi': 'Finnish',
+            'cs': 'Czech',
+            'hu': 'Hungarian',
+            'ro': 'Romanian',
+            'bg': 'Bulgarian',
+            'hr': 'Croatian',
+            'sk': 'Slovakian',
+            'sl': 'Slovenian',
+            'et': 'Estonian',
+            'lv': 'Latvian',
+            'lt': 'Lithuanian',
+            'el': 'Greek',
+            'he': 'Hebrew',
+            'hi': 'Hindi',
+            'bn': 'Bengali',
+            'ur': 'Urdu',
+            'fa': 'Persian',
+            'th': 'Thai',
+            'vi': 'Vietnamese',
+            'id': 'Indonesian',
+            'ms': 'Malay',
+            'tl': 'Tagalog',
+            'sw': 'Swahili',
+            'ta': 'Tamil',
+            'te': 'Telugu',
+            'mr': 'Marathi',
+            'uk': 'Ukrainian',
+            'be': 'Belarusian',
+            'ca': 'Catalan',
+            'gl': 'Galician',
+            'eu': 'Basque',
+            'cy': 'Welsh',
+            'ga': 'Irish',
+
+            # ISO 639-3 codes (extended support for specific variants)
+            'yue': 'Cantonese',
+            'ba': 'Bashkir',
+            'eo': 'Esperanto',
+            'ia': 'Interlingua',
+            'mt': 'Maltese',
+            'mn': 'Mongolian',
+            'ug': 'Uyghur',
+
+            # Chinese variants (BCP 47 locale codes)
+            'zh-CN': 'Simplified Chinese',  # Primary: Mandarin (Mainland China)
+            'zh-TW': 'Traditional Chinese',  # Taiwan
+            'zh-HK': 'Hong Kong Chinese',    # Hong Kong
         }
         return [names.get(code, code.upper()) for code in codes]
 

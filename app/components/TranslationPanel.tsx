@@ -218,7 +218,7 @@ export default function TranslationPanel({
       de: 'German',
       ja: 'Japanese',
       ar: 'Arabic',
-      cmn: 'Chinese',
+      'zh-CN': 'Chinese',
       pt: 'Portuguese',
       ru: 'Russian',
       ko: 'Korean',

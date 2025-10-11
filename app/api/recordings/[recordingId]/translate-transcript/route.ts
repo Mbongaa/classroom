@@ -10,7 +10,7 @@ import { TranscriptSegment } from '@/lib/types';
  * Uses batch translation for efficiency (single API call for all segments).
  *
  * Request Body:
- *   - targetLanguage: string (ISO code: en, es, fr, de, ja, cmn, ar)
+ *   - targetLanguage: string (ISO code: en, es, fr, de, ja, zh-CN, ar)
  *
  * Response:
  *   - translatedSegments: TranscriptSegment[] (translated text, preserved structure)
@@ -40,7 +40,7 @@ export async function POST(
       );
     }
 
-    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'cmn', 'ar'];
+    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar'];
     if (!validLanguages.includes(targetLanguage)) {
       return NextResponse.json(
         {
@@ -156,7 +156,7 @@ function buildTranslationPrompt(
     fr: 'French (Français)',
     de: 'German (Deutsch)',
     ja: 'Japanese (日本語)',
-    cmn: 'Chinese (中文)',
+    'zh-CN': 'Chinese (中文)',
     ar: 'Arabic (العربية)',
   };
 

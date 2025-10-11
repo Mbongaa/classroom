@@ -285,6 +285,8 @@ class AudioProcessor:
             'nl': 'Dutch',
             'ar': 'Arabic',
             'zh': 'Chinese',
+            'zh-CN': 'Simplified Chinese',
+            'zh-TW': 'Traditional Chinese',
             'ja': 'Japanese',
             'ko': 'Korean',
             'pt': 'Portuguese',

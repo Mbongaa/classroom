@@ -9,7 +9,7 @@ import { LearningContentGenerator, LearningContent } from '@/lib/gemini/learning
  * Uses Gemini AI to transform raw transcripts into educational material.
  *
  * Request Body:
- *   - targetLanguage: string (ISO code: en, es, fr, de, ja, cmn, ar)
+ *   - targetLanguage: string (ISO code: en, es, fr, de, ja, zh-CN, ar)
  *
  * Response:
  *   - LearningContent object with summary and thematic breakdown
@@ -39,7 +39,7 @@ export async function POST(
       );
     }
 
-    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'cmn', 'ar'];
+    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar'];
     if (!validLanguages.includes(targetLanguage)) {
       return NextResponse.json(
         {

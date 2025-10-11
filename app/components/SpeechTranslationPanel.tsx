@@ -204,7 +204,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
       fr: 'French',
       de: 'German',
       ja: 'Japanese',
-      cmn: 'Chinese',
+      'zh-CN': 'Chinese',
       ar: 'Arabic',
       hi: 'Hindi',
       pt: 'Portuguese',

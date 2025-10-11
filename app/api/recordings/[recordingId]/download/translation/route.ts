@@ -13,7 +13,7 @@ import {
  * GET /api/recordings/[recordingId]/download/translation
  * Download translation in requested language and format
  * Query params:
- *   - language: en|es|fr|de|ja|cmn|ar (required)
+ *   - language: en|es|fr|de|ja|zh-CN|ar (required)
  *   - format: srt|vtt|txt (default: srt)
  */
 export async function GET(
@@ -28,12 +28,12 @@ export async function GET(
     // Validate language
     if (!language) {
       return NextResponse.json(
-        { error: 'Language parameter is required. Use: en, es, fr, de, ja, cmn, or ar' },
+        { error: 'Language parameter is required. Use: en, es, fr, de, ja, zh-CN, or ar' },
         { status: 400 },
       );
     }
 
-    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'cmn', 'ar'];
+    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar'];
     if (!validLanguages.includes(language)) {
       return NextResponse.json(
         { error: `Invalid language. Supported: ${validLanguages.join(', ')}` },

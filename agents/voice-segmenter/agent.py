@@ -81,10 +81,17 @@ async def entrypoint(ctx: JobContext):
     """Main entrypoint - runs for each room the agent joins"""
     logger.info(f'🚀 Agent starting for room: {ctx.room.name}')
 
-    # Connect to room
-    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
-    logger.info(f'✅ Connected to room: {ctx.room.name}')
-    logger.info(f'🤖 Agent identity: {config.AGENT_IDENTITY}')
+    # Connect to room with error handling
+    try:
+        await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+        logger.info(f'✅ Connected to room: {ctx.room.name}')
+        logger.info(f'🤖 Agent identity: {config.AGENT_IDENTITY}')
+    except Exception as e:
+        logger.error(
+            f'❌ Failed to connect to room {ctx.room.name}: {e}',
+            exc_info=True
+        )
+        raise  # Re-raise to let LiveKit framework handle reconnection
 
     # Log room state
     logger.info(f'📊 Room participants: {len(ctx.room.remote_participants)}')
@@ -161,9 +168,24 @@ async def entrypoint(ctx: JobContext):
                     logger.warning('⚠️ No translator available for custom prompt')
 
         # Process teacher audio with VAD
-        asyncio.create_task(
+        task = asyncio.create_task(
             audio_processor.process_track(track, participant, ctx.room.name)
         )
+
+        # Monitor task for exceptions (prevents silent failures)
+        def handle_task_exception(task_obj):
+            """Log any unhandled exceptions from audio processing task"""
+            try:
+                task_obj.result()  # Raises exception if task failed
+            except asyncio.CancelledError:
+                logger.info(f'🛑 Audio processing task cancelled for: {participant.identity}')
+            except Exception as e:
+                logger.error(
+                    f'❌ Audio processing task failed for {participant.identity}: {e}',
+                    exc_info=True
+                )
+
+        task.add_done_callback(handle_task_exception)
 
         logger.info(f'✅ Audio processing started for: {participant.identity}')
 
