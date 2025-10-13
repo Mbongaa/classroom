@@ -61,14 +61,16 @@ export function PageClientImpl(props: {
   const [checkingPin, setCheckingPin] = React.useState(false);
 
   // Check classroom/speech role from URL (client-side only to avoid hydration issues)
+  // CRITICAL FIX: Use lazy initialization to read URL params synchronously during initialization
+  // This prevents race condition where students would get media permission prompts on first render
   const [classroomInfo, setClassroomInfo] = React.useState<{
     role: string;
     pin: string | null;
     mode?: 'classroom' | 'speech';
-  } | null>(null);
+  } | null>(() => {
+    // Read URL params synchronously BEFORE first render
+    if (typeof window === 'undefined') return null;
 
-  React.useEffect(() => {
-    // Only access window on client side
     const currentUrl = new URL(window.location.href);
     const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
     const isSpeech = currentUrl.searchParams.get('speech') === 'true';
@@ -76,11 +78,13 @@ export function PageClientImpl(props: {
     const pin = currentUrl.searchParams.get('pin');
 
     if (isClassroom) {
-      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
+      return { role: role || 'student', pin: pin || null, mode: 'classroom' };
     } else if (isSpeech) {
-      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
+      return { role: role || 'student', pin: pin || null, mode: 'speech' };
     }
-  }, []);
+
+    return null;
+  });
 
   // Fetch classroom metadata to auto-populate language and teacher name (TEACHERS ONLY)
   React.useEffect(() => {

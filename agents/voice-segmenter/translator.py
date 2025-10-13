@@ -311,6 +311,21 @@ class GeminiTranslator:
             prompt = prompt.replace('{source_lang}', source_language)
             prompt = prompt.replace('{target_lang}', ', '.join(language_names))
 
+            # ALWAYS append explicit language code requirements (fixes first segment ambiguity)
+            prompt += f"""
+
+IMPORTANT: Use these EXACT language codes as keys in your translations object:
+{', '.join(target_languages)}
+
+Your response MUST use these exact keys. Example format:
+{{
+  "transcription": "original text",
+  "translations": {{
+    {', '.join([f'"{lang}": "translation text"' for lang in target_languages])}
+  }}
+}}
+"""
+
             # Ensure JSON format instruction is included
             if 'JSON' not in prompt:
                 prompt += f"""
