@@ -676,7 +676,7 @@
   position: relative;
   background: var(--lk-background-2);
   border-top: 1px solid var(--lk-border);
-  padding: 5px;
+  padding: 3px;
   z-index: 50;
 }
 

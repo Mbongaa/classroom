@@ -149,7 +149,8 @@ class GeminiTranslator:
                             max_output_tokens=1000,
                             top_p=0.95,
                             top_k=40,
-                            safety_settings=self.safety_settings
+                            safety_settings=self.safety_settings,
+                            response_mime_type="application/json"  # Force JSON output (no markdown wrappers)
                         )
                     )
 
