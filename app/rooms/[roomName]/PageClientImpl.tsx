@@ -375,6 +375,14 @@ function VideoConferenceComponent(props: {
   }, []);
 
   React.useEffect(() => {
+    room.on(RoomEvent.Reconnecting, () => {
+      console.log('[LiveKit] Connection lost, attempting to reconnect...');
+    });
+
+    room.on(RoomEvent.Reconnected, () => {
+      console.log('[LiveKit] Successfully reconnected to room');
+    });
+
     room.on(RoomEvent.Disconnected, handleOnLeave);
     room.on(RoomEvent.EncryptionError, handleEncryptionError);
     room.on(RoomEvent.MediaDevicesError, handleError);
@@ -579,6 +587,8 @@ function VideoConferenceComponent(props: {
         });
     }
     return () => {
+      room.off(RoomEvent.Reconnecting);
+      room.off(RoomEvent.Reconnected);
       room.off(RoomEvent.Disconnected, handleOnLeave);
       room.off(RoomEvent.EncryptionError, handleEncryptionError);
       room.off(RoomEvent.MediaDevicesError, handleError);

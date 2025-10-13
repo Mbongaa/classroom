@@ -593,11 +593,21 @@ export function SpeechClientImplWithRequests({
   }, []);
 
   React.useEffect(() => {
+    room.on(RoomEvent.Reconnecting, () => {
+      console.log('[LiveKit] Connection lost, attempting to reconnect...');
+    });
+
+    room.on(RoomEvent.Reconnected, () => {
+      console.log('[LiveKit] Successfully reconnected to room');
+    });
+
     room.on(RoomEvent.Disconnected, handleOnLeave);
     room.on(RoomEvent.DataReceived, handleDataReceived);
     room.on(RoomEvent.ParticipantPermissionsChanged, handlePermissionChanged);
 
     return () => {
+      room.off(RoomEvent.Reconnecting);
+      room.off(RoomEvent.Reconnected);
       room.off(RoomEvent.Disconnected, handleOnLeave);
       room.off(RoomEvent.DataReceived, handleDataReceived);
       room.off(RoomEvent.ParticipantPermissionsChanged, handlePermissionChanged);
