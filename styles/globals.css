@@ -31,16 +31,6 @@ body {
   -webkit-overflow-scrolling: auto;
 }
 
-/* Main element specific fixes */
-main {
-  height: 100vh;
-  height: -webkit-fill-available; /* Safari < iOS 15 */
-  height: 100svh; /* Modern browsers - must be last to override */
-  overflow: hidden;
-  position: relative;
-  touch-action: none;
-}
-
 /* Ensure LiveKit theme containers respect viewport */
 main[data-lk-theme] {
   height: 100vh;
