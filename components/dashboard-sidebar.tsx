@@ -58,7 +58,7 @@ const navigation = [
 export function AppSidebar() {
   const { user, profile, loading } = useUser();
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, isMobile, setOpenMobile } = useSidebar();
 
   // Show nothing while loading (middleware will handle auth)
   if (loading || !user || !profile) {
@@ -66,6 +66,10 @@ export function AppSidebar() {
   }
 
   async function handleSignOut() {
+    // Close mobile sidebar before signing out
+    if (isMobile) {
+      setOpenMobile(false);
+    }
     await signOut();
   }
 
@@ -90,7 +94,15 @@ export function AppSidebar() {
                       isActive={isActive}
                       tooltip={state === 'collapsed' ? item.label : undefined}
                     >
-                      <Link href={item.href}>
+                      <Link
+                        href={item.href}
+                        onClick={() => {
+                          // Close mobile sidebar when navigating
+                          if (isMobile) {
+                            setOpenMobile(false);
+                          }
+                        }}
+                      >
                         <item.icon className="size-4 text-black dark:text-white" />
                         <span className="text-black dark:text-white">{item.label}</span>
                       </Link>
@@ -110,7 +122,15 @@ export function AppSidebar() {
               asChild
               tooltip={state === 'collapsed' ? profile.full_name || user.email : undefined}
             >
-              <Link href="/dashboard/profile">
+              <Link
+                href="/dashboard/profile"
+                onClick={() => {
+                  // Close mobile sidebar when navigating
+                  if (isMobile) {
+                    setOpenMobile(false);
+                  }
+                }}
+              >
                 <div
                   className={cn(
                     'flex items-center justify-center rounded-lg border border-[rgba(128,128,128,0.3)] text-sidebar-foreground aspect-square',

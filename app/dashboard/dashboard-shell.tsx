@@ -5,7 +5,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex w-full flex-1 flex-col overflow-hidden md:flex-row h-screen">
       {/* Static Sidebar Structure */}
-      <div className="h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[60px] shrink-0">
+      <div className="h-full px-4 py-4 hidden md:flex md:flex-col bg-sidebar w-[60px] shrink-0 border-r border-sidebar-border">
         {/* Logo Area - Static */}
         <div className="relative z-20 flex items-center space-x-2 py-1">
           <svg
