@@ -62,8 +62,8 @@ class GeminiTranslator:
 
         # Conversation memory (sliding window for context)
         self.context_enabled = True
-        self.max_context_segments = 10  # Number of segment pairs to remember
-        self.conversation_history = deque(maxlen=self.max_context_segments * 2)  # 10 pairs = 20 messages
+        self.max_context_segments = 1  # Number of segment pairs to remember (reduced to prevent context pollution)
+        self.conversation_history = deque(maxlen=self.max_context_segments * 2)  # 1 pair = 2 messages
 
         self.stats = {
             'total_requests': 0,
@@ -150,7 +150,8 @@ class GeminiTranslator:
                             top_p=0.95,
                             top_k=40,
                             safety_settings=self.safety_settings,
-                            response_mime_type="application/json"  # Force JSON output (no markdown wrappers)
+                            response_mime_type="application/json",  # Force JSON output
+                            response_schema=self._build_response_schema(target_languages)  # Enforce exact language codes!
                         )
                     )
 
@@ -292,6 +293,47 @@ class GeminiTranslator:
             size = len(self.conversation_history)
             self.conversation_history.clear()
             logger.info(f'🧹 Conversation history cleared ({size} messages removed)')
+
+    def _build_response_schema(self, target_languages: List[str]) -> dict:
+        """
+        Build dynamic JSON schema enforcing exact language codes
+
+        This ensures Gemini returns translations with the EXACT language codes
+        the frontend expects, preventing mismatches like "arabic" vs "ar"
+
+        Args:
+            target_languages: List of language codes that MUST be present
+
+        Returns:
+            dict: JSON schema with required language codes
+        """
+        if not target_languages:
+            # Transcription only (no translations)
+            return {
+                'type': 'OBJECT',
+                'required': ['transcription'],
+                'properties': {
+                    'transcription': {'type': 'STRING'}
+                }
+            }
+
+        # Build translation properties with exact language codes as required fields
+        translation_properties = {
+            lang: {'type': 'STRING'} for lang in target_languages
+        }
+
+        return {
+            'type': 'OBJECT',
+            'required': ['transcription', 'translations'],
+            'properties': {
+                'transcription': {'type': 'STRING'},
+                'translations': {
+                    'type': 'OBJECT',
+                    'required': target_languages,  # Enforce exact language codes!
+                    'properties': translation_properties
+                }
+            }
+        }
 
     def _build_prompt(self, source_language: str, target_languages: List[str]) -> str:
         """Build prompt for Gemini multimodal processing"""
@@ -476,11 +518,12 @@ Return JSON:
             transcription = parsed.get('transcription', '')
             translations = parsed.get('translations', {})
 
-            # Fill missing languages with transcription as fallback
+            # Validate that all expected language codes are present
+            # NOTE: With the dynamic schema enforcing exact codes, this should rarely trigger
             for lang in expected_languages:
                 if lang not in translations or not translations[lang]:
-                    logger.warning(f'⚠️ Missing translation for {lang}, using transcription')
-                    translations[lang] = transcription
+                    logger.error(f'❌ Schema enforcement failed: Missing translation for {lang}')
+                    translations[lang] = '[Translation error - schema mismatch]'
 
             return {
                 'transcription': transcription,
@@ -496,9 +539,11 @@ Return JSON:
             # Attempt to extract transcription at least
             transcription = self._extract_transcription_fallback(response_text)
 
+            # NOTE: With schema enforcement, JSON decode errors should be rare
+            # Don't use English transcription as fake translation
             return {
                 'transcription': transcription,
-                'translations': {lang: transcription for lang in expected_languages}
+                'translations': {lang: '[Translation unavailable - JSON error]' for lang in expected_languages}
             }
 
         except Exception as e:
