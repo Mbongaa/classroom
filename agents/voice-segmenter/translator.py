@@ -146,7 +146,7 @@ class GeminiTranslator:
                         contents=contents,  # Includes conversation history!
                         config=types.GenerateContentConfig(
                             temperature=0.3,
-                            max_output_tokens=1000,
+                            max_output_tokens=8192,  # Increased to maximum to prevent truncation
                             top_p=0.95,
                             top_k=40,
                             safety_settings=self.safety_settings,
