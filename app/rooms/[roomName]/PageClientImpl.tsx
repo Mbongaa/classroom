@@ -61,16 +61,14 @@ export function PageClientImpl(props: {
   const [checkingPin, setCheckingPin] = React.useState(false);
 
   // Check classroom/speech role from URL (client-side only to avoid hydration issues)
-  // CRITICAL FIX: Use lazy initialization to read URL params synchronously during initialization
-  // This prevents race condition where students would get media permission prompts on first render
   const [classroomInfo, setClassroomInfo] = React.useState<{
     role: string;
     pin: string | null;
     mode?: 'classroom' | 'speech';
-  } | null>(() => {
-    // Read URL params synchronously BEFORE first render
-    if (typeof window === 'undefined') return null;
+  } | null>(null);
 
+  // Read URL params client-side AFTER hydration to avoid SSR mismatch
+  React.useEffect(() => {
     const currentUrl = new URL(window.location.href);
     const isClassroom = currentUrl.searchParams.get('classroom') === 'true';
     const isSpeech = currentUrl.searchParams.get('speech') === 'true';
@@ -78,13 +76,11 @@ export function PageClientImpl(props: {
     const pin = currentUrl.searchParams.get('pin');
 
     if (isClassroom) {
-      return { role: role || 'student', pin: pin || null, mode: 'classroom' };
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
     } else if (isSpeech) {
-      return { role: role || 'student', pin: pin || null, mode: 'speech' };
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
     }
-
-    return null;
-  });
+  }, []);
 
   // Fetch classroom metadata to auto-populate language and teacher name (TEACHERS ONLY)
   React.useEffect(() => {
@@ -620,24 +616,17 @@ function VideoConferenceComponent(props: {
   }, [lowPowerMode]);
 
   // Check if we're in classroom or speech mode (client-side only)
-  // Use lazy initialization to read URL params BEFORE first render
-  const [isClassroom, setIsClassroom] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
-    const url = new URL(window.location.href);
-    return url.searchParams.get('classroom') === 'true';
-  });
+  const [isClassroom, setIsClassroom] = React.useState(false);
+  const [isSpeech, setIsSpeech] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
 
-  const [isSpeech, setIsSpeech] = React.useState(() => {
-    if (typeof window === 'undefined') return false;
+  // Read URL params client-side AFTER hydration to avoid SSR mismatch
+  React.useEffect(() => {
     const url = new URL(window.location.href);
-    return url.searchParams.get('speech') === 'true';
-  });
-
-  const [userRole, setUserRole] = React.useState<string | null>(() => {
-    if (typeof window === 'undefined') return null;
-    const url = new URL(window.location.href);
-    return url.searchParams.get('role');
-  });
+    setIsClassroom(url.searchParams.get('classroom') === 'true');
+    setIsSpeech(url.searchParams.get('speech') === 'true');
+    setUserRole(url.searchParams.get('role'));
+  }, []);
 
   return (
     <div className="lk-room-container" data-lk-theme="default">

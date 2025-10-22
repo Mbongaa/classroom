@@ -6,6 +6,7 @@ Includes conversation memory for better translation coherence
 
 import logging
 import json
+import asyncio
 from typing import List, Dict
 from collections import deque
 
@@ -62,8 +63,8 @@ class GeminiTranslator:
 
         # Conversation memory (sliding window for context)
         self.context_enabled = True
-        self.max_context_segments = 1  # Number of segment pairs to remember (reduced to prevent context pollution)
-        self.conversation_history = deque(maxlen=self.max_context_segments * 2)  # 1 pair = 2 messages
+        self.max_context_segments = 2  # Number of segment pairs to remember
+        self.conversation_history = deque(maxlen=self.max_context_segments * 2)  # 2 pairs = 4 messages
 
         self.stats = {
             'total_requests': 0,
@@ -129,13 +130,21 @@ class GeminiTranslator:
                 mime_type='audio/wav'
             )
 
-            # Try up to 2 times with different prompts
+            # Try up to 2 times with different prompts and backoff
             for attempt in range(2):
                 try:
-                    # Use simpler prompt on retry
+                    # Exponential backoff before retry (skip on first attempt)
+                    if attempt > 0:
+                        backoff_time = 2 ** attempt  # 2s, 4s, 8s...
+                        logger.info(f'⏳ Waiting {backoff_time}s before retry (exponential backoff)')
+                        await asyncio.sleep(backoff_time)
+
+                    # Use simpler prompt on retry + augment with completeness instruction
                     if attempt == 1:
-                        logger.info('🔄 Retrying with simpler prompt')
+                        logger.info('🔄 Retrying with simpler prompt + completeness instruction')
                         prompt = self._build_simple_prompt(source_language, target_languages)
+                        # Add explicit instruction to prevent truncation
+                        prompt = "CRITICAL: Ensure JSON response is COMPLETE and NOT TRUNCATED.\n\n" + prompt
 
                     # Build contents: [text context] + [current audio] + [prompt]
                     contents = context_parts + [audio_part, types.Part.from_text(text=prompt)]
@@ -185,19 +194,51 @@ class GeminiTranslator:
                     # Success! Process the response
                     response_text = response.text
 
+                    # Enhanced logging: finish_reason and token usage
+                    finish_reason = response.candidates[0].finish_reason if response.candidates else 'UNKNOWN'
+                    token_count = getattr(response, 'usage_metadata', None)
+
                     logger.debug(f'📥 Gemini response received', extra={
                         'response_length': len(response_text),
-                        'attempt': attempt + 1
+                        'attempt': attempt + 1,
+                        'finish_reason': finish_reason,
+                        'token_count': token_count.total_token_count if token_count else 'N/A',
+                        'prompt_tokens': token_count.prompt_token_count if token_count else 'N/A',
+                        'candidates_tokens': token_count.candidates_token_count if token_count else 'N/A'
                     })
+
+                    # Check if truncated due to MAX_TOKENS
+                    if finish_reason in ['MAX_TOKENS', 3]:
+                        logger.warning('⚠️ Response may be truncated (MAX_TOKENS)', extra={
+                            'finish_reason': finish_reason,
+                            'response_length': len(response_text),
+                            'attempt': attempt + 1
+                        })
 
                     # Parse response
                     result = self._parse_response(response_text, target_languages)
                     break  # Success, exit retry loop
 
-                except (ValueError, ConnectionError, TimeoutError, OSError) as e:
-                    # Network errors, parsing errors, or OS-level connection issues
+                except json.JSONDecodeError as e:
+                    # JSON parsing error - likely truncation
+                    logger.error(f'❌ JSON parsing failed on attempt {attempt + 1}', extra={
+                        'error': str(e),
+                        'error_position': f'line {e.lineno}, col {e.colno}',
+                        'attempt': attempt + 1
+                    })
+
                     if attempt == 0:
-                        logger.warning(f'⚠️ Attempt {attempt + 1} failed ({type(e).__name__}: {str(e)}), retrying...')
+                        logger.info('🔄 Retrying due to JSON decode error (likely truncation)')
+                        continue  # Retry
+                    else:
+                        raise  # Re-raise on final attempt
+
+                except (ValueError, ConnectionError, TimeoutError, OSError) as e:
+                    # Network errors or other OS-level issues
+                    logger.warning(f'⚠️ Attempt {attempt + 1} failed ({type(e).__name__}: {str(e)})')
+
+                    if attempt == 0:
+                        logger.info(f'🔄 Retrying due to {type(e).__name__}')
                         continue  # Try again
                     else:
                         raise  # Re-raise on final attempt
@@ -497,7 +538,13 @@ Return JSON:
                     cleaned = cleaned[start:end]
                 except ValueError:
                     # No closing brace found - response is truncated
-                    logger.warning('⚠️ Truncated JSON response detected, attempting repair')
+                    truncation_point = len(cleaned)
+                    logger.warning('⚠️ Truncated JSON response detected, attempting repair', extra={
+                        'truncation_point': truncation_point,
+                        'partial_content': cleaned[:200] + '...' if len(cleaned) > 200 else cleaned,
+                        'has_transcription': '"transcription"' in cleaned,
+                        'has_translations': '"translations"' in cleaned
+                    })
                     cleaned = cleaned[start:]
 
                     # Attempt to repair incomplete JSON
@@ -509,7 +556,11 @@ Return JSON:
                     if missing_braces > 0:
                         # Add missing closing braces
                         cleaned += '}' * missing_braces
-                        logger.debug(f'🔧 Added {missing_braces} closing braces to repair JSON')
+                        logger.debug(f'🔧 Added {missing_braces} closing braces to repair JSON', extra={
+                            'open_braces': open_braces,
+                            'close_braces': close_braces,
+                            'repaired_length': len(cleaned)
+                        })
 
             # Parse JSON
             parsed = json.loads(cleaned)
@@ -520,10 +571,25 @@ Return JSON:
 
             # Validate that all expected language codes are present
             # NOTE: With the dynamic schema enforcing exact codes, this should rarely trigger
+            missing_langs = []
             for lang in expected_languages:
                 if lang not in translations or not translations[lang]:
                     logger.error(f'❌ Schema enforcement failed: Missing translation for {lang}')
                     translations[lang] = '[Translation error - schema mismatch]'
+                    missing_langs.append(lang)
+
+            # Log validation results
+            if missing_langs:
+                logger.warning('⚠️ Incomplete translations detected', extra={
+                    'missing_languages': missing_langs,
+                    'received_languages': list(translations.keys()),
+                    'expected_languages': expected_languages
+                })
+            else:
+                logger.debug('✅ All expected translations present and valid', extra={
+                    'languages': list(translations.keys()),
+                    'transcription_length': len(transcription)
+                })
 
             return {
                 'transcription': transcription,

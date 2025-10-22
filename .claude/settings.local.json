@@ -28,7 +28,14 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
       "Bash(git -C /mnt/c/Users/HP/Desktop/meet/agents/voice-segmenter ls-files)",
-      "WebFetch(domain:www.heygen.com)"
+      "WebFetch(domain:www.heygen.com)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet log --oneline -10)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet show --name-only fc88991 bb95e57 7007d4f)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet log --oneline --all -- \"app/components/custom-prejoin/CustomPreJoin.tsx\" -5)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet show:*)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet diff 2d208ad^..2d208ad -- app/components/custom-prejoin/CustomPreJoin.tsx)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet log --oneline --all -- \"app/rooms/[roomName]/PageClientImpl.tsx\" -10)",
+      "Bash(git -C /mnt/c/Users/HP/Desktop/meet diff 2d208ad^..2d208ad -- app/rooms/[roomName]/PageClientImpl.tsx)"
     ],
     "deny": [],
     "ask": []
