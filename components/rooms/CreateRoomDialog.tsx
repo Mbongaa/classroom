@@ -96,6 +96,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
           roomCode: roomCode.trim(),
           name: teacherName.trim() || roomCode.trim(), // Classroom name (teacher name or room code)
           description: description.trim() || undefined,
+          roomType: roomType, // ✅ FIX: Include room type in request
           settings: {
             language: language || 'en',
             enable_recording: roomType === 'classroom',

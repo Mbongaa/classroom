@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
       roomCode,
       name,
       description,
+      roomType,
       settings,
       translationPromptId,
       contextWindowSize,
@@ -59,6 +60,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Classroom name is required' }, { status: 400 });
     }
 
+    // Validate roomType if provided
+    if (roomType && !['meeting', 'classroom', 'speech'].includes(roomType)) {
+      return NextResponse.json(
+        { error: 'Room type must be "meeting", "classroom", or "speech"' },
+        { status: 400 },
+      );
+    }
+
     // Validate settings if provided
     const classroomSettings = settings || {
       language: 'en',
@@ -74,6 +83,7 @@ export async function POST(request: NextRequest) {
       teacherId: user.id,
       name: name.trim(),
       description: description?.trim(),
+      roomType: roomType || 'classroom', // Default to 'classroom' if not specified
       settings: classroomSettings,
       translationPromptId: translationPromptId || null,
       contextWindowSize: contextWindowSize,
@@ -88,6 +98,7 @@ export async function POST(request: NextRequest) {
         room_code: classroom.room_code,
         name: classroom.name,
         description: classroom.description,
+        room_type: classroom.room_type,
         settings: classroom.settings,
         created_at: classroom.created_at,
       },

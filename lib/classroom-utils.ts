@@ -17,6 +17,7 @@ export interface Classroom {
   teacher_id: string;
   name: string;
   description: string | null;
+  room_type: 'meeting' | 'classroom' | 'speech'; // Type of room
   settings: {
     language: string;
     enable_recording: boolean;
@@ -39,6 +40,7 @@ export interface CreateClassroomParams {
   teacherId: string;
   name: string;
   description?: string;
+  roomType?: 'meeting' | 'classroom' | 'speech'; // Default: 'classroom'
   settings: {
     language: string;
     enable_recording: boolean;
@@ -69,6 +71,7 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
       teacher_id: params.teacherId,
       name: params.name,
       description: params.description || null,
+      room_type: params.roomType || 'classroom', // Default to 'classroom' for backward compatibility
       settings: params.settings,
       translation_prompt_id: params.translationPromptId || null,
       context_window_size: params.contextWindowSize ?? 12,

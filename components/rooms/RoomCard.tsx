@@ -25,9 +25,20 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
   const [deleting, setDeleting] = useState(false);
 
   const handleJoinRoom = () => {
-    const { room_code } = room;
-    // All classrooms use classroom mode
-    let url = `/rooms/${room_code}?classroom=true&role=teacher`;
+    const { room_code, room_type } = room;
+
+    // ✅ FIX: Generate URL based on actual room type
+    let url = `/rooms/${room_code}`;
+
+    // Add mode-specific query params
+    if (room_type === 'classroom') {
+      url += '?classroom=true&role=teacher';
+    } else if (room_type === 'speech') {
+      url += '?speech=true&role=teacher';
+    } else {
+      // 'meeting' type - no special params needed
+      url += '?role=teacher';
+    }
 
     router.push(url);
   };
@@ -73,7 +84,13 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
       <CardHeader>
         <div className="flex items-start justify-between">
           <CardTitle className="text-2xl font-bold">{room.room_code}</CardTitle>
-          <Badge variant="classroom">Classroom</Badge>
+          <Badge variant={room.room_type}>
+            {room.room_type === 'classroom'
+              ? 'Classroom'
+              : room.room_type === 'speech'
+                ? 'Speech'
+                : 'Meeting'}
+          </Badge>
         </div>
         {room.description && <CardDescription>{room.description}</CardDescription>}
       </CardHeader>
