@@ -10,7 +10,34 @@ const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
 
+// Vertex AI LiveKit credentials (for non-Arabic languages)
+const VERTEX_API_KEY = process.env.LIVEKIT_VERTEX_API_KEY;
+const VERTEX_API_SECRET = process.env.LIVEKIT_VERTEX_API_SECRET;
+const VERTEX_LIVEKIT_URL = process.env.LIVEKIT_VERTEX_URL;
+
 const COOKIE_KEY = 'random-participant-postfix';
+
+/**
+ * Get LiveKit credentials based on language selection
+ * Arabic ('ar') uses Bayaan credentials, all others use Vertex AI
+ */
+function getCredentialsForLanguage(language: string) {
+  if (language === 'ar') {
+    // Arabic → Bayaan LiveKit
+    return {
+      apiKey: API_KEY!,
+      apiSecret: API_SECRET!,
+      url: LIVEKIT_URL!,
+    };
+  } else {
+    // All others → Vertex AI LiveKit
+    return {
+      apiKey: VERTEX_API_KEY || API_KEY!,
+      apiSecret: VERTEX_API_SECRET || API_SECRET!,
+      url: VERTEX_LIVEKIT_URL || LIVEKIT_URL!,
+    };
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,6 +69,7 @@ export async function GET(request: NextRequest) {
     let userRole = role; // Default to query param role
     let livekitRoomName = roomName; // Default to user-facing room name
     let classroom = null;
+    let selectedLanguage = 'en'; // Default language for credential routing
 
     // If this is a classroom/speech session, look up in Supabase
     if ((isClassroom || isSpeech) && roomName) {
@@ -73,30 +101,8 @@ export async function GET(request: NextRequest) {
         // Use classroom.id (UUID) as LiveKit room name for uniqueness
         livekitRoomName = classroom.id;
 
-        // Ensure LiveKit room exists (LAZY CREATION)
-        if (API_KEY && API_SECRET && LIVEKIT_URL) {
-          try {
-            const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
-
-            // Check if room exists
-            const existingRooms = await roomService.listRooms([livekitRoomName]);
-
-            if (existingRooms.length === 0) {
-              // Create LiveKit room on-demand
-              console.log(
-                `Creating LiveKit room for classroom ${classroom.room_code} (${classroom.id})`,
-              );
-              await roomService.createRoom({
-                name: livekitRoomName, // Use UUID
-                emptyTimeout: 604800, // 7 days
-                metadata: '', // Supabase has all metadata
-              });
-            }
-          } catch (error) {
-            console.error('Error ensuring LiveKit room exists:', error);
-            // Continue anyway - token generation might still work
-          }
-        }
+        // NOTE: Room creation will be handled after language determination
+        // We need to know the language first to use correct credentials
 
         // Track participation for authenticated users
         if (user) {
@@ -122,13 +128,59 @@ export async function GET(request: NextRequest) {
         console.warn(`Classroom not found: ${roomName}`);
         // Fall back to using room_code directly (for non-classroom rooms or legacy)
         livekitRoomName = roomName;
+        // Ad-hoc room: Default to 'en' (Vertex AI credentials)
+        selectedLanguage = 'en';
+      }
+
+      // Determine language for credential routing
+      if (classroom && classroom.settings?.language) {
+        // Persistent room: Use stored language
+        selectedLanguage = classroom.settings.language;
+        console.log(
+          `[Language Routing] Using classroom language: ${selectedLanguage} for room ${roomName}`,
+        );
+      } else {
+        // Ad-hoc room or no language specified: Default to 'en' (Vertex AI)
+        selectedLanguage = 'en';
+        console.log(`[Language Routing] Using default language: ${selectedLanguage} for room ${roomName}`);
       }
     }
 
-    if (!LIVEKIT_URL) {
-      return NextResponse.json({ error: 'LIVEKIT_URL is not configured' }, { status: 500 });
+    // Get language-specific credentials
+    const credentials = getCredentialsForLanguage(selectedLanguage);
+    console.log(
+      `[Language Routing] Using ${selectedLanguage === 'ar' ? 'Bayaan' : 'Vertex AI'} credentials for room ${roomName}`,
+    );
+
+    if (!credentials.url) {
+      return NextResponse.json({ error: 'LiveKit credentials not configured for selected language' }, { status: 500 });
     }
-    const livekitServerUrl = region ? getLiveKitURL(LIVEKIT_URL, region) : LIVEKIT_URL;
+
+    // Ensure LiveKit room exists (LAZY CREATION) with language-specific credentials
+    if (classroom && credentials.apiKey && credentials.apiSecret && credentials.url) {
+      try {
+        const roomService = new RoomServiceClient(credentials.url, credentials.apiKey, credentials.apiSecret);
+
+        // Check if room exists
+        const existingRooms = await roomService.listRooms([livekitRoomName]);
+
+        if (existingRooms.length === 0) {
+          // Create LiveKit room on-demand
+          console.log(
+            `Creating LiveKit room for classroom ${classroom.room_code} (${classroom.id}) with ${selectedLanguage === 'ar' ? 'Bayaan' : 'Vertex AI'} server`,
+          );
+          await roomService.createRoom({
+            name: livekitRoomName, // Use UUID
+            emptyTimeout: 604800, // 7 days
+            metadata: '', // Supabase has all metadata
+          });
+        }
+      } catch (error) {
+        console.error('Error ensuring LiveKit room exists:', error);
+        // Continue anyway - token generation might still work
+      }
+    }
+    const livekitServerUrl = region ? getLiveKitURL(credentials.url, region) : credentials.url;
     let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
     if (livekitServerUrl === undefined) {
       return NextResponse.json({ error: 'Invalid region' }, { status: 400 });
@@ -168,6 +220,7 @@ export async function GET(request: NextRequest) {
       livekitRoomName, // Use LiveKit room name (UUID for classrooms)
       isClassroom || isSpeech,
       userRole, // Use the verified role from database if authenticated
+      credentials, // Pass language-specific credentials
     );
 
     // Return connection details
@@ -195,8 +248,9 @@ async function createParticipantToken(
   roomName: string,
   isRoleBasedSession: boolean = false,
   role: string = 'student',
+  credentials: { apiKey: string; apiSecret: string; url: string },
 ) {
-  const at = new AccessToken(API_KEY, API_SECRET, userInfo);
+  const at = new AccessToken(credentials.apiKey, credentials.apiSecret, userInfo);
 
   // Set longer TTL for better user experience and production stability
   at.ttl = '4h'; // 4 hours - Prevents token expiration during normal usage

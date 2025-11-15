@@ -53,10 +53,15 @@ export async function GET(req: NextRequest) {
     const displayRoomCode = classroom?.room_code || roomCode;
     const livekitRoomName = classroom?.id || roomCode;
 
+    // Environment variables
+    const API_KEY = process.env.LIVEKIT_API_KEY;
+    const API_SECRET = process.env.LIVEKIT_API_SECRET;
+    const LIVEKIT_URL = process.env.LIVEKIT_URL;
+    const VERTEX_API_KEY = process.env.LIVEKIT_VERTEX_API_KEY;
+    const VERTEX_API_SECRET = process.env.LIVEKIT_VERTEX_API_SECRET;
+    const VERTEX_LIVEKIT_URL = process.env.LIVEKIT_VERTEX_URL;
+
     const {
-      LIVEKIT_API_KEY,
-      LIVEKIT_API_SECRET,
-      LIVEKIT_URL,
       S3_ACCESS_KEY,
       S3_SECRET_KEY,
       S3_BUCKET,
@@ -64,14 +69,58 @@ export async function GET(req: NextRequest) {
       S3_REGION,
     } = process.env;
 
+    /**
+     * Get LiveKit credentials based on language selection
+     * Arabic ('ar') uses Bayaan credentials, all others use Vertex AI
+     */
+    function getCredentialsForLanguage(language: string) {
+      if (language === 'ar') {
+        // Arabic → Bayaan LiveKit
+        return {
+          apiKey: API_KEY!,
+          apiSecret: API_SECRET!,
+          url: LIVEKIT_URL!,
+        };
+      } else {
+        // All others → Vertex AI LiveKit
+        return {
+          apiKey: VERTEX_API_KEY || API_KEY!,
+          apiSecret: VERTEX_API_SECRET || API_SECRET!,
+          url: VERTEX_LIVEKIT_URL || LIVEKIT_URL!,
+        };
+      }
+    }
+
+    // Determine language for credential routing
+    let selectedLanguage = 'en'; // Default language for credential routing
+    if (classroom && classroom.settings?.language) {
+      // Persistent room: Use stored language
+      selectedLanguage = classroom.settings.language;
+      console.log(
+        `[Recording] Using classroom language: ${selectedLanguage} for room ${displayRoomCode}`,
+      );
+    } else {
+      // Ad-hoc room or no language specified: Default to 'en' (Vertex AI)
+      selectedLanguage = 'en';
+      console.log(
+        `[Recording] Using default language: ${selectedLanguage} for room ${displayRoomCode}`,
+      );
+    }
+
+    // Get language-specific credentials
+    const credentials = getCredentialsForLanguage(selectedLanguage);
+    console.log(
+      `[Recording] Using ${selectedLanguage === 'ar' ? 'Bayaan' : 'Vertex AI'} credentials for room ${displayRoomCode}`,
+    );
+
     // Generate unique session ID using clean display code (MATH101 instead of UUID)
     const sessionId = generateSessionId(displayRoomCode);
     const s3Prefix = `${displayRoomCode}/${sessionId}/`;
 
-    const hostURL = new URL(LIVEKIT_URL!);
+    const hostURL = new URL(credentials.url);
     hostURL.protocol = 'https:';
 
-    const egressClient = new EgressClient(hostURL.origin, LIVEKIT_API_KEY, LIVEKIT_API_SECRET);
+    const egressClient = new EgressClient(hostURL.origin, credentials.apiKey, credentials.apiSecret);
 
     // Check for existing active recordings
     const existingEgresses = await egressClient.listEgress({ roomName: livekitRoomName });
