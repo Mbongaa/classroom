@@ -156,6 +156,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'LiveKit credentials not configured for selected language' }, { status: 500 });
     }
 
+    // Validate livekitRoomName before using it
+    if (!livekitRoomName) {
+      return new NextResponse('Invalid room configuration', { status: 500 });
+    }
+
     // Ensure LiveKit room exists (LAZY CREATION) with language-specific credentials
     if (classroom && credentials.apiKey && credentials.apiSecret && credentials.url) {
       try {
@@ -191,9 +196,6 @@ export async function GET(request: NextRequest) {
     }
     if (participantName === null) {
       return new NextResponse('Missing required query parameter: participantName', { status: 400 });
-    }
-    if (!livekitRoomName) {
-      return new NextResponse('Invalid room configuration', { status: 500 });
     }
 
     // Generate participant token
