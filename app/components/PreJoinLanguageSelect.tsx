@@ -36,7 +36,11 @@ const LANGUAGES_BY_REGION = [
   },
   {
     region: 'Middle East',
-    items: [{ value: 'ar', label: 'العربية', flag: '🇸🇦' }],
+    items: [
+      { value: 'ar', label: 'العربية الفصحى (Arabic Fusha)', flag: '🇸🇦' },
+      { value: 'ar-mixed', label: 'عربي مختلط (Arabic Mixed)', flag: '🇸🇦' },
+      { value: 'ar-darija', label: 'الدارجة (Moroccan Arabic)', flag: '🇲🇦' },
+    ],
   },
 ];
 
