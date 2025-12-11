@@ -40,7 +40,7 @@ export async function POST(
       );
     }
 
-    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar'];
+    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar', 'nl'];
     if (!validLanguages.includes(targetLanguage)) {
       return NextResponse.json(
         {
@@ -158,6 +158,7 @@ function buildTranslationPrompt(
     ja: 'Japanese (日本語)',
     'zh-CN': 'Chinese (中文)',
     ar: 'Arabic (العربية)',
+    nl: 'Dutch (Nederlands)',
   };
 
   const originalLanguageName = languageNames[originalLanguage] || originalLanguage;

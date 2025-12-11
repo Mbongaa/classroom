@@ -222,6 +222,7 @@ export default function TranslationPanel({
       pt: 'Portuguese',
       ru: 'Russian',
       ko: 'Korean',
+      nl: 'Dutch',
     };
     return languages[code] || code.toUpperCase();
   };
