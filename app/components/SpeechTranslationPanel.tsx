@@ -18,6 +18,12 @@ interface SpeechTranslationPanelProps {
 const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000; // Start with 1 second, exponential backoff
 
+// Font size configuration
+const DEFAULT_FONT_SIZE = 20;
+const MIN_FONT_SIZE = 14;
+const MAX_FONT_SIZE = 32;
+const FONT_STEP = 2;
+
 const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   targetLanguage,
   onClose,
@@ -28,6 +34,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   userRole,
 }) => {
   const room = useRoomContext();
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const [translatedSegments, setTranslatedSegments] = useState<
     Array<{
       id: string;
@@ -226,6 +233,24 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
           {translatedSegments.length > 0 && (
             <span className={styles.messageCountBadge}>{translatedSegments.length}</span>
           )}
+          <div className={styles.fontControls}>
+            <button
+              onClick={() => setFontSize((prev) => Math.max(MIN_FONT_SIZE, prev - FONT_STEP))}
+              disabled={fontSize <= MIN_FONT_SIZE}
+              className={styles.fontButton}
+              title="Decrease font size"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => setFontSize((prev) => Math.min(MAX_FONT_SIZE, prev + FONT_STEP))}
+              disabled={fontSize >= MAX_FONT_SIZE}
+              className={styles.fontButton}
+              title="Increase font size"
+            >
+              A+
+            </button>
+          </div>
           <div className={styles.liveIndicator}>
             <span className={styles.liveDot}></span>
             <span>LIVE</span>
@@ -273,7 +298,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                 </div>
                 <span className={styles.timestamp}>{formatTime(segment.timestamp)}</span>
               </div>
-              <div className={styles.translationText}>{segment.text}</div>
+              <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
+                {segment.text}
+              </div>
             </div>
           ))
         )}

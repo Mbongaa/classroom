@@ -62,6 +62,38 @@
   font-weight: 500;
 }
 
+.fontControls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--lk-bg3);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.fontButton {
+  background: transparent;
+  border: none;
+  color: var(--lk-text2, #6b7280);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  min-width: 28px;
+}
+
+.fontButton:hover:not(:disabled) {
+  background: var(--lk-bg4);
+  color: var(--lk-text1, white);
+}
+
+.fontButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .liveIndicator {
   display: flex;
   align-items: center;
