@@ -37,7 +37,9 @@
       "Bash(git -C /mnt/c/Users/HP/Desktop/meet log --oneline --all -- \"app/rooms/[roomName]/PageClientImpl.tsx\" -10)",
       "Bash(git -C /mnt/c/Users/HP/Desktop/meet diff 2d208ad^..2d208ad -- app/rooms/[roomName]/PageClientImpl.tsx)",
       "Bash(pnpm exec tsc:*)",
-      "Bash(pnpm lint:*)"
+      "Bash(pnpm lint:*)",
+      "WebFetch(domain:vercel.link)",
+      "Bash(pnpm install:*)"
     ],
     "deny": [],
     "ask": []
