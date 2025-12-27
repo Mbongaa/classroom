@@ -85,9 +85,33 @@ export default function CustomPreJoin({
     if (shouldHideMedia) return;
 
     const getDevices = async () => {
+      // Request video and audio permissions separately to handle missing camera gracefully
+      let hasVideoPermission = false;
+      let hasAudioPermission = false;
+
+      // Try video permission first (may fail if no camera)
       try {
-        // Request permissions first
-        await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        await navigator.mediaDevices.getUserMedia({ video: true });
+        hasVideoPermission = true;
+      } catch (error) {
+        console.log('No camera available or permission denied, audio-only mode');
+      }
+
+      // Try audio permission (should work even if video failed)
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        hasAudioPermission = true;
+      } catch (error) {
+        console.error('Failed to get audio permission:', error);
+      }
+
+      // Only proceed if at least audio is available
+      if (!hasAudioPermission && !hasVideoPermission) {
+        console.error('No media devices available');
+        return;
+      }
+
+      try {
         const devices = await navigator.mediaDevices.enumerateDevices();
 
         const videoInputs = devices.filter((device) => device.kind === 'videoinput');
@@ -96,15 +120,20 @@ export default function CustomPreJoin({
         setVideoDevices(videoInputs);
         setAudioDevices(audioInputs);
 
-        // Set default devices
+        // Set default video device OR auto-disable video if no camera found
         if (videoInputs.length > 0 && !videoDeviceId) {
           setVideoDeviceId(videoInputs[0].deviceId);
+        } else if (videoInputs.length === 0) {
+          // No camera found - automatically disable video
+          setVideoEnabled(false);
         }
+
+        // Set default audio device
         if (audioInputs.length > 0 && !audioDeviceId) {
           setAudioDeviceId(audioInputs[0].deviceId);
         }
       } catch (error) {
-        console.error('Failed to get media devices:', error);
+        console.error('Failed to enumerate devices:', error);
       }
     };
 
@@ -119,7 +148,8 @@ export default function CustomPreJoin({
     let track: any = null;
 
     const initVideoTrack = async () => {
-      if (videoEnabled && videoDeviceId) {
+      // Only try to create video track if we have devices AND video is enabled
+      if (videoEnabled && videoDeviceId && videoDevices.length > 0) {
         try {
           track = await createLocalVideoTrack({
             deviceId: videoDeviceId,
@@ -134,7 +164,7 @@ export default function CustomPreJoin({
           setVideoEnabled(false);
         }
       } else {
-        // When disabled, clear the state
+        // When disabled or no devices, clear the state
         setLocalVideoTrack(null);
       }
     };
@@ -146,7 +176,7 @@ export default function CustomPreJoin({
         track.stop();
       }
     };
-  }, [videoEnabled, videoDeviceId, shouldHideMedia]);
+  }, [videoEnabled, videoDeviceId, videoDevices.length, shouldHideMedia]);
 
   // Initialize audio track
   React.useEffect(() => {

@@ -19,7 +19,7 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000; // Start with 1 second, exponential backoff
 
 // Font size configuration
-const DEFAULT_FONT_SIZE = 20;
+const DEFAULT_FONT_SIZE = 24;
 const MIN_FONT_SIZE = 14;
 const MAX_FONT_SIZE = 32;
 const FONT_STEP = 2;
@@ -291,13 +291,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                   <span className={styles.latestBadge}>LATEST</span>
                 </div>
               )}
-              <div className={styles.translationHeader}>
-                <div className={styles.speaker}>
-                  <span className={styles.speakerIcon}>👤</span>
-                  <span>{segment.speaker}</span>
-                </div>
-                <span className={styles.timestamp}>{formatTime(segment.timestamp)}</span>
-              </div>
               <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
                 {segment.text}
               </div>
