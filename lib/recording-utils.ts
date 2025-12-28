@@ -154,14 +154,75 @@ export async function getRecordingByEgressId(egressId: string): Promise<Recordin
 
 /**
  * Get all recordings for a room (excludes transcript-only entries)
+ * Optionally filter by organization for security
  */
-export async function getRoomRecordings(roomName: string): Promise<Recording[]> {
+export async function getRoomRecordings(
+  roomName: string,
+  organizationId?: string,
+): Promise<Recording[]> {
   const supabase = createAdminClient();
 
-  const { data, error } = await supabase
+  // If organization filter provided, first get classroom IDs for this org
+  let classroomIds: string[] | null = null;
+  if (organizationId) {
+    const { data: classrooms } = await supabase
+      .from('classrooms')
+      .select('id')
+      .eq('organization_id', organizationId);
+
+    classroomIds = classrooms?.map((c) => c.id) || [];
+  }
+
+  let query = supabase
     .from('session_recordings')
     .select('*')
     .eq('room_name', roomName)
+    .not('livekit_egress_id', 'like', 'transcript-%'); // Filter out fake recordings
+
+  // Apply organization filter if provided
+  if (classroomIds !== null) {
+    if (classroomIds.length === 0) {
+      // No classrooms in this org, return empty
+      return [];
+    }
+    query = query.in('classroom_id', classroomIds);
+  }
+
+  const { data, error } = await query.order('started_at', { ascending: false });
+
+  if (error) throw new Error(`Failed to get recordings: ${error.message}`);
+  return (data || []) as Recording[];
+}
+
+/**
+ * Get all recordings for a specific organization (for dashboard)
+ * SECURITY: Only returns recordings belonging to the user's organization
+ */
+export async function getRecordingsByOrganization(organizationId: string): Promise<Recording[]> {
+  const supabase = createAdminClient();
+
+  // Get all classroom IDs for this organization
+  const { data: classrooms, error: classroomError } = await supabase
+    .from('classrooms')
+    .select('id')
+    .eq('organization_id', organizationId);
+
+  if (classroomError) {
+    throw new Error(`Failed to get classrooms: ${classroomError.message}`);
+  }
+
+  const classroomIds = classrooms?.map((c) => c.id) || [];
+
+  if (classroomIds.length === 0) {
+    // No classrooms in this org, return empty
+    return [];
+  }
+
+  // Get recordings that belong to these classrooms
+  const { data, error } = await supabase
+    .from('session_recordings')
+    .select('*')
+    .in('classroom_id', classroomIds)
     .not('livekit_egress_id', 'like', 'transcript-%') // Filter out fake recordings
     .order('started_at', { ascending: false });
 
@@ -170,9 +231,14 @@ export async function getRoomRecordings(roomName: string): Promise<Recording[]> 
 }
 
 /**
- * Get all recordings (for dashboard) - excludes transcript-only entries
+ * Get all recordings (DEPRECATED - use getRecordingsByOrganization for security)
+ * @deprecated This function returns ALL recordings without organization filtering.
+ * Use getRecordingsByOrganization() instead.
  */
 export async function getAllRecordings(): Promise<Recording[]> {
+  console.warn(
+    '[DEPRECATED] getAllRecordings() returns unfiltered data. Use getRecordingsByOrganization() instead.',
+  );
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
