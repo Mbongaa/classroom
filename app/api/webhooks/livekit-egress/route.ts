@@ -1,5 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { WebhookReceiver } from 'livekit-server-sdk';
 import { updateRecording, getRecordingByEgressId } from '@/lib/recording-utils';
+
+// LiveKit credentials for webhook signature validation
+const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
+const LIVEKIT_API_SECRET = process.env.LIVEKIT_API_SECRET;
+const VERTEX_API_KEY = process.env.LIVEKIT_VERTEX_API_KEY;
+const VERTEX_API_SECRET = process.env.LIVEKIT_VERTEX_API_SECRET;
 
 const S3_ENDPOINT = process.env.S3_ENDPOINT!;
 const S3_BUCKET = process.env.S3_BUCKET!;
@@ -54,13 +61,66 @@ function constructS3Url(filename: string): string {
 }
 
 /**
+ * Validate webhook signature from either Bayaan or Vertex LiveKit server
+ * Returns the parsed event if valid, null if invalid
+ */
+async function validateWebhookSignature(
+  body: string,
+  authHeader: string | null,
+): Promise<any | null> {
+  // Build list of receivers for both servers
+  const receivers: WebhookReceiver[] = [];
+
+  // Add Bayaan receiver if credentials exist
+  if (LIVEKIT_API_KEY && LIVEKIT_API_SECRET) {
+    receivers.push(new WebhookReceiver(LIVEKIT_API_KEY, LIVEKIT_API_SECRET));
+  }
+
+  // Add Vertex receiver if credentials exist (and are different from Bayaan)
+  if (VERTEX_API_KEY && VERTEX_API_SECRET) {
+    receivers.push(new WebhookReceiver(VERTEX_API_KEY, VERTEX_API_SECRET));
+  }
+
+  // If no receivers configured, fall back to parsing JSON directly (dev mode)
+  if (receivers.length === 0) {
+    console.warn('[LiveKit Webhook] No API credentials configured - skipping signature validation');
+    return JSON.parse(body);
+  }
+
+  // Try each receiver until one validates
+  for (const receiver of receivers) {
+    try {
+      const event = await receiver.receive(body, authHeader || undefined);
+      console.log('[LiveKit Webhook] Signature validated successfully');
+      return event;
+    } catch {
+      // This receiver didn't validate, try the next one
+      continue;
+    }
+  }
+
+  // No receiver validated the signature
+  return null;
+}
+
+/**
  * LiveKit Egress Webhook Handler
  * Handles egress events (started, updated, ended, failed)
  * Updates recording status and URLs in database
  */
 export async function POST(request: NextRequest) {
   try {
-    const event = await request.json();
+    // Get raw body and auth header for signature validation
+    const body = await request.text();
+    const authHeader = request.headers.get('Authorization');
+
+    // Validate webhook signature from either LiveKit server
+    const event = await validateWebhookSignature(body, authHeader);
+
+    if (!event) {
+      console.error('[LiveKit Webhook] Invalid signature - rejecting webhook');
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
+    }
 
     // Enhanced logging - log full payload for debugging
     console.log('========================================');

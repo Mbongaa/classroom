@@ -88,13 +88,17 @@ export async function GET(req: NextRequest) {
       `[Recording Stop] Using ${selectedLanguage === 'ar' ? 'Bayaan' : 'Vertex AI'} credentials for room ${roomName}`,
     );
 
+    // Use classroom.id (UUID) as LiveKit room name for persistent classrooms
+    const livekitRoomName = classroom?.id || roomName;
+    console.log(`[Recording Stop] LiveKit room name: ${livekitRoomName}`);
+
     const hostURL = new URL(credentials.url);
     hostURL.protocol = 'https:';
 
     const egressClient = new EgressClient(hostURL.origin, credentials.apiKey, credentials.apiSecret);
 
-    // Get active egresses for this room
-    const activeEgresses = (await egressClient.listEgress({ roomName })).filter(
+    // Get active egresses for this room (use livekitRoomName - UUID for persistent rooms)
+    const activeEgresses = (await egressClient.listEgress({ roomName: livekitRoomName })).filter(
       (info) => info.status < 2,
     );
 
