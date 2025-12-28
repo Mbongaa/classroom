@@ -8,7 +8,6 @@ import {
   IconSchool,
   IconVideo,
   IconUser,
-  IconFileText,
 } from '@tabler/icons-react';
 import { signOut } from '@/lib/actions/auth';
 import { useUser } from '@/lib/contexts/UserContext';
@@ -37,11 +36,6 @@ const navigation = [
     label: 'Classrooms',
     href: '/dashboard/rooms',
     icon: IconSchool,
-  },
-  {
-    label: 'Prompts',
-    href: '/dashboard/prompts',
-    icon: IconFileText,
   },
   {
     label: 'Recordings',

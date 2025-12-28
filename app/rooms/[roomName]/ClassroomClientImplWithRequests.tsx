@@ -930,6 +930,13 @@ export function ClassroomClientImplWithRequests({
                         className={styles.teacherTile}
                         showSpeakingIndicator={true}
                       />
+                    ) : teacherAudioTracks[0] ? (
+                      /* Audio-only: use audio track for speaking indicator */
+                      <CustomParticipantTile
+                        trackRef={teacherAudioTracks[0]}
+                        className={styles.teacherTile}
+                        showSpeakingIndicator={true}
+                      />
                     ) : (
                       <div className={styles.noVideoPlaceholder}>
                         <div className={styles.avatarPlaceholder}>👨‍🏫</div>
@@ -979,6 +986,13 @@ export function ClassroomClientImplWithRequests({
                       {studentTrack ? (
                         <CustomParticipantTile
                           trackRef={studentTrack}
+                          className={styles.speakerTile}
+                          showSpeakingIndicator={true}
+                        />
+                      ) : audioTrack ? (
+                        /* Audio-only: use audio track for speaking indicator */
+                        <CustomParticipantTile
+                          trackRef={audioTrack}
                           className={styles.speakerTile}
                           showSpeakingIndicator={true}
                         />
