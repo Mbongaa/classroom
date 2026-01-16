@@ -189,23 +189,6 @@
   font-weight: 400;
 }
 
-.latestIndicator {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-}
-
-.latestBadge {
-  padding: 2px 8px;
-  background: rgba(255, 255, 255, 0.9);
-  color: #111;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 /* Status bar */
 .statusBar {
   display: flex;

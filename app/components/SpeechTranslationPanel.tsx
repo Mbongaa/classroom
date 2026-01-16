@@ -286,11 +286,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
               key={segment.id}
               className={`${styles.translationItem} ${segment.isLatest ? styles.latest : ''}`}
             >
-              {segment.isLatest && (
-                <div className={styles.latestIndicator}>
-                  <span className={styles.latestBadge}>LATEST</span>
-                </div>
-              )}
               <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
                 {segment.text}
               </div>

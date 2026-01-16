@@ -282,11 +282,6 @@ export default function TranslationPanel({
                 <span className={styles.timestamp}>{formatTime(entry.timestamp)}</span>
               </div>
               <div className={styles.translationText}>{entry.text}</div>
-              {isLatest && (
-                <div className={styles.latestIndicator}>
-                  <span className={styles.latestBadge}>Latest</span>
-                </div>
-              )}
             </div>
           );
         })}
