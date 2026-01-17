@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createCheckoutSession, STRIPE_PRICES, PlanType } from '@/lib/stripe';
+import { createCheckoutSession, getStripePrices, PlanType } from '@/lib/stripe';
 import { createClient } from '@/lib/supabase/server';
 
 /**
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get the price ID for the selected plan
-    const priceId = STRIPE_PRICES[plan];
+    const priceId = getStripePrices()[plan];
 
     if (!priceId) {
       return NextResponse.json(
