@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { constructWebhookEvent, mapStripeStatus, getPlanFromPriceId } from '@/lib/stripe';
+import { constructWebhookEvent, mapStripeStatus, getPlanFromPriceId, getStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 /**
@@ -101,8 +101,7 @@ async function handleCheckoutCompleted(
   console.log(`[Stripe Webhook] Checkout completed for org: ${organizationId}`);
 
   // Get subscription details to determine the tier
-  const { stripe } = await import('@/lib/stripe');
-  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  const subscription = await getStripe().subscriptions.retrieve(subscriptionId);
   const priceId = subscription.items.data[0]?.price.id;
   const tier = getPlanFromPriceId(priceId);
 

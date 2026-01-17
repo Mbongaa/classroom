@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 import {
   createStripeCustomer,
   createCheckoutSession,
-  STRIPE_PRICES,
+  getStripePrices,
   PlanType,
 } from '@/lib/stripe';
 
@@ -154,7 +154,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   }
 
   // Create Stripe Checkout session
-  const priceId = STRIPE_PRICES[plan];
+  const priceId = getStripePrices()[plan];
   if (!priceId) {
     return { success: false, error: 'Selected plan is not available. Please contact support.' };
   }

@@ -1,16 +1,31 @@
 import Stripe from 'stripe';
 
-// Server-side Stripe client - never expose this to the client
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
-});
+// Server-side Stripe client - lazy initialization to avoid build-time errors
+let stripeInstance: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (!stripeInstance) {
+    if (!process.env.STRIPE_SECRET_KEY) {
+      throw new Error('STRIPE_SECRET_KEY is not set');
+    }
+    stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      typescript: true,
+    });
+  }
+  return stripeInstance;
+}
 
 // Price IDs for subscription plans (set in Stripe Dashboard)
-export const STRIPE_PRICES = {
-  pro: process.env.STRIPE_PRO_PRICE_ID!,
-} as const;
+export function getStripePrices() {
+  if (!process.env.STRIPE_PRO_PRICE_ID) {
+    throw new Error('STRIPE_PRO_PRICE_ID is not set');
+  }
+  return {
+    pro: process.env.STRIPE_PRO_PRICE_ID,
+  } as const;
+}
 
-export type PlanType = keyof typeof STRIPE_PRICES;
+export type PlanType = 'pro';
 
 /**
  * Create a Stripe Customer for an organization
@@ -20,7 +35,7 @@ export async function createStripeCustomer(
   organizationId: string,
   organizationName: string
 ): Promise<Stripe.Customer> {
-  const customer = await stripe.customers.create({
+  const customer = await getStripe().customers.create({
     email,
     name: organizationName,
     metadata: {
@@ -41,7 +56,7 @@ export async function createCheckoutSession(
   successUrl: string,
   cancelUrl: string
 ): Promise<Stripe.Checkout.Session> {
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     customer: customerId,
     line_items: [
       {
@@ -74,7 +89,7 @@ export async function createPortalSession(
   customerId: string,
   returnUrl: string
 ): Promise<Stripe.BillingPortal.Session> {
-  const session = await stripe.billingPortal.sessions.create({
+  const session = await getStripe().billingPortal.sessions.create({
     customer: customerId,
     return_url: returnUrl,
   });
@@ -88,7 +103,7 @@ export async function createPortalSession(
 export async function getStripeCustomer(
   customerId: string
 ): Promise<Stripe.Customer | Stripe.DeletedCustomer> {
-  return stripe.customers.retrieve(customerId);
+  return getStripe().customers.retrieve(customerId);
 }
 
 /**
@@ -97,7 +112,7 @@ export async function getStripeCustomer(
 export async function getStripeSubscription(
   subscriptionId: string
 ): Promise<Stripe.Subscription> {
-  return stripe.subscriptions.retrieve(subscriptionId);
+  return getStripe().subscriptions.retrieve(subscriptionId);
 }
 
 /**
@@ -108,11 +123,11 @@ export async function cancelStripeSubscription(
   immediately = false
 ): Promise<Stripe.Subscription> {
   if (immediately) {
-    return stripe.subscriptions.cancel(subscriptionId);
+    return getStripe().subscriptions.cancel(subscriptionId);
   }
 
   // Cancel at period end (more user-friendly)
-  return stripe.subscriptions.update(subscriptionId, {
+  return getStripe().subscriptions.update(subscriptionId, {
     cancel_at_period_end: true,
   });
 }
@@ -124,7 +139,7 @@ export function constructWebhookEvent(
   payload: string | Buffer,
   signature: string
 ): Stripe.Event {
-  return stripe.webhooks.constructEvent(
+  return getStripe().webhooks.constructEvent(
     payload,
     signature,
     process.env.STRIPE_WEBHOOK_SECRET!
@@ -153,6 +168,6 @@ export function mapStripeStatus(stripeStatus: Stripe.Subscription.Status): strin
  * Map price ID to subscription tier
  */
 export function getPlanFromPriceId(priceId: string): 'pro' | 'free' {
-  if (priceId === STRIPE_PRICES.pro) return 'pro';
+  if (priceId === getStripePrices().pro) return 'pro';
   return 'free';
 }
