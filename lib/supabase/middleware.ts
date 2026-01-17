@@ -55,7 +55,7 @@ export async function updateSession(request: NextRequest) {
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   // Public routes - accessible without authentication
-  const publicPaths = ['/rooms', '/r', '/custom', '/login', '/signup', '/auth', '/learn'];
+  const publicPaths = ['/rooms', '/r', '/custom', '/login', '/signup', '/auth', '/learn', '/api/webhooks'];
   const isPublicPath = publicPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   // Redirect authenticated users from landing page to dashboard

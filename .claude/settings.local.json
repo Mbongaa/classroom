@@ -40,7 +40,9 @@
       "Bash(pnpm lint:*)",
       "WebFetch(domain:vercel.link)",
       "Bash(pnpm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(pnpm add:*)",
+      "mcp__context7__query-docs"
     ],
     "deny": [],
     "ask": []

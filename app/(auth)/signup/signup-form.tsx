@@ -5,24 +5,64 @@ import { useFormStatus } from 'react-dom';
 import { signUp } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/moving-border';
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
+import { Check } from 'lucide-react';
 
-function SubmitButton({ isFormValid }: { isFormValid: boolean }) {
+type PlanType = 'pro' | 'enterprise';
+
+interface PlanOption {
+  id: PlanType;
+  name: string;
+  price: string;
+  description: string;
+  features: string[];
+}
+
+const PLANS: PlanOption[] = [
+  {
+    id: 'pro',
+    name: 'Pro',
+    price: '$49/month',
+    description: 'Perfect for small to medium organizations',
+    features: [
+      'Unlimited classrooms',
+      'Real-time translation',
+      'Recording & transcription',
+      'Up to 100 participants',
+    ],
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    price: '$199/month',
+    description: 'For large organizations with advanced needs',
+    features: [
+      'Everything in Pro',
+      'Unlimited participants',
+      'Priority support',
+      'Custom branding',
+      'Advanced analytics',
+    ],
+  },
+];
+
+function SubmitButton({ isFormValid, isSubmitting }: { isFormValid: boolean; isSubmitting: boolean }) {
   const { pending } = useFormStatus();
+  const isDisabled = !isFormValid || pending || isSubmitting;
   return (
     <Button
       as="button"
       type="submit"
-      disabled={!isFormValid || pending}
+      disabled={isDisabled}
       borderRadius="1.75rem"
       containerClassName="w-full h-12"
       className={
-        isFormValid && !pending
+        !isDisabled
           ? 'bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
           : 'bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
       }
       duration={3000}
     >
-      {pending ? 'Creating account...' : 'Create Account'}
+      {pending || isSubmitting ? 'Creating account...' : 'Continue to Payment'}
     </Button>
   );
 }
@@ -38,11 +78,13 @@ function slugify(text: string): string {
 
 export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
   const [orgSlug, setOrgSlug] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>('pro');
 
   // Field-specific validation errors
   const [emailError, setEmailError] = useState('');
@@ -86,9 +128,27 @@ export function SignupForm() {
 
   async function handleSubmit(formData: FormData) {
     setError(null);
-    const result = await signUp(formData);
-    if (!result.success && result.error) {
-      setError(result.error);
+    setIsSubmitting(true);
+
+    // Add the selected plan to form data
+    formData.append('plan', selectedPlan);
+
+    try {
+      const result = await signUp(formData);
+
+      if (!result.success && result.error) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // If successful, redirect to Stripe Checkout
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+      }
+    } catch {
+      setError('An unexpected error occurred. Please try again.');
+      setIsSubmitting(false);
     }
   }
 
@@ -205,11 +265,64 @@ export function SignupForm() {
             </p>
           </div>
 
+          <div className="flex flex-col items-center gap-2 mt-2">
+            <span className="text-xs uppercase text-gray-600 dark:text-gray-400">
+              Select Your Plan
+            </span>
+            <div className="w-full border-t border-[#4b5563]" />
+          </div>
+
+          <div className="grid gap-3">
+            {PLANS.map((plan) => (
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => setSelectedPlan(plan.id)}
+                className={`relative w-full p-4 rounded-lg border-2 text-left transition-all ${
+                  selectedPlan === plan.id
+                    ? 'border-blue-500 bg-blue-500/10'
+                    : 'border-gray-600 hover:border-gray-500'
+                }`}
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-white">{plan.name}</h3>
+                    <p className="text-sm text-gray-400">{plan.description}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-bold text-white">{plan.price}</span>
+                  </div>
+                </div>
+                <ul className="mt-3 space-y-1">
+                  {plan.features.map((feature, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-400">
+                      <Check className="h-4 w-4 text-green-500" />
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+                {selectedPlan === plan.id && (
+                  <div className="absolute top-3 right-3">
+                    <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
+                      <Check className="h-3 w-3 text-white" />
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <input type="hidden" name="plan" value={selectedPlan} />
+
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}
 
-          <SubmitButton isFormValid={isFormValid} />
+          <SubmitButton isFormValid={isFormValid} isSubmitting={isSubmitting} />
+
+          <p className="text-xs text-center text-gray-500">
+            You&apos;ll be redirected to Stripe to complete payment securely.
+          </p>
         </div>
       </form>
     </div>

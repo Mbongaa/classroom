@@ -4,11 +4,18 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import {
+  createStripeCustomer,
+  createCheckoutSession,
+  STRIPE_PRICES,
+  PlanType,
+} from '@/lib/stripe';
 
 export type AuthResult = {
   success: boolean;
   error?: string;
   data?: any;
+  checkoutUrl?: string;
 };
 
 /**
@@ -38,7 +45,8 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
 }
 
 /**
- * Sign up with email, password, and organization details
+ * Sign up with email, password, organization details, and plan selection
+ * Creates user, organization, Stripe customer, and redirects to Stripe Checkout
  */
 export async function signUp(formData: FormData): Promise<AuthResult> {
   const email = formData.get('email') as string;
@@ -46,10 +54,15 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   const fullName = formData.get('fullName') as string;
   const orgName = formData.get('orgName') as string;
   const orgSlug = formData.get('orgSlug') as string;
-  const role = (formData.get('role') as string) || 'teacher';
+  const plan = (formData.get('plan') as PlanType) || 'pro';
 
   if (!email || !password || !fullName || !orgName || !orgSlug) {
     return { success: false, error: 'All fields are required' };
+  }
+
+  // Validate plan
+  if (!['pro', 'enterprise'].includes(plan)) {
+    return { success: false, error: 'Invalid plan selected' };
   }
 
   const supabase = await createClient();
@@ -75,15 +88,16 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   }
 
   // Use admin client for initial setup (bypasses RLS)
-  // This is necessary because the session isn't fully established yet in server actions
   const supabaseAdmin = createAdminClient();
 
-  // Create organization using admin client
+  // Create organization with 'incomplete' subscription status
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .insert({
       name: orgName,
       slug: orgSlug,
+      subscription_status: 'incomplete',
+      subscription_tier: 'free', // Will be updated by webhook after payment
     })
     .select()
     .single();
@@ -117,8 +131,59 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     return { success: false, error: `Failed to add organization member: ${memberError.message}` };
   }
 
+  // Create Stripe customer
+  let stripeCustomer;
+  try {
+    stripeCustomer = await createStripeCustomer(email, org.id, orgName);
+  } catch (stripeError) {
+    console.error('[Signup] Stripe customer creation failed:', stripeError);
+    return { success: false, error: 'Failed to set up billing. Please try again.' };
+  }
+
+  // Update organization with Stripe customer ID
+  const { error: updateOrgError } = await supabaseAdmin
+    .from('organizations')
+    .update({
+      stripe_customer_id: stripeCustomer.id,
+    })
+    .eq('id', org.id);
+
+  if (updateOrgError) {
+    console.error('[Signup] Failed to save Stripe customer ID:', updateOrgError);
+    // Continue anyway - webhook will handle this
+  }
+
+  // Create Stripe Checkout session
+  const priceId = STRIPE_PRICES[plan];
+  if (!priceId) {
+    return { success: false, error: 'Selected plan is not available. Please contact support.' };
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  const successUrl = `${baseUrl}/signup/success?session_id={CHECKOUT_SESSION_ID}`;
+  const cancelUrl = `${baseUrl}/signup/canceled`;
+
+  let checkoutSession;
+  try {
+    checkoutSession = await createCheckoutSession(
+      stripeCustomer.id,
+      priceId,
+      org.id,
+      successUrl,
+      cancelUrl
+    );
+  } catch (checkoutError) {
+    console.error('[Signup] Checkout session creation failed:', checkoutError);
+    return { success: false, error: 'Failed to create checkout session. Please try again.' };
+  }
+
   revalidatePath('/', 'layout');
-  redirect('/dashboard');
+
+  // Return checkout URL for client-side redirect
+  return {
+    success: true,
+    checkoutUrl: checkoutSession.url!,
+  };
 }
 
 /**
