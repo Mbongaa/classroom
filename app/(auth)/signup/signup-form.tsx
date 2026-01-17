@@ -17,33 +17,18 @@ interface PlanOption {
   features: string[];
 }
 
-const PLANS: PlanOption[] = [
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: '$49/month',
-    description: 'Perfect for small to medium organizations',
-    features: [
-      'Unlimited classrooms',
-      'Real-time translation',
-      'Recording & transcription',
-      'Up to 100 participants',
-    ],
-  },
-  {
-    id: 'enterprise',
-    name: 'Enterprise',
-    price: '$199/month',
-    description: 'For large organizations with advanced needs',
-    features: [
-      'Everything in Pro',
-      'Unlimited participants',
-      'Priority support',
-      'Custom branding',
-      'Advanced analytics',
-    ],
-  },
-];
+const PRO_PLAN: PlanOption = {
+  id: 'pro',
+  name: 'Pro',
+  price: '$49/month',
+  description: 'Perfect for organizations of all sizes',
+  features: [
+    'Unlimited classrooms',
+    'Real-time translation',
+    'Recording & transcription',
+    'Up to 100 participants',
+  ],
+};
 
 function SubmitButton({ isFormValid, isSubmitting }: { isFormValid: boolean; isSubmitting: boolean }) {
   const { pending } = useFormStatus();
@@ -84,7 +69,6 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
   const [orgSlug, setOrgSlug] = useState('');
-  const [selectedPlan, setSelectedPlan] = useState<PlanType>('pro');
 
   // Field-specific validation errors
   const [emailError, setEmailError] = useState('');
@@ -130,8 +114,8 @@ export function SignupForm() {
     setError(null);
     setIsSubmitting(true);
 
-    // Add the selected plan to form data
-    formData.append('plan', selectedPlan);
+    // Add the Pro plan to form data
+    formData.append('plan', 'pro');
 
     try {
       const result = await signUp(formData);
@@ -267,52 +251,32 @@ export function SignupForm() {
 
           <div className="flex flex-col items-center gap-2 mt-2">
             <span className="text-xs uppercase text-gray-600 dark:text-gray-400">
-              Select Your Plan
+              Subscription Plan
             </span>
             <div className="w-full border-t border-[#4b5563]" />
           </div>
 
-          <div className="grid gap-3">
-            {PLANS.map((plan) => (
-              <button
-                key={plan.id}
-                type="button"
-                onClick={() => setSelectedPlan(plan.id)}
-                className={`relative w-full p-4 rounded-lg border-2 text-left transition-all ${
-                  selectedPlan === plan.id
-                    ? 'border-blue-500 bg-blue-500/10'
-                    : 'border-gray-600 hover:border-gray-500'
-                }`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold text-white">{plan.name}</h3>
-                    <p className="text-sm text-gray-400">{plan.description}</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-lg font-bold text-white">{plan.price}</span>
-                  </div>
-                </div>
-                <ul className="mt-3 space-y-1">
-                  {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-2 text-sm text-gray-400">
-                      <Check className="h-4 w-4 text-green-500" />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                {selectedPlan === plan.id && (
-                  <div className="absolute top-3 right-3">
-                    <div className="h-5 w-5 rounded-full bg-blue-500 flex items-center justify-center">
-                      <Check className="h-3 w-3 text-white" />
-                    </div>
-                  </div>
-                )}
-              </button>
-            ))}
+          <div className="w-full p-4 rounded-lg border-2 border-blue-500 bg-blue-500/10">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold text-white">{PRO_PLAN.name}</h3>
+                <p className="text-sm text-gray-400">{PRO_PLAN.description}</p>
+              </div>
+              <div className="text-right">
+                <span className="text-lg font-bold text-white">{PRO_PLAN.price}</span>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-1">
+              {PRO_PLAN.features.map((feature, idx) => (
+                <li key={idx} className="flex items-center gap-2 text-sm text-gray-400">
+                  <Check className="h-4 w-4 text-green-500" />
+                  {feature}
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <input type="hidden" name="plan" value={selectedPlan} />
+          <input type="hidden" name="plan" value="pro" />
 
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
