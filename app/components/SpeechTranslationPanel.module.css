@@ -376,6 +376,53 @@
   }
 }
 
+/* Warning states for translation service health */
+.warningIndicator {
+  background: rgba(255, 149, 0, 0.15) !important;
+  color: #ff9500 !important;
+  animation: none !important;
+}
+
+.warningDot {
+  background: #ff9500 !important;
+  animation: warnBlink 0.8s ease-in-out infinite !important;
+}
+
+.connectingDot {
+  background: #007aff !important;
+  animation: spin 1s linear infinite !important;
+}
+
+.statusBarWarning {
+  background: rgba(255, 149, 0, 0.08) !important;
+  border-top-color: rgba(255, 149, 0, 0.3) !important;
+}
+
+.statusBarWarning .statusText {
+  color: #ff9500 !important;
+  font-weight: 500;
+}
+
+@keyframes warnBlink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.8);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* Responsive design */
 @media (max-width: 480px) {
   .header {

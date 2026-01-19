@@ -19,7 +19,13 @@ export default function DashboardRoomsPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/classrooms');
+      // Add cache: 'no-store' to prevent browser caching
+      const response = await fetch('/api/classrooms', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
       const data = await response.json();
 
       if (!response.ok) {
@@ -33,6 +39,26 @@ export default function DashboardRoomsPage() {
       setError('Failed to fetch rooms. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRoomCreated = (newRoom?: Classroom) => {
+    if (newRoom) {
+      // Optimistic update: add the new room to the list immediately
+      setRooms((prevRooms) => [newRoom, ...prevRooms]);
+    } else {
+      // Fallback: refetch all rooms
+      fetchRooms();
+    }
+  };
+
+  const handleRoomDeleted = (deletedRoomId?: string) => {
+    if (deletedRoomId) {
+      // Optimistic update: remove the deleted room from the list immediately
+      setRooms((prevRooms) => prevRooms.filter((room) => room.id !== deletedRoomId));
+    } else {
+      // Fallback: refetch all rooms
+      fetchRooms();
     }
   };
 
@@ -52,7 +78,7 @@ export default function DashboardRoomsPage() {
             Create and manage persistent room codes for recurring classes
           </p>
         </div>
-        <CreateRoomDialog onRoomCreated={fetchRooms} />
+        <CreateRoomDialog onRoomCreated={handleRoomCreated} />
       </div>
 
       {/* Loading State */}
@@ -84,7 +110,7 @@ export default function DashboardRoomsPage() {
               Create your first persistent room to get started. Rooms can be reused for recurring
               sessions.
             </p>
-            <CreateRoomDialog onRoomCreated={fetchRooms} />
+            <CreateRoomDialog onRoomCreated={handleRoomCreated} />
           </div>
         </div>
       )}
@@ -108,7 +134,7 @@ export default function DashboardRoomsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rooms.map((room) => (
-              <RoomCard key={room.id} room={room} onDelete={fetchRooms} />
+              <RoomCard key={room.id} room={room} onDelete={handleRoomDeleted} />
             ))}
           </div>
         </>

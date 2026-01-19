@@ -17,7 +17,7 @@ import { Trash2, Video } from 'lucide-react';
 
 interface RoomCardProps {
   room: Classroom;
-  onDelete: () => void;
+  onDelete: (roomId?: string) => void;
 }
 
 export function RoomCard({ room, onDelete }: RoomCardProps) {
@@ -62,7 +62,8 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
         return;
       }
 
-      onDelete();
+      // Pass room ID for optimistic update
+      onDelete(room.id);
     } catch (error) {
       alert('Failed to delete room. Please try again.');
       setDeleting(false);

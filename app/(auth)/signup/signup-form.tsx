@@ -20,7 +20,7 @@ interface PlanOption {
 const PRO_PLAN: PlanOption = {
   id: 'pro',
   name: 'Pro',
-  price: '$49/month',
+  price: '€199.99/month',
   description: 'Perfect for organizations of all sizes',
   features: [
     'Unlimited classrooms',

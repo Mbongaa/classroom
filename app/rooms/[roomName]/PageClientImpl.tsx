@@ -32,6 +32,7 @@ import {
   RoomEvent,
   TrackPublishDefaults,
   VideoCaptureOptions,
+  DisconnectReason,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
@@ -40,6 +41,11 @@ import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
 const SHOW_SETTINGS_MENU = process.env.NEXT_PUBLIC_SHOW_SETTINGS_MENU == 'true';
+
+// Token refresh configuration
+// Token TTL is 4 hours, refresh 30 minutes before expiry
+const TOKEN_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours in milliseconds
+const TOKEN_REFRESH_BUFFER_MS = 30 * 60 * 1000; // 30 minutes before expiry
 
 export function PageClientImpl(props: {
   roomName: string;
@@ -297,6 +303,10 @@ function VideoConferenceComponent(props: {
   const [e2eeSetupComplete, setE2eeSetupComplete] = React.useState(false);
   const [sessionStartTime, setSessionStartTime] = React.useState<number>(Date.now());
   const [sessionId, setSessionId] = React.useState<string>('');
+  const [connectionTime, setConnectionTime] = React.useState<number | null>(null);
+  const [latestConnectionDetails, setLatestConnectionDetails] = React.useState<ConnectionDetails>(
+    props.connectionDetails
+  );
 
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
@@ -413,6 +423,9 @@ function VideoConferenceComponent(props: {
 
       connectWithRetry()
         .then(async () => {
+          // Track when we successfully connected for token refresh
+          setConnectionTime(Date.now());
+          console.log('[Token] Connected successfully, tracking connection time for refresh');
           // Set participant language attribute FIRST for students and teachers in classroom mode
           // This ensures TranscriptionSaver sees the correct language when it mounts
           if (
@@ -606,6 +619,96 @@ function VideoConferenceComponent(props: {
     props.selectedLanguage,
     sessionId,
   ]);
+
+  // Token refresh mechanism - proactively refresh token before it expires
+  React.useEffect(() => {
+    if (!connectionTime || !room) return;
+
+    const refreshToken = async () => {
+      try {
+        console.log('[Token Refresh] Fetching fresh token...');
+
+        // Build the same URL as the initial connection
+        const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
+        url.searchParams.append('roomName', props.roomName);
+        url.searchParams.append('participantName', props.userChoices.username);
+
+        // Include classroom/speech params
+        const currentUrl = new URL(window.location.href);
+        const isClassroom = currentUrl.searchParams.get('classroom');
+        const isSpeech = currentUrl.searchParams.get('speech');
+        const role = currentUrl.searchParams.get('role');
+
+        if (isClassroom) url.searchParams.append('classroom', isClassroom);
+        if (isSpeech) url.searchParams.append('speech', isSpeech);
+        if (role) url.searchParams.append('role', role);
+
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+          throw new Error(`Token refresh failed: ${response.status}`);
+        }
+
+        const newConnectionDetails = await response.json();
+        setLatestConnectionDetails(newConnectionDetails);
+
+        // Update connection time to schedule next refresh
+        setConnectionTime(Date.now());
+
+        console.log('[Token Refresh] ✅ Fresh token obtained, will be used on reconnection');
+
+        // If room is connected, we can proactively reconnect with fresh token
+        // This is optional - the fresh token will be used automatically on any reconnection
+        if (room.state === 'connected') {
+          console.log('[Token Refresh] Room still connected, fresh token stored for use on reconnection');
+        }
+      } catch (error) {
+        console.error('[Token Refresh] ❌ Failed to refresh token:', error);
+        // Don't crash - the existing token may still work for a bit longer
+      }
+    };
+
+    // Schedule refresh 30 minutes before token expires
+    const timeUntilRefresh = TOKEN_TTL_MS - TOKEN_REFRESH_BUFFER_MS;
+    console.log(`[Token Refresh] Scheduling refresh in ${Math.round(timeUntilRefresh / 60000)} minutes`);
+
+    const refreshTimer = setTimeout(refreshToken, timeUntilRefresh);
+
+    return () => clearTimeout(refreshTimer);
+  }, [connectionTime, room, props.roomName, props.userChoices.username]);
+
+  // Handle reconnection with fresh token
+  React.useEffect(() => {
+    if (!room) return;
+
+    const handleDisconnected = async (reason?: DisconnectReason) => {
+      console.log('[Token Refresh] Disconnected, reason:', reason);
+
+      // If we have a fresh token and the disconnect wasn't intentional, attempt reconnect
+      // DisconnectReason.CLIENT_INITIATED means user clicked leave
+      if (latestConnectionDetails && reason !== DisconnectReason.CLIENT_INITIATED) {
+        console.log('[Token Refresh] Attempting reconnect with fresh token...');
+        try {
+          await room.connect(
+            latestConnectionDetails.serverUrl,
+            latestConnectionDetails.participantToken,
+            connectOptions
+          );
+          setConnectionTime(Date.now());
+          console.log('[Token Refresh] ✅ Reconnected successfully with fresh token');
+        } catch (error) {
+          console.error('[Token Refresh] ❌ Reconnection failed:', error);
+          // Fall through to normal disconnect handling
+          handleOnLeave();
+        }
+      }
+    };
+
+    room.on(RoomEvent.Disconnected, handleDisconnected);
+
+    return () => {
+      room.off(RoomEvent.Disconnected, handleDisconnected);
+    };
+  }, [room, latestConnectionDetails, connectOptions, handleOnLeave]);
 
   const lowPowerMode = useLowCPUOptimizer(room);
 

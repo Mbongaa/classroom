@@ -28,7 +28,7 @@ import { PromptTemplateSelector } from '@/app/components/PromptTemplateSelector'
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 interface CreateRoomDialogProps {
-  onRoomCreated: () => void;
+  onRoomCreated: (newRoom?: any) => void;
 }
 
 export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
@@ -38,7 +38,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
 
   // Form state
   const [roomCode, setRoomCode] = useState('');
-  const [roomType, setRoomType] = useState<RoomType>('meeting');
+  const [roomType, setRoomType] = useState<RoomType>('classroom');
   const [teacherName, setTeacherName] = useState('');
   const [language, setLanguage] = useState('en'); // Default to English
   const [description, setDescription] = useState('');
@@ -52,7 +52,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
 
   const resetForm = () => {
     setRoomCode('');
-    setRoomType('meeting');
+    setRoomType('classroom');
     setTeacherName('');
     setLanguage('en');
     setDescription('');
@@ -118,10 +118,12 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
         return;
       }
 
-      // Success
+      // Success - pass the newly created room to the callback
       resetForm();
       setOpen(false);
-      onRoomCreated();
+
+      // Pass the created room data for optimistic update
+      onRoomCreated(data.classroom);
     } catch (err) {
       setError('Failed to create room. Please try again.');
       setLoading(false);
@@ -176,7 +178,6 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                   <SelectValue placeholder="Select room type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="meeting">Meeting (Full Permissions)</SelectItem>
                   <SelectItem value="classroom">Classroom (Teacher/Student Roles)</SelectItem>
                   <SelectItem value="speech">Speech (Speaker/Listener Roles)</SelectItem>
                 </SelectContent>

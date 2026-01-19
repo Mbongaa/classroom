@@ -24,6 +24,10 @@ const MIN_FONT_SIZE = 14;
 const MAX_FONT_SIZE = 32;
 const FONT_STEP = 2;
 
+// Health check configuration
+// If no transcription received for this duration, show warning
+const TRANSLATION_TIMEOUT_MS = 15000; // 15 seconds
+
 const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   targetLanguage,
   onClose,
@@ -48,11 +52,54 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
 
+  // Translation service health tracking
+  const [translationServiceStatus, setTranslationServiceStatus] = useState<
+    'connecting' | 'active' | 'warning'
+  >('connecting');
+  const healthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Translation service health monitoring
+  useEffect(() => {
+    if (!room) return;
+
+    // Start health check timer - if no transcription within timeout, show warning
+    const startHealthTimer = () => {
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+      healthTimeoutRef.current = setTimeout(() => {
+        setTranslationServiceStatus('warning');
+        console.warn('[Translation Health] ⚠️ No transcription received for', TRANSLATION_TIMEOUT_MS / 1000, 'seconds');
+      }, TRANSLATION_TIMEOUT_MS);
+    };
+
+    // Start initial timer
+    startHealthTimer();
+
+    return () => {
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+    };
+  }, [room]);
+
   // Listen for transcription events from the room
   useEffect(() => {
     if (!room) return;
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
+      // Reset health check timer on any transcription received
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+      // Mark service as active when we receive any transcription
+      setTranslationServiceStatus('active');
+      // Restart the timer
+      healthTimeoutRef.current = setTimeout(() => {
+        setTranslationServiceStatus('warning');
+        console.warn('[Translation Health] ⚠️ No transcription received for', TRANSLATION_TIMEOUT_MS / 1000, 'seconds');
+      }, TRANSLATION_TIMEOUT_MS);
+
       // DEBUG: Log ALL incoming segments
       console.log(
         '[DEBUG SpeechTranslationPanel] Received segments:',
@@ -251,9 +298,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
               A+
             </button>
           </div>
-          <div className={styles.liveIndicator}>
-            <span className={styles.liveDot}></span>
-            <span>LIVE</span>
+          <div className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}>
+            <span className={`${styles.liveDot} ${translationServiceStatus === 'warning' ? styles.warningDot : translationServiceStatus === 'connecting' ? styles.connectingDot : ''}`}></span>
+            <span>{translationServiceStatus === 'warning' ? 'OFFLINE' : translationServiceStatus === 'connecting' ? 'CONNECTING' : 'LIVE'}</span>
           </div>
           {!hideCloseButton && onClose && (
             <button onClick={onClose} className={styles.closeButton}>
@@ -295,11 +342,19 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
       </div>
 
       {/* Status Bar */}
-      <div className={styles.statusBar}>
+      <div className={`${styles.statusBar} ${translationServiceStatus === 'warning' ? styles.statusBarWarning : ''}`}>
         <div className={styles.statusLeft}>
-          <span className={styles.statusIcon}>📡</span>
+          <span className={styles.statusIcon}>
+            {translationServiceStatus === 'warning' ? '⚠️' : translationServiceStatus === 'connecting' ? '🔄' : '📡'}
+          </span>
           <span className={styles.statusText}>
-            {translatedSegments.length === 0 ? 'Waiting for audio...' : 'Receiving translations'}
+            {translationServiceStatus === 'warning'
+              ? 'Translation service unavailable - check if speaker is talking'
+              : translationServiceStatus === 'connecting'
+                ? 'Connecting to translation service...'
+                : translatedSegments.length === 0
+                  ? 'Waiting for audio...'
+                  : 'Receiving translations'}
           </span>
         </div>
         <div className={styles.statusRight}>

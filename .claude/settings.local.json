@@ -42,7 +42,12 @@
       "Bash(pnpm install:*)",
       "Bash(grep:*)",
       "Bash(pnpm add:*)",
-      "mcp__context7__query-docs"
+      "mcp__context7__query-docs",
+      "Bash(git -C /mnt/c/Users/hassa/OneDrive/Desktop/Bayaan.ai/classroom status --short)",
+      "Bash(git log:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)"
     ],
     "deny": [],
     "ask": []

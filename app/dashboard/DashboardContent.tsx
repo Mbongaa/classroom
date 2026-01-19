@@ -1,18 +1,20 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { generateRoomId, randomString, encodePassphrase } from '@/lib/client-utils';
+import { generateRoomId } from '@/lib/client-utils';
+import { Classroom } from '@/lib/types';
+import { Video, ArrowRight } from 'lucide-react';
 
 interface DashboardContentProps {
   userName: string;
   classroomCount: number;
   recordingCount: number;
   organizationName: string;
+  rooms: Classroom[];
 }
 
 export function DashboardContent({
@@ -20,22 +22,11 @@ export function DashboardContent({
   classroomCount,
   recordingCount,
   organizationName,
+  rooms,
 }: DashboardContentProps) {
   const router = useRouter();
 
-  // State for E2EE
-  const [e2ee, setE2ee] = useState(false);
-  const [sharedPassphrase, setSharedPassphrase] = useState(randomString(64));
-
   // Handler functions
-  const startMeeting = () => {
-    if (e2ee) {
-      router.push(`/rooms/${generateRoomId()}#${encodePassphrase(sharedPassphrase)}`);
-    } else {
-      router.push(`/rooms/${generateRoomId()}`);
-    }
-  };
-
   const startClassroom = () => {
     const roomId = generateRoomId();
     router.push(`/rooms/${roomId}?classroom=true&role=teacher`);
@@ -119,14 +110,6 @@ export function DashboardContent({
                 alignItems: 'center',
               }}
             >
-              {/* Start Meeting */}
-              <button
-                onClick={startMeeting}
-                className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
-              >
-                Start Meeting
-              </button>
-
               {/* Start Classroom */}
               <button
                 onClick={startClassroom}
@@ -161,67 +144,75 @@ export function DashboardContent({
                 Manage Persistent Rooms
               </button>
             </div>
-
-            {/* E2EE Section - EXACT original */}
-            <div
-              style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1.5rem' }}
-            >
-              <div
-                style={{ display: 'flex', flexDirection: 'row', gap: '1rem', alignItems: 'center' }}
-              >
-                <input
-                  id="use-e2ee"
-                  type="checkbox"
-                  checked={e2ee}
-                  onChange={(ev) => setE2ee(ev.target.checked)}
-                />
-                <label htmlFor="use-e2ee" className="text-black dark:text-white">
-                  Enable end-to-end encryption
-                </label>
-              </div>
-              {e2ee && (
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: '1rem',
-                    alignItems: 'center',
-                  }}
-                >
-                  <label htmlFor="passphrase" className="text-black dark:text-white">
-                    Passphrase
-                  </label>
-                  <Input
-                    id="passphrase"
-                    type="password"
-                    value={sharedPassphrase}
-                    onChange={(ev) => setSharedPassphrase(ev.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Getting Started</CardTitle>
-            <CardDescription>Learn how to use Bayaan Classroom</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Rooms</CardTitle>
+                <CardDescription>Your most recently created classrooms</CardDescription>
+              </div>
+              <Link href="/dashboard/rooms">
+                <Button variant="ghost" size="sm" className="gap-1">
+                  View all
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-sm">
-              <p className="font-medium text-black dark:text-white">1. Create a classroom</p>
-              <p className="text-muted-foreground">Set up a recurring room code</p>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium text-black dark:text-white">2. Share with students</p>
-              <p className="text-muted-foreground">Send them the room link</p>
-            </div>
-            <div className="text-sm">
-              <p className="font-medium text-black dark:text-white">3. Start teaching</p>
-              <p className="text-muted-foreground">Go live with real-time translation</p>
-            </div>
+          <CardContent>
+            {rooms.length === 0 ? (
+              <div className="text-center py-8">
+                <Video className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  No rooms created yet
+                </p>
+                <Link href="/dashboard/rooms">
+                  <Button size="sm">Create your first room</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {rooms.map((room) => (
+                  <div
+                    key={room.id}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => {
+                      let url = `/rooms/${room.room_code}`;
+                      if (room.room_type === 'classroom') {
+                        url += '?classroom=true&role=teacher';
+                      } else if (room.room_type === 'speech') {
+                        url += '?speech=true&role=teacher';
+                      }
+                      router.push(url);
+                    }}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium text-black dark:text-white truncate">
+                          {room.room_code}
+                        </p>
+                        <Badge variant="secondary" className="text-xs">
+                          {room.room_type === 'classroom'
+                            ? 'Classroom'
+                            : room.room_type === 'speech'
+                              ? 'Speech'
+                              : 'Meeting'}
+                        </Badge>
+                      </div>
+                      {room.name && (
+                        <p className="text-sm text-muted-foreground truncate">
+                          {room.name}
+                        </p>
+                      )}
+                    </div>
+                    <Video className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

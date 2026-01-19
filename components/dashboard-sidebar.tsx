@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   IconArrowLeft,
+  IconCreditCard,
   IconHome,
   IconSchool,
   IconVideo,
@@ -41,6 +42,11 @@ const navigation = [
     label: 'Recordings',
     href: '/dashboard/recordings',
     icon: IconVideo,
+  },
+  {
+    label: 'Billing',
+    href: '/dashboard/billing',
+    icon: IconCreditCard,
   },
   {
     label: 'Profile',

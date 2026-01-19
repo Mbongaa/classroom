@@ -133,6 +133,63 @@ export async function cancelStripeSubscription(
 }
 
 /**
+ * Retrieve default payment method for a Stripe Customer
+ */
+export async function getDefaultPaymentMethod(
+  customerId: string
+): Promise<Stripe.PaymentMethod | null> {
+  try {
+    const customer = await getStripeCustomer(customerId);
+
+    // Check if customer was deleted or has no payment method
+    if ('deleted' in customer && customer.deleted) {
+      return null;
+    }
+
+    const defaultPaymentMethodId = customer.invoice_settings?.default_payment_method;
+
+    if (!defaultPaymentMethodId) {
+      return null;
+    }
+
+    // Handle both string ID and expanded object
+    const paymentMethodId =
+      typeof defaultPaymentMethodId === 'string'
+        ? defaultPaymentMethodId
+        : defaultPaymentMethodId.id;
+
+    return getStripe().paymentMethods.retrieve(paymentMethodId);
+  } catch (error) {
+    console.error('[Stripe] Failed to fetch payment method:', error);
+    return null;
+  }
+}
+
+/**
+ * List invoices for a Stripe Customer
+ */
+export async function listCustomerInvoices(
+  customerId: string,
+  limit: number = 5
+): Promise<Stripe.ApiList<Stripe.Invoice>> {
+  return getStripe().invoices.list({
+    customer: customerId,
+    limit,
+  });
+}
+
+/**
+ * Get detailed subscription with price info
+ */
+export async function getSubscriptionDetails(
+  subscriptionId: string
+): Promise<Stripe.Subscription> {
+  return getStripe().subscriptions.retrieve(subscriptionId, {
+    expand: ['items.data.price', 'default_payment_method'],
+  });
+}
+
+/**
  * Verify Stripe webhook signature
  */
 export function constructWebhookEvent(
