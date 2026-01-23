@@ -128,6 +128,74 @@ async function handleCheckoutCompleted(
   }
 
   console.log(`[Stripe Webhook] Organization ${organizationId} activated with ${tier} plan`);
+
+  // Send welcome email
+  try {
+    // Fetch organization and user details
+    const { data: org, error: orgError } = await supabase
+      .from('organizations')
+      .select(`
+        name,
+        org_members!inner(
+          role,
+          profiles!inner(
+            full_name,
+            email
+          )
+        )
+      `)
+      .eq('id', organizationId)
+      .eq('org_members.role', 'admin')
+      .single();
+
+    if (orgError || !org) {
+      console.error('[Stripe Webhook] Failed to fetch org for email:', orgError);
+      return; // Don't fail webhook if email fails
+    }
+
+    // Get admin profile from the nested structure
+    // org_members is an array, and each member has a profiles object (due to inner join)
+    const orgMember = (org as any).org_members?.[0];
+    const adminProfile = orgMember?.profiles;
+
+    if (!adminProfile?.email) {
+      console.error('[Stripe Webhook] No admin email found for org:', organizationId);
+      return;
+    }
+
+    // Import email service and template
+    const { sendEmail } = await import('@/lib/email/email-service');
+    const { WelcomeEmail } = await import('@/lib/email/templates/WelcomeEmail');
+
+    // Send welcome email
+    await sendEmail({
+      to: adminProfile.email,
+      subject: 'Welcome to Bayaan Classroom - Subscription Confirmed',
+      react: WelcomeEmail({
+        userName: adminProfile.full_name || 'there',
+        organizationName: org.name,
+        planName: tier.toUpperCase(),
+        billingPeriodEnd: currentPeriodEnd
+          ? new Date(currentPeriodEnd).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })
+          : 'N/A',
+        dashboardUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
+        billingPortalUrl: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard/billing`,
+      }),
+      tags: [
+        { name: 'type', value: 'subscription_confirmation' },
+        { name: 'organization_id', value: organizationId },
+      ],
+    });
+
+    console.log('[Stripe Webhook] Welcome email sent to:', adminProfile.email);
+  } catch (emailError) {
+    // Log error but don't fail the webhook
+    console.error('[Stripe Webhook] Failed to send welcome email:', emailError);
+  }
 }
 
 /**

@@ -23,7 +23,17 @@ interface TranslationEntry {
   timestamp: Date;
   participantName?: string;
   language: string;
+  isLatest?: boolean;
 }
+
+// Font size configuration
+const DEFAULT_FONT_SIZE = 24;
+const MIN_FONT_SIZE = 14;
+const MAX_FONT_SIZE = 32;
+const FONT_STEP = 2;
+
+// Health check configuration
+const TRANSLATION_TIMEOUT_MS = 15000; // 15 seconds
 
 export default function TranslationPanel({
   captionsLanguage,
@@ -35,16 +45,55 @@ export default function TranslationPanel({
 }: TranslationPanelProps) {
   const room = useRoomContext();
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
-  const [isReceiving, setIsReceiving] = useState(false);
+  const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
   const lastUpdateRef = useRef<number>(Date.now());
-  const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
+  const savedSegmentIds = useRef<Set<string>>(new Set());
   const sessionId = generateSessionId(roomName);
+
+  // Translation service health tracking
+  const [translationServiceStatus, setTranslationServiceStatus] = useState<
+    'connecting' | 'active' | 'warning'
+  >('connecting');
+  const healthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Translation service health monitoring
+  useEffect(() => {
+    if (!room) return;
+
+    const startHealthTimer = () => {
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+      healthTimeoutRef.current = setTimeout(() => {
+        setTranslationServiceStatus('warning');
+        console.warn('[Translation Health] ⚠️ No transcription received for', TRANSLATION_TIMEOUT_MS / 1000, 'seconds');
+      }, TRANSLATION_TIMEOUT_MS);
+    };
+
+    startHealthTimer();
+
+    return () => {
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+    };
+  }, [room]);
 
   useEffect(() => {
     if (!room) return;
 
     const handleTranscription = (segments: TranscriptionSegment[]) => {
+      // Reset health check timer
+      if (healthTimeoutRef.current) {
+        clearTimeout(healthTimeoutRef.current);
+      }
+      setTranslationServiceStatus('active');
+      healthTimeoutRef.current = setTimeout(() => {
+        setTranslationServiceStatus('warning');
+        console.warn('[Translation Health] ⚠️ No transcription received for', TRANSLATION_TIMEOUT_MS / 1000, 'seconds');
+      }, TRANSLATION_TIMEOUT_MS);
+
       // DEBUG: Log ALL incoming segments
       console.log(
         '[DEBUG TranslationPanel] Received segments:',
@@ -60,9 +109,6 @@ export default function TranslationPanel({
       if (userRole) {
         const finalSegments = segments.filter((seg) => seg.final);
 
-        // Detect speaker's original language based on role
-        // For teacher's client: teacher is local, students are remote
-        // For student's client: teacher is remote, student is local
         const speakingLanguage =
           userRole === 'teacher'
             ? room.localParticipant?.attributes?.speaking_language
@@ -83,7 +129,7 @@ export default function TranslationPanel({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  sessionId, // Use session_id instead of recording_id
+                  sessionId,
                   text: transcription.text,
                   language: transcription.language,
                   participantIdentity: room.localParticipant?.identity || 'unknown',
@@ -115,7 +161,6 @@ export default function TranslationPanel({
               savedSegmentIds.current.add(segmentKey);
 
               const timestampMs = Date.now() - sessionStartTime;
-              // Get teacher's name from remote participants (for students)
               const teacher = Array.from(room.remoteParticipants.values()).find(
                 (p) => p.attributes?.speaking_language !== undefined,
               );
@@ -123,7 +168,7 @@ export default function TranslationPanel({
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                  sessionId, // Use session_id instead of recording_id
+                  sessionId,
                   text: translation.text,
                   language: translation.language,
                   participantName: teacher?.name || 'Teacher',
@@ -148,7 +193,7 @@ export default function TranslationPanel({
 
       // Filter segments for DISPLAY only (selected language)
       const filteredSegments = segments.filter((seg) => {
-        return seg.language === captionsLanguage;
+        return seg.language === captionsLanguage && seg.final;
       });
 
       // Add filtered translations to UI display
@@ -158,28 +203,22 @@ export default function TranslationPanel({
         timestamp: new Date(),
         participantName: 'Teacher',
         language: segment.language,
+        isLatest: false,
       }));
 
       if (newEntries.length > 0) {
         setTranslations((prev) => {
-          // Keep only last 100 translations to prevent memory issues
-          const updated = [...prev, ...newEntries];
+          const updated = [...prev.map((t) => ({ ...t, isLatest: false })), ...newEntries];
+          if (updated.length > 0) {
+            updated[updated.length - 1].isLatest = true;
+          }
           if (updated.length > 100) {
             return updated.slice(-100);
           }
           return updated;
         });
 
-        // Show receiving indicator
-        setIsReceiving(true);
         lastUpdateRef.current = Date.now();
-
-        // Hide indicator after a short delay
-        setTimeout(() => {
-          if (Date.now() - lastUpdateRef.current >= 1500) {
-            setIsReceiving(false);
-          }
-        }, 2000);
       }
     };
 
@@ -192,22 +231,10 @@ export default function TranslationPanel({
 
   // Auto-scroll to bottom when new translations arrive
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: 'smooth',
-      });
+    if (scrollRef.current && translations.length > 0) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [translations]);
-
-  // Format timestamp to readable time
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-  };
 
   // Get language name from code
   const getLanguageName = (code: string) => {
@@ -223,68 +250,83 @@ export default function TranslationPanel({
       ru: 'Russian',
       ko: 'Korean',
       nl: 'Dutch',
+      hi: 'Hindi',
     };
     return languages[code] || code.toUpperCase();
   };
 
-  if (translations.length === 0) {
-    return (
-      <div className={styles.emptyState}>
-        <div className={styles.emptyIcon}>
-          <Languages className={styles.globeIcon} size={32} />
-          <div className={styles.pulseRing}></div>
-        </div>
-        <h3 className={styles.emptyTitle}>Waiting for translations...</h3>
-        <p className={styles.emptyDescription}>
-          Translations will appear here when the teacher speaks
-        </p>
-        <div className={styles.languageIndicator}>
-          <span className={styles.languageLabel}>Selected Language:</span>
-          <span className={styles.languageBadge}>{getLanguageName(captionsLanguage)}</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Languages className={styles.headerIcon} size={20} />
-          <span className={styles.headerTitle}>Live Translations</span>
+      {/* Translation List - full height to top */}
+      <div className={styles.translationList} ref={scrollRef}>
+        {translations.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              <Languages className={styles.globeIcon} size={64} />
+              <span className={styles.pulseRing}></span>
+            </div>
+            <div className={styles.emptyTitle}>Waiting for Translation</div>
+            <div className={styles.emptyDescription}>
+              Translations will appear here as the speaker talks
+            </div>
+            <div className={styles.languageIndicator}>
+              <span className={styles.languageLabel}>Translating to</span>
+              <span>{getLanguageName(captionsLanguage)}</span>
+            </div>
+          </div>
+        ) : (
+          translations.map((entry) => (
+            <div
+              key={entry.id}
+              className={`${styles.translationItem} ${entry.isLatest ? styles.latest : ''}`}
+            >
+              <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
+                {entry.text}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Bottom Bar */}
+      <div className={styles.bottomBar}>
+        <div className={styles.bottomBarLeft}>
+          <Languages className={styles.bottomBarIcon} size={18} />
+          <span className={styles.bottomBarTitle}>Live Translation</span>
         </div>
-        <div className={styles.headerRight}>
+        <div className={styles.bottomBarRight}>
           <span className={styles.languageBadge}>{getLanguageName(captionsLanguage)}</span>
-          <span className={styles.messageCountBadge}>{translations.length}</span>
+          {translations.length > 0 && (
+            <span className={styles.messageCountBadge}>{translations.length}</span>
+          )}
+          <div className={styles.fontControls}>
+            <button
+              onClick={() => setFontSize((prev) => Math.max(MIN_FONT_SIZE, prev - FONT_STEP))}
+              disabled={fontSize <= MIN_FONT_SIZE}
+              className={styles.fontButton}
+              title="Decrease font size"
+            >
+              A-
+            </button>
+            <button
+              onClick={() => setFontSize((prev) => Math.min(MAX_FONT_SIZE, prev + FONT_STEP))}
+              disabled={fontSize >= MAX_FONT_SIZE}
+              className={styles.fontButton}
+              title="Increase font size"
+            >
+              A+
+            </button>
+          </div>
+          <div className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}>
+            <span className={`${styles.liveDot} ${translationServiceStatus === 'warning' ? styles.warningDot : translationServiceStatus === 'connecting' ? styles.connectingDot : ''}`}></span>
+            <span>{translationServiceStatus === 'warning' ? 'OFFLINE' : translationServiceStatus === 'connecting' ? 'CONNECTING' : 'LIVE'}</span>
+          </div>
           {showCloseButton && onClose && (
-            <button className={styles.closeButton} onClick={onClose} aria-label="Close translation">
-              ×
+            <button onClick={onClose} className={styles.closeButton}>
+              ✕
             </button>
           )}
         </div>
-      </div>
-
-      {/* Translation list */}
-      <div className={styles.translationList} ref={scrollRef}>
-        {translations.map((entry, index) => {
-          const isLatest = index === translations.length - 1;
-          return (
-            <div
-              key={entry.id}
-              className={`${styles.translationItem} ${isLatest ? styles.latest : ''}`}
-            >
-              <div className={styles.translationHeader}>
-                <span className={styles.speaker}>
-                  <span className={styles.speakerIcon}>👤</span>
-                  {entry.participantName}
-                </span>
-                <span className={styles.timestamp}>{formatTime(entry.timestamp)}</span>
-              </div>
-              <div className={styles.translationText}>{entry.text}</div>
-            </div>
-          );
-        })}
       </div>
     </div>
   );

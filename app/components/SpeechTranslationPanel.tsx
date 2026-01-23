@@ -269,13 +269,44 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <Languages className={styles.headerIcon} size={20} />
-          <span className={styles.headerTitle}>Live Translation</span>
+      {/* Translation List - full height to top */}
+      <div className={styles.translationList} ref={scrollRef}>
+        {translatedSegments.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>
+              <Languages className={styles.globeIcon} size={64} />
+              <span className={styles.pulseRing}></span>
+            </div>
+            <div className={styles.emptyTitle}>Waiting for Translation</div>
+            <div className={styles.emptyDescription}>
+              Translations will appear here as the speaker talks
+            </div>
+            <div className={styles.languageIndicator}>
+              <span className={styles.languageLabel}>Translating to</span>
+              <span>{getLanguageLabel(targetLanguage)}</span>
+            </div>
+          </div>
+        ) : (
+          translatedSegments.map((segment) => (
+            <div
+              key={segment.id}
+              className={`${styles.translationItem} ${segment.isLatest ? styles.latest : ''}`}
+            >
+              <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
+                {segment.text}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Bottom Bar (moved from header) */}
+      <div className={styles.bottomBar}>
+        <div className={styles.bottomBarLeft}>
+          <Languages className={styles.bottomBarIcon} size={18} />
+          <span className={styles.bottomBarTitle}>Live Translation</span>
         </div>
-        <div className={styles.headerRight}>
+        <div className={styles.bottomBarRight}>
           <span className={styles.languageBadge}>{getLanguageLabel(targetLanguage)}</span>
           {translatedSegments.length > 0 && (
             <span className={styles.messageCountBadge}>{translatedSegments.length}</span>
@@ -307,60 +338,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
               ✕
             </button>
           )}
-        </div>
-      </div>
-
-      {/* Translation List */}
-      <div className={styles.translationList} ref={scrollRef}>
-        {translatedSegments.length === 0 ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <Languages className={styles.globeIcon} size={64} />
-              <span className={styles.pulseRing}></span>
-            </div>
-            <div className={styles.emptyTitle}>Waiting for Translation</div>
-            <div className={styles.emptyDescription}>
-              Translations will appear here as the speaker talks
-            </div>
-            <div className={styles.languageIndicator}>
-              <span className={styles.languageLabel}>Translating to</span>
-              <span>{getLanguageLabel(targetLanguage)}</span>
-            </div>
-          </div>
-        ) : (
-          translatedSegments.map((segment) => (
-            <div
-              key={segment.id}
-              className={`${styles.translationItem} ${segment.isLatest ? styles.latest : ''}`}
-            >
-              <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
-                {segment.text}
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Status Bar */}
-      <div className={`${styles.statusBar} ${translationServiceStatus === 'warning' ? styles.statusBarWarning : ''}`}>
-        <div className={styles.statusLeft}>
-          <span className={styles.statusIcon}>
-            {translationServiceStatus === 'warning' ? '⚠️' : translationServiceStatus === 'connecting' ? '🔄' : '📡'}
-          </span>
-          <span className={styles.statusText}>
-            {translationServiceStatus === 'warning'
-              ? 'Translation service unavailable - check if speaker is talking'
-              : translationServiceStatus === 'connecting'
-                ? 'Connecting to translation service...'
-                : translatedSegments.length === 0
-                  ? 'Waiting for audio...'
-                  : 'Receiving translations'}
-          </span>
-        </div>
-        <div className={styles.statusRight}>
-          <span className={styles.messageCount}>
-            {translatedSegments.length} message{translatedSegments.length !== 1 ? 's' : ''}
-          </span>
         </div>
       </div>
     </div>
