@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
-import { getClassroomByRoomCode, deleteClassroom, createClassroom } from '@/lib/classroom-utils';
+import { getClassroomByRoomCode, deleteClassroom, createClassroom, updateClassroomFull } from '@/lib/classroom-utils';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { createClient } from '@/lib/supabase/client';
 
@@ -206,6 +206,105 @@ export async function DELETE(
 
     return NextResponse.json(
       { error: 'Failed to delete classroom', details: error.message },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * PATCH /api/classrooms/[roomCode]
+ * Update a classroom's editable fields
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ roomCode: string }> },
+) {
+  // Require teacher authentication
+  const auth = await requireTeacher();
+  if (!auth.success) return auth.response;
+
+  const { user, profile } = auth;
+
+  if (!profile?.organization_id) {
+    return NextResponse.json({ error: 'User profile is missing organization' }, { status: 400 });
+  }
+
+  try {
+    const { roomCode } = await params;
+
+    if (!roomCode) {
+      return NextResponse.json({ error: 'Room code is required' }, { status: 400 });
+    }
+
+    // Parse request body
+    const body = await request.json();
+
+    // Extract updates from body
+    const updates: {
+      name?: string;
+      description?: string | null;
+      roomType?: 'meeting' | 'classroom' | 'speech';
+      settings?: {
+        language?: string;
+        enable_recording?: boolean;
+        enable_chat?: boolean;
+        max_participants?: number;
+      };
+      translationPromptId?: string | null;
+      contextWindowSize?: number;
+      maxDelay?: number;
+      punctuationSensitivity?: number;
+    } = {};
+
+    // Map incoming fields to updates
+    if (body.name !== undefined) updates.name = body.name;
+    if (body.description !== undefined) updates.description = body.description;
+    if (body.roomType !== undefined) updates.roomType = body.roomType;
+    if (body.settings !== undefined) updates.settings = body.settings;
+    if (body.translationPromptId !== undefined) updates.translationPromptId = body.translationPromptId;
+    if (body.contextWindowSize !== undefined) updates.contextWindowSize = body.contextWindowSize;
+    if (body.maxDelay !== undefined) updates.maxDelay = body.maxDelay;
+    if (body.punctuationSensitivity !== undefined) updates.punctuationSensitivity = body.punctuationSensitivity;
+
+    // Check if there are any updates
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: 'No updates provided' }, { status: 400 });
+    }
+
+    // Validate roomType if provided
+    if (updates.roomType && !['meeting', 'classroom', 'speech'].includes(updates.roomType)) {
+      return NextResponse.json(
+        { error: 'Invalid room type. Must be "meeting", "classroom", or "speech"' },
+        { status: 400 },
+      );
+    }
+
+    // Perform update
+    const updatedClassroom = await updateClassroomFull(
+      roomCode,
+      user.id,
+      profile.organization_id,
+      updates,
+    );
+
+    return NextResponse.json({
+      success: true,
+      classroom: updatedClassroom,
+      message: `Classroom ${roomCode} updated successfully`,
+    });
+  } catch (error: any) {
+    console.error('Error updating classroom:', error);
+
+    // Handle specific error messages
+    if (error.message.includes('not found') || error.message.includes('permission')) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update classroom', details: error.message },
       { status: 500 },
     );
   }

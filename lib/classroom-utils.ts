@@ -250,3 +250,88 @@ export async function updateClassroom(
 
   return data as Classroom;
 }
+
+export interface UpdateClassroomFullParams {
+  name?: string;
+  description?: string | null;
+  roomType?: 'meeting' | 'classroom' | 'speech';
+  settings?: Partial<Classroom['settings']>;
+  translationPromptId?: string | null;
+  contextWindowSize?: number;
+  maxDelay?: number;
+  punctuationSensitivity?: number;
+}
+
+/**
+ * Update all editable classroom fields
+ *
+ * @param roomCode - Room code (user-facing identifier)
+ * @param teacherId - Teacher ID for authorization
+ * @param organizationId - Organization ID for multi-tenant isolation
+ * @param updates - Full classroom updates
+ * @throws Error if classroom not found or user not authorized
+ */
+export async function updateClassroomFull(
+  roomCode: string,
+  teacherId: string,
+  organizationId: string,
+  updates: UpdateClassroomFullParams,
+): Promise<Classroom> {
+  const supabase = createAdminClient();
+
+  // Build update data object
+  const updateData: Record<string, any> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  // Map updates to database columns
+  if (updates.name !== undefined) updateData.name = updates.name;
+  if (updates.description !== undefined) updateData.description = updates.description;
+  if (updates.roomType !== undefined) updateData.room_type = updates.roomType;
+  if (updates.translationPromptId !== undefined) updateData.translation_prompt_id = updates.translationPromptId;
+  if (updates.contextWindowSize !== undefined) updateData.context_window_size = updates.contextWindowSize;
+  if (updates.maxDelay !== undefined) updateData.max_delay = updates.maxDelay;
+  if (updates.punctuationSensitivity !== undefined) updateData.punctuation_sensitivity = updates.punctuationSensitivity;
+
+  // Handle settings merge
+  if (updates.settings) {
+    // Fetch current settings to merge
+    const { data: current } = await supabase
+      .from('classrooms')
+      .select('settings')
+      .eq('room_code', roomCode)
+      .eq('teacher_id', teacherId)
+      .eq('organization_id', organizationId)
+      .eq('is_active', true)
+      .single();
+
+    if (current) {
+      updateData.settings = {
+        ...current.settings,
+        ...updates.settings,
+      };
+    } else {
+      throw new Error('Classroom not found or you do not have permission to update it');
+    }
+  }
+
+  // Perform update
+  const { data, error } = await supabase
+    .from('classrooms')
+    .update(updateData)
+    .eq('room_code', roomCode)
+    .eq('teacher_id', teacherId)
+    .eq('organization_id', organizationId)
+    .eq('is_active', true)
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') {
+      throw new Error('Classroom not found or you do not have permission to update it');
+    }
+    throw new Error(`Failed to update classroom: ${error.message}`);
+  }
+
+  return data as Classroom;
+}

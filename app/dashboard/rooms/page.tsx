@@ -62,6 +62,13 @@ export default function DashboardRoomsPage() {
     }
   };
 
+  const handleRoomUpdated = (updatedRoom: Classroom) => {
+    // Optimistic update: replace the updated room in the list
+    setRooms((prevRooms) =>
+      prevRooms.map((room) => (room.id === updatedRoom.id ? updatedRoom : room))
+    );
+  };
+
   useEffect(() => {
     fetchRooms();
   }, []);
@@ -134,7 +141,12 @@ export default function DashboardRoomsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {rooms.map((room) => (
-              <RoomCard key={room.id} room={room} onDelete={handleRoomDeleted} />
+              <RoomCard
+                key={room.id}
+                room={room}
+                onDelete={handleRoomDeleted}
+                onUpdate={handleRoomUpdated}
+              />
             ))}
           </div>
         </>

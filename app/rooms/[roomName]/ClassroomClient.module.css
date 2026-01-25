@@ -60,7 +60,7 @@
   /* Responsive font size */
   font-size: clamp(0.875rem, 2vw, 1.25rem);
   font-weight: 700;
-  color: var(--lk-text1, white);
+  color: var(--foreground);
   letter-spacing: -0.03rem;
 }
 

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@heroui/react';
+import { Switch } from '@/components/ui/switch';
 import { Video, FileText, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import VideoPlayer from './VideoPlayer';
@@ -122,10 +122,9 @@ export function LearningContentTabs({
                   Original ({transcript.originalLanguage.toUpperCase()})
                 </span>
                 <Switch
-                  isSelected={transcriptView === 'translated'}
-                  onValueChange={onTranscriptToggle}
-                  isDisabled={translating}
-                  size="sm"
+                  checked={transcriptView === 'translated'}
+                  onCheckedChange={onTranscriptToggle}
+                  disabled={translating}
                 />
                 <span
                   className={`text-sm ${transcriptView === 'translated' ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}

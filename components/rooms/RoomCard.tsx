@@ -13,14 +13,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Trash2, Video } from 'lucide-react';
+import { Settings, Trash2, Video } from 'lucide-react';
+import { RoomFormDialog } from './RoomFormDialog';
 
 interface RoomCardProps {
   room: Classroom;
   onDelete: (roomId?: string) => void;
+  onUpdate: (updatedRoom: Classroom) => void;
 }
 
-export function RoomCard({ room, onDelete }: RoomCardProps) {
+export function RoomCard({ room, onDelete, onUpdate }: RoomCardProps) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
 
@@ -129,8 +131,18 @@ export function RoomCard({ room, onDelete }: RoomCardProps) {
           <Video className="w-4 h-4 mr-2" />
           Join Room
         </Button>
-        <Button onClick={handleDeleteRoom} variant="destructive" size="sm" disabled={deleting}>
-          <Trash2 className="w-4 h-4" />
+        <RoomFormDialog
+          mode="edit"
+          room={room}
+          onSuccess={onUpdate}
+          trigger={
+            <Button variant="ghost" size="icon">
+              <Settings className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+            </Button>
+          }
+        />
+        <Button onClick={handleDeleteRoom} variant="ghost" size="icon" disabled={deleting}>
+          <Trash2 className="w-4 h-4 text-slate-700 dark:text-slate-200" />
         </Button>
       </CardFooter>
     </Card>

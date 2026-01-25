@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { RoomType } from '@/lib/types';
+import { RoomType, Classroom } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -27,11 +27,14 @@ import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
 import { PromptTemplateSelector } from '@/app/components/PromptTemplateSelector';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
-interface CreateRoomDialogProps {
-  onRoomCreated: (newRoom?: any) => void;
+interface RoomFormDialogProps {
+  mode: 'create' | 'edit';
+  room?: Classroom; // Required when mode='edit'
+  trigger?: React.ReactNode; // Custom trigger (Settings icon for edit)
+  onSuccess: (room: Classroom) => void;
 }
 
-export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
+export function RoomFormDialog({ mode, room, trigger, onSuccess }: RoomFormDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -40,7 +43,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   const [roomCode, setRoomCode] = useState('');
   const [roomType, setRoomType] = useState<RoomType>('classroom');
   const [teacherName, setTeacherName] = useState('');
-  const [language, setLanguage] = useState('en'); // Default to English
+  const [language, setLanguage] = useState('en');
   const [description, setDescription] = useState('');
   const [translationPromptId, setTranslationPromptId] = useState<string | null>(null);
 
@@ -53,11 +56,26 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   // Templates for auto-selection
   const [templates, setTemplates] = useState<Array<{ id: string; name: string }>>([]);
 
+  // Populate form when in edit mode and room data is available
+  useEffect(() => {
+    if (mode === 'edit' && room && open) {
+      setRoomCode(room.room_code);
+      setRoomType(room.room_type);
+      setTeacherName(room.name);
+      setLanguage(room.settings.language || 'en');
+      setDescription(room.description || '');
+      setTranslationPromptId(room.translation_prompt_id || null);
+      setContextWindowSize(room.context_window_size ?? 12);
+      setMaxDelay(room.max_delay ?? 3.5);
+      setPunctuationSensitivity(room.punctuation_sensitivity ?? 0.5);
+    }
+  }, [mode, room, open]);
+
   // Fetch templates when dialog opens
   useEffect(() => {
     if (open && templates.length === 0) {
       fetch('/api/prompts')
-        .then((res) => res.ok ? res.json() : null)
+        .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data?.templates) {
             setTemplates(data.templates);
@@ -67,40 +85,43 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     }
   }, [open, templates.length]);
 
-  // Auto-select appropriate template based on language
+  // Auto-select appropriate template based on language (only in create mode)
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
 
-    if (newLanguage === 'ar') {
-      // Arabic Fusha → Khutba (Fusha) template
-      const khutbaTemplate = templates.find(
-        (t) => t.name.toLowerCase().includes('khutba') && t.name.toLowerCase().includes('fusha')
-      );
-      if (khutbaTemplate) {
-        setTranslationPromptId(khutbaTemplate.id);
-      }
-    } else {
-      // Any other language → Islamic context translation (other) template
-      const islamicTemplate = templates.find(
-        (t) => t.name.toLowerCase().includes('islamic') && t.name.toLowerCase().includes('other')
-      );
-      if (islamicTemplate) {
-        setTranslationPromptId(islamicTemplate.id);
+    // Only auto-select templates in create mode
+    if (mode === 'create') {
+      if (newLanguage === 'ar') {
+        const khutbaTemplate = templates.find(
+          (t) => t.name.toLowerCase().includes('khutba') && t.name.toLowerCase().includes('fusha')
+        );
+        if (khutbaTemplate) {
+          setTranslationPromptId(khutbaTemplate.id);
+        }
+      } else {
+        const islamicTemplate = templates.find(
+          (t) => t.name.toLowerCase().includes('islamic') && t.name.toLowerCase().includes('other')
+        );
+        if (islamicTemplate) {
+          setTranslationPromptId(islamicTemplate.id);
+        }
       }
     }
   };
 
   const resetForm = () => {
-    setRoomCode('');
-    setRoomType('classroom');
-    setTeacherName('');
-    setLanguage('en');
-    setDescription('');
-    setTranslationPromptId(null);
-    setShowAdvanced(false);
-    setContextWindowSize(12);
-    setMaxDelay(3.5);
-    setPunctuationSensitivity(0.5);
+    if (mode === 'create') {
+      setRoomCode('');
+      setRoomType('classroom');
+      setTeacherName('');
+      setLanguage('en');
+      setDescription('');
+      setTranslationPromptId(null);
+      setShowAdvanced(false);
+      setContextWindowSize(12);
+      setMaxDelay(3.5);
+      setPunctuationSensitivity(0.5);
+    }
     setError('');
   };
 
@@ -114,7 +135,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
       return;
     }
 
-    if (!/^[a-zA-Z0-9-]{4,20}$/.test(roomCode)) {
+    if (mode === 'create' && !/^[a-zA-Z0-9-]{4,20}$/.test(roomCode)) {
       setError('Room code must be 4-20 alphanumeric characters or hyphens');
       return;
     }
@@ -127,61 +148,80 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/classrooms', {
-        method: 'POST',
+      const endpoint = mode === 'create' ? '/api/classrooms' : `/api/classrooms/${roomCode}`;
+      const method = mode === 'create' ? 'POST' : 'PATCH';
+
+      const payload: Record<string, any> = {
+        name: teacherName.trim() || roomCode.trim(),
+        description: description.trim() || null,
+        roomType: roomType,
+        settings: {
+          language: language || 'en',
+          enable_recording: roomType === 'classroom',
+          enable_chat: true,
+          max_participants: 100,
+        },
+        translationPromptId: translationPromptId,
+        contextWindowSize: contextWindowSize,
+        maxDelay: maxDelay,
+        punctuationSensitivity: punctuationSensitivity,
+      };
+
+      // Only include roomCode in create mode
+      if (mode === 'create') {
+        payload.roomCode = roomCode.trim();
+      }
+
+      const response = await fetch(endpoint, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          roomCode: roomCode.trim(),
-          name: teacherName.trim() || roomCode.trim(), // Classroom name (teacher name or room code)
-          description: description.trim() || undefined,
-          roomType: roomType, // ✅ FIX: Include room type in request
-          settings: {
-            language: language || 'en',
-            enable_recording: roomType === 'classroom',
-            enable_chat: true,
-            max_participants: 100,
-          },
-          translationPromptId: translationPromptId,
-          contextWindowSize: contextWindowSize,
-          maxDelay: maxDelay,
-          punctuationSensitivity: punctuationSensitivity,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to create room');
+        setError(data.error || `Failed to ${mode} room`);
         setLoading(false);
         return;
       }
 
-      // Success - pass the newly created room to the callback
+      // Success
       resetForm();
       setOpen(false);
-
-      // Pass the created room data for optimistic update
-      onRoomCreated(data.classroom);
+      setLoading(false);
+      onSuccess(data.classroom);
     } catch (err) {
-      setError('Failed to create room. Please try again.');
+      setError(`Failed to ${mode} room. Please try again.`);
       setLoading(false);
     }
   };
 
+  const isEditMode = mode === 'edit';
+  const dialogTitle = isEditMode ? 'Edit Room Settings' : 'Create Persistent Room';
+  const dialogDescription = isEditMode
+    ? 'Update the settings for this room. Room code cannot be changed.'
+    : 'Create a room with a memorable code that can be reused for recurring sessions.';
+  const submitButtonText = isEditMode
+    ? loading
+      ? 'Saving...'
+      : 'Save Changes'
+    : loading
+      ? 'Creating...'
+      : 'Create Room';
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="rounded-full">Create Room</Button>
+        {trigger || <Button className="rounded-full">{isEditMode ? 'Edit' : 'Create Room'}</Button>}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create Persistent Room</DialogTitle>
-            <DialogDescription>
-              Create a room with a memorable code that can be reused for recurring sessions.
-            </DialogDescription>
+            <DialogTitle>{dialogTitle}</DialogTitle>
+            <DialogDescription>{dialogDescription}</DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -195,12 +235,16 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                 placeholder="e.g., MATH101"
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value)}
-                disabled={loading}
+                disabled={loading || isEditMode} // Disabled in edit mode
                 maxLength={20}
-                className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
+                className={`focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280] ${
+                  isEditMode ? 'bg-muted cursor-not-allowed' : ''
+                }`}
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                4-20 alphanumeric characters or hyphens
+                {isEditMode
+                  ? 'Room code cannot be changed'
+                  : '4-20 alphanumeric characters or hyphens'}
               </p>
             </div>
 
@@ -284,7 +328,9 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                 onClick={() => setShowAdvanced(!showAdvanced)}
                 disabled={loading}
               >
-                <span className="font-medium text-sm text-slate-700 dark:text-slate-200">Advanced Settings</span>
+                <span className="font-medium text-sm text-slate-700 dark:text-slate-200">
+                  Advanced Settings
+                </span>
                 {showAdvanced ? (
                   <ChevronUp className="h-4 w-4 text-slate-700 dark:text-slate-200" />
                 ) : (
@@ -321,7 +367,9 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="maxDelay">Max Delay</Label>
-                      <span className="text-sm text-slate-500 dark:text-slate-400">{maxDelay.toFixed(1)}s</span>
+                      <span className="text-sm text-slate-500 dark:text-slate-400">
+                        {maxDelay.toFixed(1)}s
+                      </span>
                     </div>
                     <Slider
                       id="maxDelay"
@@ -384,7 +432,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading} className="rounded-full">
-              {loading ? 'Creating...' : 'Create Room'}
+              {submitButtonText}
             </Button>
           </DialogFooter>
         </form>

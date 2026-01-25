@@ -8,7 +8,7 @@ export function DashboardHeader() {
         {/* LEFT: Hamburger menu (mobile only) + Logo */}
         <div className="flex items-center gap-4">
           <SidebarTrigger className="md:hidden" />
-          <span className="text-xl font-bold tracking-tight text-foreground">
+          <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
             bayaan.ai
           </span>
         </div>

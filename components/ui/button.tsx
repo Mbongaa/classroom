@@ -10,18 +10,18 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-[#000000] text-white border border-transparent hover:bg-[#1a1a1a] focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
+          'bg-black dark:bg-white text-white dark:text-black border border-transparent hover:bg-[#1a1a1a] dark:hover:bg-slate-200 focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
+          'bg-red-600 dark:bg-red-600 text-white shadow-sm hover:bg-red-700 dark:hover:bg-red-500 focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
         outline:
           'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
         secondary:
-          'bg-[#000000] text-white/70 border border-transparent hover:bg-[#1a1a1a] hover:text-white focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
+          'bg-black dark:bg-white text-white/70 dark:text-black/70 border border-transparent hover:bg-[#1a1a1a] dark:hover:bg-slate-200 hover:text-white dark:hover:text-black focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
+        ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline',
-        glow: 'bg-[#000000] text-white border border-transparent hover:bg-[#1a1a1a] focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
+        glow: 'bg-black dark:bg-white text-white dark:text-black border border-transparent hover:bg-[#1a1a1a] dark:hover:bg-slate-200 focus:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549] focus-visible:shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
         glowActive:
-          'bg-[#1a1a1a] text-white border border-transparent shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
+          'bg-[#1a1a1a] dark:bg-slate-200 text-white dark:text-black border border-transparent shadow-[0_0_0_1px_#b8b2b2,0_0_0_5px_#434549]',
       },
       size: {
         default: 'h-9 px-4 py-2',

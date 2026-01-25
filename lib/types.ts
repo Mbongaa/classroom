@@ -76,6 +76,12 @@ export interface Classroom {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  // Optional fields from database
+  translation_prompt_id?: string | null;
+  transcription_language?: string;
+  context_window_size?: number;
+  max_delay?: number;
+  punctuation_sensitivity?: number;
   // Optional fields from API enrichment
   numParticipants?: number;
   isLive?: boolean;
