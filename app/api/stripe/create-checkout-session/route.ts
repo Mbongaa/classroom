@@ -6,8 +6,10 @@ import { createClient } from '@/lib/supabase/server';
  * Create a Stripe Checkout Session for subscription signup
  *
  * POST /api/stripe/create-checkout-session
- * Body: { organizationId: string, plan: 'pro' | 'enterprise' }
+ * Body: { organizationId: string, plan: 'pro' }
  * Returns: { url: string } - Stripe Checkout URL
+ *
+ * Note: Beta plan doesn't require payment, so this route is only for 'pro' plan
  */
 export async function POST(request: NextRequest) {
   try {
@@ -39,10 +41,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate plan type
-    if (!['pro', 'enterprise'].includes(plan)) {
+    // Validate plan type - only 'pro' requires Stripe checkout
+    // Beta plan is free and doesn't require payment
+    if (plan === 'beta') {
       return NextResponse.json(
-        { error: 'Invalid plan. Must be "pro" or "enterprise"' },
+        { error: 'Beta plan does not require payment. Please use the dashboard.' },
+        { status: 400 }
+      );
+    }
+
+    if (plan !== 'pro') {
+      return NextResponse.json(
+        { error: 'Invalid plan. Only "pro" plan requires checkout.' },
         { status: 400 }
       );
     }
@@ -83,8 +93,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get the price ID for the selected plan
-    const priceId = getStripePrices()[plan];
+    // Get the price ID for the selected plan (we've already validated it's 'pro')
+    const priceId = getStripePrices().pro;
 
     if (!priceId) {
       return NextResponse.json(
