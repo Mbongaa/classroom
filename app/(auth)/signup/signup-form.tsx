@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/moving-border';
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 import { Check } from 'lucide-react';
 
-type PlanType = 'pro' | 'enterprise';
+type PlanType = 'pro' | 'beta';
 
 interface PlanOption {
   id: PlanType;
@@ -15,24 +15,56 @@ interface PlanOption {
   price: string;
   description: string;
   features: string[];
+  badge?: string;
 }
 
-const PRO_PLAN: PlanOption = {
-  id: 'pro',
-  name: 'Pro',
-  price: '€199.99/month',
-  description: 'Perfect for organizations of all sizes',
+const BETA_PLAN: PlanOption = {
+  id: 'beta',
+  name: 'Beta',
+  price: 'Free',
+  description: 'Early access during beta period',
+  badge: 'Recommended',
   features: [
     'Unlimited classrooms',
     'Real-time translation',
     'Recording & transcription',
     'Up to 100 participants',
+    'No credit card required',
   ],
 };
 
-function SubmitButton({ isFormValid, isSubmitting }: { isFormValid: boolean; isSubmitting: boolean }) {
+const PRO_PLAN: PlanOption = {
+  id: 'pro',
+  name: 'Pro',
+  price: '€199.99/month',
+  description: 'Full access with premium support',
+  features: [
+    'Unlimited classrooms',
+    'Real-time translation',
+    'Recording & transcription',
+    'Up to 100 participants',
+    'Priority support',
+  ],
+};
+
+function SubmitButton({
+  isFormValid,
+  isSubmitting,
+  selectedPlan,
+}: {
+  isFormValid: boolean;
+  isSubmitting: boolean;
+  selectedPlan: PlanType;
+}) {
   const { pending } = useFormStatus();
   const isDisabled = !isFormValid || pending || isSubmitting;
+  const buttonText =
+    pending || isSubmitting
+      ? 'Creating account...'
+      : selectedPlan === 'beta'
+        ? 'Create Account'
+        : 'Continue to Payment';
+
   return (
     <Button
       as="button"
@@ -47,7 +79,7 @@ function SubmitButton({ isFormValid, isSubmitting }: { isFormValid: boolean; isS
       }
       duration={3000}
     >
-      {pending || isSubmitting ? 'Creating account...' : 'Continue to Payment'}
+      {buttonText}
     </Button>
   );
 }
@@ -69,6 +101,7 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
   const [orgSlug, setOrgSlug] = useState('');
+  const [selectedPlan, setSelectedPlan] = useState<PlanType>('beta');
 
   // Field-specific validation errors
   const [emailError, setEmailError] = useState('');
@@ -114,8 +147,8 @@ export function SignupForm() {
     setError(null);
     setIsSubmitting(true);
 
-    // Add the Pro plan to form data
-    formData.append('plan', 'pro');
+    // Add the selected plan to form data
+    formData.append('plan', selectedPlan);
 
     try {
       const result = await signUp(formData);
@@ -126,8 +159,12 @@ export function SignupForm() {
         return;
       }
 
-      // If successful, redirect to Stripe Checkout
-      if (result.checkoutUrl) {
+      // Handle redirect based on plan type
+      if (result.redirectUrl) {
+        // Beta plan - redirect to dashboard
+        window.location.href = result.redirectUrl;
+      } else if (result.checkoutUrl) {
+        // Pro plan - redirect to Stripe Checkout
         window.location.href = result.checkoutUrl;
       }
     } catch {
@@ -251,41 +288,84 @@ export function SignupForm() {
 
           <div className="flex flex-col items-center gap-2 mt-2">
             <span className="text-xs uppercase text-gray-600 dark:text-gray-400">
-              Subscription Plan
+              Choose Your Plan
             </span>
             <div className="w-full border-t border-[#4b5563]" />
           </div>
 
-          <div className="w-full p-4 rounded-lg border-2 border-blue-500 bg-blue-500/10">
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="font-semibold text-white">{PRO_PLAN.name}</h3>
-                <p className="text-sm text-gray-400">{PRO_PLAN.description}</p>
+          <div className="grid grid-cols-2 gap-3">
+            {/* Beta Plan */}
+            <button
+              type="button"
+              onClick={() => setSelectedPlan('beta')}
+              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                selectedPlan === 'beta'
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-gray-600 bg-transparent hover:border-gray-500'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-semibold text-white">{BETA_PLAN.name}</h3>
+                  {BETA_PLAN.badge && (
+                    <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-green-500/20 text-green-400 rounded">
+                      {BETA_PLAN.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-lg font-bold text-green-400">{BETA_PLAN.price}</span>
               </div>
-              <div className="text-right">
-                <span className="text-lg font-bold text-white">{PRO_PLAN.price}</span>
+              <p className="text-xs text-gray-400 mb-2">{BETA_PLAN.description}</p>
+              <ul className="space-y-1">
+                {BETA_PLAN.features.slice(0, 3).map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </button>
+
+            {/* Pro Plan */}
+            <button
+              type="button"
+              onClick={() => setSelectedPlan('pro')}
+              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                selectedPlan === 'pro'
+                  ? 'border-blue-500 bg-blue-500/10'
+                  : 'border-gray-600 bg-transparent hover:border-gray-500'
+              }`}
+            >
+              <div className="flex justify-between items-start mb-2">
+                <div>
+                  <h3 className="font-semibold text-white">{PRO_PLAN.name}</h3>
+                </div>
+                <span className="text-lg font-bold text-blue-400">{PRO_PLAN.price}</span>
               </div>
-            </div>
-            <ul className="mt-3 space-y-1">
-              {PRO_PLAN.features.map((feature, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm text-gray-400">
-                  <Check className="h-4 w-4 text-green-500" />
-                  {feature}
-                </li>
-              ))}
-            </ul>
+              <p className="text-xs text-gray-400 mb-2">{PRO_PLAN.description}</p>
+              <ul className="space-y-1">
+                {PRO_PLAN.features.slice(0, 3).map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-1.5 text-xs text-gray-400">
+                    <Check className="h-3 w-3 text-blue-500 flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </button>
           </div>
 
-          <input type="hidden" name="plan" value="pro" />
+          <input type="hidden" name="plan" value={selectedPlan} />
 
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}
 
-          <SubmitButton isFormValid={isFormValid} isSubmitting={isSubmitting} />
+          <SubmitButton isFormValid={isFormValid} isSubmitting={isSubmitting} selectedPlan={selectedPlan} />
 
           <p className="text-xs text-center text-gray-500">
-            You&apos;ll be redirected to Stripe to complete payment securely.
+            {selectedPlan === 'beta'
+              ? 'Start using Bayaan immediately - no payment required during beta.'
+              : "You'll be redirected to Stripe to complete payment securely."}
           </p>
         </div>
       </form>

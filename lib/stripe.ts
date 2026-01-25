@@ -25,7 +25,7 @@ export function getStripePrices() {
   } as const;
 }
 
-export type PlanType = 'pro';
+export type PlanType = 'pro' | 'beta';
 
 /**
  * Create a Stripe Customer for an organization

@@ -57,7 +57,7 @@ export function CurrentPlanCard({
   };
 
   // Format tier name
-  const tierName = tier === 'pro' ? 'Pro Plan' : 'Free Plan';
+  const tierName = tier === 'pro' ? 'Pro Plan' : tier === 'beta' ? 'Beta Plan' : 'Free Plan';
 
   // Get billing interval
   const interval = subscriptionDetails?.items?.data[0]?.price?.recurring?.interval;

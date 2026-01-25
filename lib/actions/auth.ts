@@ -16,6 +16,7 @@ export type AuthResult = {
   error?: string;
   data?: any;
   checkoutUrl?: string;
+  redirectUrl?: string; // For non-Stripe redirects (e.g., beta plan)
 };
 
 /**
@@ -61,7 +62,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   }
 
   // Validate plan
-  if (!['pro', 'enterprise'].includes(plan)) {
+  if (!['pro', 'beta'].includes(plan)) {
     return { success: false, error: 'Invalid plan selected' };
   }
 
@@ -129,6 +130,28 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
 
   if (memberError) {
     return { success: false, error: `Failed to add organization member: ${memberError.message}` };
+  }
+
+  // Handle Beta plan - skip Stripe, activate immediately
+  if (plan === 'beta') {
+    const { error: betaUpdateError } = await supabaseAdmin
+      .from('organizations')
+      .update({
+        subscription_status: 'active',
+        subscription_tier: 'beta',
+      })
+      .eq('id', org.id);
+
+    if (betaUpdateError) {
+      console.error('[Signup] Failed to activate beta plan:', betaUpdateError);
+      return { success: false, error: 'Failed to activate beta plan. Please try again.' };
+    }
+
+    revalidatePath('/', 'layout');
+    return {
+      success: true,
+      redirectUrl: '/dashboard',
+    };
   }
 
   // Create Stripe customer
