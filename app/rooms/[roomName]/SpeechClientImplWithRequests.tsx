@@ -53,6 +53,7 @@ interface SpeechClientImplWithRequestsProps {
   roomName: string;
   sessionStartTime: number;
   sessionId: string;
+  orgSlug?: string | null;
 }
 
 export function SpeechClientImplWithRequests({
@@ -60,6 +61,7 @@ export function SpeechClientImplWithRequests({
   roomName,
   sessionStartTime,
   sessionId,
+  orgSlug,
 }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -667,9 +669,11 @@ export function SpeechClientImplWithRequests({
                     const currentUrl = new URL(window.location.href);
                     const pin = currentUrl.searchParams.get('pin');
                     let studentLink = `${window.location.origin}/speech-s/${roomName}`;
-                    if (pin) {
-                      studentLink += `?pin=${pin}`;
-                    }
+                    const linkParams = new URLSearchParams();
+                    if (orgSlug) linkParams.set('org', orgSlug);
+                    if (pin) linkParams.set('pin', pin);
+                    const qs = linkParams.toString();
+                    if (qs) studentLink += `?${qs}`;
                     navigator.clipboard.writeText(studentLink);
                     setLinkCopied(true);
                     setTimeout(() => setLinkCopied(false), 2000);

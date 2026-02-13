@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
-import { getClassroomByRoomCode, deleteClassroom, createClassroom, updateClassroomFull } from '@/lib/classroom-utils';
+import { getClassroomByRoomCode, deleteClassroom, createClassroom, updateClassroomFull, getOrganizationSlugById, getOrganizationBySlug } from '@/lib/classroom-utils';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { createClient } from '@/lib/supabase/client';
 
@@ -41,6 +41,13 @@ export async function GET(
         .single();
 
       organizationId = profile?.organization_id;
+    }
+
+    // Fallback: resolve org from query param for unauthenticated users
+    const orgSlugParam = request.nextUrl.searchParams.get('org');
+    if (!organizationId && orgSlugParam) {
+      const org = await getOrganizationBySlug(orgSlugParam);
+      if (org) organizationId = org.id;
     }
 
     // Try to get classroom from Supabase
@@ -121,6 +128,14 @@ export async function GET(
 
     // Return classroom if found
     if (classroom) {
+      // Resolve organization slug for link generation
+      let organizationSlug: string | null = null;
+      try {
+        organizationSlug = await getOrganizationSlugById(classroom.organization_id);
+      } catch (e) {
+        console.error('Failed to resolve organization slug:', e);
+      }
+
       return NextResponse.json({
         classroom: {
           id: classroom.id,
@@ -129,6 +144,7 @@ export async function GET(
           description: classroom.description,
           settings: classroom.settings,
           created_at: classroom.created_at,
+          organization_slug: organizationSlug,
         },
         roomExists: true,
         migrated: true,

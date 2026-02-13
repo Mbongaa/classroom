@@ -58,6 +58,7 @@ interface ClassroomClientImplWithRequestsProps {
   roomName: string;
   sessionStartTime: number;
   sessionId: string;
+  orgSlug?: string | null;
 }
 
 export function ClassroomClientImplWithRequests({
@@ -65,6 +66,7 @@ export function ClassroomClientImplWithRequests({
   roomName,
   sessionStartTime,
   sessionId,
+  orgSlug,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -812,7 +814,8 @@ export function ClassroomClientImplWithRequests({
                 <button
                   className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
                   onClick={() => {
-                    const studentLink = `${window.location.origin}/s/${room.name}`;
+                    let studentLink = `${window.location.origin}/s/${roomName}`;
+                    if (orgSlug) studentLink += `?org=${encodeURIComponent(orgSlug)}`;
                     navigator.clipboard.writeText(studentLink);
                     setLinkCopied(true);
                     setTimeout(() => setLinkCopied(false), 2000);

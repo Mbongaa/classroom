@@ -62,6 +62,7 @@ export function PageClientImpl(props: {
     teacherName?: string;
     language?: string;
   } | null>(null);
+  const [orgSlug, setOrgSlug] = React.useState<string | null>(null);
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
@@ -89,11 +90,28 @@ export function PageClientImpl(props: {
     }
   }, []);
 
+  // Read org slug from URL param as initial value (set by redirect routes)
+  React.useEffect(() => {
+    const currentUrl = new URL(window.location.href);
+    const urlOrgSlug = currentUrl.searchParams.get('org');
+    if (urlOrgSlug) {
+      setOrgSlug(urlOrgSlug);
+    }
+  }, []);
+
   // Fetch classroom metadata to auto-populate language and teacher name (TEACHERS ONLY)
   React.useEffect(() => {
     const fetchRoomMetadata = async () => {
       try {
-        const response = await fetch(`/api/classrooms/${props.roomName}`);
+        // Include org slug in the request for proper org scoping
+        const currentUrl = new URL(window.location.href);
+        const urlOrgSlug = currentUrl.searchParams.get('org');
+        let apiUrl = `/api/classrooms/${props.roomName}`;
+        if (urlOrgSlug) {
+          apiUrl += `?org=${encodeURIComponent(urlOrgSlug)}`;
+        }
+
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
         // Handle both new classroom structure and legacy metadata structure
@@ -103,6 +121,11 @@ export function PageClientImpl(props: {
               language: data.classroom.settings?.language,
             }
           : data.metadata || null;
+
+        // Extract organization slug from API response
+        if (data.classroom?.organization_slug) {
+          setOrgSlug(data.classroom.organization_slug);
+        }
 
         if (metadata) {
           // Store metadata for use in preJoinDefaults
@@ -152,6 +175,7 @@ export function PageClientImpl(props: {
       const isClassroom = currentUrl.searchParams.get('classroom');
       const isSpeech = currentUrl.searchParams.get('speech');
       const role = currentUrl.searchParams.get('role');
+      const urlOrg = currentUrl.searchParams.get('org');
 
       if (isClassroom) {
         url.searchParams.append('classroom', isClassroom);
@@ -161,6 +185,10 @@ export function PageClientImpl(props: {
       }
       if (role) {
         url.searchParams.append('role', role);
+      }
+      // Forward org slug for organization-scoped room lookup
+      if (urlOrg) {
+        url.searchParams.append('org', urlOrg);
       }
 
       const connectionDetailsResp = await fetch(url.toString());
@@ -224,9 +252,11 @@ export function PageClientImpl(props: {
                             return new Promise((resolve) => {
                               const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
                               let studentLink = `${window.location.origin}${prefix}${props.roomName}`;
-                              if (classroomInfo.pin) {
-                                studentLink += `?pin=${classroomInfo.pin}`;
-                              }
+                              const linkParams = new URLSearchParams();
+                              if (orgSlug) linkParams.set('org', orgSlug);
+                              if (classroomInfo.pin) linkParams.set('pin', classroomInfo.pin);
+                              const qs = linkParams.toString();
+                              if (qs) studentLink += `?${qs}`;
                               navigator.clipboard.writeText(studentLink);
                               setTimeout(resolve, 500); // Short delay to show animation
                             });
@@ -238,7 +268,14 @@ export function PageClientImpl(props: {
 
                       {/* Show the link for reference */}
                       <div className={styles.linkDisplay}>
-                        {`${window.location.origin}${classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/'}${props.roomName}${classroomInfo.pin ? `?pin=${classroomInfo.pin}` : ''}`}
+                        {(() => {
+                          const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
+                          const lp = new URLSearchParams();
+                          if (orgSlug) lp.set('org', orgSlug);
+                          if (classroomInfo.pin) lp.set('pin', classroomInfo.pin);
+                          const qs = lp.toString();
+                          return `${window.location.origin}${prefix}${props.roomName}${qs ? `?${qs}` : ''}`;
+                        })()}
                       </div>
 
                       {classroomInfo.pin && (
@@ -283,6 +320,7 @@ export function PageClientImpl(props: {
           selectedTranslationLanguage={selectedTranslationLanguage}
           classroomRole={classroomInfo?.role}
           roomName={props.roomName}
+          orgSlug={orgSlug}
         />
       )}
     </main>
@@ -300,6 +338,7 @@ function VideoConferenceComponent(props: {
   selectedTranslationLanguage?: string;
   classroomRole?: string;
   roomName: string;
+  orgSlug?: string | null;
 }) {
   const keyProvider = React.useMemo(() => new ExternalE2EEKeyProvider(), []);
   const { worker, e2eePassphrase } = useSetupE2EE();
@@ -755,6 +794,7 @@ function VideoConferenceComponent(props: {
               roomName={props.roomName}
               sessionStartTime={sessionStartTime}
               sessionId={sessionId}
+              orgSlug={props.orgSlug}
             />
           ) : isSpeech ? (
             <SpeechClientImpl
@@ -762,6 +802,7 @@ function VideoConferenceComponent(props: {
               roomName={props.roomName}
               sessionStartTime={sessionStartTime}
               sessionId={sessionId}
+              orgSlug={props.orgSlug}
             />
           ) : (
             <CustomVideoConference

@@ -335,3 +335,49 @@ export async function updateClassroomFull(
 
   return data as Classroom;
 }
+
+/**
+ * Get organization by slug
+ *
+ * @param slug - Organization slug (e.g., "mosque-amsterdam")
+ * @returns Organization record with id and slug, or null if not found
+ */
+export async function getOrganizationBySlug(slug: string): Promise<{ id: string; slug: string } | null> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('id, slug')
+    .eq('slug', slug)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw new Error(`Failed to get organization by slug: ${error.message}`);
+  }
+
+  return data as { id: string; slug: string };
+}
+
+/**
+ * Get organization slug by ID
+ *
+ * @param orgId - Organization UUID
+ * @returns Organization slug string, or null if not found
+ */
+export async function getOrganizationSlugById(orgId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('slug')
+    .eq('id', orgId)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw new Error(`Failed to get organization slug: ${error.message}`);
+  }
+
+  return data?.slug ?? null;
+}

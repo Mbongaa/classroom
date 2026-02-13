@@ -4,7 +4,7 @@ import { ConnectionDetails } from '@/lib/types';
 import { AccessToken, AccessTokenOptions, VideoGrant, RoomServiceClient } from 'livekit-server-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getClassroomByRoomCode } from '@/lib/classroom-utils';
+import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -92,6 +92,13 @@ export async function GET(request: NextRequest) {
             userRole = 'student';
           }
         }
+      }
+
+      // Fallback: resolve org from URL slug for unauthenticated users
+      const orgSlug = request.nextUrl.searchParams.get('org');
+      if (!organizationId && orgSlug) {
+        const org = await getOrganizationBySlug(orgSlug);
+        if (org) organizationId = org.id;
       }
 
       // Lookup classroom by room_code (user-facing identifier)
