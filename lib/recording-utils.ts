@@ -53,7 +53,7 @@ export interface Transcription {
 export function generateSessionId(roomName: string): string {
   const now = new Date();
   const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
-  const time = now.toISOString().split('T')[1].substring(0, 8).replaceAll(':', '-'); // HH-MM-SS (UTC)
+  const time = now.toISOString().split('T')[1].substring(0, 8).replace(/:/g, '-'); // HH-MM-SS (UTC)
   return `${roomName}_${date}_${time}`;
 }
 
