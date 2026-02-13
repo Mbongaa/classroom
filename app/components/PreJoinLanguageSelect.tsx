@@ -26,6 +26,7 @@ const LANGUAGES_BY_REGION = [
       { value: 'fr', label: 'Français', flag: '🇫🇷' },
       { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
       { value: 'nl', label: 'Nederlands', flag: '🇳🇱' },
+      { value: 'ru', label: 'Русский', flag: '🇷🇺' },
     ],
   },
   {
