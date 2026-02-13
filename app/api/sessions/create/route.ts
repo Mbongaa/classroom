@@ -63,6 +63,23 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (error) {
+      // Handle duplicate key: another participant already created this session
+      if (error.code === '23505') {
+        const { data: existingSession } = await supabase
+          .from('sessions')
+          .select('*')
+          .eq('session_id', sessionId)
+          .maybeSingle();
+
+        if (existingSession) {
+          console.log(`[Session Create] Race condition resolved, returning existing session: ${sessionId}`);
+          return NextResponse.json({
+            success: true,
+            session: existingSession,
+            existed: true,
+          });
+        }
+      }
       console.error('[Session Create] Failed to create session:', error);
       throw new Error(`Failed to create session: ${error.message}`);
     }

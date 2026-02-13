@@ -47,13 +47,13 @@ export interface Transcription {
 
 /**
  * Generate unique session ID for recording
- * Format: ROOMCODE_YYYY-MM-DD_HH-MM
- * Example: MATH101_2025-01-30_14-30
+ * Format: ROOMCODE_YYYY-MM-DD_HH-MM-SS
+ * Example: MATH101_2025-01-30_14-30-45
  */
 export function generateSessionId(roomName: string): string {
   const now = new Date();
   const date = now.toISOString().split('T')[0]; // YYYY-MM-DD
-  const time = now.toISOString().split('T')[1].substring(0, 5).replace(':', '-'); // HH-MM (UTC)
+  const time = now.toISOString().split('T')[1].substring(0, 8).replaceAll(':', '-'); // HH-MM-SS (UTC)
   return `${roomName}_${date}_${time}`;
 }
 
