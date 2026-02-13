@@ -869,6 +869,23 @@
   color: white !important;
 }
 
+/* Fullscreen / Presentation Mode */
+.fullscreenMode .mainContainer {
+  /* Take all available space when header, students, and control bar are hidden */
+  flex: 1;
+}
+
+.fullscreenMode .videoArea {
+  /* Fill entire container */
+  flex: 1;
+}
+
+.fullscreenMode .mainVideoSection {
+  /* Remove margins for true fullscreen feel */
+  margin: 0;
+  border-radius: 0;
+}
+
 /* Animations */
 @keyframes pulse {
   0%,

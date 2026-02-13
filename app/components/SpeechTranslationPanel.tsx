@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { Languages } from 'lucide-react';
+import { Languages, Maximize2, Minimize2, Video, VideoOff } from 'lucide-react';
 import styles from './SpeechTranslationPanel.module.css';
 
 interface SpeechTranslationPanelProps {
@@ -12,6 +12,10 @@ interface SpeechTranslationPanelProps {
   sessionStartTime: number;
   sessionId: string;
   userRole?: 'teacher' | 'student' | null;
+  isFullscreen?: boolean;
+  onFullscreenToggle?: () => void;
+  showVideo?: boolean;
+  onVideoToggle?: () => void;
 }
 
 // Retry configuration
@@ -19,9 +23,9 @@ const MAX_RETRIES = 3;
 const RETRY_DELAY_MS = 1000; // Start with 1 second, exponential backoff
 
 // Font size configuration
-const DEFAULT_FONT_SIZE = 24;
+const DEFAULT_FONT_SIZE = 30;
 const MIN_FONT_SIZE = 14;
-const MAX_FONT_SIZE = 32;
+const MAX_FONT_SIZE = 40;
 const FONT_STEP = 2;
 
 // Health check configuration
@@ -36,6 +40,10 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   sessionStartTime,
   sessionId,
   userRole,
+  isFullscreen = false,
+  onFullscreenToggle,
+  showVideo = true,
+  onVideoToggle,
 }) => {
   const room = useRoomContext();
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -328,10 +336,30 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             >
               A+
             </button>
+            {onVideoToggle && (
+              <button
+                onClick={onVideoToggle}
+                className={styles.fontButton}
+                title={showVideo ? 'Hide camera section' : 'Show camera section'}
+              >
+                {showVideo ? <Video size={14} /> : <VideoOff size={14} />}
+              </button>
+            )}
+            {onFullscreenToggle && (
+              <button
+                onClick={onFullscreenToggle}
+                className={styles.fontButton}
+                title={isFullscreen ? 'Exit presentation mode (Esc)' : 'Presentation mode'}
+              >
+                {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+              </button>
+            )}
           </div>
-          <div className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}>
+          <div
+            className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}
+            title={translationServiceStatus === 'warning' ? 'Offline' : translationServiceStatus === 'connecting' ? 'Connecting' : 'Live'}
+          >
             <span className={`${styles.liveDot} ${translationServiceStatus === 'warning' ? styles.warningDot : translationServiceStatus === 'connecting' ? styles.connectingDot : ''}`}></span>
-            <span>{translationServiceStatus === 'warning' ? 'OFFLINE' : translationServiceStatus === 'connecting' ? 'CONNECTING' : 'LIVE'}</span>
           </div>
           {!hideCloseButton && onClose && (
             <button onClick={onClose} className={styles.closeButton}>

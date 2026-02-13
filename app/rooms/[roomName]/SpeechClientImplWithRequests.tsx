@@ -90,15 +90,17 @@ export function SpeechClientImplWithRequests({
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
-  // State for translation panel visibility and width (only for students)
-  const [showTranslation, setShowTranslation] = React.useState(userRole !== 'teacher');
+  // State for translation panel visibility and width
+  const [showTranslation, setShowTranslation] = React.useState(true);
+  // State for hiding the video/camera section
+  const [showVideo, setShowVideo] = React.useState(true);
   // Calculate 70% of viewport width for max translation panel width
   const [maxTranslationWidth, setMaxTranslationWidth] = React.useState(
     typeof window !== 'undefined' ? window.innerWidth * 0.7 : 800,
   );
 
   const translationResize = useResizable({
-    initialWidth: 320,
+    initialWidth: maxTranslationWidth,
     minWidth: 250,
     maxWidth: maxTranslationWidth,
   });
@@ -131,6 +133,9 @@ export function SpeechClientImplWithRequests({
 
   // State for mobile detection
   const [isMobile, setIsMobile] = React.useState(false);
+
+  // State for fullscreen/presentation mode
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
 
   // State for auto-recording (silent background operation for teachers)
   const [recordingId, setRecordingId] = React.useState<string | null>(null);
@@ -592,6 +597,16 @@ export function SpeechClientImplWithRequests({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Escape key exits fullscreen mode
+  React.useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
   React.useEffect(() => {
     const handleReconnecting = () => {
       console.log('[LiveKit] Connection lost, attempting to reconnect...');
@@ -632,9 +647,9 @@ export function SpeechClientImplWithRequests({
   };
 
   return (
-    <div className={styles.speechContainer} data-lk-theme="default">
+    <div className={`${styles.speechContainer} ${isFullscreen ? styles.fullscreenMode : ''}`} data-lk-theme="default">
       {/* Fixed header with room info and request dropdown */}
-      <div className={styles.header}>
+      {!isFullscreen && <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
             <span className={styles.roomName}>bayaan.ai</span>
@@ -649,7 +664,12 @@ export function SpeechClientImplWithRequests({
                 <button
                   className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
                   onClick={() => {
-                    const studentLink = `${window.location.origin}/speech-s/${room.name}`;
+                    const currentUrl = new URL(window.location.href);
+                    const pin = currentUrl.searchParams.get('pin');
+                    let studentLink = `${window.location.origin}/speech-s/${roomName}`;
+                    if (pin) {
+                      studentLink += `?pin=${pin}`;
+                    }
                     navigator.clipboard.writeText(studentLink);
                     setLinkCopied(true);
                     setTimeout(() => setLinkCopied(false), 2000);
@@ -666,23 +686,24 @@ export function SpeechClientImplWithRequests({
             <ThemeToggleButton start="top-right" />
           </div>
         </div>
-      </div>
+      </div>}
 
       {/* Connection state notification */}
       <ConnectionStateToast />
 
       {/* Main container with column layout */}
-      <div className={`${styles.mainContainer} ${!isTeacher ? styles.withTranslation : ''}`}>
+      <div className={`${styles.mainContainer} ${showTranslation ? styles.withTranslation : ''}`}>
         {/* Video area - contains teacher video and sidebars */}
         <div className={styles.videoArea}>
-          {/* Translation sidebar - only for students, always visible (desktop only) */}
-          {!isTeacher && !isMobile && (
+          {/* Translation sidebar - visible when showTranslation is true (desktop only) */}
+          {showTranslation && !isMobile && (
             <div
               ref={translationRef}
               className={`${styles.translationSidebar} ${styles.desktopOnly}`}
               style={{
                 display: 'flex',
-                width: `${translationResize.width}px`,
+                width: showVideo ? `${translationResize.width}px` : '100%',
+                ...(showVideo ? {} : { maxWidth: '100%', borderRight: 'none' }),
               }}
             >
               <SpeechTranslationPanel
@@ -692,19 +713,25 @@ export function SpeechClientImplWithRequests({
                 sessionStartTime={sessionStartTime}
                 sessionId={sessionId}
                 userRole={userRole as 'teacher' | 'student'}
+                isFullscreen={isFullscreen}
+                onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
+                showVideo={showVideo}
+                onVideoToggle={() => setShowVideo((prev) => !prev)}
               />
-              <div
-                className={styles.resizeHandle}
-                onMouseDown={translationResize.handleMouseDown}
-                title="Drag to resize"
-              >
-                <GripVertical className={styles.resizeGrip} size={24} />
-              </div>
+              {showVideo && (
+                <div
+                  className={styles.resizeHandle}
+                  onMouseDown={translationResize.handleMouseDown}
+                  title="Drag to resize"
+                >
+                  <GripVertical className={styles.resizeGrip} size={24} />
+                </div>
+              )}
             </div>
           )}
 
           {/* Main video section - Teacher and speaking students grid */}
-          <div className={styles.mainVideoSection}>
+          <div className={styles.mainVideoSection} style={{ display: showVideo ? undefined : 'none' }}>
             {teacher || speakingStudents.length > 0 ? (
               <div className={styles.mainVideoGrid}>
                 {/* Teacher video/screen share */}
@@ -874,7 +901,7 @@ export function SpeechClientImplWithRequests({
         </div>
 
         {/* Mobile translation panel - positioned between video area and students (mobile only) */}
-        {!isTeacher && isMobile && (
+        {showTranslation && isMobile && (
           <div className={styles.translationPanelMobile}>
             <SpeechTranslationPanel
               targetLanguage={captionsLanguage}
@@ -883,12 +910,16 @@ export function SpeechClientImplWithRequests({
               sessionStartTime={sessionStartTime}
               sessionId={sessionId}
               userRole={userRole as 'teacher' | 'student'}
+              isFullscreen={isFullscreen}
+              onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
+              showVideo={showVideo}
+              onVideoToggle={() => setShowVideo((prev) => !prev)}
             />
           </div>
         )}
 
-        {/* All Students section - Fixed at bottom - only for teachers */}
-        {isTeacher && (
+        {/* All Students section - Fixed at bottom - only for teachers, hidden in fullscreen */}
+        {isTeacher && !isFullscreen && (
           <div className={styles.studentsSection}>
             <div className={styles.sectionHeader}>
               <h3>All Students ({allStudents.length})</h3>
@@ -932,8 +963,8 @@ export function SpeechClientImplWithRequests({
         )}
       </div>
 
-      {/* Control bar at the bottom - only for teachers */}
-      {isTeacher && (
+      {/* Control bar at the bottom - only for teachers, hidden in fullscreen */}
+      {isTeacher && !isFullscreen && (
         <div className={styles.controlBar}>
           <CustomControlBar
             variation="minimal"
@@ -943,10 +974,10 @@ export function SpeechClientImplWithRequests({
               chat: true,
               screenShare: true,
               leave: true,
-              translation: false,
+              translation: true,
             }}
-            onTranslationClick={() => {}}
-            showTranslation={false}
+            onTranslationClick={() => setShowTranslation(!showTranslation)}
+            showTranslation={showTranslation}
             isStudent={false}
           />
         </div>

@@ -31,6 +31,8 @@ interface CustomPreJoinProps {
   showLanguageSelector?: boolean;
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
+  selectedTranslationLanguage?: string;
+  onTranslationLanguageChange?: (language: string) => void;
   isTeacher?: boolean;
   isStudent?: boolean;
   isSpeechListener?: boolean;
@@ -43,6 +45,8 @@ export default function CustomPreJoin({
   showLanguageSelector = false,
   selectedLanguage = '',
   onLanguageChange,
+  selectedTranslationLanguage = '',
+  onTranslationLanguageChange,
   isTeacher = false,
   isStudent = false,
   isSpeechListener = false,
@@ -438,6 +442,15 @@ export default function CustomPreJoin({
             selectedLanguage={selectedLanguage}
             onLanguageChange={onLanguageChange}
             isTeacher={isTeacher}
+          />
+        )}
+
+        {/* Translation language selector - teachers only */}
+        {isTeacher && showLanguageSelector && onTranslationLanguageChange && (
+          <PreJoinLanguageSelect
+            selectedLanguage={selectedTranslationLanguage}
+            onLanguageChange={onTranslationLanguageChange}
+            isTeacher={false}
           />
         )}
 

@@ -57,6 +57,7 @@ export function PageClientImpl(props: {
     undefined,
   );
   const [selectedLanguage, setSelectedLanguage] = React.useState<string>(''); // Start with no selection
+  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState<string>('');
   const [roomMetadata, setRoomMetadata] = React.useState<{
     teacherName?: string;
     language?: string;
@@ -260,6 +261,8 @@ export function PageClientImpl(props: {
                 }
                 selectedLanguage={selectedLanguage}
                 onLanguageChange={setSelectedLanguage}
+                selectedTranslationLanguage={selectedTranslationLanguage}
+                onTranslationLanguageChange={setSelectedTranslationLanguage}
                 isTeacher={classroomInfo?.role === 'teacher'}
                 isStudent={
                   classroomInfo?.role === 'student' && classroomInfo?.mode === 'classroom'
@@ -277,6 +280,7 @@ export function PageClientImpl(props: {
           userChoices={preJoinChoices}
           options={{ codec: props.codec, hq: props.hq }}
           selectedLanguage={selectedLanguage}
+          selectedTranslationLanguage={selectedTranslationLanguage}
           classroomRole={classroomInfo?.role}
           roomName={props.roomName}
         />
@@ -293,6 +297,7 @@ function VideoConferenceComponent(props: {
     codec: VideoCodec;
   };
   selectedLanguage?: string;
+  selectedTranslationLanguage?: string;
   classroomRole?: string;
   roomName: string;
 }) {
@@ -433,27 +438,33 @@ function VideoConferenceComponent(props: {
             props.selectedLanguage
           ) {
             try {
-              // Use different attribute names for teachers and students
-              const attributeName =
-                props.classroomRole === 'teacher' ? 'speaking_language' : 'captions_language';
+              if (props.classroomRole === 'teacher') {
+                // Teachers set speaking_language, and optionally captions_language for translation panel
+                const attributes: Record<string, string> = {
+                  speaking_language: props.selectedLanguage,
+                };
+                if (props.selectedTranslationLanguage) {
+                  attributes.captions_language = props.selectedTranslationLanguage;
+                }
 
-              // Debug logging to trace language code
-              console.log('[DEBUG] Setting language attribute:', {
-                role: props.classroomRole,
-                attributeName: attributeName,
-                language: props.selectedLanguage,
-                languageType: typeof props.selectedLanguage,
-                languageLength: props.selectedLanguage?.length,
-                languageBytes: props.selectedLanguage
-                  ? Array.from(props.selectedLanguage).map((c) => c.charCodeAt(0))
-                  : [],
-              });
+                console.log('[DEBUG] Setting teacher language attributes:', {
+                  speaking_language: props.selectedLanguage,
+                  captions_language: props.selectedTranslationLanguage || '(not set)',
+                });
 
-              await room.localParticipant.setAttributes({
-                [attributeName]: props.selectedLanguage,
-              });
+                await room.localParticipant.setAttributes(attributes);
+              } else {
+                // Students: set captions_language only
+                console.log('[DEBUG] Setting student language attribute:', {
+                  captions_language: props.selectedLanguage,
+                });
 
-              console.log('[DEBUG] Language attribute set successfully');
+                await room.localParticipant.setAttributes({
+                  captions_language: props.selectedLanguage,
+                });
+              }
+
+              console.log('[DEBUG] Language attribute(s) set successfully');
             } catch (error) {
               console.error('[DEBUG] Failed to set language attribute:', error);
             }
@@ -617,6 +628,7 @@ function VideoConferenceComponent(props: {
     props.classroomRole,
     props.roomName,
     props.selectedLanguage,
+    props.selectedTranslationLanguage,
     sessionId,
   ]);
 

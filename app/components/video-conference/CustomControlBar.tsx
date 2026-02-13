@@ -222,8 +222,8 @@ export function CustomControlBar({
         </Button>
       )}
 
-      {/* Translation Button - Only for Students */}
-      {controls.translation && isStudent && (
+      {/* Translation Button */}
+      {controls.translation && (
         <Button
           onClick={onTranslationClick}
           variant={showTranslation ? 'default' : 'secondary'}
