@@ -396,7 +396,7 @@
 /* Translation Sidebar - Similar to chat but on left side */
 .translationSidebar {
   min-width: 250px;
-  max-width: 600px;
+  max-width: 70%; /* Allow up to 70% of viewport width */
   background: var(--lk-background-2);
   border-right: 1px solid var(--lk-border);
   flex-direction: column;
