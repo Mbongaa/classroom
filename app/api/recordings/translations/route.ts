@@ -9,7 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, text, language, participantName, timestampMs } = body;
+    const { sessionId, text, language, participantName, timestampMs, segmentId } = body;
 
     // Validate required fields
     if (!sessionId || !text || !language || !participantName || timestampMs === undefined) {
@@ -42,21 +42,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: `Session not found: ${sessionId}` }, { status: 404 });
     }
 
-    // Save translation with session reference (no recording needed)
+    // Build insert row
+    const insertRow: Record<string, unknown> = {
+      session_id: session.id,
+      recording_id: null, // No recording needed for translations
+      text,
+      language,
+      participant_name: participantName,
+      timestamp_ms: timestampMs,
+    };
+    if (segmentId) {
+      insertRow.segment_id = segmentId;
+    }
+
+    // Use upsert with ignoreDuplicates so the first client to save wins,
+    // subsequent saves for the same (session_id, language, segment_id) are silently ignored
     const { data: entry, error: saveError } = await supabase
       .from('translation_entries')
-      .insert({
-        session_id: session.id,
-        recording_id: null, // No recording needed for translations
-        text,
-        language,
-        participant_name: participantName,
-        timestamp_ms: timestampMs,
+      .upsert(insertRow, {
+        onConflict: 'session_id,language,segment_id',
+        ignoreDuplicates: true,
       })
       .select()
       .single();
 
     if (saveError) {
+      // PGRST116 = "no rows returned" which happens when ignoreDuplicates skips the insert
+      if (saveError.code === 'PGRST116') {
+        console.log('[Translation API] Duplicate segment ignored:', {
+          sessionId,
+          language,
+          segmentId,
+        });
+        return NextResponse.json({
+          success: true,
+          duplicate: true,
+        });
+      }
       console.error('[Translation API] Failed to save translation:', saveError);
       throw new Error(`Failed to save translation: ${saveError.message}`);
     }

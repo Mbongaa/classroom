@@ -13,7 +13,7 @@ import {
  * GET /api/recordings/[recordingId]/download/translation
  * Download translation in requested language and format
  * Query params:
- *   - language: en|es|fr|de|ja|zh-CN|ar (required)
+ *   - language: any language code saved in translations (required)
  *   - format: srt|vtt|txt (default: srt)
  */
 export async function GET(
@@ -25,18 +25,10 @@ export async function GET(
     const language = request.nextUrl.searchParams.get('language');
     const format = (request.nextUrl.searchParams.get('format') || 'srt') as FormatType;
 
-    // Validate language
+    // Validate language parameter is present (no whitelist — any saved language is valid)
     if (!language) {
       return NextResponse.json(
-        { error: 'Language parameter is required. Use: en, es, fr, de, ja, zh-CN, or ar' },
-        { status: 400 },
-      );
-    }
-
-    const validLanguages = ['en', 'es', 'fr', 'de', 'ja', 'zh-CN', 'ar'];
-    if (!validLanguages.includes(language)) {
-      return NextResponse.json(
-        { error: `Invalid language. Supported: ${validLanguages.join(', ')}` },
+        { error: 'Language parameter is required' },
         { status: 400 },
       );
     }

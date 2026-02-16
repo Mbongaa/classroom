@@ -173,6 +173,7 @@ export default function TranslationPanel({
                   language: translation.language,
                   participantName: teacher?.name || 'Teacher',
                   timestampMs,
+                  segmentId: translation.id, // LiveKit segment ID for DB-level dedup
                 }),
               })
                 .then(() =>

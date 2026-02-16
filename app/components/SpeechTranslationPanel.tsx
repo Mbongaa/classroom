@@ -157,6 +157,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                       participantName:
                         room.localParticipant?.name || room.localParticipant?.identity || 'Student', // Save the student's name who receives the translation
                       timestampMs,
+                      segmentId: translation.id, // LiveKit segment ID for DB-level dedup
                     }),
                   });
 
