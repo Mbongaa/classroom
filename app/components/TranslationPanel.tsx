@@ -152,42 +152,40 @@ export default function TranslationPanel({
           }
         }
 
-        // Students save ONLY their caption language (translation)
-        if (userRole === 'student') {
-          const translation = finalSegments.find((seg) => seg.language === captionsLanguage);
-          if (translation && translation.language !== speakingLanguage) {
-            const segmentKey = `${translation.id}-${translation.language}`;
-            if (!savedSegmentIds.current.has(segmentKey)) {
-              savedSegmentIds.current.add(segmentKey);
+        // Save caption language translation for ANY role
+        // DB-level dedup (segment_id unique index) prevents duplicate rows
+        const translation = finalSegments.find((seg) => seg.language === captionsLanguage);
+        if (translation && translation.language !== speakingLanguage) {
+          const segmentKey = `translation-${translation.id}-${translation.language}`;
+          if (!savedSegmentIds.current.has(segmentKey)) {
+            savedSegmentIds.current.add(segmentKey);
 
-              const timestampMs = Date.now() - sessionStartTime;
-              const teacher = Array.from(room.remoteParticipants.values()).find(
-                (p) => p.attributes?.speaking_language !== undefined,
-              );
-              fetch('/api/recordings/translations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  sessionId,
-                  text: translation.text,
-                  language: translation.language,
-                  participantName: teacher?.name || 'Teacher',
+            const timestampMs = Date.now() - sessionStartTime;
+            const participantName =
+              room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
+            fetch('/api/recordings/translations', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                sessionId,
+                text: translation.text,
+                language: translation.language,
+                participantName,
+                timestampMs,
+                segmentId: translation.id, // LiveKit segment ID for DB-level dedup
+              }),
+            })
+              .then(() =>
+                console.log(
+                  `[TranslationPanel] ${userRole} saved TRANSLATION:`,
+                  translation.language,
                   timestampMs,
-                  segmentId: translation.id, // LiveKit segment ID for DB-level dedup
-                }),
-              })
-                .then(() =>
-                  console.log(
-                    '[TranslationPanel] Student saved TRANSLATION:',
-                    translation.language,
-                    timestampMs,
-                  ),
-                )
-                .catch((err) => {
-                  console.error('[TranslationPanel] Save error:', err);
-                  savedSegmentIds.current.delete(segmentKey);
-                });
-            }
+                ),
+              )
+              .catch((err) => {
+                console.error('[TranslationPanel] Save error:', err);
+                savedSegmentIds.current.delete(segmentKey);
+              });
           }
         }
       }

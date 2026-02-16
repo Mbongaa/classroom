@@ -119,91 +119,90 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
         })),
       );
 
-      // Save only what THIS participant is consuming (prevent N-participant multiplication)
+      // Save translations for ANY role — DB-level dedup (segment_id unique index)
+      // ensures only one row per segment per language regardless of how many clients save
       if (userRole) {
         const finalSegments = segments.filter((seg) => seg.final);
 
-        // Detect speaker's original language (teacher's language from remote participants)
-        // For student's client: teacher is remote, student is local
-        const speakingLanguage = Array.from(room.remoteParticipants.values()).find(
-          (p) => p.attributes?.speaking_language !== undefined,
-        )?.attributes?.speaking_language;
-
-        // Students save ONLY their caption language (translation)
-        // Note: Teachers use TranscriptionSaver component for original transcriptions
-        if (userRole === 'student') {
-          const translation = finalSegments.find((seg) => seg.language === targetLanguage);
-          if (translation && translation.language !== speakingLanguage) {
-            const segmentKey = `${translation.id}-${translation.language}`;
-            if (!savedSegmentIds.current.has(segmentKey)) {
-              savedSegmentIds.current.add(segmentKey);
-
-              const timestampMs = Date.now() - sessionStartTime;
-              // Get teacher's name from remote participants (for students)
-              const speaker = Array.from(room.remoteParticipants.values()).find(
+        // Detect speaker's original language
+        // Teacher: local participant has speaking_language
+        // Student: teacher is a remote participant
+        const speakingLanguage =
+          userRole === 'teacher'
+            ? room.localParticipant?.attributes?.speaking_language
+            : Array.from(room.remoteParticipants.values()).find(
                 (p) => p.attributes?.speaking_language !== undefined,
-              );
+              )?.attributes?.speaking_language;
 
-              // Save with retry logic
-              const saveWithRetry = async (attempt = 1): Promise<void> => {
-                try {
-                  const response = await fetch('/api/recordings/translations', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      sessionId,
-                      text: translation.text,
-                      language: translation.language,
-                      participantName:
-                        room.localParticipant?.name || room.localParticipant?.identity || 'Student', // Save the student's name who receives the translation
-                      timestampMs,
-                      segmentId: translation.id, // LiveKit segment ID for DB-level dedup
-                    }),
-                  });
+        const translation = finalSegments.find((seg) => seg.language === targetLanguage);
+        if (translation && translation.language !== speakingLanguage) {
+          const segmentKey = `${translation.id}-${translation.language}`;
+          if (!savedSegmentIds.current.has(segmentKey)) {
+            savedSegmentIds.current.add(segmentKey);
 
-                  if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`API error (${response.status}): ${errorText}`);
-                  }
+            const timestampMs = Date.now() - sessionStartTime;
+            const participantName =
+              room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
 
-                  const data = await response.json();
-                  console.log(
-                    '[SpeechTranslationPanel] ✅ Student saved TRANSLATION:',
-                    translation.language,
+            // Save with retry logic
+            const saveWithRetry = async (attempt = 1): Promise<void> => {
+              try {
+                const response = await fetch('/api/recordings/translations', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    sessionId,
+                    text: translation.text,
+                    language: translation.language,
+                    participantName,
                     timestampMs,
-                    'Entry ID:',
-                    data.entry?.id,
-                  );
-                } catch (err) {
-                  console.error(
-                    `[SpeechTranslationPanel] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`,
-                    err,
-                  );
+                    segmentId: translation.id, // LiveKit segment ID for DB-level dedup
+                  }),
+                });
 
-                  // Retry with exponential backoff
-                  if (attempt < MAX_RETRIES) {
-                    const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
-                    console.log(`[SpeechTranslationPanel] Retrying in ${delay}ms...`);
-                    await new Promise((resolve) => setTimeout(resolve, delay));
-                    return saveWithRetry(attempt + 1);
-                  } else {
-                    console.error(
-                      '[SpeechTranslationPanel] ⚠️ FAILED after',
-                      MAX_RETRIES,
-                      'attempts. Data lost:',
-                      {
-                        text: translation.text.substring(0, 100),
-                        timestamp: timestampMs,
-                        sessionId,
-                      },
-                    );
-                    savedSegmentIds.current.delete(segmentKey); // Allow retry on next segment
-                  }
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(`API error (${response.status}): ${errorText}`);
                 }
-              };
 
-              saveWithRetry();
-            }
+                const data = await response.json();
+                console.log(
+                  `[SpeechTranslationPanel] ✅ ${userRole} saved TRANSLATION:`,
+                  translation.language,
+                  timestampMs,
+                  'Entry ID:',
+                  data.entry?.id,
+                  data.duplicate ? '(duplicate ignored)' : '',
+                );
+              } catch (err) {
+                console.error(
+                  `[SpeechTranslationPanel] ❌ Save error (attempt ${attempt}/${MAX_RETRIES}):`,
+                  err,
+                );
+
+                // Retry with exponential backoff
+                if (attempt < MAX_RETRIES) {
+                  const delay = RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+                  console.log(`[SpeechTranslationPanel] Retrying in ${delay}ms...`);
+                  await new Promise((resolve) => setTimeout(resolve, delay));
+                  return saveWithRetry(attempt + 1);
+                } else {
+                  console.error(
+                    '[SpeechTranslationPanel] ⚠️ FAILED after',
+                    MAX_RETRIES,
+                    'attempts. Data lost:',
+                    {
+                      text: translation.text.substring(0, 100),
+                      timestamp: timestampMs,
+                      sessionId,
+                    },
+                  );
+                  savedSegmentIds.current.delete(segmentKey); // Allow retry on next segment
+                }
+              }
+            };
+
+            saveWithRetry();
           }
         }
       }

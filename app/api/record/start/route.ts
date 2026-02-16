@@ -177,18 +177,22 @@ export async function GET(req: NextRequest) {
       },
     );
 
-    // Check if a session already exists for this room
+    // Find the session that the frontend already created for this LiveKit room instance.
+    // The frontend's /api/sessions/create uses room_sid as the key, so we look up by that.
+    // This ensures the recording links to the SAME session where transcriptions/translations are stored.
     const supabase = createAdminClient();
     const { data: existingSession } = await supabase
       .from('sessions')
       .select('id')
-      .eq('session_id', sessionId)
+      .eq('room_sid', roomSid)
       .maybeSingle();
 
     let sessionUuid = existingSession?.id;
 
-    // If no session exists, create one
+    // Fallback: if no session found by room_sid (e.g., recording started before any participant joined),
+    // create one so the recording still has a session reference
     if (!sessionUuid) {
+      console.warn('[Recording] No existing session found for room_sid:', roomSid, '- creating new one');
       const { data: newSession, error: sessionError } = await supabase
         .from('sessions')
         .insert({
@@ -201,7 +205,17 @@ export async function GET(req: NextRequest) {
         .single();
 
       if (sessionError) {
-        console.error('[Recording] Failed to create session:', sessionError);
+        // Handle race condition: session may have been created between our check and insert
+        if (sessionError.code === '23505') {
+          const { data: raceSession } = await supabase
+            .from('sessions')
+            .select('id')
+            .eq('room_sid', roomSid)
+            .maybeSingle();
+          sessionUuid = raceSession?.id;
+        } else {
+          console.error('[Recording] Failed to create session:', sessionError);
+        }
       } else {
         sessionUuid = newSession.id;
       }
