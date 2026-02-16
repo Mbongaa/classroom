@@ -55,20 +55,18 @@ export async function POST(request: NextRequest) {
       insertRow.segment_id = segmentId;
     }
 
-    // Use upsert with ignoreDuplicates so the first client to save wins,
-    // subsequent saves for the same (session_id, language, segment_id) are silently ignored
+    // Plain insert — the partial UNIQUE index on (session_id, language, segment_id)
+    // WHERE segment_id IS NOT NULL enforces dedup at DB level.
+    // First client to save wins; duplicates get a 23505 unique_violation which we catch.
     const { data: entry, error: saveError } = await supabase
       .from('translation_entries')
-      .upsert(insertRow, {
-        onConflict: 'session_id,language,segment_id',
-        ignoreDuplicates: true,
-      })
+      .insert(insertRow)
       .select()
       .single();
 
     if (saveError) {
-      // PGRST116 = "no rows returned" which happens when ignoreDuplicates skips the insert
-      if (saveError.code === 'PGRST116') {
+      // 23505 = unique_violation — duplicate segment, silently ignore
+      if (saveError.code === '23505') {
         console.log('[Translation API] Duplicate segment ignored:', {
           sessionId,
           language,
