@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRecording, getRecordingTranslations } from '@/lib/recording-utils';
+import { getRecording, getRecordingTranslations, getRecordingTranscriptions } from '@/lib/recording-utils';
 import {
-  formatToSRT,
-  formatToVTT,
-  formatToTXT,
+  formatBilingualToSRT,
+  formatBilingualToVTT,
+  formatBilingualToTXT,
+  pairTranslationsWithTranscriptions,
   generateFilename,
   getMimeType,
   FormatType,
@@ -53,20 +54,26 @@ export async function GET(
       );
     }
 
-    // Format translations
+    // Get original transcriptions to pair with translations (bilingual format)
+    const transcriptions = await getRecordingTranscriptions(recordingId);
+
+    // Pair translations with their closest transcription by timestamp
+    const bilingualEntries = pairTranslationsWithTranscriptions(translations, transcriptions);
+
+    // Format as bilingual (original + translation interleaved per entry)
     let content: string;
     switch (format) {
       case 'srt':
-        content = formatToSRT(translations);
+        content = formatBilingualToSRT(bilingualEntries);
         break;
       case 'vtt':
-        content = formatToVTT(translations);
+        content = formatBilingualToVTT(bilingualEntries);
         break;
       case 'txt':
-        content = formatToTXT(translations);
+        content = formatBilingualToTXT(bilingualEntries);
         break;
       default:
-        content = formatToSRT(translations);
+        content = formatBilingualToSRT(bilingualEntries);
     }
 
     if (!content) {

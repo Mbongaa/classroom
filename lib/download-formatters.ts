@@ -109,6 +109,123 @@ export function formatToTXT(entries: TranscriptEntry[]): string {
 }
 
 /**
+ * Bilingual entry: original transcription paired with its translation
+ */
+export interface BilingualEntry {
+  original: string;
+  translated: string;
+  participant_name: string;
+  timestamp_ms: number;
+}
+
+/**
+ * Pair translations with their closest transcription by timestamp.
+ * Each translation gets matched to the transcription with the nearest timestamp_ms.
+ */
+export function pairTranslationsWithTranscriptions(
+  translations: TranscriptEntry[],
+  transcriptions: TranscriptEntry[],
+): BilingualEntry[] {
+  if (transcriptions.length === 0) {
+    // No transcriptions available — return translations only (original field empty)
+    return translations.map((t) => ({
+      original: '',
+      translated: t.text,
+      participant_name: t.participant_name,
+      timestamp_ms: t.timestamp_ms,
+    }));
+  }
+
+  return translations.map((translation) => {
+    // Find the transcription with the closest timestamp
+    let closest = transcriptions[0];
+    let minDiff = Math.abs(translation.timestamp_ms - closest.timestamp_ms);
+
+    for (let i = 1; i < transcriptions.length; i++) {
+      const diff = Math.abs(translation.timestamp_ms - transcriptions[i].timestamp_ms);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = transcriptions[i];
+      }
+    }
+
+    return {
+      original: closest.text.trim(),
+      translated: translation.text.trim(),
+      participant_name: translation.participant_name,
+      timestamp_ms: translation.timestamp_ms,
+    };
+  });
+}
+
+/**
+ * Format bilingual entries to SRT — original line then translation line per cue
+ */
+export function formatBilingualToSRT(entries: BilingualEntry[]): string {
+  if (!entries || entries.length === 0) return '';
+
+  return entries
+    .map((entry, index) => {
+      const startTime = msToTimestamp(entry.timestamp_ms, 'srt');
+      const endMs =
+        index + 1 < entries.length
+          ? entries[index + 1].timestamp_ms
+          : entry.timestamp_ms + 3000;
+      const endTime = msToTimestamp(endMs, 'srt');
+
+      const lines = entry.original
+        ? `${entry.original}\n${entry.translated}`
+        : entry.translated;
+
+      return `${index + 1}\n${startTime} --> ${endTime}\n${lines}\n`;
+    })
+    .join('\n');
+}
+
+/**
+ * Format bilingual entries to VTT — original line then translation line per cue
+ */
+export function formatBilingualToVTT(entries: BilingualEntry[]): string {
+  if (!entries || entries.length === 0) return 'WEBVTT\n';
+
+  const cues = entries
+    .map((entry, index) => {
+      const startTime = msToTimestamp(entry.timestamp_ms, 'vtt');
+      const endMs =
+        index + 1 < entries.length
+          ? entries[index + 1].timestamp_ms
+          : entry.timestamp_ms + 3000;
+      const endTime = msToTimestamp(endMs, 'vtt');
+
+      const lines = entry.original
+        ? `${entry.original}\n${entry.translated}`
+        : entry.translated;
+
+      return `${startTime} --> ${endTime}\n${lines}`;
+    })
+    .join('\n\n');
+
+  return `WEBVTT\n\n${cues}`;
+}
+
+/**
+ * Format bilingual entries to TXT — original line then translation line
+ */
+export function formatBilingualToTXT(entries: BilingualEntry[]): string {
+  if (!entries || entries.length === 0) return '';
+
+  return entries
+    .map((entry) => {
+      const timestamp = msToTimestamp(entry.timestamp_ms, 'txt');
+      if (entry.original) {
+        return `[${timestamp}]\n${entry.original}\n${entry.translated}`;
+      }
+      return `[${timestamp}]\n${entry.translated}`;
+    })
+    .join('\n\n');
+}
+
+/**
  * Generate filename for download
  */
 export function generateFilename(
