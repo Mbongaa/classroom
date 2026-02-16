@@ -141,8 +141,8 @@ export function PromptTemplateEditor({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>
             {template ? 'Edit Translation Prompt Template' : 'Create Translation Prompt Template'}
           </DialogTitle>
@@ -152,7 +152,7 @@ export function PromptTemplateEditor({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-4 py-4 overflow-y-auto min-h-0">
           {/* Template Name */}
           <div className="space-y-2">
             <FloatingLabelInput
@@ -254,7 +254,7 @@ export function PromptTemplateEditor({
           )}
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex-shrink-0">
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
             Cancel
           </Button>

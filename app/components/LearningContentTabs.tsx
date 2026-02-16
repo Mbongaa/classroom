@@ -69,18 +69,12 @@ export function LearningContentTabs({
         label: 'Recording',
         icon: Video,
         content: (
-          <div className="h-full">
-            <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+          <div className="h-full flex flex-col">
+            <h2 className="text-2xl font-bold flex items-center gap-2 mb-6 flex-shrink-0">
               <Video className="h-6 w-6 text-primary" />
               Lecture Recording
             </h2>
-            <div
-              className="overflow-y-auto"
-              style={{
-                height: 'calc(100vh - 20rem)',
-                maxHeight: 'calc(100vh - 20rem)',
-              }}
-            >
+            <div className="overflow-y-auto flex-1 min-h-0">
               <VideoPlayer
                 hlsPlaylistUrl={recording.hlsPlaylistUrl}
                 mp4Url={recording.mp4Url}
@@ -106,9 +100,9 @@ export function LearningContentTabs({
         label: 'Transcript',
         icon: FileText,
         content: (
-          <div className="h-full">
+          <div className="h-full flex flex-col">
             {/* Header with Toggle */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-shrink-0">
               <h2 className="text-2xl font-bold flex items-center gap-2">
                 <FileText className="h-6 w-6 text-primary" />
                 Lecture Transcript
@@ -135,13 +129,7 @@ export function LearningContentTabs({
             </div>
 
             {/* Transcript Content with Scroll */}
-            <div
-              className="overflow-y-auto"
-              style={{
-                height: 'calc(100vh - 24rem)',
-                maxHeight: 'calc(100vh - 24rem)',
-              }}
-            >
+            <div className="overflow-y-auto flex-1 min-h-0">
               {translating ? (
                 <div className="flex flex-col items-center justify-center p-12">
                   <PulsatingLoader />
@@ -180,18 +168,12 @@ export function LearningContentTabs({
       label: 'Summary',
       icon: Lightbulb,
       content: (
-        <div className="h-full">
-          <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
+        <div className="h-full flex flex-col">
+          <h2 className="text-2xl font-bold flex items-center gap-2 mb-6 flex-shrink-0">
             <Lightbulb className="h-6 w-6 text-yellow-500" />
             {summary.title}
           </h2>
-          <div
-            className="overflow-y-auto"
-            style={{
-              height: 'calc(100vh - 20rem)',
-              maxHeight: 'calc(100vh - 20rem)',
-            }}
-          >
+          <div className="overflow-y-auto flex-1 min-h-0">
             <div className="space-y-4">
               {summary.key_points.map((point, index) => (
                 <div key={index} className="flex items-start gap-3 p-4 rounded-lg bg-default-100">
@@ -218,20 +200,14 @@ export function LearningContentTabs({
           </span>
         ),
         content: (
-          <div className="h-full">
-            <div className="flex items-start gap-3 mb-6">
+          <div className="h-full flex flex-col">
+            <div className="flex items-start gap-3 mb-6 flex-shrink-0">
               <span className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-lg font-bold">
                 {index + 1}
               </span>
               <h2 className="text-2xl font-bold pt-1">{theme.theme_title}</h2>
             </div>
-            <div
-              className="overflow-y-auto"
-              style={{
-                height: 'calc(100vh - 20rem)',
-                maxHeight: 'calc(100vh - 20rem)',
-              }}
-            >
+            <div className="overflow-y-auto flex-1 min-h-0">
               <div className="space-y-4">
                 {theme.theme_content.split('\n\n').map((paragraph, pIndex) => (
                   <p key={pIndex} className="text-base leading-relaxed">
@@ -329,9 +305,9 @@ export function LearningContentTabs({
       </div>
 
       {/* Tab Content */}
-      <Card className="overflow-hidden">
-        <div key={activeTab} className="animate-in fade-in slide-in-from-right-4 duration-500">
-          <div className="p-6 md:p-8">{activeTabData?.content}</div>
+      <Card className="overflow-hidden max-h-[calc(100vh-8rem)] flex flex-col">
+        <div key={activeTab} className="animate-in fade-in slide-in-from-right-4 duration-500 flex-1 min-h-0 flex flex-col">
+          <div className="p-6 md:p-8 flex-1 min-h-0 flex flex-col">{activeTabData?.content}</div>
         </div>
       </Card>
     </div>

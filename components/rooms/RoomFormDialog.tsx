@@ -217,14 +217,14 @@ export function RoomFormDialog({ mode, room, trigger, onSuccess }: RoomFormDialo
       <DialogTrigger asChild>
         {trigger || <Button className="rounded-full">{isEditMode ? 'Edit' : 'Create Room'}</Button>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 gap-4">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>{dialogTitle}</DialogTitle>
             <DialogDescription>{dialogDescription}</DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 overflow-y-auto min-h-0">
             {/* Room Code */}
             <div className="grid gap-2">
               <Label htmlFor="roomCode">
@@ -419,7 +419,7 @@ export function RoomFormDialog({ mode, room, trigger, onSuccess }: RoomFormDialo
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button
               type="button"
               variant="outline"

@@ -51,8 +51,8 @@ export default function LearningPageDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2 text-xl">
             <GraduationCap className="h-6 w-6 text-primary" />
             Start Learning
@@ -63,7 +63,7 @@ export default function LearningPageDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
+        <div className="space-y-6 py-4 overflow-y-auto min-h-0">
           {/* Room Name Display */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-muted-foreground">Lecture</label>

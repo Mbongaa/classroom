@@ -113,12 +113,12 @@ export default function RecordingDownloadDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle>Download Options</DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="transcription" className="w-full">
+        <Tabs defaultValue="transcription" className="w-full overflow-y-auto min-h-0">
           <TabsList className="grid w-full grid-cols-2 gap-1">
             <TabsTrigger value="transcription" disabled={!isCompleted} className="gap-1.5">
               <FileText className="h-4 w-4" />

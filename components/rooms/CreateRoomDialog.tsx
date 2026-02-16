@@ -175,16 +175,16 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
       <DialogTrigger asChild>
         <Button className="rounded-full">Create Room</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1 gap-4">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Create Persistent Room</DialogTitle>
             <DialogDescription>
               Create a room with a memorable code that can be reused for recurring sessions.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 overflow-y-auto min-h-0">
             {/* Room Code */}
             <div className="grid gap-2">
               <Label htmlFor="roomCode">
@@ -371,7 +371,7 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-shrink-0">
             <Button
               type="button"
               variant="outline"
