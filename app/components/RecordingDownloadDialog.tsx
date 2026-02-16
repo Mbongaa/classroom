@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Download, FileText, Globe } from 'lucide-react';
-import PreJoinLanguageSelect from './PreJoinLanguageSelect';
 import toast from 'react-hot-toast';
 
 interface Recording {
@@ -36,17 +35,57 @@ interface RecordingDownloadDialogProps {
 
 type FormatType = 'srt' | 'vtt' | 'txt';
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: 'English',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  nl: 'Nederlands',
+  ru: 'Русский',
+  ja: '日本語',
+  'zh-CN': '中文',
+  ar: 'العربية (Fusha)',
+  'ar-mixed': 'عربي مختلط (Mixed)',
+  'ar-darija': 'الدارجة (Darija)',
+  hi: 'हिन्दी',
+  pt: 'Português',
+  ko: '한국어',
+  tr: 'Türkçe',
+};
+
 export default function RecordingDownloadDialog({
   recording,
   trigger,
 }: RecordingDownloadDialogProps) {
   const [open, setOpen] = useState(false);
   const [transcriptionFormat, setTranscriptionFormat] = useState<FormatType>('srt');
-  const [translationLanguage, setTranslationLanguage] = useState('es');
+  const [translationLanguage, setTranslationLanguage] = useState('');
   const [translationFormat, setTranslationFormat] = useState<FormatType>('srt');
   const [downloading, setDownloading] = useState<string | null>(null);
+  const [transcriptionLanguages, setTranscriptionLanguages] = useState<string[]>([]);
+  const [translationLanguages, setTranslationLanguages] = useState<string[]>([]);
+  const [loadingLanguages, setLoadingLanguages] = useState(false);
 
   const isCompleted = recording.status === 'COMPLETED';
+
+  // Fetch available languages when dialog opens
+  useEffect(() => {
+    if (!open || !isCompleted) return;
+
+    setLoadingLanguages(true);
+    fetch(`/api/recordings/${recording.id}/languages`)
+      .then((res) => res.json())
+      .then((data) => {
+        setTranscriptionLanguages(data.transcriptionLanguages || []);
+        setTranslationLanguages(data.translationLanguages || []);
+        // Auto-select first available translation language
+        if (data.translationLanguages?.length > 0 && !translationLanguage) {
+          setTranslationLanguage(data.translationLanguages[0]);
+        }
+      })
+      .catch((err) => console.error('[DownloadDialog] Failed to fetch languages:', err))
+      .finally(() => setLoadingLanguages(false));
+  }, [open, recording.id, isCompleted]);
 
   const handleDownloadTranscription = async () => {
     setDownloading('transcription');
@@ -131,33 +170,47 @@ export default function RecordingDownloadDialog({
           </TabsList>
 
           <TabsContent value="transcription" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Format</label>
-              <Select
-                value={transcriptionFormat}
-                onValueChange={(value) => setTranscriptionFormat(value as FormatType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="srt">SRT (SubRip)</SelectItem>
-                  <SelectItem value="vtt">VTT (WebVTT)</SelectItem>
-                  <SelectItem value="txt">TXT (Plain Text)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {loadingLanguages ? (
+              <p className="text-sm text-muted-foreground text-center py-2">Loading...</p>
+            ) : transcriptionLanguages.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                No transcriptions available for this recording
+              </p>
+            ) : (
+              <>
+                <div className="text-sm text-muted-foreground">
+                  Available: {transcriptionLanguages.map((l) => LANGUAGE_LABELS[l] || l).join(', ')}
+                </div>
 
-            <Separator />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Format</label>
+                  <Select
+                    value={transcriptionFormat}
+                    onValueChange={(value) => setTranscriptionFormat(value as FormatType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="srt">SRT (SubRip)</SelectItem>
+                      <SelectItem value="vtt">VTT (WebVTT)</SelectItem>
+                      <SelectItem value="txt">TXT (Plain Text)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Button
-              onClick={handleDownloadTranscription}
-              disabled={!isCompleted || downloading === 'transcription'}
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {downloading === 'transcription' ? 'Downloading...' : 'Download Transcription'}
-            </Button>
+                <Separator />
+
+                <Button
+                  onClick={handleDownloadTranscription}
+                  disabled={!isCompleted || downloading === 'transcription'}
+                  className="w-full"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {downloading === 'transcription' ? 'Downloading...' : 'Download Transcription'}
+                </Button>
+              </>
+            )}
 
             {!isCompleted && (
               <p className="text-sm text-muted-foreground text-center">
@@ -167,42 +220,63 @@ export default function RecordingDownloadDialog({
           </TabsContent>
 
           <TabsContent value="translation" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Language</label>
-              <PreJoinLanguageSelect
-                selectedLanguage={translationLanguage}
-                onLanguageChange={setTranslationLanguage}
-                disabled={!isCompleted}
-              />
-            </div>
+            {loadingLanguages ? (
+              <p className="text-sm text-muted-foreground text-center py-2">Loading...</p>
+            ) : translationLanguages.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-2">
+                No translations available for this recording
+              </p>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Language</label>
+                  <Select
+                    value={translationLanguage}
+                    onValueChange={setTranslationLanguage}
+                    disabled={!isCompleted}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select language" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {translationLanguages.map((lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {LANGUAGE_LABELS[lang] || lang}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Format</label>
-              <Select
-                value={translationFormat}
-                onValueChange={(value) => setTranslationFormat(value as FormatType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="srt">SRT (SubRip)</SelectItem>
-                  <SelectItem value="vtt">VTT (WebVTT)</SelectItem>
-                  <SelectItem value="txt">TXT (Plain Text)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Format</label>
+                  <Select
+                    value={translationFormat}
+                    onValueChange={(value) => setTranslationFormat(value as FormatType)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="srt">SRT (SubRip)</SelectItem>
+                      <SelectItem value="vtt">VTT (WebVTT)</SelectItem>
+                      <SelectItem value="txt">TXT (Plain Text)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <Separator />
+                <Separator />
 
-            <Button
-              onClick={handleDownloadTranslation}
-              disabled={!isCompleted || downloading === 'translation'}
-              className="w-full"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {downloading === 'translation' ? 'Downloading...' : 'Download Translation'}
-            </Button>
+                <Button
+                  onClick={handleDownloadTranslation}
+                  disabled={!isCompleted || downloading === 'translation' || !translationLanguage}
+                  className="w-full"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  {downloading === 'translation' ? 'Downloading...' : 'Download Translation'}
+                </Button>
+              </>
+            )}
 
             {!isCompleted && (
               <p className="text-sm text-muted-foreground text-center">
