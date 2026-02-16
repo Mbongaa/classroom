@@ -972,3 +972,21 @@
     display: none;
   }
 }
+
+/* Fullscreen / Presentation mode */
+.fullscreenMode .header {
+  display: none;
+}
+
+.fullscreenMode .mainContainer {
+  flex: 1;
+}
+
+.fullscreenMode .videoArea {
+  flex: 1;
+}
+
+.fullscreenMode .mainVideoSection {
+  margin: 0;
+  border-radius: 0;
+}
