@@ -32,7 +32,7 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: authData, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
@@ -41,8 +41,22 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
     return { success: false, error: error.message };
   }
 
+  // Check if user is superadmin to redirect accordingly
+  let redirectPath = '/dashboard';
+  if (authData.user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('is_superadmin')
+      .eq('id', authData.user.id)
+      .single();
+
+    if (profile?.is_superadmin) {
+      redirectPath = '/superadmin';
+    }
+  }
+
   revalidatePath('/', 'layout');
-  redirect('/dashboard');
+  redirect(redirectPath);
 }
 
 /**

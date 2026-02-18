@@ -10,6 +10,7 @@ interface UserProfile {
   avatar_url: string | null;
   role: string;
   organization_id: string;
+  is_superadmin: boolean;
   created_at: string; // Timestamp from Supabase
   organization?: {
     id: string;

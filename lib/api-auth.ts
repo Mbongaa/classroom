@@ -70,7 +70,7 @@ export async function requireTeacher(): Promise<AuthResult> {
   // Fetch user profile with role
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('role, organization_id')
+    .select('role, organization_id, is_superadmin')
     .eq('id', user.id)
     .single();
 
@@ -81,8 +81,8 @@ export async function requireTeacher(): Promise<AuthResult> {
     };
   }
 
-  // Check if user has teacher or admin role
-  if (!['teacher', 'admin'].includes(profile.role)) {
+  // Check if user has teacher or admin role (superadmins always pass)
+  if (!['teacher', 'admin'].includes(profile.role) && !profile.is_superadmin) {
     return {
       success: false,
       response: NextResponse.json(
@@ -121,7 +121,7 @@ export async function requireAdmin(): Promise<AuthResult> {
   // Fetch user profile with role
   const { data: profile, error } = await supabase
     .from('profiles')
-    .select('role, organization_id')
+    .select('role, organization_id, is_superadmin')
     .eq('id', user.id)
     .single();
 
@@ -132,11 +132,61 @@ export async function requireAdmin(): Promise<AuthResult> {
     };
   }
 
-  // Check if user has admin role
-  if (profile.role !== 'admin') {
+  // Check if user has admin role (superadmins always pass)
+  if (profile.role !== 'admin' && !profile.is_superadmin) {
     return {
       success: false,
       response: NextResponse.json({ error: 'Forbidden - Admin role required' }, { status: 403 }),
+    };
+  }
+
+  return {
+    success: true,
+    user,
+    supabase,
+    profile,
+  };
+}
+
+/**
+ * Require superadmin access for API route
+ * Returns user, profile, and supabase client or 401/403 error response
+ *
+ * @example
+ * export async function GET() {
+ *   const auth = await requireSuperAdmin()
+ *   if (!auth.success) return auth.response
+ *
+ *   // User is authenticated and is a platform superadmin
+ * }
+ */
+export async function requireSuperAdmin(): Promise<AuthResult> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  const { user, supabase } = authResult;
+
+  // Fetch user profile
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('role, organization_id, is_superadmin')
+    .eq('id', user.id)
+    .single();
+
+  if (error || !profile) {
+    return {
+      success: false,
+      response: NextResponse.json({ error: 'Profile not found' }, { status: 404 }),
+    };
+  }
+
+  if (!profile.is_superadmin) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden - Superadmin access required' },
+        { status: 403 },
+      ),
     };
   }
 
