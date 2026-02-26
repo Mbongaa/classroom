@@ -18,7 +18,7 @@ import { CustomControlBar } from '@/app/components/video-conference/CustomContro
 import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
 import { Track, Participant, RoomEvent, DataPacket_Kind, ParticipantKind } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { Clipboard, Check, GripVertical } from 'lucide-react';
+import { Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
@@ -140,6 +140,9 @@ export function ClassroomClientImplWithRequests({
 
   // State for fullscreen/presentation mode
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  // State for students section collapse (collapsed by default)
+  const [showStudents, setShowStudents] = React.useState(false);
 
   // State for manual recording
   const [recordingId, setRecordingId] = React.useState<string | null>(null);
@@ -952,6 +955,7 @@ export function ClassroomClientImplWithRequests({
                         trackRef={teacherCameraTrack}
                         className={styles.teacherTile}
                         showSpeakingIndicator={true}
+                        aspectRatio={showTranslation ? '1:1' : '16:9'}
                       />
                     ) : teacherAudioTracks[0] ? (
                       /* Audio-only: use audio track for speaking indicator */
@@ -959,6 +963,7 @@ export function ClassroomClientImplWithRequests({
                         trackRef={teacherAudioTracks[0]}
                         className={styles.teacherTile}
                         showSpeakingIndicator={true}
+                        aspectRatio={showTranslation ? '1:1' : '16:9'}
                       />
                     ) : (
                       <div className={styles.noVideoPlaceholder}>
@@ -1011,6 +1016,7 @@ export function ClassroomClientImplWithRequests({
                           trackRef={studentTrack}
                           className={styles.speakerTile}
                           showSpeakingIndicator={true}
+                          aspectRatio={showTranslation ? '1:1' : '16:9'}
                         />
                       ) : audioTrack ? (
                         /* Audio-only: use audio track for speaking indicator */
@@ -1018,6 +1024,7 @@ export function ClassroomClientImplWithRequests({
                           trackRef={audioTrack}
                           className={styles.speakerTile}
                           showSpeakingIndicator={true}
+                          aspectRatio={showTranslation ? '1:1' : '16:9'}
                         />
                       ) : (
                         <div className={styles.noVideoPlaceholder}>
@@ -1111,12 +1118,17 @@ export function ClassroomClientImplWithRequests({
         )}
 
         {/* All Students section - Fixed at bottom, hidden in fullscreen */}
-        <div className={styles.studentsSection} style={{ display: isFullscreen ? 'none' : undefined }}>
-          <div className={styles.sectionHeader}>
+        <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`} style={{ display: isFullscreen ? 'none' : undefined }}>
+          <div
+            className={styles.sectionHeader}
+            onClick={() => setShowStudents((prev) => !prev)}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+          >
             <h3>All Students ({allStudents.length})</h3>
+            {showStudents ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
           </div>
 
-          <div className={styles.studentsGrid}>
+          {showStudents && <div className={styles.studentsGrid}>
             {allStudents.length > 0 ? (
               allStudents.map((student) => {
                 const metadata = parseParticipantMetadata(student.metadata);
@@ -1159,7 +1171,7 @@ export function ClassroomClientImplWithRequests({
                 <p>No students in the classroom</p>
               </div>
             )}
-          </div>
+          </div>}
         </div>
       </div>
 

@@ -277,6 +277,33 @@
   height: var(--tile-size);
 }
 
+/* === When translation panel is HIDDEN, tiles fill the container === */
+.mainContainer:not(.withTranslation) .mainVideoGrid > * {
+  aspect-ratio: auto;
+  width: 100%;
+  height: 100%;
+}
+
+.mainContainer:not(.withTranslation) .mainVideoGrid:has(> :only-child) > * {
+  width: 100%;
+  height: 100%;
+}
+
+.mainContainer:not(.withTranslation) .mainVideoGrid:has(> :nth-child(2):last-child) > * {
+  width: calc(50% - 0.5rem);
+  height: 100%;
+}
+
+.mainContainer:not(.withTranslation) .mainVideoGrid:has(> :nth-child(3)):not(:has(> :nth-child(5))) > * {
+  width: calc(50% - 0.5rem);
+  height: calc(50% - 0.5rem);
+}
+
+.mainContainer:not(.withTranslation) .mainVideoGrid:has(> :nth-child(5)) > * {
+  width: calc(33% - 0.75rem);
+  height: calc(50% - 0.5rem);
+}
+
 /* Teacher Section - Large Video */
 .teacherSection {
   flex: 1;
@@ -507,22 +534,28 @@
 
 /* Students Section - Fixed at bottom */
 .studentsSection {
-  /* Responsive height with bounds */
-  height: 15vh;
-  min-height: 80px;
-  max-height: 150px;
-
   background: var(--lk-background-2);
   border-top: 1px solid var(--lk-border);
   padding: 0.5rem;
-  overflow: hidden; /* Hide overflow to prevent scrolling */
-  flex-shrink: 1; /* Allow shrinking when needed */
+  overflow: hidden;
+  flex-shrink: 1;
+}
+
+.studentsSection.expanded {
+  /* Responsive height with bounds - only when expanded */
+  height: 15vh;
+  min-height: 80px;
+  max-height: 150px;
 }
 
 .sectionHeader {
   margin-bottom: 0.5rem; /* Reduced margin */
   padding-bottom: 0; /* Remove bottom padding */
   border-bottom: 1px solid var(--lk-border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--lk-text1, white);
 }
 
 .sectionHeader h3 {
