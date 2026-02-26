@@ -170,7 +170,7 @@ export async function GET(
 
 /**
  * DELETE /api/classrooms/[roomCode]
- * Soft delete a classroom (set is_active = false)
+ * Delete a classroom permanently from the database
  */
 export async function DELETE(
   request: NextRequest,
@@ -193,25 +193,22 @@ export async function DELETE(
       return NextResponse.json({ error: 'Room code is required' }, { status: 400 });
     }
 
-    // Soft delete in Supabase
-    await deleteClassroom(roomCode, user.id, profile.organization_id);
+    // Fetch classroom BEFORE deleting so we have the UUID for LiveKit
+    const classroom = await getClassroomByRoomCode(roomCode, profile.organization_id);
 
-    // Optionally delete LiveKit room (or let it expire after 7 days)
-    if (API_KEY && API_SECRET && LIVEKIT_URL) {
+    // Delete LiveKit room first (best-effort, uses classroom UUID as room name)
+    if (classroom && API_KEY && API_SECRET && LIVEKIT_URL) {
       try {
-        // Get classroom to find its UUID (LiveKit room name)
-        const classroom = await getClassroomByRoomCode(roomCode, profile.organization_id);
-
-        if (classroom) {
-          const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
-          // Delete LiveKit room using the classroom UUID
-          await roomService.deleteRoom(classroom.id);
-        }
+        const roomService = new RoomServiceClient(LIVEKIT_URL, API_KEY, API_SECRET);
+        await roomService.deleteRoom(classroom.id);
       } catch (error) {
         console.error('Error deleting LiveKit room:', error);
         // Continue even if LiveKit deletion fails - room will expire eventually
       }
     }
+
+    // Hard delete from Supabase (cascades to classroom_participants)
+    await deleteClassroom(roomCode, user.id, profile.organization_id);
 
     return NextResponse.json({
       success: true,

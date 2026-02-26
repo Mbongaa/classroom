@@ -176,7 +176,9 @@ export async function listClassrooms(organizationId: string): Promise<Classroom[
 }
 
 /**
- * Soft delete a classroom (set is_active = false)
+ * Permanently delete a classroom from the database.
+ * Related classroom_participants are cascade-deleted by the DB.
+ * session_recordings have classroom_id set to NULL (ON DELETE SET NULL).
  *
  * @param roomCode - Room code to delete
  * @param teacherId - Teacher ID for authorization
@@ -190,10 +192,9 @@ export async function deleteClassroom(
 ): Promise<void> {
   const supabase = createAdminClient();
 
-  // Soft delete - set is_active to false
   const { error } = await supabase
     .from('classrooms')
-    .update({ is_active: false })
+    .delete()
     .eq('room_code', roomCode)
     .eq('teacher_id', teacherId)
     .eq('organization_id', organizationId);
