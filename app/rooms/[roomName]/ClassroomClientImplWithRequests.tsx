@@ -11,7 +11,6 @@ import {
   Chat,
   ConnectionStateToast,
   TrackReference,
-  useConnectionState,
   isTrackReference,
   useLayoutContext,
 } from '@livekit/components-react';
@@ -70,7 +69,6 @@ export function ClassroomClientImplWithRequests({
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
-  const connectionState = useConnectionState();
   const { localParticipant } = useLocalParticipant();
   const participants = useParticipants();
   const { widget } = useLayoutContext();
@@ -143,27 +141,36 @@ export function ClassroomClientImplWithRequests({
   // State for fullscreen/presentation mode
   const [isFullscreen, setIsFullscreen] = React.useState(false);
 
-  // State for auto-recording (silent background operation for teachers)
+  // State for manual recording
   const [recordingId, setRecordingId] = React.useState<string | null>(null);
+  const [recordingLoading, setRecordingLoading] = React.useState(false);
+  const isRecording = !!recordingId;
 
   // Determine if current user is teacher
   const isTeacher = userRole === 'teacher';
 
-  // Auto-start recording when teacher connects
-  React.useEffect(() => {
-    // Only auto-record for teachers in connected rooms
-    if (!isTeacher || connectionState !== 'connected' || recordingId) {
-      return;
-    }
+  // Manual record toggle handler
+  const handleRecordToggle = React.useCallback(async () => {
+    if (recordingLoading) return;
+    setRecordingLoading(true);
 
-    const startAutoRecording = async () => {
-      try {
+    try {
+      if (isRecording) {
+        // Stop recording
+        const params = new URLSearchParams({
+          roomName: room.name,
+          recordingId: recordingId!,
+        });
+        await fetch(`/api/record/stop?${params.toString()}`);
+        setRecordingId(null);
+        console.log('[Recording] Stopped manually');
+      } else {
+        // Start recording
         const teacherName = localParticipant?.name || localParticipant?.identity || 'Teacher';
-        // Get the room SID properly using the async method
         const roomSid = await room.getSid();
         const params = new URLSearchParams({
           roomName: room.name,
-          roomSid: roomSid || room.name, // Fallback to room.name if getSid() returns null
+          roomSid: roomSid || room.name,
           teacherName: teacherName,
         });
 
@@ -171,40 +178,28 @@ export function ClassroomClientImplWithRequests({
         if (response.ok) {
           const data = await response.json();
           setRecordingId(data.recording?.id);
-          console.log('[Auto-Recording] Started:', data.recording?.sessionId);
+          console.log('[Recording] Started:', data.recording?.sessionId);
         } else {
-          console.error('[Auto-Recording] Failed to start:', response.status);
+          console.error('[Recording] Failed to start:', response.status);
         }
-      } catch (error) {
-        console.error('[Auto-Recording] Error:', error);
       }
-    };
+    } catch (error) {
+      console.error('[Recording] Error:', error);
+    } finally {
+      setRecordingLoading(false);
+    }
+  }, [isRecording, recordingId, room, localParticipant, recordingLoading]);
 
-    // Start recording after short delay to ensure room is fully connected
-    const timer = setTimeout(startAutoRecording, 2000);
-    return () => clearTimeout(timer);
-  }, [isTeacher, connectionState, room, localParticipant, recordingId]);
-
-  // Auto-stop recording when teacher leaves
+  // Safety net: stop recording if teacher leaves with recording active
   React.useEffect(() => {
     if (!isTeacher || !recordingId) return;
 
     return () => {
-      // Cleanup: stop recording when component unmounts (teacher leaves)
-      const stopAutoRecording = async () => {
-        try {
-          const params = new URLSearchParams({
-            roomName: room.name,
-            recordingId: recordingId,
-          });
-          await fetch(`/api/record/stop?${params.toString()}`);
-          console.log('[Auto-Recording] Stopped on disconnect');
-        } catch (error) {
-          console.error('[Auto-Recording] Error stopping:', error);
-        }
-      };
-
-      stopAutoRecording();
+      const params = new URLSearchParams({
+        roomName: room.name,
+        recordingId: recordingId,
+      });
+      fetch(`/api/record/stop?${params.toString()}`).catch(() => {});
     };
   }, [isTeacher, recordingId, room]);
 
@@ -1180,9 +1175,13 @@ export function ClassroomClientImplWithRequests({
               screenShare: isTeacher,
               leave: true,
               translation: true,
+              record: isTeacher,
             }}
             onTranslationClick={() => setShowTranslation(!showTranslation)}
             showTranslation={showTranslation}
+            onRecordClick={handleRecordToggle}
+            isRecording={isRecording}
+            recordingLoading={recordingLoading}
             isStudent={!isTeacher}
           />
         </div>

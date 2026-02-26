@@ -15,7 +15,8 @@ import PreJoinLanguageSelect from './PreJoinLanguageSelect';
 import { GraduationCap, ExternalLink } from 'lucide-react';
 
 interface LearningPageDialogProps {
-  recordingId: string;
+  recordingId?: string;
+  sessionId?: string;
   roomName: string;
   trigger: React.ReactNode;
 }
@@ -31,6 +32,7 @@ interface LearningPageDialogProps {
  */
 export default function LearningPageDialog({
   recordingId,
+  sessionId,
   roomName,
   trigger,
 }: LearningPageDialogProps) {
@@ -38,8 +40,10 @@ export default function LearningPageDialog({
   const [selectedLanguage, setSelectedLanguage] = useState('en');
 
   const handleOpenLearningPage = () => {
-    // Construct learning page URL with language parameter
-    const learningPageUrl = `/learn/${recordingId}?lang=${selectedLanguage}`;
+    // Use session-based URL when no recording, otherwise recording-based
+    const learningPageUrl = recordingId
+      ? `/learn/${recordingId}?lang=${selectedLanguage}`
+      : `/learn/session/${sessionId}?lang=${selectedLanguage}`;
 
     // Open in new tab
     window.open(learningPageUrl, '_blank', 'noopener,noreferrer');

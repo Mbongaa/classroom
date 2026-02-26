@@ -22,28 +22,34 @@ import {
 } from '@/components/ui/pagination';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 import Link from 'next/link';
-import { Play, Download, Trash2, Clock, Calendar, ArrowUpDown, GraduationCap } from 'lucide-react';
+import { Play, Download, ArrowUpDown, GraduationCap } from 'lucide-react';
 import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
 import LearningPageDialog from '@/app/components/LearningPageDialog';
 
-interface Recording {
+interface SessionRecording {
   id: string;
-  room_name: string;
-  session_id: string;
-  teacher_name: string;
+  status: string;
   hls_playlist_url: string | null;
   mp4_url: string | null;
   duration_seconds: number | null;
-  started_at: string;
-  status: string;
+  teacher_name: string;
 }
 
-type SortField = 'room_name' | 'started_at' | 'duration_seconds';
+interface SessionEntry {
+  id: string;
+  room_name: string;
+  session_id: string;
+  started_at: string;
+  ended_at: string | null;
+  recording: SessionRecording | null;
+}
+
+type SortField = 'room_name' | 'started_at';
 type SortOrder = 'asc' | 'desc';
 
-export default function RecordingsPage() {
+export default function SessionHistoryPage() {
   const { user, profile, loading: userLoading } = useUser();
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortField, setSortField] = useState<SortField>('started_at');
@@ -52,54 +58,48 @@ export default function RecordingsPage() {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    const fetchRecordings = async () => {
+    const fetchSessions = async () => {
       try {
-        const response = await fetch('/api/recordings');
-        if (!response.ok) throw new Error('Failed to fetch recordings');
+        const response = await fetch('/api/sessions');
+        if (!response.ok) throw new Error('Failed to fetch sessions');
 
         const data = await response.json();
-        setRecordings(data.recordings || []);
-      } catch (error) {
-        console.error('Failed to fetch recordings:', error);
-        setError(error instanceof Error ? error.message : 'Failed to load recordings');
+        setSessions(data.sessions || []);
+      } catch (err) {
+        console.error('Failed to fetch sessions:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load sessions');
       } finally {
         setLoading(false);
       }
     };
 
     if (!userLoading && user) {
-      fetchRecordings();
+      fetchSessions();
     } else if (!userLoading) {
       setLoading(false);
     }
   }, [user, userLoading]);
 
-  const handleDelete = async (recordingId: string, roomName: string) => {
-    if (!confirm(`Delete recording for ${roomName}? This cannot be undone.`)) return;
-
-    try {
-      const response = await fetch(`/api/recordings/${recordingId}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) throw new Error('Failed to delete recording');
-
-      // Refresh list
-      setRecordings((prev) => prev.filter((r) => r.id !== recordingId));
-    } catch (error) {
-      console.error('Failed to delete recording:', error);
-      alert('Failed to delete recording');
-    }
-  };
-
   const formatDuration = (seconds: number | null) => {
-    if (!seconds) return 'Unknown';
+    if (!seconds) return '--';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
+    const s = Math.floor(seconds % 60);
     return h > 0
       ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
       : `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const getSessionDuration = (session: SessionEntry): number | null => {
+    // Prefer recording duration if available
+    if (session.recording?.duration_seconds) return session.recording.duration_seconds;
+    // Fall back to session started_at / ended_at
+    if (session.started_at && session.ended_at) {
+      const start = new Date(session.started_at).getTime();
+      const end = new Date(session.ended_at).getTime();
+      if (end > start) return Math.round((end - start) / 1000);
+    }
+    return null;
   };
 
   const handleSort = (field: SortField) => {
@@ -109,19 +109,13 @@ export default function RecordingsPage() {
       setSortField(field);
       setSortOrder('desc');
     }
-    setCurrentPage(1); // Reset to first page when sorting
+    setCurrentPage(1);
   };
 
-  // Sort recordings
-  const sortedRecordings = [...recordings].sort((a, b) => {
-    let aVal: any = a[sortField];
-    let bVal: any = b[sortField];
+  const sortedSessions = [...sessions].sort((a, b) => {
+    let aVal: string = a[sortField];
+    let bVal: string = b[sortField];
 
-    // Handle null values
-    if (aVal === null) return 1;
-    if (bVal === null) return -1;
-
-    // String comparison for room_name
     if (sortField === 'room_name') {
       aVal = aVal.toLowerCase();
       bVal = bVal.toLowerCase();
@@ -132,14 +126,50 @@ export default function RecordingsPage() {
     return 0;
   });
 
-  // Pagination calculations
-  const totalPages = Math.ceil(sortedRecordings.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedSessions.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedRecordings = sortedRecordings.slice(startIndex, endIndex);
+  const paginatedSessions = sortedSessions.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
+  };
+
+  const getRecordingBadge = (recording: SessionRecording | null) => {
+    if (!recording) {
+      return (
+        <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-slate-500/20 text-slate-400">
+          No recording
+        </span>
+      );
+    }
+
+    switch (recording.status) {
+      case 'COMPLETED':
+        return (
+          <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-green-500/20 text-green-500">
+            Available
+          </span>
+        );
+      case 'ACTIVE':
+        return (
+          <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-blue-500/20 text-blue-500">
+            Recording...
+          </span>
+        );
+      case 'FAILED':
+        return (
+          <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-red-500/20 text-red-500">
+            Failed
+          </span>
+        );
+      default:
+        return (
+          <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-yellow-500/20 text-yellow-500">
+            Processing...
+          </span>
+        );
+    }
   };
 
   if (userLoading || loading) {
@@ -168,18 +198,18 @@ export default function RecordingsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
-          Session Recordings
+          Session History
         </h1>
         <p className="text-slate-500 dark:text-slate-400">
-          View and manage your classroom recordings
+          View past classroom sessions and recordings
         </p>
       </div>
 
-      {recordings.length === 0 ? (
+      {sessions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">
-              No recordings yet. Start recording a session to see it here.
+              No sessions yet. Sessions are created when participants join a classroom.
             </p>
           </CardContent>
         </Card>
@@ -200,7 +230,6 @@ export default function RecordingsPage() {
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead className="text-center">Teacher</TableHead>
                   <TableHead className="text-center">
                     <Button
                       variant="ghost"
@@ -212,88 +241,66 @@ export default function RecordingsPage() {
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead className="text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSort('duration_seconds')}
-                      className="h-8"
-                    >
-                      Duration
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead className="text-center pr-2">Status</TableHead>
-                  <TableHead className="text-center pl-2">Actions</TableHead>
+                  <TableHead className="text-center">Duration</TableHead>
+                  <TableHead className="text-center">Recording</TableHead>
+                  <TableHead className="text-center">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedRecordings.map((recording) => (
-                  <TableRow key={recording.id}>
-                    <TableCell className="font-medium text-center">{recording.room_name}</TableCell>
-                    <TableCell className="text-center">{recording.teacher_name}</TableCell>
+                {paginatedSessions.map((session) => (
+                  <TableRow key={session.id}>
+                    <TableCell className="font-medium text-center">
+                      {session.room_name}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap text-center">
-                      {new Date(recording.started_at).toLocaleString()}
+                      {new Date(session.started_at).toLocaleString()}
                     </TableCell>
                     <TableCell className="text-center">
-                      {formatDuration(recording.duration_seconds)}
+                      {formatDuration(getSessionDuration(session))}
                     </TableCell>
-                    <TableCell className="text-center pr-2">
-                      <span
-                        className={`text-xs px-2 py-1 rounded whitespace-nowrap ${
-                          recording.status === 'COMPLETED'
-                            ? 'bg-green-500/20 text-green-500'
-                            : recording.status === 'ACTIVE'
-                              ? 'bg-blue-500/20 text-blue-500'
-                              : 'bg-red-500/20 text-red-500'
-                        }`}
-                      >
-                        {recording.status}
-                      </span>
+                    <TableCell className="text-center">
+                      {getRecordingBadge(session.recording)}
                     </TableCell>
-                    <TableCell className="text-center pl-2">
-                      {recording.status === 'COMPLETED' && recording.hls_playlist_url ? (
-                        <div className="flex gap-2 justify-center">
+                    <TableCell className="text-center">
+                      <div className="flex gap-2 justify-center">
+                        {session.recording?.status === 'COMPLETED' && session.recording.hls_playlist_url && (
                           <Button asChild size="sm" variant="default">
-                            <Link href={`/dashboard/recordings/${recording.id}`}>
+                            <Link href={`/dashboard/recordings/${session.recording.id}`}>
                               <Play className="h-4 w-4 mr-2" />
                               Watch
                             </Link>
                           </Button>
-                          <LearningPageDialog
-                            recordingId={recording.id}
-                            roomName={recording.room_name}
-                            trigger={
-                              <Button size="sm" variant="secondary">
-                                <GraduationCap className="h-4 w-4" />
-                              </Button>
-                            }
-                          />
-                          <RecordingDownloadDialog
-                            recording={recording}
-                            trigger={
-                              <Button size="sm" variant="outline">
-                                <Download className="h-4 w-4" />
-                              </Button>
-                            }
-                          />
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDelete(recording.id, recording.room_name)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">
-                          {recording.status === 'ACTIVE'
-                            ? 'Recording...'
-                            : recording.status === 'FAILED'
-                              ? 'Failed'
-                              : 'Processing...'}
-                        </span>
-                      )}
+                        )}
+                        <LearningPageDialog
+                          recordingId={session.recording?.status === 'COMPLETED' ? session.recording.id : undefined}
+                          sessionId={session.id}
+                          roomName={session.room_name}
+                          trigger={
+                            <Button size="sm" variant="secondary">
+                              <GraduationCap className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
+                        <RecordingDownloadDialog
+                          sessionId={session.id}
+                          roomName={session.room_name}
+                          recording={
+                            session.recording
+                              ? {
+                                  id: session.recording.id,
+                                  room_name: session.room_name,
+                                  mp4_url: session.recording.mp4_url,
+                                  status: session.recording.status,
+                                }
+                              : undefined
+                          }
+                          trigger={
+                            <Button size="sm" variant="outline">
+                              <Download className="h-4 w-4" />
+                            </Button>
+                          }
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -301,12 +308,11 @@ export default function RecordingsPage() {
             </Table>
           </div>
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Showing {startIndex + 1} to {Math.min(endIndex, sortedRecordings.length)} of{' '}
-                {sortedRecordings.length} recordings
+                Showing {startIndex + 1} to {Math.min(endIndex, sortedSessions.length)} of{' '}
+                {sortedSessions.length} sessions
               </p>
               <Pagination>
                 <PaginationContent>

@@ -7,7 +7,7 @@ import {
   IconCreditCard,
   IconHome,
   IconSchool,
-  IconVideo,
+  IconHistory,
   IconUser,
 } from '@tabler/icons-react';
 import { signOut } from '@/lib/actions/auth';
@@ -39,9 +39,9 @@ const navigation = [
     icon: IconSchool,
   },
   {
-    label: 'Recordings',
+    label: 'Session History',
     href: '/dashboard/recordings',
-    icon: IconVideo,
+    icon: IconHistory,
   },
   {
     label: 'Billing',

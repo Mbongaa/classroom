@@ -147,10 +147,20 @@ export async function POST(request: NextRequest) {
       segmentResults,
     } = egressInfo;
 
-    // Find recording by egress ID
-    const recording = await getRecordingByEgressId(egressId);
+    // Find recording by egress ID (with retry for race condition)
+    let recording = await getRecordingByEgressId(egressId);
     if (!recording) {
-      console.warn(`[LiveKit Webhook] Recording not found for egress ID: ${egressId}`);
+      // Retry up to 3 times with 2s delays - handles case where LiveKit
+      // sends webhook before the DB row is created
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        console.log(`[LiveKit Webhook] Recording not found for egress ${egressId}, retry ${attempt}/3...`);
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        recording = await getRecordingByEgressId(egressId);
+        if (recording) break;
+      }
+    }
+    if (!recording) {
+      console.warn(`[LiveKit Webhook] Recording not found for egress ID after retries: ${egressId}`);
       return NextResponse.json({ message: 'Recording not found' }, { status: 404 });
     }
 

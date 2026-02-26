@@ -20,6 +20,7 @@ import {
   PhoneOff,
   Settings,
   Languages,
+  Circle,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -32,11 +33,15 @@ interface CustomControlBarProps {
     settings?: boolean;
     leave?: boolean;
     translation?: boolean;
+    record?: boolean;
   };
   variation?: 'minimal' | 'verbose' | 'textOnly';
   className?: string;
   onSettingsClick?: () => void;
   onTranslationClick?: () => void;
+  onRecordClick?: () => void;
+  isRecording?: boolean;
+  recordingLoading?: boolean;
   showTranslation?: boolean;
   isStudent?: boolean;
 }
@@ -55,6 +60,9 @@ export function CustomControlBar({
   className,
   onSettingsClick,
   onTranslationClick,
+  onRecordClick,
+  isRecording = false,
+  recordingLoading = false,
   showTranslation = false,
   isStudent = false,
 }: CustomControlBarProps) {
@@ -239,6 +247,33 @@ export function CustomControlBar({
         >
           <Languages className="h-[18px] w-[18px]" style={{ color: '#3b82f6' }} />
           {variation !== 'minimal' && 'Translation'}
+        </Button>
+      )}
+
+      {/* Record Button */}
+      {controls.record && (
+        <Button
+          onClick={onRecordClick}
+          variant={isRecording ? 'default' : 'secondary'}
+          size="lg"
+          className={buttonClass}
+          disabled={recordingLoading}
+          aria-label={isRecording ? 'Stop recording' : 'Start recording'}
+          title={recordingLoading ? 'Please wait...' : isRecording ? 'Stop recording' : 'Start recording'}
+          style={{
+            backgroundColor: isRecording ? 'rgba(239, 68, 68, 0.2)' : 'var(--lk-bg2)',
+            color: 'var(--lk-text1, white)',
+            borderColor: isRecording ? 'rgba(239, 68, 68, 0.4)' : 'var(--lk-bg3)',
+            opacity: recordingLoading ? 0.6 : 1,
+          }}
+        >
+          <Circle
+            className={`h-[18px] w-[18px] ${isRecording ? 'animate-pulse' : ''}`}
+            style={{ color: '#ef4444' }}
+            fill={isRecording ? '#ef4444' : 'none'}
+            strokeWidth={isRecording ? 0 : 2}
+          />
+          {variation !== 'minimal' && (isRecording ? 'Stop' : 'Record')}
         </Button>
       )}
 

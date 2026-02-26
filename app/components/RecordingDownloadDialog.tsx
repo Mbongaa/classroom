@@ -29,7 +29,9 @@ interface Recording {
 }
 
 interface RecordingDownloadDialogProps {
-  recording: Recording;
+  recording?: Recording;
+  sessionId?: string;
+  roomName?: string;
   trigger: React.ReactNode;
 }
 
@@ -55,6 +57,8 @@ const LANGUAGE_LABELS: Record<string, string> = {
 
 export default function RecordingDownloadDialog({
   recording,
+  sessionId,
+  roomName: roomNameProp,
   trigger,
 }: RecordingDownloadDialogProps) {
   const [open, setOpen] = useState(false);
@@ -66,31 +70,38 @@ export default function RecordingDownloadDialog({
   const [translationLanguages, setTranslationLanguages] = useState<string[]>([]);
   const [loadingLanguages, setLoadingLanguages] = useState(false);
 
-  const isCompleted = recording.status === 'COMPLETED';
+  // Session mode: use session routes directly. Recording mode: use recording routes.
+  const useSessionMode = !!sessionId;
+  const displayName = roomNameProp || recording?.room_name || 'session';
 
   // Fetch available languages when dialog opens
   useEffect(() => {
-    if (!open || !isCompleted) return;
+    if (!open) return;
+
+    const languagesUrl = useSessionMode
+      ? `/api/sessions/${sessionId}/languages`
+      : `/api/recordings/${recording!.id}/languages`;
 
     setLoadingLanguages(true);
-    fetch(`/api/recordings/${recording.id}/languages`)
+    fetch(languagesUrl)
       .then((res) => res.json())
       .then((data) => {
         setTranscriptionLanguages(data.transcriptionLanguages || []);
         setTranslationLanguages(data.translationLanguages || []);
-        // Auto-select first available translation language
         if (data.translationLanguages?.length > 0 && !translationLanguage) {
           setTranslationLanguage(data.translationLanguages[0]);
         }
       })
       .catch((err) => console.error('[DownloadDialog] Failed to fetch languages:', err))
       .finally(() => setLoadingLanguages(false));
-  }, [open, recording.id, isCompleted]);
+  }, [open, sessionId, recording?.id, useSessionMode]);
 
   const handleDownloadTranscription = async () => {
     setDownloading('transcription');
     try {
-      const url = `/api/recordings/${recording.id}/download/transcription?format=${transcriptionFormat}`;
+      const url = useSessionMode
+        ? `/api/sessions/${sessionId}/download/transcription?format=${transcriptionFormat}`
+        : `/api/recordings/${recording!.id}/download/transcription?format=${transcriptionFormat}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -98,12 +109,11 @@ export default function RecordingDownloadDialog({
         throw new Error(error.error || 'Failed to download transcription');
       }
 
-      // Download file
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `${recording.room_name}_transcription.${transcriptionFormat}`;
+      a.download = `${displayName}_transcription.${transcriptionFormat}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -121,7 +131,9 @@ export default function RecordingDownloadDialog({
   const handleDownloadTranslation = async () => {
     setDownloading('translation');
     try {
-      const url = `/api/recordings/${recording.id}/download/translation?language=${translationLanguage}&format=${translationFormat}`;
+      const url = useSessionMode
+        ? `/api/sessions/${sessionId}/download/translation?language=${translationLanguage}&format=${translationFormat}`
+        : `/api/recordings/${recording!.id}/download/translation?language=${translationLanguage}&format=${translationFormat}`;
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -129,12 +141,11 @@ export default function RecordingDownloadDialog({
         throw new Error(error.error || 'Failed to download translation');
       }
 
-      // Download file
       const blob = await response.blob();
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = downloadUrl;
-      a.download = `${recording.room_name}_translation_${translationLanguage}.${translationFormat}`;
+      a.download = `${displayName}_translation_${translationLanguage}.${translationFormat}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -159,11 +170,11 @@ export default function RecordingDownloadDialog({
 
         <Tabs defaultValue="transcription" className="w-full overflow-y-auto min-h-0">
           <TabsList className="grid w-full grid-cols-2 gap-1">
-            <TabsTrigger value="transcription" disabled={!isCompleted} className="gap-1.5">
+            <TabsTrigger value="transcription" className="gap-1.5">
               <FileText className="h-4 w-4" />
               Transcription
             </TabsTrigger>
-            <TabsTrigger value="translation" disabled={!isCompleted} className="gap-1.5">
+            <TabsTrigger value="translation" className="gap-1.5">
               <Globe className="h-4 w-4" />
               Translation
             </TabsTrigger>
@@ -174,7 +185,7 @@ export default function RecordingDownloadDialog({
               <p className="text-sm text-muted-foreground text-center py-2">Loading...</p>
             ) : transcriptionLanguages.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-2">
-                No transcriptions available for this recording
+                No transcriptions available for this session
               </p>
             ) : (
               <>
@@ -203,19 +214,13 @@ export default function RecordingDownloadDialog({
 
                 <Button
                   onClick={handleDownloadTranscription}
-                  disabled={!isCompleted || downloading === 'transcription'}
+                  disabled={downloading === 'transcription'}
                   className="w-full"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   {downloading === 'transcription' ? 'Downloading...' : 'Download Transcription'}
                 </Button>
               </>
-            )}
-
-            {!isCompleted && (
-              <p className="text-sm text-muted-foreground text-center">
-                Transcription only available for completed recordings
-              </p>
             )}
           </TabsContent>
 
@@ -224,7 +229,7 @@ export default function RecordingDownloadDialog({
               <p className="text-sm text-muted-foreground text-center py-2">Loading...</p>
             ) : translationLanguages.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-2">
-                No translations available for this recording
+                No translations available for this session
               </p>
             ) : (
               <>
@@ -233,7 +238,6 @@ export default function RecordingDownloadDialog({
                   <Select
                     value={translationLanguage}
                     onValueChange={setTranslationLanguage}
-                    disabled={!isCompleted}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select language" />
@@ -269,19 +273,13 @@ export default function RecordingDownloadDialog({
 
                 <Button
                   onClick={handleDownloadTranslation}
-                  disabled={!isCompleted || downloading === 'translation' || !translationLanguage}
+                  disabled={downloading === 'translation' || !translationLanguage}
                   className="w-full"
                 >
                   <Download className="h-4 w-4 mr-2" />
                   {downloading === 'translation' ? 'Downloading...' : 'Download Translation'}
                 </Button>
               </>
-            )}
-
-            {!isCompleted && (
-              <p className="text-sm text-muted-foreground text-center">
-                Translation only available for completed recordings
-              </p>
             )}
           </TabsContent>
         </Tabs>
