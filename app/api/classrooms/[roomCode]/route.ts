@@ -300,9 +300,17 @@ export async function PATCH(
       updates,
     );
 
+    // Resolve organization slug for link generation
+    let orgSlug: string | null = null;
+    try {
+      orgSlug = await getOrganizationSlugById(profile.organization_id);
+    } catch (e) {
+      console.error('Failed to resolve organization slug:', e);
+    }
+
     return NextResponse.json({
       success: true,
-      classroom: updatedClassroom,
+      classroom: { ...updatedClassroom, organization_slug: orgSlug },
       message: `Classroom ${roomCode} updated successfully`,
     });
   } catch (error: any) {

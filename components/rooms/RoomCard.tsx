@@ -42,6 +42,10 @@ export function RoomCard({ room, onDelete, onUpdate }: RoomCardProps) {
       url += '?role=teacher';
     }
 
+    if (room.organization_slug) {
+      url += `&org=${encodeURIComponent(room.organization_slug)}`;
+    }
+
     router.push(url);
   };
 

@@ -3,6 +3,7 @@ import { requireTeacher } from '@/lib/api-auth';
 import {
   createClassroom,
   listClassrooms,
+  getOrganizationSlugById,
   type Classroom,
   type CreateClassroomParams,
 } from '@/lib/classroom-utils';
@@ -91,6 +92,14 @@ export async function POST(request: NextRequest) {
       punctuationSensitivity: punctuationSensitivity,
     });
 
+    // Resolve organization slug for link generation
+    let orgSlug: string | null = null;
+    try {
+      orgSlug = await getOrganizationSlugById(profile.organization_id);
+    } catch (e) {
+      console.error('Failed to resolve organization slug:', e);
+    }
+
     return NextResponse.json({
       success: true,
       classroom: {
@@ -101,6 +110,7 @@ export async function POST(request: NextRequest) {
         room_type: classroom.room_type,
         settings: classroom.settings,
         created_at: classroom.created_at,
+        organization_slug: orgSlug,
       },
     });
   } catch (error: any) {
@@ -161,8 +171,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Resolve organization slug once for all classrooms
+    let orgSlug: string | null = null;
+    try {
+      orgSlug = await getOrganizationSlugById(profile.organization_id);
+    } catch (e) {
+      console.error('Failed to resolve organization slug:', e);
+    }
+
+    const classroomsWithSlug = enrichedClassrooms.map((c) => ({
+      ...c,
+      organization_slug: orgSlug,
+    }));
+
     return NextResponse.json({
-      classrooms: enrichedClassrooms,
+      classrooms: classroomsWithSlug,
     });
   } catch (error: any) {
     console.error('Error listing classrooms:', error);

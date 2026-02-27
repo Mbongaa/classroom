@@ -85,6 +85,7 @@ export interface Classroom {
   // Optional fields from API enrichment
   numParticipants?: number;
   isLive?: boolean;
+  organization_slug?: string;
 }
 
 // Session and Recording types
