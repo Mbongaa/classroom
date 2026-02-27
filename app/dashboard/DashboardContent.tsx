@@ -14,6 +14,7 @@ interface DashboardContentProps {
   classroomCount: number;
   recordingCount: number;
   organizationName: string;
+  organizationSlug?: string;
   rooms: Classroom[];
 }
 
@@ -22,6 +23,7 @@ export function DashboardContent({
   classroomCount,
   recordingCount,
   organizationName,
+  organizationSlug,
   rooms,
 }: DashboardContentProps) {
   const router = useRouter();
@@ -29,12 +31,16 @@ export function DashboardContent({
   // Handler functions
   const startClassroom = () => {
     const roomId = generateRoomId();
-    router.push(`/rooms/${roomId}?classroom=true&role=teacher`);
+    let url = `/rooms/${roomId}?classroom=true&role=teacher`;
+    if (organizationSlug) url += `&org=${encodeURIComponent(organizationSlug)}`;
+    router.push(url);
   };
 
   const startSpeechSession = () => {
     const roomId = generateRoomId();
-    router.push(`/rooms/${roomId}?speech=true&role=teacher`);
+    let url = `/rooms/${roomId}?speech=true&role=teacher`;
+    if (organizationSlug) url += `&org=${encodeURIComponent(organizationSlug)}`;
+    router.push(url);
   };
 
   const stats = [
@@ -185,6 +191,11 @@ export function DashboardContent({
                         url += '?classroom=true&role=teacher';
                       } else if (room.room_type === 'speech') {
                         url += '?speech=true&role=teacher';
+                      } else {
+                        url += '?role=teacher';
+                      }
+                      if (organizationSlug) {
+                        url += `&org=${encodeURIComponent(organizationSlug)}`;
                       }
                       router.push(url);
                     }}

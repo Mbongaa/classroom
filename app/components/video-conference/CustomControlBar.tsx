@@ -6,9 +6,16 @@ import {
   useDisconnectButton,
   useChatToggle,
   useLayoutContext,
+  useMediaDeviceSelect,
 } from '@livekit/components-react';
 import { Track } from 'livekit-client';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/components/ui/select';
 import {
   Mic,
   MicOff,
@@ -21,8 +28,12 @@ import {
   Settings,
   Languages,
   Circle,
+  ChevronDown,
 } from 'lucide-react';
 import clsx from 'clsx';
+
+const LS_AUDIO_DEVICE_KEY = 'bayaan-preferred-audio-device';
+const LS_VIDEO_DEVICE_KEY = 'bayaan-preferred-video-device';
 
 interface CustomControlBarProps {
   controls?: {
@@ -86,6 +97,19 @@ export function CustomControlBar({
     source: Track.Source.Camera,
   });
 
+  // Media device selectors for in-room switching
+  const {
+    devices: micDevices,
+    activeDeviceId: activeMicId,
+    setActiveMediaDevice: setActiveMic,
+  } = useMediaDeviceSelect({ kind: 'audioinput' });
+
+  const {
+    devices: cameraDevices,
+    activeDeviceId: activeCameraId,
+    setActiveMediaDevice: setActiveCamera,
+  } = useMediaDeviceSelect({ kind: 'videoinput' });
+
   // Screen share toggle - already using isEnabled correctly
   const {
     toggle: toggleScreen,
@@ -132,50 +156,104 @@ export function CustomControlBar({
         borderColor: 'var(--lk-bg3)',
       }}
     >
-      {/* Microphone Button */}
+      {/* Microphone Button + Device Selector */}
       {controls.microphone && (
-        <Button
-          {...micButtonProps}
-          variant={getButtonVariant(micEnabled)}
-          size="lg"
-          className={buttonClass}
-          disabled={micPending}
-          style={{
-            backgroundColor: micEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
-            color: 'var(--lk-text1, white)',
-            borderColor: 'var(--lk-bg3)',
-          }}
-        >
-          {micEnabled ? (
-            <Mic className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text1, white)' }} />
-          ) : (
-            <MicOff className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text2, #6b7280)' }} />
-          )}
-          {getButtonLabel('Mic', micEnabled, variation)}
-        </Button>
+        <div className="flex items-center">
+          <Button
+            {...micButtonProps}
+            variant={getButtonVariant(micEnabled)}
+            size="lg"
+            className={clsx(buttonClass, 'rounded-r-none border-r-0')}
+            disabled={micPending}
+            style={{
+              backgroundColor: micEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+              color: 'var(--lk-text1, white)',
+              borderColor: 'var(--lk-bg3)',
+            }}
+          >
+            {micEnabled ? (
+              <Mic className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text1, white)' }} />
+            ) : (
+              <MicOff className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text2, #6b7280)' }} />
+            )}
+            {getButtonLabel('Mic', micEnabled, variation)}
+          </Button>
+          <Select
+            value={activeMicId}
+            onValueChange={(id) => {
+              setActiveMic(id);
+              try { localStorage.setItem(LS_AUDIO_DEVICE_KEY, id); } catch {}
+            }}
+          >
+            <SelectTrigger
+              className="h-10 w-8 px-0 rounded-l-none border-l-0 justify-center [&>svg:last-child]:hidden"
+              style={{
+                backgroundColor: micEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+                color: 'var(--lk-text1, white)',
+                borderColor: 'var(--lk-bg3)',
+              }}
+            >
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+            </SelectTrigger>
+            <SelectContent>
+              {micDevices.map((device) => (
+                <SelectItem key={device.deviceId} value={device.deviceId}>
+                  {device.label || 'Microphone'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
 
-      {/* Camera Button */}
+      {/* Camera Button + Device Selector */}
       {controls.camera && (
-        <Button
-          {...cameraButtonProps}
-          variant={getButtonVariant(cameraEnabled)}
-          size="lg"
-          className={buttonClass}
-          disabled={cameraPending}
-          style={{
-            backgroundColor: cameraEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
-            color: 'var(--lk-text1, white)',
-            borderColor: 'var(--lk-bg3)',
-          }}
-        >
-          {cameraEnabled ? (
-            <Video className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text1, white)' }} />
-          ) : (
-            <VideoOff className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text2, #6b7280)' }} />
-          )}
-          {getButtonLabel('Camera', cameraEnabled, variation)}
-        </Button>
+        <div className="flex items-center">
+          <Button
+            {...cameraButtonProps}
+            variant={getButtonVariant(cameraEnabled)}
+            size="lg"
+            className={clsx(buttonClass, 'rounded-r-none border-r-0')}
+            disabled={cameraPending}
+            style={{
+              backgroundColor: cameraEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+              color: 'var(--lk-text1, white)',
+              borderColor: 'var(--lk-bg3)',
+            }}
+          >
+            {cameraEnabled ? (
+              <Video className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text1, white)' }} />
+            ) : (
+              <VideoOff className="h-[18px] w-[18px]" style={{ color: 'var(--lk-text2, #6b7280)' }} />
+            )}
+            {getButtonLabel('Camera', cameraEnabled, variation)}
+          </Button>
+          <Select
+            value={activeCameraId}
+            onValueChange={(id) => {
+              setActiveCamera(id);
+              try { localStorage.setItem(LS_VIDEO_DEVICE_KEY, id); } catch {}
+            }}
+          >
+            <SelectTrigger
+              className="h-10 w-8 px-0 rounded-l-none border-l-0 justify-center [&>svg:last-child]:hidden"
+              style={{
+                backgroundColor: cameraEnabled ? 'var(--lk-bg4)' : 'var(--lk-bg2)',
+                color: 'var(--lk-text1, white)',
+                borderColor: 'var(--lk-bg3)',
+              }}
+            >
+              <ChevronDown className="h-3.5 w-3.5 opacity-70" />
+            </SelectTrigger>
+            <SelectContent>
+              {cameraDevices.map((device) => (
+                <SelectItem key={device.deviceId} value={device.deviceId}>
+                  {device.label || 'Camera'}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
 
       {/* Screen Share Button */}

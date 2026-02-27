@@ -14,6 +14,23 @@ import {
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 import { Mic, MicOff, Camera, CameraOff, ChevronDown } from 'lucide-react';
 
+const LS_AUDIO_DEVICE_KEY = 'bayaan-preferred-audio-device';
+const LS_VIDEO_DEVICE_KEY = 'bayaan-preferred-video-device';
+
+function resolvePreferredDevice(
+  devices: MediaDeviceInfo[],
+  localStorageKey: string,
+): string {
+  if (devices.length === 0) return '';
+  try {
+    const saved = localStorage.getItem(localStorageKey);
+    if (saved && devices.some((d) => d.deviceId === saved)) return saved;
+  } catch {}
+  const osDefault = devices.find((d) => d.deviceId === 'default');
+  if (osDefault) return osDefault.deviceId;
+  return devices[0].deviceId;
+}
+
 interface CustomPreJoinProps {
   onSubmit: (values: {
     username: string;
@@ -126,7 +143,7 @@ export default function CustomPreJoin({
 
         // Set default video device OR auto-disable video if no camera found
         if (videoInputs.length > 0 && !videoDeviceId) {
-          setVideoDeviceId(videoInputs[0].deviceId);
+          setVideoDeviceId(resolvePreferredDevice(videoInputs, LS_VIDEO_DEVICE_KEY));
         } else if (videoInputs.length === 0) {
           // No camera found - automatically disable video
           setVideoEnabled(false);
@@ -134,7 +151,7 @@ export default function CustomPreJoin({
 
         // Set default audio device
         if (audioInputs.length > 0 && !audioDeviceId) {
-          setAudioDeviceId(audioInputs[0].deviceId);
+          setAudioDeviceId(resolvePreferredDevice(audioInputs, LS_AUDIO_DEVICE_KEY));
         }
       } catch (error) {
         console.error('Failed to enumerate devices:', error);
@@ -142,7 +159,8 @@ export default function CustomPreJoin({
     };
 
     getDevices();
-  }, [shouldHideMedia, audioDeviceId, videoDeviceId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldHideMedia]);
 
   // Initialize video track
   React.useEffect(() => {
@@ -221,6 +239,12 @@ export default function CustomPreJoin({
       onError?.(new Error('Please enter your name'));
       return;
     }
+
+    // Persist selected devices so they're remembered next visit
+    try {
+      if (videoDeviceId) localStorage.setItem(LS_VIDEO_DEVICE_KEY, videoDeviceId);
+      if (audioDeviceId) localStorage.setItem(LS_AUDIO_DEVICE_KEY, audioDeviceId);
+    } catch {}
 
     // Clean up tracks before submitting
     if (localVideoTrack) {
@@ -316,7 +340,10 @@ export default function CustomPreJoin({
           }}
         >
           {/* Microphone control */}
-          <Select value={audioDeviceId} onValueChange={setAudioDeviceId}>
+          <Select value={audioDeviceId} onValueChange={(id) => {
+            setAudioDeviceId(id);
+            try { localStorage.setItem(LS_AUDIO_DEVICE_KEY, id); } catch {}
+          }}>
             <SelectTrigger className="h-12 w-auto border-transparent hover:border-[#4b5563]/30">
               <div
                 role="button"
@@ -354,6 +381,9 @@ export default function CustomPreJoin({
                   <MicOff size={24} style={{ color: 'var(--lk-text2, #6b7280)' }} />
                 )}
               </div>
+              <span className="text-xs text-muted-foreground max-w-[120px] truncate">
+                {(audioDevices.find((d) => d.deviceId === audioDeviceId)?.label || 'Microphone').slice(0, 20)}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {audioDevices.map((device) => (
@@ -365,7 +395,10 @@ export default function CustomPreJoin({
           </Select>
 
           {/* Camera control */}
-          <Select value={videoDeviceId} onValueChange={setVideoDeviceId}>
+          <Select value={videoDeviceId} onValueChange={(id) => {
+            setVideoDeviceId(id);
+            try { localStorage.setItem(LS_VIDEO_DEVICE_KEY, id); } catch {}
+          }}>
             <SelectTrigger className="h-12 w-auto border-transparent hover:border-[#4b5563]/30">
               <div
                 role="button"
@@ -403,6 +436,9 @@ export default function CustomPreJoin({
                   <CameraOff size={24} style={{ color: 'var(--lk-text2, #6b7280)' }} />
                 )}
               </div>
+              <span className="text-xs text-muted-foreground max-w-[120px] truncate">
+                {(videoDevices.find((d) => d.deviceId === videoDeviceId)?.label || 'Camera').slice(0, 20)}
+              </span>
             </SelectTrigger>
             <SelectContent>
               {videoDevices.map((device) => (

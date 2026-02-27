@@ -68,6 +68,7 @@ export default function DashboardPage() {
       classroomCount={stats.classroomCount}
       recordingCount={stats.recordingCount}
       organizationName={profile.organization?.name || 'N/A'}
+      organizationSlug={profile.organization?.slug || ''}
       rooms={rooms}
     />
   );
