@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { generateRoomId } from '@/lib/client-utils';
 import { Classroom } from '@/lib/types';
 import { Video, ArrowRight } from 'lucide-react';
 
@@ -28,19 +27,13 @@ export function DashboardContent({
 }: DashboardContentProps) {
   const router = useRouter();
 
-  // Handler functions
+  // Handler functions - redirect to rooms page
   const startClassroom = () => {
-    const roomId = generateRoomId();
-    let url = `/rooms/${roomId}?classroom=true&role=teacher`;
-    if (organizationSlug) url += `&org=${encodeURIComponent(organizationSlug)}`;
-    router.push(url);
+    router.push('/dashboard/rooms');
   };
 
   const startSpeechSession = () => {
-    const roomId = generateRoomId();
-    let url = `/rooms/${roomId}?speech=true&role=teacher`;
-    if (organizationSlug) url += `&org=${encodeURIComponent(organizationSlug)}`;
-    router.push(url);
+    router.push('/dashboard/rooms');
   };
 
   const stats = [
@@ -185,20 +178,7 @@ export function DashboardContent({
                   <div
                     key={room.id}
                     className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
-                    onClick={() => {
-                      let url = `/rooms/${room.room_code}`;
-                      if (room.room_type === 'classroom') {
-                        url += '?classroom=true&role=teacher';
-                      } else if (room.room_type === 'speech') {
-                        url += '?speech=true&role=teacher';
-                      } else {
-                        url += '?role=teacher';
-                      }
-                      if (organizationSlug) {
-                        url += `&org=${encodeURIComponent(organizationSlug)}`;
-                      }
-                      router.push(url);
-                    }}
+                    onClick={() => router.push('/dashboard/rooms')}
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">

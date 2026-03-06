@@ -10,8 +10,9 @@ import {
   useConnectionQualityIndicator,
   useSpeakingParticipants,
   useLocalParticipant,
+  useRoomContext,
 } from '@livekit/components-react';
-import { Track, ConnectionQuality } from 'livekit-client';
+import { Track, ConnectionQuality, Room } from 'livekit-client';
 import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare } from 'lucide-react';
 import clsx from 'clsx';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
@@ -48,8 +49,23 @@ export function CustomParticipantTile({
   const isSpeaking = speakingParticipants.includes(participant);
 
   // Get local participant for reactive mic state
-  const { localParticipant, microphoneTrack } = useLocalParticipant();
+  const { localParticipant, microphoneTrack, cameraTrack } = useLocalParticipant();
   const isLocalParticipant = participant.identity === localParticipant?.identity;
+  const room = useRoomContext();
+
+  const toggleMic = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLocalParticipant) {
+      await room.localParticipant.setMicrophoneEnabled(!isAudioEnabled);
+    }
+  };
+
+  const toggleCamera = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isLocalParticipant) {
+      await room.localParticipant.setCameraEnabled(!isVideoEnabled);
+    }
+  };
 
   // Get video and audio tracks
   const videoTrack = trackRef.publication?.track;
@@ -150,7 +166,7 @@ export function CustomParticipantTile({
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
-          <VideoTrack trackRef={trackRef} className="absolute inset-0 w-full h-full object-cover" />
+          <VideoTrack trackRef={trackRef} mirror={false} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -221,35 +237,43 @@ export function CustomParticipantTile({
               {/* Media Status Icons */}
               <div className="flex items-center gap-2">
                 {/* Microphone Status */}
-                <div
-                  className="p-1.5 rounded-full"
+                <button
+                  className="p-1.5 rounded-full pointer-events-auto"
                   style={{
                     backgroundColor: isAudioEnabled ? 'var(--lk-bg3)' : '#ef4444',
+                    cursor: isLocalParticipant ? 'pointer' : 'default',
                   }}
-                  title={isAudioEnabled ? 'Microphone on' : 'Microphone off'}
+                  title={isLocalParticipant
+                    ? (isAudioEnabled ? 'Click to mute' : 'Click to unmute')
+                    : (isAudioEnabled ? 'Microphone on' : 'Microphone off')}
+                  onClick={isLocalParticipant ? toggleMic : undefined}
                 >
                   {isAudioEnabled ? (
                     <Mic className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
                   ) : (
                     <MicOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
                   )}
-                </div>
+                </button>
 
                 {/* Camera Status (only if not screen share) */}
                 {!isScreenShare && (
-                  <div
-                    className="p-1.5 rounded-full"
+                  <button
+                    className="p-1.5 rounded-full pointer-events-auto"
                     style={{
                       backgroundColor: isVideoEnabled ? 'var(--lk-bg3)' : '#ef4444',
+                      cursor: isLocalParticipant ? 'pointer' : 'default',
                     }}
-                    title={isVideoEnabled ? 'Camera on' : 'Camera off'}
+                    title={isLocalParticipant
+                      ? (isVideoEnabled ? 'Click to turn off camera' : 'Click to turn on camera')
+                      : (isVideoEnabled ? 'Camera on' : 'Camera off')}
+                    onClick={isLocalParticipant ? toggleCamera : undefined}
                   >
                     {isVideoEnabled ? (
                       <Video className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
                     ) : (
                       <VideoOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
                     )}
-                  </div>
+                  </button>
                 )}
               </div>
 
