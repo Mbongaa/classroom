@@ -56,7 +56,8 @@
       "Bash(pnpm build:*)",
       "Bash(gh api:*)",
       "Bash(python3:*)",
-      "Bash(git diff:*)"
+      "Bash(git diff:*)",
+      "Bash(node -e:*)"
     ],
     "deny": [],
     "ask": []

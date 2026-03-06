@@ -40,14 +40,14 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   const [roomCode, setRoomCode] = useState('');
   const [roomType, setRoomType] = useState<RoomType>('classroom');
   const [teacherName, setTeacherName] = useState('');
-  const [language, setLanguage] = useState('en'); // Default to English
+  const [language, setLanguage] = useState('ar'); // Default to Arabic Fusha
   const [description, setDescription] = useState('');
   const [translationPromptId, setTranslationPromptId] = useState<string | null>(null);
 
   // Advanced STT settings
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [contextWindowSize, setContextWindowSize] = useState(12);
-  const [maxDelay, setMaxDelay] = useState(3.5);
+  const [maxDelay, setMaxDelay] = useState(2.5);
   const [punctuationSensitivity, setPunctuationSensitivity] = useState(0.5);
 
   // Templates for auto-selection
@@ -94,12 +94,12 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
     setRoomCode('');
     setRoomType('classroom');
     setTeacherName('');
-    setLanguage('en');
+    setLanguage('ar');
     setDescription('');
     setTranslationPromptId(null);
     setShowAdvanced(false);
     setContextWindowSize(12);
-    setMaxDelay(3.5);
+    setMaxDelay(2.5);
     setPunctuationSensitivity(0.5);
     setError('');
   };
@@ -243,9 +243,9 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
               </div>
             )}
 
-            {/* Language (optional) */}
+            {/* Speaker Language (optional) */}
             <div className="grid gap-2">
-              <Label htmlFor="language">Language (Optional)</Label>
+              <Label htmlFor="language">Speaker Language (e.g. Arabic Fusha)</Label>
               <PreJoinLanguageSelect
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}

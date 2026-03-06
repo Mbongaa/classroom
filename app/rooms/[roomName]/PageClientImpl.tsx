@@ -352,6 +352,10 @@ function VideoConferenceComponent(props: {
     props.connectionDetails
   );
 
+  // Guards to prevent duplicate connection and session creation on effect reruns
+  const isConnectingRef = React.useRef(false);
+  const sessionCreatedRef = React.useRef(false);
+
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
     if (e2eeEnabled && (videoCodec === 'av1' || videoCodec === 'vp9')) {
@@ -435,11 +439,13 @@ function VideoConferenceComponent(props: {
 
     room.on(RoomEvent.Reconnecting, handleReconnecting);
     room.on(RoomEvent.Reconnected, handleReconnected);
-    room.on(RoomEvent.Disconnected, handleOnLeave);
+    // NOTE: RoomEvent.Disconnected is handled EXCLUSIVELY by the reconnect effect below
+    // to avoid a race condition where handleOnLeave navigates away before reconnection can be attempted
     room.on(RoomEvent.EncryptionError, handleEncryptionError);
     room.on(RoomEvent.MediaDevicesError, handleError);
 
-    if (e2eeSetupComplete) {
+    if (e2eeSetupComplete && !isConnectingRef.current) {
+      isConnectingRef.current = true;
       // Helper function to connect with retry logic for clock skew issues
       const connectWithRetry = async (attempt = 1): Promise<void> => {
         try {
@@ -540,76 +546,79 @@ function VideoConferenceComponent(props: {
           }
 
           // Initialize session for transcript saving AFTER language is set
-          try {
-            // CRITICAL: Wait for the real LiveKit room SID
-            // This is the unique identifier for this specific room instance
-            const realRoomSid = await room.getSid();
-            console.log('[Session Create] Got real LiveKit room SID:', realRoomSid);
+          // Guard: only create session once per mount to prevent duplicate sessions
+          // that cause triple connect cycles breaking the Bayaan agent's audio pipeline
+          if (!sessionCreatedRef.current) {
+            sessionCreatedRef.current = true;
+            try {
+              // CRITICAL: Wait for the real LiveKit room SID
+              // This is the unique identifier for this specific room instance
+              const realRoomSid = await room.getSid();
+              console.log('[Session Create] Got real LiveKit room SID:', realRoomSid);
 
-            const participantName =
-              room.localParticipant?.identity ||
-              room.localParticipant?.name ||
-              props.userChoices.username;
-            console.log(
-              '[Session Create] Creating/joining session for room:',
-              room.name,
-              'roomSid:',
-              realRoomSid,
-              'participant:',
-              participantName,
-            );
+              const participantName =
+                room.localParticipant?.identity ||
+                room.localParticipant?.name ||
+                props.userChoices.username;
+              console.log(
+                '[Session Create] Creating/joining session for room:',
+                room.name,
+                'roomSid:',
+                realRoomSid,
+                'participant:',
+                participantName,
+              );
 
-            // Generate session ID only once and store in state
-            let sessionIdValue = sessionId;
-            if (!sessionIdValue) {
-              sessionIdValue = generateSessionId(props.roomName);
+              // Generate session ID fresh (guard ensures this runs only once)
+              const sessionIdValue = generateSessionId(props.roomName);
               setSessionId(sessionIdValue);
               console.log('[Session Create] Generated new sessionId:', sessionIdValue);
-            }
 
-            const response = await fetch('/api/sessions/create', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                roomName: props.roomName,
-                roomSid: realRoomSid, // Use the actual LiveKit room SID
-                sessionId: sessionIdValue,
-              }),
-            });
+              const response = await fetch('/api/sessions/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  roomName: props.roomName,
+                  roomSid: realRoomSid, // Use the actual LiveKit room SID
+                  sessionId: sessionIdValue,
+                }),
+              });
 
-            if (response.ok) {
-              const data = await response.json();
-              // IMPORTANT: Use the session_id from the database
-              // This ensures all participants use the same session_id
-              if (data.existed) {
-                // Session already existed - use its session_id
-                setSessionId(data.session.session_id);
-                console.log(
-                  '[Session Create] Joined existing session:',
-                  data.session.session_id,
-                  'for room_sid:',
-                  realRoomSid,
-                );
+              if (response.ok) {
+                const data = await response.json();
+                // IMPORTANT: Use the session_id from the database
+                // This ensures all participants use the same session_id
+                if (data.existed) {
+                  // Session already existed - use its session_id
+                  setSessionId(data.session.session_id);
+                  console.log(
+                    '[Session Create] Joined existing session:',
+                    data.session.session_id,
+                    'for room_sid:',
+                    realRoomSid,
+                  );
+                } else {
+                  // New session was created with our generated session_id
+                  console.log(
+                    '[Session Create] Created new session:',
+                    data.session.session_id,
+                    'for room_sid:',
+                    realRoomSid,
+                  );
+                }
+                // Set the session start time for child components
+                setSessionStartTime(Date.now());
               } else {
-                // New session was created with our generated session_id
-                console.log(
-                  '[Session Create] Created new session:',
-                  data.session.session_id,
-                  'for room_sid:',
-                  realRoomSid,
-                );
+                console.error('[Session Create] Failed to create session:', await response.text());
+                // Still set start time even if session creation fails (allows local operation)
+                setSessionStartTime(Date.now());
               }
-              // Set the session start time for child components
-              setSessionStartTime(Date.now());
-            } else {
-              console.error('[Session Create] Failed to create session:', await response.text());
+            } catch (error) {
+              sessionCreatedRef.current = false; // Allow retry on error
+              console.error('[Session Create] Error creating session:', error);
               // Still set start time even if session creation fails (allows local operation)
               setSessionStartTime(Date.now());
             }
-          } catch (error) {
-            console.error('[Session Create] Error creating session:', error);
-            // Still set start time even if session creation fails (allows local operation)
-            setSessionStartTime(Date.now());
           }
 
           // Check if user is a student by parsing the token or checking URL
@@ -644,13 +653,13 @@ function VideoConferenceComponent(props: {
           }
         })
         .catch((error) => {
+          isConnectingRef.current = false;
           handleError(error);
         });
     }
     return () => {
       room.off(RoomEvent.Reconnecting, handleReconnecting);
       room.off(RoomEvent.Reconnected, handleReconnected);
-      room.off(RoomEvent.Disconnected, handleOnLeave);
       room.off(RoomEvent.EncryptionError, handleEncryptionError);
       room.off(RoomEvent.MediaDevicesError, handleError);
     };
@@ -659,16 +668,18 @@ function VideoConferenceComponent(props: {
     room,
     props.connectionDetails,
     props.userChoices,
-    setSessionId,
     connectOptions,
     handleEncryptionError,
     handleError,
-    handleOnLeave,
     props.classroomRole,
     props.roomName,
     props.selectedLanguage,
     props.selectedTranslationLanguage,
-    sessionId,
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sessionId intentionally excluded:
+    // setSessionId() inside this effect must NOT trigger a rerun, as that causes
+    // room.connect() to fire again on an already-connected room, breaking translations.
+    // handleOnLeave intentionally excluded: Disconnected event is handled exclusively
+    // by the reconnect effect below to prevent race conditions.
   ]);
 
   // Token refresh mechanism - proactively refresh token before it expires
@@ -727,30 +738,36 @@ function VideoConferenceComponent(props: {
     return () => clearTimeout(refreshTimer);
   }, [connectionTime, room, props.roomName, props.userChoices.username]);
 
-  // Handle reconnection with fresh token
+  // SINGLE owner of RoomEvent.Disconnected — handles both intentional leave and reconnection.
+  // This effect is the ONLY place that listens for Disconnected to avoid race conditions
+  // where handleOnLeave navigates away before a reconnection attempt can be made.
   React.useEffect(() => {
     if (!room) return;
 
     const handleDisconnected = async (reason?: DisconnectReason) => {
-      console.log('[Token Refresh] Disconnected, reason:', reason);
+      console.log('[Disconnect Handler] Disconnected, reason:', reason);
 
-      // If we have a fresh token and the disconnect wasn't intentional, attempt reconnect
-      // DisconnectReason.CLIENT_INITIATED means user clicked leave
-      if (latestConnectionDetails && reason !== DisconnectReason.CLIENT_INITIATED) {
-        console.log('[Token Refresh] Attempting reconnect with fresh token...');
-        try {
-          await room.connect(
-            latestConnectionDetails.serverUrl,
-            latestConnectionDetails.participantToken,
-            connectOptions
-          );
-          setConnectionTime(Date.now());
-          console.log('[Token Refresh] ✅ Reconnected successfully with fresh token');
-        } catch (error) {
-          console.error('[Token Refresh] ❌ Reconnection failed:', error);
-          // Fall through to normal disconnect handling
-          handleOnLeave();
-        }
+      // User clicked leave → go home immediately
+      if (reason === DisconnectReason.CLIENT_INITIATED) {
+        console.log('[Disconnect Handler] Client-initiated disconnect, navigating home');
+        handleOnLeave();
+        return;
+      }
+
+      // Non-intentional disconnect (network drop, token expiry, server kick)
+      // → try reconnect with current token before giving up
+      console.log('[Disconnect Handler] Non-intentional disconnect, attempting reconnect...');
+      try {
+        await room.connect(
+          latestConnectionDetails.serverUrl,
+          latestConnectionDetails.participantToken,
+          connectOptions
+        );
+        setConnectionTime(Date.now());
+        console.log('[Disconnect Handler] Reconnected successfully');
+      } catch (error) {
+        console.error('[Disconnect Handler] Reconnection failed:', error);
+        handleOnLeave();
       }
     };
 

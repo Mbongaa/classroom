@@ -14,6 +14,12 @@ import {
 // Language options organized by region
 const LANGUAGES_BY_REGION = [
   {
+    region: 'Popular',
+    items: [
+      { value: 'ar', label: 'العربية الفصحى (Arabic Fusha)', flag: '🇸🇦' },
+    ],
+  },
+  {
     region: 'Americas',
     items: [
       { value: 'en', label: 'English', flag: '🇺🇸' },
@@ -39,7 +45,6 @@ const LANGUAGES_BY_REGION = [
   {
     region: 'Middle East',
     items: [
-      { value: 'ar', label: 'العربية الفصحى (Arabic Fusha)', flag: '🇸🇦' },
       { value: 'ar-mixed', label: 'عربي مختلط (Arabic Mixed)', flag: '🇸🇦' },
       { value: 'ar-darija', label: 'الدارجة (Moroccan Arabic)', flag: '🇲🇦' },
     ],
