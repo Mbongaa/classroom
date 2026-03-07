@@ -12,7 +12,7 @@ import {
   useLocalParticipant,
   useRoomContext,
 } from '@livekit/components-react';
-import { Track, ConnectionQuality, Room } from 'livekit-client';
+import { Track, ConnectionQuality } from 'livekit-client';
 import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare } from 'lucide-react';
 import clsx from 'clsx';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
@@ -166,7 +166,7 @@ export function CustomParticipantTile({
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
-          <VideoTrack trackRef={trackRef} mirror={false} className="absolute inset-0 w-full h-full object-cover" />
+          <VideoTrack trackRef={trackRef} className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"

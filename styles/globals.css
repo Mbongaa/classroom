@@ -309,6 +309,11 @@ h2 a {
   }
 }
 
+/* Disable LiveKit's default local camera mirror/flip */
+[data-lk-facing-mode=user] .lk-participant-media-video[data-lk-local-participant=true][data-lk-source=camera] {
+  transform: none !important;
+}
+
 /* Override LiveKit theme colors for darker appearance */
 [data-lk-theme=default] {
   --lk-bg: #000000 !important; /* Pure black background */
