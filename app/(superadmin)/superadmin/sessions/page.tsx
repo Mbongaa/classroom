@@ -254,7 +254,10 @@ export default function SuperadminSessionsPage() {
               </TableRow>
             ) : (
               paginatedSessions.map((session, idx) => (
-                <TableRow key={session.id ?? `live-${idx}`}>
+                <TableRow
+                  key={session.id ?? `live-${idx}`}
+                  className={session.ended_at === null ? 'bg-green-500/10 hover:bg-green-500/15' : ''}
+                >
                   <TableCell className="text-center">
                     {session.ended_at === null ? (
                       <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">

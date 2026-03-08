@@ -24,7 +24,7 @@ export async function GET() {
   }
 
   // Fetch live rooms from LiveKit for participant counts
-  let liveRooms: { name: string; numParticipants: number; creationTime: number }[] = [];
+  let liveRooms: { name: string; sid: string; numParticipants: number; creationTime: number }[] = [];
 
   if (LIVEKIT_URL && LIVEKIT_API_KEY && LIVEKIT_API_SECRET) {
     try {
@@ -32,6 +32,7 @@ export async function GET() {
       const rooms = await roomService.listRooms();
       liveRooms = rooms.map((r) => ({
         name: r.name,
+        sid: r.sid,
         numParticipants: r.numParticipants,
         creationTime: Number(r.creationTime) * 1000, // Convert to ms
       }));
@@ -58,7 +59,9 @@ export async function GET() {
 
   // Also include any LiveKit rooms that don't have a DB session
   for (const liveRoom of liveRooms) {
-    const hasDbSession = (dbSessions ?? []).some((s: any) => s.room_name === liveRoom.name);
+    const hasDbSession = (dbSessions ?? []).some(
+      (s: any) => s.room_name === liveRoom.name || s.room_sid === liveRoom.sid
+    );
     if (!hasDbSession) {
       sessions.push({
         id: null,
