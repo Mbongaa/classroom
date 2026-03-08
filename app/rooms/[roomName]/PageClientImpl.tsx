@@ -352,6 +352,12 @@ function VideoConferenceComponent(props: {
     props.connectionDetails
   );
 
+  // Track latest orgSlug via ref to avoid stale closure in connect effect
+  const orgSlugRef = React.useRef(props.orgSlug);
+  React.useEffect(() => {
+    orgSlugRef.current = props.orgSlug;
+  }, [props.orgSlug]);
+
   // Guards to prevent duplicate connection and session creation on effect reruns
   const isConnectingRef = React.useRef(false);
   const sessionCreatedRef = React.useRef(false);
@@ -581,7 +587,7 @@ function VideoConferenceComponent(props: {
                   roomName: props.roomName,
                   roomSid: realRoomSid, // Use the actual LiveKit room SID
                   sessionId: sessionIdValue,
-                  orgSlug: orgSlug || undefined, // Link session to organization
+                  orgSlug: orgSlugRef.current || undefined, // Link session to organization (use ref to avoid stale closure)
                 }),
               });
 
