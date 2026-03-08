@@ -38,7 +38,7 @@ const navigation = [
     icon: IconBuilding,
   },
   {
-    label: 'Active Sessions',
+    label: 'Sessions',
     href: '/superadmin/sessions',
     icon: IconVideo,
   },

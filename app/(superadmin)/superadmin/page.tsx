@@ -79,8 +79,8 @@ export default function SuperadminOverviewPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Platform Overview</h1>
-        <p className="text-muted-foreground">Monitor platform-wide metrics and activity.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-black dark:text-white">Platform Overview</h1>
+        <p className="text-slate-500 dark:text-slate-400">Monitor platform-wide metrics and activity.</p>
       </div>
 
       {error && (
@@ -100,7 +100,7 @@ export default function SuperadminOverviewPage() {
               {loading ? (
                 <Skeleton className="h-8 w-20" />
               ) : (
-                <div className="text-2xl font-bold">{card.value ?? 0}</div>
+                <div className="text-2xl font-bold text-black dark:text-white">{card.value ?? 0}</div>
               )}
             </CardContent>
           </Card>

@@ -13,11 +13,10 @@ export async function GET() {
 
   const supabaseAdmin = createAdminClient();
 
-  // Fetch active sessions with their organization (direct FK relationship)
+  // Fetch all sessions with their organization (direct FK relationship)
   const { data: dbSessions, error } = await supabaseAdmin
     .from('sessions')
-    .select('id, room_sid, room_name, session_id, started_at, organization_id, organizations(name)')
-    .is('ended_at', null)
+    .select('id, room_sid, room_name, session_id, started_at, ended_at, organization_id, organizations(name)')
     .order('started_at', { ascending: false });
 
   if (error) {
@@ -52,6 +51,7 @@ export async function GET() {
       room_name: session.room_name,
       session_id: session.session_id,
       started_at: session.started_at,
+      ended_at: session.ended_at,
       organization: org?.name ?? null,
     };
   });
@@ -65,6 +65,7 @@ export async function GET() {
         room_name: liveRoom.name,
         session_id: null,
         started_at: new Date(liveRoom.creationTime).toISOString(),
+        ended_at: null,
         organization: null,
       });
     }
