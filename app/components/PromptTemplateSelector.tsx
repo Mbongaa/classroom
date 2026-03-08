@@ -10,9 +10,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Eye, EyeOff } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { previewPrompt } from '@/lib/prompt-utils';
 import type { PromptTemplate } from '@/lib/prompt-utils';
 
 interface PromptTemplateSelectorProps {
@@ -28,7 +25,6 @@ export function PromptTemplateSelector({
 }: PromptTemplateSelectorProps) {
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<PromptTemplate | null>(null);
 
   useEffect(() => {
@@ -69,29 +65,7 @@ export function PromptTemplateSelector({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between">
-        <Label htmlFor="prompt-template">Translation Prompt Template (Optional)</Label>
-        {selectedTemplate && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowPreview(!showPreview)}
-          >
-            {showPreview ? (
-              <>
-                <EyeOff className="h-4 w-4 mr-1" />
-                Hide Preview
-              </>
-            ) : (
-              <>
-                <Eye className="h-4 w-4 mr-1" />
-                Show Preview
-              </>
-            )}
-          </Button>
-        )}
-      </div>
+      <Label htmlFor="prompt-template">Translation Prompt Template (Optional)</Label>
 
       <Select
         value={value || 'none'}
@@ -128,31 +102,6 @@ export function PromptTemplateSelector({
         </p>
       )}
 
-      {showPreview && selectedTemplate && (
-        <div className="p-4 bg-muted rounded-md space-y-3 mt-2">
-          <div>
-            <h4 className="text-sm font-medium mb-1">Template Text:</h4>
-            <div className="p-2 bg-background rounded text-xs font-mono whitespace-pre-wrap">
-              {selectedTemplate.prompt_text}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium mb-1">Preview (Arabic → Spanish):</h4>
-            <div className="p-2 bg-background rounded text-sm">
-              {previewPrompt(selectedTemplate.prompt_text, 'Arabic', 'Spanish')}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-sm font-medium mb-1">Preview (Arabic → French):</h4>
-            <div className="p-2 bg-background rounded text-sm">
-              {previewPrompt(selectedTemplate.prompt_text, 'Arabic', 'French')}
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground italic">
-            This template will work for any language students select in the lobby.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
