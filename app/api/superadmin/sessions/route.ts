@@ -13,10 +13,10 @@ export async function GET() {
 
   const supabaseAdmin = createAdminClient();
 
-  // Fetch active sessions from database (ended_at IS NULL)
+  // Fetch active sessions with their organization (direct FK relationship)
   const { data: dbSessions, error } = await supabaseAdmin
     .from('sessions')
-    .select('id, room_sid, room_name, session_id, started_at')
+    .select('id, room_sid, room_name, session_id, started_at, organization_id, organizations(name)')
     .is('ended_at', null)
     .order('started_at', { ascending: false });
 
@@ -44,19 +44,19 @@ export async function GET() {
   // Create a map of LiveKit rooms by name
   const liveRoomMap = new Map(liveRooms.map((r) => [r.name, r]));
 
-  // Merge DB sessions with live participant data
+  // Merge DB sessions with live data
   const sessions = (dbSessions ?? []).map((session: any) => {
-    const liveRoom = liveRoomMap.get(session.room_name);
+    const org = session.organizations as { name: string } | null;
     return {
       id: session.id,
       room_name: session.room_name,
       session_id: session.session_id,
       started_at: session.started_at,
-      num_participants: liveRoom?.numParticipants ?? 0,
+      organization: org?.name ?? null,
     };
   });
 
-  // Also include any LiveKit rooms that don't have a DB session (e.g., rooms created without sessions API)
+  // Also include any LiveKit rooms that don't have a DB session
   for (const liveRoom of liveRooms) {
     const hasDbSession = (dbSessions ?? []).some((s: any) => s.room_name === liveRoom.name);
     if (!hasDbSession) {
@@ -65,7 +65,7 @@ export async function GET() {
         room_name: liveRoom.name,
         session_id: null,
         started_at: new Date(liveRoom.creationTime).toISOString(),
-        num_participants: liveRoom.numParticipants,
+        organization: null,
       });
     }
   }

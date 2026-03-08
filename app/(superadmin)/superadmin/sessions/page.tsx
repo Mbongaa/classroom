@@ -19,7 +19,7 @@ interface ActiveSession {
   room_name: string;
   session_id: string | null;
   started_at: string;
-  num_participants: number;
+  organization: string | null;
 }
 
 function formatDuration(startedAt: string): string {
@@ -108,7 +108,7 @@ export default function SuperadminSessionsPage() {
             <TableRow>
               <TableHead>Room Name</TableHead>
               <TableHead>Session ID</TableHead>
-              <TableHead className="text-right">Participants</TableHead>
+              <TableHead>Organization</TableHead>
               <TableHead>Started At</TableHead>
               <TableHead>Duration</TableHead>
             </TableRow>
@@ -141,10 +141,12 @@ export default function SuperadminSessionsPage() {
                       </Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant={session.num_participants > 0 ? 'default' : 'secondary'}>
-                      {session.num_participants}
-                    </Badge>
+                  <TableCell>
+                    {session.organization ? (
+                      <Badge variant="outline">{session.organization}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">Unlinked</span>
+                    )}
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {new Date(session.started_at).toLocaleString()}

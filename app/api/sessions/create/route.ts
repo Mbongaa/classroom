@@ -10,7 +10,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { roomName, roomSid, sessionId } = body;
+    const { roomName, roomSid, sessionId, orgSlug } = body;
 
     if (!roomName || !roomSid || !sessionId) {
       return NextResponse.json(
@@ -23,6 +23,17 @@ export async function POST(request: NextRequest) {
     // Format: "MATH101_2025-01-31_14-30"
 
     const supabase = createAdminClient();
+
+    // Resolve organization ID from slug (if provided)
+    let organizationId: string | null = null;
+    if (orgSlug) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('id')
+        .eq('slug', orgSlug)
+        .single();
+      organizationId = org?.id ?? null;
+    }
 
     // CRITICAL: Check if session already exists for this LiveKit room instance
     // The room_sid is the unique identifier for this specific room instance
@@ -58,6 +69,7 @@ export async function POST(request: NextRequest) {
         room_name: roomName,
         session_id: sessionId,
         started_at: new Date().toISOString(),
+        ...(organizationId && { organization_id: organizationId }),
       })
       .select()
       .single();

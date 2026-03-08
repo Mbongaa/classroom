@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { WebhookReceiver } from 'livekit-server-sdk';
 import { updateRecording, getRecordingByEgressId } from '@/lib/recording-utils';
+import { createAdminClient } from '@/lib/supabase/admin';
 
 // LiveKit credentials for webhook signature validation
 const LIVEKIT_API_KEY = process.env.LIVEKIT_API_KEY;
@@ -128,9 +129,45 @@ export async function POST(request: NextRequest) {
     console.log(JSON.stringify(event, null, 2));
     console.log('========================================');
 
-    const { egressInfo, event: eventType } = event;
+    const { egressInfo, event: eventType, room } = event;
 
-    // Ignore non-egress events (participant_joined, room_started, etc.)
+    // Handle room_finished event — close the session in the database
+    if (eventType === 'room_finished' && room) {
+      console.log(`[LiveKit Webhook] Room finished: ${room.name} (SID: ${room.sid})`);
+      const supabase = createAdminClient();
+
+      // Match by room_sid (the unique LiveKit room instance identifier)
+      const { data, error } = await supabase
+        .from('sessions')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('room_sid', room.sid)
+        .is('ended_at', null)
+        .select('id, session_id');
+
+      if (error) {
+        console.error('[LiveKit Webhook] Failed to end session:', error);
+      } else if (data && data.length > 0) {
+        console.log(`[LiveKit Webhook] Ended ${data.length} session(s):`, data.map((s: any) => s.session_id));
+      } else {
+        // Fallback: try matching by room_name for sessions that may not have room_sid
+        const { data: fallbackData } = await supabase
+          .from('sessions')
+          .update({ ended_at: new Date().toISOString() })
+          .eq('room_name', room.name)
+          .is('ended_at', null)
+          .select('id, session_id');
+
+        if (fallbackData && fallbackData.length > 0) {
+          console.log(`[LiveKit Webhook] Ended ${fallbackData.length} session(s) via room_name fallback:`, fallbackData.map((s: any) => s.session_id));
+        } else {
+          console.log(`[LiveKit Webhook] No active session found for room: ${room.name} (SID: ${room.sid})`);
+        }
+      }
+
+      return NextResponse.json({ success: true, message: 'Room finished processed' });
+    }
+
+    // Ignore other non-egress events (participant_joined, room_started, etc.)
     if (!egressInfo) {
       console.log(`[LiveKit Webhook] Ignoring non-egress event: ${eventType}`);
       return NextResponse.json({ message: 'Non-egress event ignored' }, { status: 200 });

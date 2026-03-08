@@ -581,6 +581,7 @@ function VideoConferenceComponent(props: {
                   roomName: props.roomName,
                   roomSid: realRoomSid, // Use the actual LiveKit room SID
                   sessionId: sessionIdValue,
+                  orgSlug: orgSlug || undefined, // Link session to organization
                 }),
               });
 
