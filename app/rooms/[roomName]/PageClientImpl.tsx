@@ -362,6 +362,9 @@ function VideoConferenceComponent(props: {
   const isConnectingRef = React.useRef(false);
   const sessionCreatedRef = React.useRef(false);
 
+  // Guard against re-entry in disconnect handler (prevents infinite reconnection loop)
+  const isReconnectingRef = React.useRef(false);
+
   // Track sessionId via ref so disconnect/unload handlers read the latest value
   const sessionIdRef = React.useRef<string>('');
   React.useEffect(() => {
@@ -754,6 +757,11 @@ function VideoConferenceComponent(props: {
   // SINGLE owner of RoomEvent.Disconnected — handles both intentional leave and reconnection.
   // This effect is the ONLY place that listens for Disconnected to avoid race conditions
   // where handleOnLeave navigates away before a reconnection attempt can be made.
+  //
+  // FIX (Mar 2026): Fetches a FRESH token before reconnecting and uses isReconnectingRef
+  // to prevent infinite reconnection loops. Previously, a failed room.connect() inside
+  // this handler would emit another Disconnected event, causing re-entry and 10+ retries
+  // with the same invalid token.
   React.useEffect(() => {
     if (!room) return;
 
@@ -779,19 +787,49 @@ function VideoConferenceComponent(props: {
         return;
       }
 
-      // Non-intentional disconnect (network drop, token expiry, server kick)
-      // → try reconnect with current token before giving up
-      console.log('[Disconnect Handler] Non-intentional disconnect, attempting reconnect...');
+      // Guard against re-entry (prevents infinite loop when connect() fails
+      // and emits another Disconnected event before we can navigate away)
+      if (isReconnectingRef.current) {
+        console.log('[Disconnect Handler] Already reconnecting, skipping re-entry');
+        return;
+      }
+      isReconnectingRef.current = true;
+
+      // Fetch a FRESH token before attempting reconnection — the old token
+      // may have been rejected by LiveKit Cloud (transient 401, expiry, etc.)
+      console.log('[Disconnect Handler] Fetching fresh token for reconnection...');
       try {
-        await room.connect(
-          latestConnectionDetails.serverUrl,
-          latestConnectionDetails.participantToken,
-          connectOptions
-        );
+        const url = new URL(CONN_DETAILS_ENDPOINT, window.location.origin);
+        url.searchParams.append('roomName', props.roomName);
+        url.searchParams.append('participantName', props.userChoices.username);
+
+        const currentUrl = new URL(window.location.href);
+        const isClassroom = currentUrl.searchParams.get('classroom');
+        const isSpeech = currentUrl.searchParams.get('speech');
+        const role = currentUrl.searchParams.get('role');
+        const urlOrg = currentUrl.searchParams.get('org');
+
+        if (isClassroom) url.searchParams.append('classroom', isClassroom);
+        if (isSpeech) url.searchParams.append('speech', isSpeech);
+        if (role) url.searchParams.append('role', role);
+        if (urlOrg) url.searchParams.append('org', urlOrg);
+
+        const response = await fetch(url.toString());
+        if (!response.ok) {
+          throw new Error(`Token fetch failed: ${response.status}`);
+        }
+
+        const freshDetails = await response.json();
+        setLatestConnectionDetails(freshDetails);
+
+        console.log('[Disconnect Handler] Reconnecting with fresh token...');
+        await room.connect(freshDetails.serverUrl, freshDetails.participantToken, connectOptions);
         setConnectionTime(Date.now());
         console.log('[Disconnect Handler] Reconnected successfully');
+        isReconnectingRef.current = false;
       } catch (error) {
         console.error('[Disconnect Handler] Reconnection failed:', error);
+        isReconnectingRef.current = false;
         endSessionIfActive();
         handleOnLeave();
       }
@@ -802,7 +840,7 @@ function VideoConferenceComponent(props: {
     return () => {
       room.off(RoomEvent.Disconnected, handleDisconnected);
     };
-  }, [room, latestConnectionDetails, connectOptions, handleOnLeave]);
+  }, [room, connectOptions, handleOnLeave, props.roomName, props.userChoices.username]);
 
   // End session via sendBeacon when user closes/navigates away from the tab.
   // sendBeacon survives page unload (unlike fetch). Both events for cross-browser coverage.
