@@ -105,14 +105,15 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   // Use admin client for initial setup (bypasses RLS)
   const supabaseAdmin = createAdminClient();
 
-  // Create organization with 'incomplete' subscription status
+  // Create organization - beta gets active status immediately, pro starts as incomplete
+  const isBeta = plan === 'beta';
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .insert({
       name: orgName,
       slug: orgSlug,
-      subscription_status: 'incomplete',
-      subscription_tier: 'free', // Will be updated by webhook after payment
+      subscription_status: isBeta ? 'active' : 'incomplete',
+      subscription_tier: isBeta ? 'beta' : 'free',
     })
     .select()
     .single();
@@ -146,21 +147,8 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     return { success: false, error: `Failed to add organization member: ${memberError.message}` };
   }
 
-  // Handle Beta plan - skip Stripe, activate immediately
+  // Handle Beta plan - already created with active status, just redirect
   if (plan === 'beta') {
-    const { error: betaUpdateError } = await supabaseAdmin
-      .from('organizations')
-      .update({
-        subscription_status: 'active',
-        subscription_tier: 'beta',
-      })
-      .eq('id', org.id);
-
-    if (betaUpdateError) {
-      console.error('[Signup] Failed to activate beta plan:', betaUpdateError);
-      return { success: false, error: 'Failed to activate beta plan. Please try again.' };
-    }
-
     revalidatePath('/', 'layout');
     return {
       success: true,
