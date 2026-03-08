@@ -362,6 +362,12 @@ function VideoConferenceComponent(props: {
   const isConnectingRef = React.useRef(false);
   const sessionCreatedRef = React.useRef(false);
 
+  // Track sessionId via ref so disconnect/unload handlers read the latest value
+  const sessionIdRef = React.useRef<string>('');
+  React.useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
+
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
     if (e2eeEnabled && (videoCodec === 'av1' || videoCodec === 'vp9')) {
@@ -751,12 +757,24 @@ function VideoConferenceComponent(props: {
   React.useEffect(() => {
     if (!room) return;
 
+    // Fire-and-forget: mark the session as ended in Supabase
+    const endSessionIfActive = () => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      fetch('/api/sessions/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: sid }),
+      }).catch((err) => console.warn('[Session End] Failed to end session:', err));
+    };
+
     const handleDisconnected = async (reason?: DisconnectReason) => {
       console.log('[Disconnect Handler] Disconnected, reason:', reason);
 
-      // User clicked leave → go home immediately
+      // User clicked leave → end session and go home immediately
       if (reason === DisconnectReason.CLIENT_INITIATED) {
         console.log('[Disconnect Handler] Client-initiated disconnect, navigating home');
+        endSessionIfActive();
         handleOnLeave();
         return;
       }
@@ -774,6 +792,7 @@ function VideoConferenceComponent(props: {
         console.log('[Disconnect Handler] Reconnected successfully');
       } catch (error) {
         console.error('[Disconnect Handler] Reconnection failed:', error);
+        endSessionIfActive();
         handleOnLeave();
       }
     };
@@ -784,6 +803,26 @@ function VideoConferenceComponent(props: {
       room.off(RoomEvent.Disconnected, handleDisconnected);
     };
   }, [room, latestConnectionDetails, connectOptions, handleOnLeave]);
+
+  // End session via sendBeacon when user closes/navigates away from the tab.
+  // sendBeacon survives page unload (unlike fetch). Both events for cross-browser coverage.
+  // Safe to fire both since the API is idempotent (.is('ended_at', null) guard).
+  React.useEffect(() => {
+    const handlePageUnload = () => {
+      const sid = sessionIdRef.current;
+      if (!sid) return;
+      navigator.sendBeacon(
+        '/api/sessions/end',
+        new Blob([JSON.stringify({ sessionId: sid })], { type: 'application/json' }),
+      );
+    };
+    window.addEventListener('pagehide', handlePageUnload);
+    window.addEventListener('beforeunload', handlePageUnload);
+    return () => {
+      window.removeEventListener('pagehide', handlePageUnload);
+      window.removeEventListener('beforeunload', handlePageUnload);
+    };
+  }, []);
 
   const lowPowerMode = useLowCPUOptimizer(room);
 
