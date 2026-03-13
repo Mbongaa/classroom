@@ -113,7 +113,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
       name: orgName,
       slug: orgSlug,
       subscription_status: isBeta ? 'active' : 'incomplete',
-      subscription_tier: isBeta ? 'beta' : 'free',
+      subscription_tier: 'free',
     })
     .select()
     .single();
