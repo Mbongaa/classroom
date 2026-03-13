@@ -53,27 +53,38 @@
   letter-spacing: -0.03rem;
 }
 
-/* Content area - centered */
+/* Content area - centered with scroll fallback for small viewports */
 .contentArea {
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 1;
-  overflow: hidden;
-  min-height: 0; /* Critical for flexbox shrinking */
+  overflow-y: auto;
+  min-height: 0;
   padding: clamp(0.5rem, 2vh, 1rem);
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+
+  /* Thin scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
 }
+
+/* Webkit scrollbar (Chrome/Safari/Edge) */
+.contentArea::-webkit-scrollbar { width: 4px; }
+.contentArea::-webkit-scrollbar-track { background: transparent; }
+.contentArea::-webkit-scrollbar-thumb { background-color: rgba(128, 128, 128, 0.3); border-radius: 4px; }
+.contentArea::-webkit-scrollbar-thumb:hover { background-color: rgba(128, 128, 128, 0.5); }
 
 .contentWrapper {
   text-align: center;
   width: min(100%, 480px);
   margin-inline: auto;
-  max-height: 100%;
-  overflow: hidden; /* Prevent ALL scrolling */
-
-  /* Ensure content fits within container */
+  margin-block: auto;
+  flex-shrink: 0;
+  padding-bottom: 1rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
 }
 
 /* Lobby title */
