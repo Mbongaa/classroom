@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomContext } from '@livekit/components-react';
-import { TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { Languages, Maximize2, Minimize2, Video, VideoOff } from 'lucide-react';
+import { TranscriptionSegment, RoomEvent, RemoteAudioTrack } from 'livekit-client';
+import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX } from 'lucide-react';
+import { isIOSDevice } from '@/lib/client-utils';
 import styles from './SpeechTranslationPanel.module.css';
 
 interface SpeechTranslationPanelProps {
@@ -25,7 +26,7 @@ const RETRY_DELAY_MS = 1000; // Start with 1 second, exponential backoff
 // Font size configuration
 const DEFAULT_FONT_SIZE = 30;
 const MIN_FONT_SIZE = 14;
-const MAX_FONT_SIZE = 40;
+const MAX_FONT_SIZE = 80;
 const FONT_STEP = 2;
 
 // Health check configuration
@@ -47,6 +48,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
 }) => {
   const room = useRoomContext();
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
+  const [isAudioMuted, setIsAudioMuted] = useState(false);
   const [translatedSegments, setTranslatedSegments] = useState<
     Array<{
       id: string;
@@ -254,6 +256,48 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     }
   }, [translatedSegments]);
 
+  // Audio mute toggle for students (iOS audio workaround)
+  const toggleAudioMute = useCallback(() => {
+    const newMuted = !isAudioMuted;
+    const isIOS = isIOSDevice();
+
+    for (const participant of room.remoteParticipants.values()) {
+      for (const pub of participant.audioTrackPublications.values()) {
+        if (pub.track) {
+          (pub.track as RemoteAudioTrack).setVolume(newMuted ? 0 : 1);
+        }
+        if (isIOS) {
+          pub.setSubscribed(!newMuted);
+        }
+      }
+    }
+
+    setIsAudioMuted(newMuted);
+  }, [room, isAudioMuted]);
+
+  // Auto-mute new audio tracks when muted state is active
+  useEffect(() => {
+    if (!room || !isAudioMuted) return;
+
+    const handleTrackSubscribed = (track: { kind: string; setVolume?: (v: number) => void }) => {
+      if (track.kind === 'audio' && track.setVolume) {
+        track.setVolume(0);
+        if (isIOSDevice()) {
+          for (const p of room.remoteParticipants.values()) {
+            for (const pub of p.audioTrackPublications.values()) {
+              if (pub.track === track) pub.setSubscribed(false);
+            }
+          }
+        }
+      }
+    };
+
+    room.on(RoomEvent.TrackSubscribed, handleTrackSubscribed);
+    return () => {
+      room.off(RoomEvent.TrackSubscribed, handleTrackSubscribed);
+    };
+  }, [room, isAudioMuted]);
+
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -316,6 +360,17 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
         </div>
         <div className={styles.bottomBarRight}>
           <span className={styles.languageBadge}>{getLanguageLabel(targetLanguage)}</span>
+          {userRole === 'student' && (
+            <button
+              onClick={toggleAudioMute}
+              className={`${styles.muteButton} ${isAudioMuted ? styles.muteButtonActive : ''}`}
+              title={isAudioMuted ? 'Unmute audio' : 'Mute audio'}
+              aria-label={isAudioMuted ? 'Unmute teacher audio' : 'Mute teacher audio'}
+            >
+              {isAudioMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+              <span>{isAudioMuted ? 'Muted' : 'Mute'}</span>
+            </button>
+          )}
           {translatedSegments.length > 0 && (
             <span className={styles.messageCountBadge}>{translatedSegments.length}</span>
           )}

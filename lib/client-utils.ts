@@ -24,6 +24,13 @@ export function isLowPowerDevice() {
   return navigator.hardwareConcurrency < 6;
 }
 
+export function isIOSDevice(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ua = navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(ua) ||
+    (navigator.maxTouchPoints > 1 && /macintosh/.test(ua));
+}
+
 /**
  * Generate unique session ID for transcription tracking
  * Format: ROOMNAME_YYYY-MM-DD_HH-MM
