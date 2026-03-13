@@ -10,6 +10,7 @@ import { ConnectionDetails } from '@/lib/types';
 import { ClassroomClientImplWithRequests as ClassroomClientImpl } from './ClassroomClientImplWithRequests';
 import { SpeechClientImplWithRequests as SpeechClientImpl } from './SpeechClientImplWithRequests';
 import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
+import { QRCodeCanvas } from 'qrcode.react';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
 import styles from './PageClient.module.css';
@@ -145,6 +146,23 @@ export function PageClientImpl(props: {
     fetchRoomMetadata();
   }, [props.roomName, classroomInfo?.role]);
 
+  const qrCanvasRef = React.useRef<HTMLDivElement>(null);
+
+  // Compute student link once, shared by Copy Link button, Copy QR button, and display
+  const studentLink = React.useMemo(() => {
+    if (!classroomInfo || classroomInfo.role !== 'teacher') return '';
+    // SSR guard: window is not available during server rendering
+    if (typeof window === 'undefined') return '';
+    const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
+    let link = `${window.location.origin}${prefix}${props.roomName}`;
+    const linkParams = new URLSearchParams();
+    if (orgSlug) linkParams.set('org', orgSlug);
+    if (classroomInfo.pin) linkParams.set('pin', classroomInfo.pin);
+    const qs = linkParams.toString();
+    if (qs) link += `?${qs}`;
+    return link;
+  }, [classroomInfo, orgSlug, props.roomName]);
+
   const preJoinDefaults = React.useMemo(() => {
     // For students, disable camera/mic by default to avoid permission issues
     const isStudent = classroomInfo?.role === 'student';
@@ -245,38 +263,72 @@ export function PageClientImpl(props: {
                   {/* Show shareable link for teachers */}
                   {classroomInfo.role === 'teacher' && (
                     <div className={styles.teacherInfo}>
-                      {/* Stateful Copy Button */}
+                      {/* Hidden QR canvas for clipboard copy */}
+                      {studentLink && (
+                        <div ref={qrCanvasRef} className={styles.qrHiddenCanvas}>
+                          <QRCodeCanvas value={studentLink} size={256} />
+                        </div>
+                      )}
+
+                      {/* Copy buttons */}
                       <div className={styles.copyButtonWrapper}>
                         <StatefulButton
                           onClick={() => {
                             return new Promise((resolve) => {
-                              const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
-                              let studentLink = `${window.location.origin}${prefix}${props.roomName}`;
-                              const linkParams = new URLSearchParams();
-                              if (orgSlug) linkParams.set('org', orgSlug);
-                              if (classroomInfo.pin) linkParams.set('pin', classroomInfo.pin);
-                              const qs = linkParams.toString();
-                              if (qs) studentLink += `?${qs}`;
                               navigator.clipboard.writeText(studentLink);
-                              setTimeout(resolve, 500); // Short delay to show animation
+                              setTimeout(resolve, 500);
                             });
                           }}
                         >
                           Copy Student Link
                         </StatefulButton>
+                        <StatefulButton
+                          onClick={() => {
+                            return new Promise<void>((resolve, reject) => {
+                              const canvas = qrCanvasRef.current?.querySelector('canvas');
+                              if (!canvas) {
+                                reject(new Error('QR canvas not found'));
+                                return;
+                              }
+                              canvas.toBlob((blob) => {
+                                if (!blob) {
+                                  reject(new Error('Failed to generate QR image'));
+                                  return;
+                                }
+                                if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                                  navigator.clipboard
+                                    .write([new ClipboardItem({ 'image/png': blob })])
+                                    .then(() => setTimeout(resolve, 500))
+                                    .catch(() => {
+                                      // Fallback: download the PNG
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `qr-${props.roomName}.png`;
+                                      a.click();
+                                      URL.revokeObjectURL(url);
+                                      setTimeout(resolve, 500);
+                                    });
+                                } else {
+                                  // Fallback: download the PNG
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `qr-${props.roomName}.png`;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                  setTimeout(resolve, 500);
+                                }
+                              }, 'image/png');
+                            });
+                          }}
+                        >
+                          Copy QR
+                        </StatefulButton>
                       </div>
 
                       {/* Show the link for reference */}
-                      <div className={styles.linkDisplay}>
-                        {(() => {
-                          const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
-                          const lp = new URLSearchParams();
-                          if (orgSlug) lp.set('org', orgSlug);
-                          if (classroomInfo.pin) lp.set('pin', classroomInfo.pin);
-                          const qs = lp.toString();
-                          return `${window.location.origin}${prefix}${props.roomName}${qs ? `?${qs}` : ''}`;
-                        })()}
-                      </div>
+                      <div className={styles.linkDisplay}>{studentLink}</div>
 
                       {classroomInfo.pin && (
                         <div className={styles.pinInfo}>🔒 Classroom PIN: {classroomInfo.pin}</div>
