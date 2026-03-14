@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireTeacher } from '@/lib/api-auth';
-import { getClassroomByRoomCode, deleteClassroom, createClassroom, updateClassroomFull, getOrganizationSlugById, getOrganizationBySlug } from '@/lib/classroom-utils';
+import { getClassroomByRoomCode, deleteClassroom, createClassroom, updateClassroomFull, getOrganizationInfoById, getOrganizationBySlug } from '@/lib/classroom-utils';
 import { RoomServiceClient } from 'livekit-server-sdk';
 import { createClient } from '@/lib/supabase/client';
 
@@ -128,12 +128,12 @@ export async function GET(
 
     // Return classroom if found
     if (classroom) {
-      // Resolve organization slug for link generation
-      let organizationSlug: string | null = null;
+      // Resolve organization info for link generation and branding
+      let orgInfo: { slug: string; name: string } | null = null;
       try {
-        organizationSlug = await getOrganizationSlugById(classroom.organization_id);
+        orgInfo = await getOrganizationInfoById(classroom.organization_id);
       } catch (e) {
-        console.error('Failed to resolve organization slug:', e);
+        console.error('Failed to resolve organization info:', e);
       }
 
       return NextResponse.json({
@@ -144,7 +144,8 @@ export async function GET(
           description: classroom.description,
           settings: classroom.settings,
           created_at: classroom.created_at,
-          organization_slug: organizationSlug,
+          organization_slug: orgInfo?.slug ?? null,
+          organization_name: orgInfo?.name ?? null,
         },
         roomExists: true,
         migrated: true,
@@ -300,17 +301,17 @@ export async function PATCH(
       updates,
     );
 
-    // Resolve organization slug for link generation
-    let orgSlug: string | null = null;
+    // Resolve organization info for link generation and branding
+    let orgInfo: { slug: string; name: string } | null = null;
     try {
-      orgSlug = await getOrganizationSlugById(profile.organization_id);
+      orgInfo = await getOrganizationInfoById(profile.organization_id);
     } catch (e) {
-      console.error('Failed to resolve organization slug:', e);
+      console.error('Failed to resolve organization info:', e);
     }
 
     return NextResponse.json({
       success: true,
-      classroom: { ...updatedClassroom, organization_slug: orgSlug },
+      classroom: { ...updatedClassroom, organization_slug: orgInfo?.slug ?? null, organization_name: orgInfo?.name ?? null },
       message: `Classroom ${roomCode} updated successfully`,
     });
   } catch (error: any) {

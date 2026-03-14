@@ -64,6 +64,7 @@ export function PageClientImpl(props: {
     language?: string;
   } | null>(null);
   const [orgSlug, setOrgSlug] = React.useState<string | null>(null);
+  const [orgName, setOrgName] = React.useState<string | null>(null);
   const [pinVerified, setPinVerified] = React.useState(false);
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
@@ -123,9 +124,12 @@ export function PageClientImpl(props: {
             }
           : data.metadata || null;
 
-        // Extract organization slug from API response
+        // Extract organization slug and name from API response
         if (data.classroom?.organization_slug) {
           setOrgSlug(data.classroom.organization_slug);
+        }
+        if (data.classroom?.organization_name) {
+          setOrgName(data.classroom.organization_name);
         }
 
         if (metadata) {
@@ -223,7 +227,7 @@ export function PageClientImpl(props: {
         <div className={styles.preJoinContainer}>
           {/* Header with Bayaan logo - placed outside the centered content */}
           <div className={styles.header}>
-            <span className={styles.logo}>bayaan.ai</span>
+            <span className={styles.logo}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
             <ThemeToggleButton start="top-right" />
           </div>
 
@@ -373,6 +377,7 @@ export function PageClientImpl(props: {
           classroomRole={classroomInfo?.role}
           roomName={props.roomName}
           orgSlug={orgSlug}
+          orgName={orgName}
         />
       )}
     </main>
@@ -391,6 +396,7 @@ function VideoConferenceComponent(props: {
   classroomRole?: string;
   roomName: string;
   orgSlug?: string | null;
+  orgName?: string | null;
 }) {
   const keyProvider = React.useMemo(() => new ExternalE2EEKeyProvider(), []);
   const { worker, e2eePassphrase } = useSetupE2EE();
@@ -948,6 +954,7 @@ function VideoConferenceComponent(props: {
               sessionStartTime={sessionStartTime}
               sessionId={sessionId}
               orgSlug={props.orgSlug}
+              orgName={props.orgName}
             />
           ) : isSpeech ? (
             <SpeechClientImpl
@@ -956,6 +963,7 @@ function VideoConferenceComponent(props: {
               sessionStartTime={sessionStartTime}
               sessionId={sessionId}
               orgSlug={props.orgSlug}
+              orgName={props.orgName}
             />
           ) : (
             <CustomVideoConference

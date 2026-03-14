@@ -361,24 +361,25 @@ export async function getOrganizationBySlug(slug: string): Promise<{ id: string;
 }
 
 /**
- * Get organization slug by ID
+ * Get organization info (slug and name) by ID
  *
  * @param orgId - Organization UUID
- * @returns Organization slug string, or null if not found
+ * @returns Organization slug and name, or null if not found
  */
-export async function getOrganizationSlugById(orgId: string): Promise<string | null> {
+export async function getOrganizationInfoById(orgId: string): Promise<{ slug: string; name: string } | null> {
   const supabase = createAdminClient();
 
   const { data, error } = await supabase
     .from('organizations')
-    .select('slug')
+    .select('slug, name')
     .eq('id', orgId)
     .single();
 
   if (error) {
     if (error.code === 'PGRST116') return null;
-    throw new Error(`Failed to get organization slug: ${error.message}`);
+    throw new Error(`Failed to get organization info: ${error.message}`);
   }
 
-  return data?.slug ?? null;
+  if (!data?.slug) return null;
+  return { slug: data.slug, name: data.name ?? data.slug };
 }

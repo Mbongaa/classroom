@@ -3,7 +3,7 @@ import { requireTeacher } from '@/lib/api-auth';
 import {
   createClassroom,
   listClassrooms,
-  getOrganizationSlugById,
+  getOrganizationInfoById,
   type Classroom,
   type CreateClassroomParams,
 } from '@/lib/classroom-utils';
@@ -92,12 +92,12 @@ export async function POST(request: NextRequest) {
       punctuationSensitivity: punctuationSensitivity,
     });
 
-    // Resolve organization slug for link generation
-    let orgSlug: string | null = null;
+    // Resolve organization info for link generation
+    let orgInfo: { slug: string; name: string } | null = null;
     try {
-      orgSlug = await getOrganizationSlugById(profile.organization_id);
+      orgInfo = await getOrganizationInfoById(profile.organization_id);
     } catch (e) {
-      console.error('Failed to resolve organization slug:', e);
+      console.error('Failed to resolve organization info:', e);
     }
 
     return NextResponse.json({
@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         room_type: classroom.room_type,
         settings: classroom.settings,
         created_at: classroom.created_at,
-        organization_slug: orgSlug,
+        organization_slug: orgInfo?.slug ?? null,
       },
     });
   } catch (error: any) {
@@ -171,17 +171,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Resolve organization slug once for all classrooms
-    let orgSlug: string | null = null;
+    // Resolve organization info once for all classrooms
+    let orgInfo: { slug: string; name: string } | null = null;
     try {
-      orgSlug = await getOrganizationSlugById(profile.organization_id);
+      orgInfo = await getOrganizationInfoById(profile.organization_id);
     } catch (e) {
-      console.error('Failed to resolve organization slug:', e);
+      console.error('Failed to resolve organization info:', e);
     }
 
     const classroomsWithSlug = enrichedClassrooms.map((c) => ({
       ...c,
-      organization_slug: orgSlug,
+      organization_slug: orgInfo?.slug ?? null,
     }));
 
     return NextResponse.json({

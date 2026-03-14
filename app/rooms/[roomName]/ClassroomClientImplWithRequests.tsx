@@ -58,6 +58,7 @@ interface ClassroomClientImplWithRequestsProps {
   sessionStartTime: number;
   sessionId: string;
   orgSlug?: string | null;
+  orgName?: string | null;
 }
 
 export function ClassroomClientImplWithRequests({
@@ -66,6 +67,7 @@ export function ClassroomClientImplWithRequests({
   sessionStartTime,
   sessionId,
   orgSlug,
+  orgName,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -819,7 +821,7 @@ export function ClassroomClientImplWithRequests({
       <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
-            <span className={styles.roomName}>bayaan.ai</span>
+            <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
             <RecordingIndicator />
           </div>
 
