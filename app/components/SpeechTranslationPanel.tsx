@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRoomContext } from '@livekit/components-react';
-import { TranscriptionSegment, RoomEvent, RemoteAudioTrack } from 'livekit-client';
-import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX } from 'lucide-react';
+import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
+import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot } from 'lucide-react';
 import { isIOSDevice } from '@/lib/client-utils';
 import styles from './SpeechTranslationPanel.module.css';
 
@@ -67,6 +67,39 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     'connecting' | 'active' | 'warning'
   >('connecting');
   const healthTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Agent count tracking
+  const [agentCount, setAgentCount] = useState(0);
+
+  // Track agent participants in the room
+  useEffect(() => {
+    if (!room) return;
+
+    const countAgents = () => {
+      let count = 0;
+      for (const p of room.remoteParticipants.values()) {
+        if (p.kind === ParticipantKind.AGENT) count++;
+      }
+      setAgentCount(count);
+    };
+
+    // Count on room fully connected (catches already-present agents on rejoin)
+    room.on(RoomEvent.Connected, countAgents);
+    // Count when participants join or leave
+    room.on(RoomEvent.ParticipantConnected, countAgents);
+    room.on(RoomEvent.ParticipantDisconnected, countAgents);
+
+    // Initial count + poll briefly for late-syncing participants
+    countAgents();
+    const retryTimer = setTimeout(countAgents, 2000);
+
+    return () => {
+      clearTimeout(retryTimer);
+      room.off(RoomEvent.Connected, countAgents);
+      room.off(RoomEvent.ParticipantConnected, countAgents);
+      room.off(RoomEvent.ParticipantDisconnected, countAgents);
+    };
+  }, [room]);
 
   // Translation service health monitoring
   useEffect(() => {
@@ -409,6 +442,13 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                 {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>
             )}
+          </div>
+          <div
+            className={`${styles.agentBadge} ${agentCount > 0 ? styles.agentBadgeActive : styles.agentBadgeInactive}`}
+            title={`${agentCount} agent(s) in room`}
+          >
+            <Bot size={12} />
+            <span>{agentCount}</span>
           </div>
           <div
             className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}

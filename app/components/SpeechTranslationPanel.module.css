@@ -370,6 +370,28 @@
   }
 }
 
+/* Agent count badge */
+.agentBadge {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.agentBadgeActive {
+  background: rgba(52, 199, 89, 0.15);
+  color: #34c759;
+}
+
+.agentBadgeInactive {
+  background: rgba(255, 59, 48, 0.15);
+  color: #ff3b30;
+}
+
 /* Warning states for translation service health */
 .warningIndicator {
   background: rgba(255, 149, 0, 0.15) !important;
