@@ -183,7 +183,7 @@ export async function GET(request: NextRequest) {
           );
           await roomService.createRoom({
             name: livekitRoomName, // Use UUID
-            emptyTimeout: 604800, // 7 days
+            emptyTimeout: 300, // 5 minutes - room destroyed after empty, fresh agent on rejoin
             metadata: '', // Supabase has all metadata
           });
         }

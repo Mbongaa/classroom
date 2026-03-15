@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       .from('sessions')
       .select('*')
       .eq('room_sid', roomSid) // Check by LiveKit room SID, not session_id
+      .is('ended_at', null) // Only match ACTIVE sessions
       .maybeSingle();
 
     if (checkError && checkError.code !== 'PGRST116') {

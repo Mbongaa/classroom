@@ -1,0 +1,651 @@
+/dashboard/classrooms?_rsc=1bdos:1  Failed to load resource: the server responded with a status of 404 ()
+/dashboard/organization?_rsc=1bdos:1  Failed to load resource: the server responded with a status of 404 ()
+/dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/dashboard:1 Uncaught (in promise) Error: A listener indicated an asynchronous response by returning true, but the message channel closed before a response was received
+/dashboard/classrooms?_rsc=1bdos:1  Failed to load resource: the server responded with a status of 404 ()
+/dashboard/organization?_rsc=1bdos:1  Failed to load resource: the server responded with a status of 404 ()
+DeviceManager.ts:31 awaiting getUserMedia promise
+DeviceManager.ts:31 awaiting getUserMedia promise
+TranscriptionSaver.tsx:280 [TranscriptionSaver] Waiting for speaking language to be set...
+Room.ts:2520 room event connectionStateChanged Object
+SignalClient.ts:302 connecting to wss://classroom-translator-arabic-0b7h1bsg.livekit.cloud/rtc?access_token=%3Credacted%3E&auto_subscribe=1&sdk=js&version=2.15.7&protocol=16&adaptive_stream=1 Object
+SignalClient.ts:375 ping config Object
+SignalClient.ts:869 clearing ping interval Object
+SignalClient.ts:862 start ping interval Object
+Room.ts:761 connected to Livekit Server edition: 1, version: 1.9.12, protocol: 16, region: Germany 2, nodeId: NM_OFRANKFURT1B_ZfPX4ApdxTyp, debugInfo: , agentProtocol: 0 Object
+Room.ts:2520 room event signalConnected Object
+PCTransportManager.ts:209 negotiation required, start negotiating Object
+PCTransportManager.ts:172 received server offer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:519 sending answer Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from NEW to CONNECTING Object
+RTCEngine.ts:434 primary PC state changed 1 Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+SignalClient.ts:527 sending ice candidate Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from CONNECTING to CONNECTED Object
+RTCEngine.ts:434 primary PC state changed 2 Object
+LocalParticipant.ts:1987 updating track subscription permissions Object
+RTCEngine.ts:681 on data channel 1, _reliable Object
+RTCEngine.ts:681 on data channel 3, _lossy Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event connected Object
+PageClientImpl.tsx:551 [Token] Connected successfully, tracking connection time for refresh
+PageClientImpl.tsx:568 [DEBUG] Setting teacher language attributes: Object
+PageClientImpl.tsx:808 [Token Refresh] Scheduling refresh in 210 minutes
+Room.ts:2520 room event participantAttributesChanged Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:585 [DEBUG] Language attribute(s) set successfully
+PageClientImpl.tsx:594 [Translation Prompt] Fetching custom prompt for room: Khutba1
+PageClientImpl.tsx:600 [Translation Prompt] Setting custom prompt: Object
+Room.ts:2520 room event participantAttributesChanged Object
+PageClientImpl.tsx:611 [Translation Prompt] Custom prompt set successfully
+PageClientImpl.tsx:630 [Session Create] Got real LiveKit room SID: RM_HTUZG95F3YMW
+PageClientImpl.tsx:636 [Session Create] Creating/joining session for room: 3643ca3b-eeb2-46f5-ac4b-81f7fd85622a roomSid: RM_HTUZG95F3YMW participant: Sheyq Mamdouh__bzu2
+PageClientImpl.tsx:648 [Session Create] Generated new sessionId: Khutba1_2026-03-14_20-50
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:668 [Session Create] Joined existing session: Khutba1_2026-03-13_12-03 for room_sid: RM_HTUZG95F3YMW
+LocalParticipant.ts:490 setTrackEnabled Object
+LocalParticipant.ts:490 setTrackEnabled Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+LocalParticipant.ts:563 publishing track Object
+publishUtils.ts:126 using video encoding Object
+publishUtils.ts:190 using svc encoding Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+LocalParticipant.ts:563 publishing track Object
+SignalClient.ts:510 sending offer Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing video with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing audio with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+Room.ts:2520 room event localTrackSubscribed Object
+LocalVideoTrack.ts:337 setting publishing codecs Object
+LocalVideoTrack.ts:397 setting publishing layers Object
+LocalVideoTrack.ts:510 setPublishingLayersForSender Object
+Room.ts:2520 room event localTrackSubscribed Object
+Room.ts:2520 room event connectionQualityChanged Object
+LocalVideoTrack.ts:337 setting publishing codecs Object
+LocalVideoTrack.ts:397 setting publishing layers Object
+LocalVideoTrack.ts:510 setPublishingLayersForSender Object
+LocalVideoTrack.ts:590 setting layer 0 to disabled Object
+LocalVideoTrack.ts:618 setting encodings Object
+SpeechTranslationPanel.tsx:82 [Translation Health] ⚠️ No transcription received for 15 seconds
+(anonymous) @ SpeechTranslationPanel.tsx:82
+Room.ts:920 disconnect from room Object
+PCTransportManager.ts:305 pc state change: from CONNECTED to CLOSED Object
+RTCEngine.ts:434 primary PC state changed 5 Object
+SignalClient.ts:869 clearing ping interval Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event disconnected Object
+PageClientImpl.tsx:838 [Disconnect Handler] Disconnected, reason: 1
+PageClientImpl.tsx:842 [Disconnect Handler] Client-initiated disconnect, navigating home
+/dashboard/organization?_rsc=68vz4:1  Failed to load resource: the server responded with a status of 404 ()
+/dashboard/classrooms?_rsc=68vz4:1  Failed to load resource: the server responded with a status of 404 ()
+DeviceManager.ts:31 awaiting getUserMedia promise
+DeviceManager.ts:31 awaiting getUserMedia promise
+TranscriptionSaver.tsx:280 [TranscriptionSaver] Waiting for speaking language to be set...
+Room.ts:2520 room event connectionStateChanged Object
+SignalClient.ts:302 connecting to wss://classroom-translator-arabic-0b7h1bsg.livekit.cloud/rtc?access_token=%3Credacted%3E&auto_subscribe=1&sdk=js&version=2.15.7&protocol=16&adaptive_stream=1 Object
+SignalClient.ts:375 ping config Object
+SignalClient.ts:869 clearing ping interval Object
+SignalClient.ts:862 start ping interval Object
+Room.ts:761 connected to Livekit Server edition: 1, version: 1.9.12, protocol: 16, region: Germany 2, nodeId: NM_OFRANKFURT1B_EfV8JDxTXG6m, debugInfo: , agentProtocol: 0 Object
+Room.ts:2520 room event signalConnected Object
+PCTransportManager.ts:209 negotiation required, start negotiating Object
+PCTransportManager.ts:172 received server offer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:519 sending answer Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from NEW to CONNECTING Object
+RTCEngine.ts:434 primary PC state changed 1 Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from CONNECTING to CONNECTED Object
+RTCEngine.ts:434 primary PC state changed 2 Object
+LocalParticipant.ts:1987 updating track subscription permissions Object
+RTCEngine.ts:681 on data channel 1, _reliable Object
+RTCEngine.ts:681 on data channel 3, _lossy Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event connected Object
+PageClientImpl.tsx:551 [Token] Connected successfully, tracking connection time for refresh
+PageClientImpl.tsx:568 [DEBUG] Setting teacher language attributes: Object
+PageClientImpl.tsx:808 [Token Refresh] Scheduling refresh in 210 minutes
+Room.ts:2520 room event participantAttributesChanged Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:585 [DEBUG] Language attribute(s) set successfully
+PageClientImpl.tsx:594 [Translation Prompt] Fetching custom prompt for room: Tester2
+PageClientImpl.tsx:600 [Translation Prompt] Setting custom prompt: Object
+Room.ts:2520 room event participantAttributesChanged Object
+PageClientImpl.tsx:611 [Translation Prompt] Custom prompt set successfully
+PageClientImpl.tsx:630 [Session Create] Got real LiveKit room SID: RM_3h5kBFEEC5NH
+PageClientImpl.tsx:636 [Session Create] Creating/joining session for room: 21f01320-af0b-48be-b30f-f1563a07cb14 roomSid: RM_3h5kBFEEC5NH participant: Sheikh Mamdouh__bzu2
+PageClientImpl.tsx:648 [Session Create] Generated new sessionId: Tester2_2026-03-14_20-51
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+Room.ts:2520 room event participantConnected Object
+Room.ts:2520 room event participantPermissionsChanged Object
+SpeechClientImplWithRequests.tsx:583 Permissions changed: ParticipantPermission
+PageClientImpl.tsx:676 [Session Create] Created new session: Tester2_2026-03-14_20-51 for room_sid: RM_3h5kBFEEC5NH
+LocalParticipant.ts:490 setTrackEnabled Object
+LocalParticipant.ts:490 setTrackEnabled Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+LocalParticipant.ts:563 publishing track Object
+publishUtils.ts:126 using video encoding Object
+publishUtils.ts:190 using svc encoding Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+LocalParticipant.ts:563 publishing track Object
+SignalClient.ts:510 sending offer Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing video with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing audio with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+Room.ts:2520 room event localTrackSubscribed Object
+Room.ts:2520 room event participantActive Object
+Room.ts:2520 room event connectionQualityChanged Object
+LocalVideoTrack.ts:337 setting publishing codecs Object
+LocalVideoTrack.ts:397 setting publishing layers Object
+LocalVideoTrack.ts:510 setPublishingLayersForSender Object
+LocalVideoTrack.ts:590 setting layer 0 to disabled Object
+LocalVideoTrack.ts:618 setting encodings Object
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:246 [TranscriptionSaver] Added chunk to buffer: Object
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:246 [TranscriptionSaver] Added chunk to buffer: Object
+TranscriptionSaver.tsx:254 [TranscriptionSaver] Sentence boundary detected - flushing
+TranscriptionSaver.tsx:95 [TranscriptionSaver] Flushing complete sentence: Object
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:265 [TranscriptionSaver] No transcription found for language: ar
+TranscriptionSaver.tsx:123 [TranscriptionSaver] ✅ Saved complete sentence: ar 11930 Entry ID: 0548d9a1-b0d0-44ae-8150-f7667930f161
+SpeechTranslationPanel.tsx:171 [SpeechTranslationPanel] ✅ teacher saved TRANSLATION: nl 12844 Entry ID: 0eccc9f4-e238-46fb-a6bc-fc2ee7afe6f1 
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:246 [TranscriptionSaver] Added chunk to buffer: Object
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:246 [TranscriptionSaver] Added chunk to buffer: Object
+TranscriptionSaver.tsx:254 [TranscriptionSaver] Sentence boundary detected - flushing
+TranscriptionSaver.tsx:95 [TranscriptionSaver] Flushing complete sentence: Object
+SpeechTranslationPanel.tsx:114 [DEBUG SpeechTranslationPanel] Received segments: Array(1)
+TranscriptionSaver.tsx:207 [DEBUG TranscriptionSaver] Received segments: Array(1)
+TranscriptionSaver.tsx:265 [TranscriptionSaver] No transcription found for language: ar
+TranscriptionSaver.tsx:123 [TranscriptionSaver] ✅ Saved complete sentence: ar 20456 Entry ID: 35526bb7-10d1-45b9-8c9c-d821c9362afe
+SpeechTranslationPanel.tsx:171 [SpeechTranslationPanel] ✅ teacher saved TRANSLATION: nl 21263 Entry ID: 21cf67fd-4975-4c83-8d37-4fc5576a6955 
+Room.ts:920 disconnect from room Object
+PCTransportManager.ts:305 pc state change: from CONNECTED to CLOSED Object
+RTCEngine.ts:434 primary PC state changed 5 Object
+SignalClient.ts:869 clearing ping interval Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event disconnected Object
+PageClientImpl.tsx:838 [Disconnect Handler] Disconnected, reason: 1
+PageClientImpl.tsx:842 [Disconnect Handler] Client-initiated disconnect, navigating home
+DeviceManager.ts:31 awaiting getUserMedia promise
+DeviceManager.ts:31 awaiting getUserMedia promise
+TranscriptionSaver.tsx:280 [TranscriptionSaver] Waiting for speaking language to be set...
+Room.ts:2520 room event connectionStateChanged Object
+SignalClient.ts:302 connecting to wss://classroom-translator-arabic-0b7h1bsg.livekit.cloud/rtc?access_token=%3Credacted%3E&auto_subscribe=1&sdk=js&version=2.15.7&protocol=16&adaptive_stream=1 Object
+SignalClient.ts:375 ping config Object
+SignalClient.ts:869 clearing ping interval Object
+SignalClient.ts:862 start ping interval Object
+Room.ts:761 connected to Livekit Server edition: 1, version: 1.9.12, protocol: 16, region: Germany 2, nodeId: NM_OFRANKFURT1B_ZfPX4ApdxTyp, debugInfo: , agentProtocol: 0 Object
+Room.ts:2520 room event signalConnected Object
+PCTransportManager.ts:209 negotiation required, start negotiating Object
+PCTransportManager.ts:172 received server offer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:519 sending answer Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from NEW to CONNECTING Object
+RTCEngine.ts:434 primary PC state changed 1 Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+SignalClient.ts:527 sending ice candidate Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+SignalClient.ts:527 sending ice candidate Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+RTCEngine.ts:497 got ICE candidate from peer Object
+SignalClient.ts:527 sending ice candidate Object
+PCTransportManager.ts:305 pc state change: from CONNECTING to CONNECTED Object
+RTCEngine.ts:434 primary PC state changed 2 Object
+LocalParticipant.ts:1987 updating track subscription permissions Object
+RTCEngine.ts:681 on data channel 1, _reliable Object
+RTCEngine.ts:681 on data channel 3, _lossy Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event connected Object
+PageClientImpl.tsx:551 [Token] Connected successfully, tracking connection time for refresh
+PageClientImpl.tsx:568 [DEBUG] Setting teacher language attributes: Object
+PageClientImpl.tsx:808 [Token Refresh] Scheduling refresh in 210 minutes
+Room.ts:2520 room event participantAttributesChanged Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:585 [DEBUG] Language attribute(s) set successfully
+PageClientImpl.tsx:594 [Translation Prompt] Fetching custom prompt for room: Khutba1
+PageClientImpl.tsx:600 [Translation Prompt] Setting custom prompt: Object
+Room.ts:2520 room event participantAttributesChanged Object
+PageClientImpl.tsx:611 [Translation Prompt] Custom prompt set successfully
+PageClientImpl.tsx:630 [Session Create] Got real LiveKit room SID: RM_HTUZG95F3YMW
+PageClientImpl.tsx:636 [Session Create] Creating/joining session for room: 3643ca3b-eeb2-46f5-ac4b-81f7fd85622a roomSid: RM_HTUZG95F3YMW participant: Sheyq Mamdouh__bzu2
+PageClientImpl.tsx:648 [Session Create] Generated new sessionId: Khutba1_2026-03-14_20-51
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:668 [Session Create] Joined existing session: Khutba1_2026-03-13_12-03 for room_sid: RM_HTUZG95F3YMW
+LocalParticipant.ts:490 setTrackEnabled Object
+LocalParticipant.ts:490 setTrackEnabled Object
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+LocalParticipant.ts:563 publishing track Object
+publishUtils.ts:126 using video encoding Object
+publishUtils.ts:190 using svc encoding Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+LocalVideoTrack.ts:287 setting degradationPreference to balanced Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+LocalParticipant.ts:563 publishing track Object
+RTCEngine.ts:514 received trackPublishedResponse Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+PCTransport.ts:289 starting to negotiate Object
+PCTransport.ts:294 original offer Object
+PCTransport.ts:502 setting munged local description Object
+SignalClient.ts:510 sending offer Object
+RTCEngine.ts:488 received server answer Object
+PCTransport.ts:502 setting munged remote description Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing video with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+TrackPublication.ts:146 update publication info Object
+LocalParticipant.ts:1269 publishing audio with encodings Object
+Room.ts:2520 room event localTrackPublished Object
+Room.ts:2520 room event localTrackSubscribed Object
+LocalVideoTrack.ts:337 setting publishing codecs Object
+LocalVideoTrack.ts:397 setting publishing layers Object
+LocalVideoTrack.ts:510 setPublishingLayersForSender Object
+Room.ts:2520 room event localTrackSubscribed Object
+Room.ts:2520 room event connectionQualityChanged Object
+LocalVideoTrack.ts:337 setting publishing codecs Object
+LocalVideoTrack.ts:397 setting publishing layers Object
+LocalVideoTrack.ts:510 setPublishingLayersForSender Object
+LocalVideoTrack.ts:590 setting layer 0 to disabled Object
+LocalVideoTrack.ts:618 setting encodings Object
+SpeechTranslationPanel.tsx:82 [Translation Health] ⚠️ No transcription received for 15 seconds
+(anonymous) @ SpeechTranslationPanel.tsx:82
+Room.ts:920 disconnect from room Object
+PCTransportManager.ts:305 pc state change: from CONNECTED to CLOSED Object
+RTCEngine.ts:434 primary PC state changed 5 Object
+SignalClient.ts:869 clearing ping interval Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+LocalParticipant.ts:1474 unpublishing track Object
+Room.ts:2520 room event localTrackUnpublished Object
+Room.ts:2520 room event connectionStateChanged Object
+Room.ts:2520 room event disconnected Object
+PageClientImpl.tsx:838 [Disconnect Handler] Disconnected, reason: 1
+PageClientImpl.tsx:842 [Disconnect Handler] Client-initiated disconnect, navigating home
+DeviceManager.ts:31 awaiting getUserMedia promise
+DeviceManager.ts:31 awaiting getUserMedia promise
+TranscriptionSaver.tsx:280 [TranscriptionSaver] Waiting for speaking language to be set...
+Room.ts:2520 room event connectionStateChanged {room: '', roomID: undefined, participant: '', pID: '', event: 'connectionStateChanged', …}
+SignalClient.ts:302 connecting to wss://classroom-translator-arabic-0b7h1bsg.livekit.cloud/rtc?access_token=%3Credacted%3E&auto_subscribe=1&sdk=js&version=2.15.7&protocol=16&adaptive_stream=1 {reconnect: undefined, reconnectReason: undefined, room: undefined, roomID: undefined, participant: undefined, …}
+SignalClient.ts:375 ping config {room: undefined, roomID: undefined, participant: undefined, pID: undefined, timeout: 15, …}
+SignalClient.ts:869 clearing ping interval {room: undefined, roomID: undefined, participant: undefined, pID: undefined}
+SignalClient.ts:862 start ping interval {room: undefined, roomID: undefined, participant: undefined, pID: undefined}
+Room.ts:761 connected to Livekit Server edition: 1, version: 1.9.12, protocol: 16, region: Germany 2, nodeId: NM_OFRANKFURT1B_ZfPX4ApdxTyp, debugInfo: , agentProtocol: 0 {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomSid: 'RM_HTUZG95F3YMW', identity: 'Sheyq Mamdouh__bzu2'}
+Room.ts:2520 room event signalConnected {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'signalConnected', …}
+PCTransportManager.ts:209 negotiation required, start negotiating {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransportManager.ts:172 received server offer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', RTCSdpType: 'offer', …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+PCTransport.ts:502 setting munged local description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+SignalClient.ts:519 sending answer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', answerSdp: 'v=0\r\no=- 5848512994827914446 2 IN IP4 127.0.0.1\r\ns…kle\r\na=sctp-port:5000\r\na=max-message-size:65535\r\n'}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+PCTransportManager.ts:305 pc state change: from NEW to CONNECTING {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+RTCEngine.ts:434 primary PC state changed 1 {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:289 starting to negotiate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:294 original offer {sdp: 'v=0\r\no=- 4074046652837467685 2 IN IP4 127.0.0.1\r\ns…:0\r\na=sctp-port:5000\r\na=max-message-size:262144\r\n', room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:502 setting munged local description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+SignalClient.ts:510 sending offer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', offerSdp: 'v=0\r\no=- 4074046652837467685 2 IN IP4 127.0.0.1\r\ns…le\r\na=sctp-port:5000\r\na=max-message-size:262144\r\n'}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+RTCEngine.ts:488 received server answer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', RTCSdpType: 'answer'}
+PCTransport.ts:502 setting munged remote description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+RTCEngine.ts:497 got ICE candidate from peer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: {…}, …}
+SignalClient.ts:527 sending ice candidate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', candidate: RTCIceCandidate}
+RTCEngine.ts:681 on data channel 1, _reliable {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+RTCEngine.ts:681 on data channel 3, _lossy {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransportManager.ts:305 pc state change: from CONNECTING to CONNECTED {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+RTCEngine.ts:434 primary PC state changed 2 {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+LocalParticipant.ts:1987 updating track subscription permissions {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', allParticipantsAllowed: true, …}
+Room.ts:2520 room event connectionStateChanged {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'connectionStateChanged', …}
+Room.ts:2520 room event connected {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'connected', …}
+PageClientImpl.tsx:551 [Token] Connected successfully, tracking connection time for refresh
+PageClientImpl.tsx:568 [DEBUG] Setting teacher language attributes: {speaking_language: 'ar', captions_language: 'nl'}
+PageClientImpl.tsx:808 [Token Refresh] Scheduling refresh in 210 minutes
+Room.ts:2520 room event participantAttributesChanged {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'participantAttributesChanged', …}
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:585 [DEBUG] Language attribute(s) set successfully
+PageClientImpl.tsx:594 [Translation Prompt] Fetching custom prompt for room: Khutba1
+PageClientImpl.tsx:600 [Translation Prompt] Setting custom prompt: {name: 'Khutba (Fusha)', category: 'religious', textLength: 1597}
+Room.ts:2520 room event participantAttributesChanged {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'participantAttributesChanged', …}
+PageClientImpl.tsx:611 [Translation Prompt] Custom prompt set successfully
+PageClientImpl.tsx:630 [Session Create] Got real LiveKit room SID: RM_HTUZG95F3YMW
+PageClientImpl.tsx:636 [Session Create] Creating/joining session for room: 3643ca3b-eeb2-46f5-ac4b-81f7fd85622a roomSid: RM_HTUZG95F3YMW participant: Sheyq Mamdouh__bzu2
+PageClientImpl.tsx:648 [Session Create] Generated new sessionId: Khutba1_2026-03-14_20-55
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+PageClientImpl.tsx:668 [Session Create] Joined existing session: Khutba1_2026-03-13_12-03 for room_sid: RM_HTUZG95F3YMW
+PageClientImpl.tsx:708 setTrackEnabled {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', source: 'camera', …}
+PageClientImpl.tsx:717 setTrackEnabled {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', source: 'microphone', …}
+TranscriptionSaver.tsx:275 [TranscriptionSaver] Listening for transcriptions, speaking language: ar
+LocalParticipant.ts:563 publishing track {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: undefined, …}
+publishUtils.ts:126 using video encoding {maxBitrate: 1445000, maxFramerate: 30, priority: undefined}
+publishUtils.ts:190 using svc encoding {encodings: Array(1)}
+LocalVideoTrack.ts:287 setting degradationPreference to balanced {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: undefined, …}
+LocalVideoTrack.ts:287 setting degradationPreference to balanced {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: undefined, …}
+RTCEngine.ts:514 received trackPublishedResponse {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', cid: 'c5a4442f-14da-4088-86a6-2eeca5cbefa8', …}
+PCTransport.ts:289 starting to negotiate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:294 original offer {sdp: 'v=0\r\no=- 4074046652837467685 3 IN IP4 127.0.0.1\r\ns…f317e97b3f c5a4442f-14da-4088-86a6-2eeca5cbefa8\r\n', room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:502 setting munged local description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+SignalClient.ts:510 sending offer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', offerSdp: 'v=0\r\no=- 4074046652837467685 3 IN IP4 127.0.0.1\r\ns…3506424419 1720390860\r\na=rtcp-mux\r\na=rtcp-rsize\r\n'}
+LocalParticipant.ts:563 publishing track {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: undefined, …}
+RTCEngine.ts:514 received trackPublishedResponse {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', cid: 'afbd8793-e0bf-49e5-9980-0818b00a2be4', …}
+RTCEngine.ts:488 received server answer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', RTCSdpType: 'answer'}
+PCTransport.ts:502 setting munged remote description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:289 starting to negotiate {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:294 original offer {sdp: 'v=0\r\no=- 4074046652837467685 4 IN IP4 127.0.0.1\r\ns…b6d218b110 afbd8793-e0bf-49e5-9980-0818b00a2be4\r\n', room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+PCTransport.ts:502 setting munged local description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+SignalClient.ts:510 sending offer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', offerSdp: 'v=0\r\no=- 4074046652837467685 4 IN IP4 127.0.0.1\r\ns…9e5-9980-0818b00a2be4\r\na=rtcp-mux\r\na=rtcp-rsize\r\n'}
+RTCEngine.ts:488 received server answer {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', RTCSdpType: 'answer'}
+PCTransport.ts:502 setting munged remote description {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV'}
+TrackPublication.ts:146 update publication info {trackID: 'TR_VCfrJvrU9wcGfR', enabled: true, muted: false, trackInfo: {…}, info: TrackInfo}
+LocalParticipant.ts:1269 publishing video with encodings {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', encodings: Array(1), …}
+Room.ts:2520 room event localTrackPublished {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'localTrackPublished', …}
+TrackPublication.ts:146 update publication info {trackID: 'TR_AMxrT9BkSR8V6Z', enabled: true, muted: false, trackInfo: {…}, info: TrackInfo}
+LocalParticipant.ts:1269 publishing audio with encodings {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', encodings: Array(1), …}
+Room.ts:2520 room event localTrackPublished {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'localTrackPublished', …}
+LocalVideoTrack.ts:337 setting publishing codecs {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:397 setting publishing layers {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:510 setPublishingLayersForSender {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+Room.ts:2520 room event localTrackSubscribed {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'localTrackSubscribed', …}
+Room.ts:2520 room event localTrackSubscribed {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'localTrackSubscribed', …}
+Room.ts:2520 room event connectionQualityChanged {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', event: 'connectionQualityChanged', …}
+LocalVideoTrack.ts:337 setting publishing codecs {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:397 setting publishing layers {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:510 setPublishingLayersForSender {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:590 setting layer 0 to disabled {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+LocalVideoTrack.ts:618 setting encodings {room: '3643ca3b-eeb2-46f5-ac4b-81f7fd85622a', roomID: 'RM_HTUZG95F3YMW', participant: 'Sheyq Mamdouh__bzu2', pID: 'PA_nSCvds4sZQLV', trackID: 'TR_VCfrJvrU9wcGfR', …}
+SpeechTranslationPanel.tsx:82 [Translation Health] ⚠️ No transcription received for 15 seconds
+(anonymous) @ SpeechTranslationPanel.tsx:82
+setTimeout
+(anonymous) @ SpeechTranslationPanel.tsx:80
+ob @ react-dom-client.production.js:7271
+oG @ react-dom-client.production.js:8749
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8829
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8743
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8752
+oX @ react-dom-client.production.js:8724
+oG @ react-dom-client.production.js:8760
+ix @ react-dom-client.production.js:11383
+iS @ react-dom-client.production.js:11359
+ib @ react-dom-client.production.js:11270
+ig @ react-dom-client.production.js:11073
+u7 @ react-dom-client.production.js:10492
+u9 @ react-dom-client.production.js:10421
+iQ @ react-dom-client.production.js:11704
+iI @ react-dom-client.production.js:11575
+ib @ react-dom-client.production.js:11278
+ig @ react-dom-client.production.js:11073
+u7 @ react-dom-client.production.js:10492
+u9 @ react-dom-client.production.js:10421
+iH @ react-dom-client.production.js:11696
+C @ scheduler.production.js:151

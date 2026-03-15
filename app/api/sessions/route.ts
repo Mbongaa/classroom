@@ -63,6 +63,7 @@ export async function GET() {
       )
     `)
     .in('room_name', roomCodes)
+    .eq('organization_id', profile.organization_id) // Scope to user's org
     .order('started_at', { ascending: false });
 
   if (sessionsError) {
