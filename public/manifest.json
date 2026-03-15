@@ -1,7 +1,7 @@
 {
   "name": "Bayaan Classroom",
   "short_name": "Bayaan",
-  "description": "LiveKit-powered classroom for live teaching and translation",
+  "description": "Real-time speech translation for classrooms",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#0a0a0a",

@@ -16,6 +16,7 @@ const badgeVariants = cva(
         meeting: 'border-transparent bg-blue-500 text-white dark:bg-blue-600 dark:text-white',
         classroom: 'border-transparent bg-green-500 text-white dark:bg-green-600 dark:text-white',
         speech: 'border-transparent bg-purple-500 text-white dark:bg-purple-600 dark:text-white',
+        warning: 'border-transparent bg-yellow-500 text-white dark:bg-yellow-600 dark:text-white',
       },
     },
     defaultVariants: {

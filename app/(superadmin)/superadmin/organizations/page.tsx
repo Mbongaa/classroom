@@ -68,7 +68,7 @@ interface Organization {
   classroom_count: number;
 }
 
-type SortField = 'name' | 'subscription_tier' | 'member_count' | 'classroom_count' | 'created_at';
+type SortField = 'name' | 'subscription_tier' | 'subscription_status' | 'member_count' | 'classroom_count' | 'created_at';
 type SortOrder = 'asc' | 'desc';
 
 export default function SuperadminOrganizationsPage() {
@@ -131,6 +131,14 @@ export default function SuperadminOrganizationsPage() {
     setCurrentPage(1);
   };
 
+  const statusPriority: Record<string, number> = {
+    past_due: 0,
+    trialing: 1,
+    incomplete: 2,
+    active: 3,
+    canceled: 4,
+  };
+
   const sortedOrganizations = [...organizations].sort((a, b) => {
     let aVal: string | number;
     let bVal: string | number;
@@ -144,6 +152,9 @@ export default function SuperadminOrganizationsPage() {
     } else if (sortField === 'subscription_tier') {
       aVal = a.subscription_tier.toLowerCase();
       bVal = b.subscription_tier.toLowerCase();
+    } else if (sortField === 'subscription_status') {
+      aVal = statusPriority[a.subscription_status] ?? 99;
+      bVal = statusPriority[b.subscription_status] ?? 99;
     } else {
       aVal = a.created_at;
       bVal = b.created_at;
@@ -168,7 +179,7 @@ export default function SuperadminOrganizationsPage() {
       case 'active':
         return 'default';
       case 'trialing':
-        return 'secondary';
+        return 'warning';
       case 'past_due':
         return 'destructive';
       case 'canceled':
@@ -290,7 +301,17 @@ export default function SuperadminOrganizationsPage() {
                   <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="text-center">Status</TableHead>
+              <TableHead className="text-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleSort('subscription_status')}
+                  className="h-8"
+                >
+                  Status
+                  <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+              </TableHead>
               <TableHead className="text-center">
                 <Button
                   variant="ghost"
