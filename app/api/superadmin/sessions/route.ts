@@ -16,7 +16,7 @@ export async function GET() {
   // Fetch all sessions with their organization (direct FK relationship)
   const { data: dbSessions, error } = await supabaseAdmin
     .from('sessions')
-    .select('id, room_sid, room_name, session_id, started_at, ended_at, organization_id, organizations(name)')
+    .select('id, room_sid, room_name, session_id, started_at, ended_at, organization_id, organizations(name, slug)')
     .order('started_at', { ascending: false });
 
   if (error) {
@@ -44,9 +44,27 @@ export async function GET() {
   // Create a map of LiveKit rooms by name
   const liveRoomMap = new Map(liveRooms.map((r) => [r.name, r]));
 
+  // Fetch classrooms to get room_type for each session
+  const { data: classrooms } = await supabaseAdmin
+    .from('classrooms')
+    .select('room_code, organization_id, room_type');
+
+  // Build lookup: "room_code|org_id" -> room_type, plus fallback by room_code only
+  const classroomTypeMap = new Map<string, string>();
+  for (const c of classrooms ?? []) {
+    classroomTypeMap.set(`${c.room_code}|${c.organization_id}`, c.room_type);
+    // Fallback key without org (for sessions without org)
+    if (!classroomTypeMap.has(c.room_code)) {
+      classroomTypeMap.set(c.room_code, c.room_type);
+    }
+  }
+
   // Merge DB sessions with live data
   const sessions = (dbSessions ?? []).map((session: any) => {
-    const org = session.organizations as { name: string } | null;
+    const org = session.organizations as { name: string; slug: string } | null;
+    const roomType = classroomTypeMap.get(`${session.room_name}|${session.organization_id}`)
+      ?? classroomTypeMap.get(session.room_name)
+      ?? null;
     return {
       id: session.id,
       room_name: session.room_name,
@@ -54,6 +72,8 @@ export async function GET() {
       started_at: session.started_at,
       ended_at: session.ended_at,
       organization: org?.name ?? null,
+      organization_slug: org?.slug ?? null,
+      room_type: roomType,
     };
   });
 
@@ -70,6 +90,8 @@ export async function GET() {
         started_at: new Date(liveRoom.creationTime).toISOString(),
         ended_at: null,
         organization: null,
+        organization_slug: null,
+        room_type: classroomTypeMap.get(liveRoom.name) ?? null,
       });
     }
   }

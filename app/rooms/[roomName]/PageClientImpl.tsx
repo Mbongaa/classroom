@@ -429,6 +429,12 @@ function VideoConferenceComponent(props: {
     sessionIdRef.current = sessionId;
   }, [sessionId]);
 
+  // Track classroomRole via ref so disconnect/unload handlers read the latest value
+  const classroomRoleRef = React.useRef<string | undefined>(props.classroomRole);
+  React.useEffect(() => {
+    classroomRoleRef.current = props.classroomRole;
+  }, [props.classroomRole]);
+
   const roomOptions = React.useMemo((): RoomOptions => {
     let videoCodec: VideoCodec | undefined = props.options.codec ? props.options.codec : 'vp9';
     if (e2eeEnabled && (videoCodec === 'av1' || videoCodec === 'vp9')) {
@@ -825,6 +831,10 @@ function VideoConferenceComponent(props: {
 
     // Fire-and-forget: mark the session as ended in Supabase
     const endSessionIfActive = () => {
+      if (classroomRoleRef.current === 'student') {
+        console.log('[Session End] Student disconnecting — skipping (teacher/webhook will handle it)');
+        return;
+      }
       const sid = sessionIdRef.current;
       if (!sid) return;
       fetch('/api/sessions/end', {
@@ -905,6 +915,7 @@ function VideoConferenceComponent(props: {
   // Safe to fire both since the API is idempotent (.is('ended_at', null) guard).
   React.useEffect(() => {
     const handlePageUnload = () => {
+      if (classroomRoleRef.current === 'student') return;
       const sid = sessionIdRef.current;
       if (!sid) return;
       navigator.sendBeacon(

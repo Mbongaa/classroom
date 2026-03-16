@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUpDown } from 'lucide-react';
+import { ArrowUpDown, ExternalLink } from 'lucide-react';
 
 interface SessionEntry {
   id: string | null;
@@ -32,6 +32,8 @@ interface SessionEntry {
   started_at: string;
   ended_at: string | null;
   organization: string | null;
+  organization_slug: string | null;
+  room_type: 'meeting' | 'classroom' | 'speech' | null;
 }
 
 type SortField = 'room_name' | 'organization' | 'started_at' | 'status';
@@ -233,13 +235,14 @@ export default function SuperadminSessionsPage() {
                 </Button>
               </TableHead>
               <TableHead className="text-center">Duration</TableHead>
+              <TableHead className="text-center">Lobby</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 5 }).map((_, j) => (
+                  {Array.from({ length: 6 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-20 mx-auto" />
                     </TableCell>
@@ -248,7 +251,7 @@ export default function SuperadminSessionsPage() {
               ))
             ) : sessions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No sessions found.
                 </TableCell>
               </TableRow>
@@ -280,6 +283,25 @@ export default function SuperadminSessionsPage() {
                   </TableCell>
                   <TableCell className="text-center">
                     {formatDuration(session.started_at, session.ended_at)}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {session.ended_at === null ? (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs gap-1"
+                        onClick={() => {
+                          const prefix = session.room_type === 'speech' ? '/speech-s' : '/s';
+                          const orgParam = session.organization_slug ? `?org=${encodeURIComponent(session.organization_slug)}` : '';
+                          window.open(`${prefix}/${session.room_name}${orgParam}`, '_blank');
+                        }}
+                      >
+                        Join
+                        <ExternalLink className="h-3 w-3" />
+                      </Button>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
