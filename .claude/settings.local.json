@@ -58,7 +58,13 @@
       "Bash(python3:*)",
       "Bash(git diff:*)",
       "Bash(node -e:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "WebFetch(domain:elevenlabs.io)",
+      "WebFetch(domain:deepwiki.com)",
+      "WebFetch(domain:pypi.org)",
+      "WebFetch(domain:artificialanalysis.ai)",
+      "WebFetch(domain:help.elevenlabs.io)",
+      "WebFetch(domain:reference-server.pipecat.ai)"
     ],
     "deny": [],
     "ask": []

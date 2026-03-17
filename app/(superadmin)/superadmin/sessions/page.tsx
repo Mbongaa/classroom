@@ -23,7 +23,8 @@ import {
 } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUpDown, ExternalLink } from 'lucide-react';
+import { ArrowUpDown, Download, ExternalLink } from 'lucide-react';
+import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
 
 interface SessionEntry {
   id: string | null;
@@ -236,13 +237,14 @@ export default function SuperadminSessionsPage() {
               </TableHead>
               <TableHead className="text-center">Duration</TableHead>
               <TableHead className="text-center">Lobby</TableHead>
+              <TableHead className="text-center">Transcript</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               Array.from({ length: 3 }).map((_, i) => (
                 <TableRow key={i}>
-                  {Array.from({ length: 6 }).map((_, j) => (
+                  {Array.from({ length: 7 }).map((_, j) => (
                     <TableCell key={j}>
                       <Skeleton className="h-4 w-20 mx-auto" />
                     </TableCell>
@@ -251,7 +253,7 @@ export default function SuperadminSessionsPage() {
               ))
             ) : sessions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No sessions found.
                 </TableCell>
               </TableRow>
@@ -299,6 +301,22 @@ export default function SuperadminSessionsPage() {
                         Join
                         <ExternalLink className="h-3 w-3" />
                       </Button>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {session.id ? (
+                      <RecordingDownloadDialog
+                        sessionId={session.id}
+                        roomName={session.room_name}
+                        trigger={
+                          <Button variant="outline" size="sm" className="h-7 text-xs gap-1">
+                            <Download className="h-3 w-3" />
+                            Download
+                          </Button>
+                        }
+                      />
                     ) : (
                       <span className="text-muted-foreground text-xs">—</span>
                     )}

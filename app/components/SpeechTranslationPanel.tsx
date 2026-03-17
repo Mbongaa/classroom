@@ -59,6 +59,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     }>
   >([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isNearBottomRef = useRef(true);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
 
@@ -178,6 +179,8 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             const timestampMs = Date.now() - sessionStartTime;
             const participantName =
               room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
+            // Grab original transcription from same event for bilingual downloads
+            const originalTranscription = finalSegments.find((seg) => seg.language === speakingLanguage);
 
             // Save with retry logic
             const saveWithRetry = async (attempt = 1): Promise<void> => {
@@ -192,6 +195,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                     participantName,
                     timestampMs,
                     segmentId: translation.id, // LiveKit segment ID for DB-level dedup
+                    originalText: originalTranscription?.text || '',
                   }),
                 });
 
@@ -282,9 +286,20 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     };
   }, [room, targetLanguage, sessionId, sessionStartTime, userRole]);
 
-  // Auto-scroll to latest translation
+  // Track whether user is near the bottom (within 100px threshold)
   useEffect(() => {
-    if (scrollRef.current && translatedSegments.length > 0) {
+    const el = scrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+    };
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Auto-scroll only if user hasn't scrolled up to read
+  useEffect(() => {
+    if (scrollRef.current && translatedSegments.length > 0 && isNearBottomRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [translatedSegments]);

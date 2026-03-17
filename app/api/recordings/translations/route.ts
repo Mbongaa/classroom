@@ -9,7 +9,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { sessionId, text, language, participantName, timestampMs, segmentId } = body;
+    const { sessionId, text, language, participantName, timestampMs, segmentId, originalText } = body;
 
     // Validate required fields
     if (!sessionId || !text || !language || !participantName || timestampMs === undefined) {
@@ -53,6 +53,9 @@ export async function POST(request: NextRequest) {
     };
     if (segmentId) {
       insertRow.segment_id = segmentId;
+    }
+    if (originalText) {
+      insertRow.original_text = originalText;
     }
 
     // Plain insert — the partial UNIQUE index on (session_id, language, segment_id)

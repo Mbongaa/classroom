@@ -9,6 +9,7 @@ export interface TranscriptEntry {
   text: string;
   participant_name: string;
   timestamp_ms: number;
+  original_text?: string | null;
 }
 
 /**
@@ -126,34 +127,31 @@ export function pairTranslationsWithTranscriptions(
   translations: TranscriptEntry[],
   transcriptions: TranscriptEntry[],
 ): BilingualEntry[] {
-  if (transcriptions.length === 0) {
-    // No transcriptions available — return translations only (original field empty)
+  // Preferred: use denormalized original_text stored on each translation entry.
+  // This avoids cross-table pairing which breaks due to different timestamps
+  // per participant and different granularity (accumulated vs per-segment).
+  const hasOriginalText = translations.some((t) => t.original_text);
+
+  if (hasOriginalText) {
     return translations.map((t) => ({
-      original: '',
-      translated: t.text,
+      original: (t.original_text || '').trim(),
+      translated: t.text.trim(),
       participant_name: t.participant_name,
       timestamp_ms: t.timestamp_ms,
     }));
   }
 
-  return translations.map((translation) => {
-    // Find the transcription with the closest timestamp
-    let closest = transcriptions[0];
-    let minDiff = Math.abs(translation.timestamp_ms - closest.timestamp_ms);
-
-    for (let i = 1; i < transcriptions.length; i++) {
-      const diff = Math.abs(translation.timestamp_ms - transcriptions[i].timestamp_ms);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closest = transcriptions[i];
-      }
-    }
+  // Fallback for legacy data without original_text: pair by index position.
+  // Not perfectly accurate but avoids the first-entry-repeated bug from
+  // closest-timestamp matching.
+  return translations.map((translation, index) => {
+    const matched = index < transcriptions.length ? transcriptions[index] : null;
 
     return {
-      original: closest.text.trim(),
+      original: matched ? matched.text.trim() : '',
       translated: translation.text.trim(),
-      participant_name: translation.participant_name,
-      timestamp_ms: translation.timestamp_ms,
+      participant_name: matched?.participant_name || translation.participant_name,
+      timestamp_ms: matched ? matched.timestamp_ms : translation.timestamp_ms,
     };
   });
 }
