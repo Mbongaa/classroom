@@ -62,6 +62,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   const isNearBottomRef = useRef(true);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
+  // Cache original transcription text by startTime so delayed translations
+  // can look up the correct original (they share the same audio position)
+  const originalTextCache = useRef<Map<number, string>>(new Map());
 
   // Translation service health tracking
   const [translationServiceStatus, setTranslationServiceStatus] = useState<
@@ -170,17 +173,32 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                 (p) => p.attributes?.speaking_language !== undefined,
               )?.attributes?.speaking_language;
 
+        // Cache ALL original-language segments by startTime for later lookup.
+        // Translations may arrive in a later event but share the same startTime.
+        for (const seg of finalSegments) {
+          if (seg.language === speakingLanguage) {
+            originalTextCache.current.set(seg.startTime, seg.text);
+          }
+        }
+
         const translation = finalSegments.find((seg) => seg.language === targetLanguage);
         if (translation && translation.language !== speakingLanguage) {
           const segmentKey = `${translation.id}-${translation.language}`;
           if (!savedSegmentIds.current.has(segmentKey)) {
             savedSegmentIds.current.add(segmentKey);
 
-            const timestampMs = Date.now() - sessionStartTime;
+            // Use LiveKit segment's startTime (actual audio position) instead of
+            // Date.now() - sessionStartTime. This preserves chronological order
+            // regardless of when each participant joins the room.
+            const timestampMs = Math.round(translation.startTime * 1000);
             const participantName =
               room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
-            // Grab original transcription from same event for bilingual downloads
-            const originalTranscription = finalSegments.find((seg) => seg.language === speakingLanguage);
+            // Look up original text by matching audio position (startTime).
+            // The same-event ID match is a fallback if cache misses.
+            const originalText =
+              originalTextCache.current.get(translation.startTime)
+              || finalSegments.find((seg) => seg.id === translation.id && seg.language === speakingLanguage)?.text
+              || '';
 
             // Save with retry logic
             const saveWithRetry = async (attempt = 1): Promise<void> => {
@@ -195,7 +213,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                     participantName,
                     timestampMs,
                     segmentId: translation.id, // LiveKit segment ID for DB-level dedup
-                    originalText: originalTranscription?.text || '',
+                    originalText,
                   }),
                 });
 

@@ -50,6 +50,9 @@ export default function TranslationPanel({
   const isNearBottomRef = useRef(true);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set());
+  // Cache original transcription text by startTime so delayed translations
+  // can look up the correct original (they share the same audio position)
+  const originalTextCache = useRef<Map<number, string>>(new Map());
   const sessionId = generateSessionId(roomName);
 
   // Translation service health tracking
@@ -117,6 +120,14 @@ export default function TranslationPanel({
                 (p) => p.attributes?.speaking_language !== undefined,
               )?.attributes?.speaking_language;
 
+        // Cache ALL original-language segments by startTime for later lookup.
+        // Translations may arrive in a later event but share the same startTime.
+        for (const seg of finalSegments) {
+          if (seg.language === speakingLanguage) {
+            originalTextCache.current.set(seg.startTime, seg.text);
+          }
+        }
+
         // Teachers save ONLY transcription (original language)
         if (userRole === 'teacher') {
           const transcription = finalSegments.find((seg) => seg.language === speakingLanguage);
@@ -161,11 +172,18 @@ export default function TranslationPanel({
           if (!savedSegmentIds.current.has(segmentKey)) {
             savedSegmentIds.current.add(segmentKey);
 
-            const timestampMs = Date.now() - sessionStartTime;
+            // Use LiveKit segment's startTime (actual audio position) instead of
+            // Date.now() - sessionStartTime. This preserves chronological order
+            // regardless of when each participant joins the room.
+            const timestampMs = Math.round(translation.startTime * 1000);
             const participantName =
               room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
-            // Grab original transcription from same event for bilingual downloads
-            const originalTranscription = finalSegments.find((seg) => seg.language === speakingLanguage);
+            // Look up original text by matching audio position (startTime).
+            // The same-event find is a fallback if cache misses (e.g. first segment).
+            const originalText =
+              originalTextCache.current.get(translation.startTime)
+              || finalSegments.find((seg) => seg.id === translation.id && seg.language === speakingLanguage)?.text
+              || '';
             fetch('/api/recordings/translations', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -176,7 +194,7 @@ export default function TranslationPanel({
                 participantName,
                 timestampMs,
                 segmentId: translation.id, // LiveKit segment ID for DB-level dedup
-                originalText: originalTranscription?.text || '',
+                originalText,
               }),
             })
               .then(() =>

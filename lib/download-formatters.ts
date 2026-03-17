@@ -141,19 +141,16 @@ export function pairTranslationsWithTranscriptions(
     }));
   }
 
-  // Fallback for legacy data without original_text: pair by index position.
-  // Not perfectly accurate but avoids the first-entry-repeated bug from
-  // closest-timestamp matching.
-  return translations.map((translation, index) => {
-    const matched = index < transcriptions.length ? transcriptions[index] : null;
-
-    return {
-      original: matched ? matched.text.trim() : '',
-      translated: translation.text.trim(),
-      participant_name: matched?.participant_name || translation.participant_name,
-      timestamp_ms: matched ? matched.timestamp_ms : translation.timestamp_ms,
-    };
-  });
+  // Fallback for legacy data without original_text: show translation only.
+  // Cross-table pairing is unreliable — TranscriptionSaver produces many small
+  // entries while LiveKit translation segments arrive less frequently, creating
+  // an N:1 mismatch that makes index or timestamp pairing produce wrong pairs.
+  return translations.map((translation) => ({
+    original: '',
+    translated: translation.text.trim(),
+    participant_name: translation.participant_name,
+    timestamp_ms: translation.timestamp_ms,
+  }));
 }
 
 /**
