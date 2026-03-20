@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
-import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot } from 'lucide-react';
+import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot, ArrowDown } from 'lucide-react';
 import { isIOSDevice } from '@/lib/client-utils';
 import styles from './SpeechTranslationPanel.module.css';
 
@@ -59,7 +59,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     }>
   >([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isNearBottomRef = useRef(true);
+  const userScrollingRef = useRef(false);
+  const autoScrollRef = useRef(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
   // Cache original transcription text by startTime so delayed translations
@@ -304,23 +306,59 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     };
   }, [room, targetLanguage, sessionId, sessionStartTime, userRole]);
 
-  // Track whether user is near the bottom (within 100px threshold)
+  // User-intent tracking: only disable auto-scroll on explicit user interaction
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const handleScroll = () => {
-      isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+    const onInteractionStart = () => { userScrollingRef.current = true; };
+    const onInteractionEnd = () => {
+      setTimeout(() => { userScrollingRef.current = false; }, 150);
     };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
+
+    const onScroll = () => {
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+      if (userScrollingRef.current && distFromBottom > 150) {
+        autoScrollRef.current = false;
+        setShowScrollButton(true);
+      }
+
+      if (distFromBottom < 150) {
+        autoScrollRef.current = true;
+        setShowScrollButton(false);
+      }
+    };
+
+    el.addEventListener('touchstart', onInteractionStart, { passive: true });
+    el.addEventListener('touchend', onInteractionEnd, { passive: true });
+    el.addEventListener('wheel', onInteractionStart, { passive: true });
+    el.addEventListener('pointerup', onInteractionEnd, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onInteractionStart);
+      el.removeEventListener('touchend', onInteractionEnd);
+      el.removeEventListener('wheel', onInteractionStart);
+      el.removeEventListener('pointerup', onInteractionEnd);
+      el.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
-  // Auto-scroll only if user hasn't scrolled up to read
-  useEffect(() => {
-    if (scrollRef.current && translatedSegments.length > 0 && isNearBottomRef.current) {
+  // Auto-scroll synchronously after DOM mutation to avoid race with scroll events
+  useLayoutEffect(() => {
+    if (scrollRef.current && translatedSegments.length > 0 && autoScrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [translatedSegments]);
+
+  const scrollToLatest = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      autoScrollRef.current = true;
+      setShowScrollButton(false);
+    }
+  }, []);
 
   // Audio mute toggle for students (iOS audio workaround)
   const toggleAudioMute = useCallback(() => {
@@ -417,6 +455,16 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
           ))
         )}
       </div>
+
+      {showScrollButton && translatedSegments.length > 0 && (
+        <button
+          className={styles.scrollToLatest}
+          onClick={scrollToLatest}
+          aria-label="Scroll to latest translation"
+        >
+          <ArrowDown size={18} />
+        </button>
+      )}
 
       {/* Bottom Bar (moved from header) */}
       <div className={styles.bottomBar}>

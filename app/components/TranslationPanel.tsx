@@ -1,9 +1,9 @@
 'use client';
 
 import { useRoomContext } from '@livekit/components-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { Languages } from 'lucide-react';
+import { Languages, ArrowDown } from 'lucide-react';
 import styles from './TranslationPanel.module.css';
 
 import { generateSessionId } from '@/lib/client-utils';
@@ -47,7 +47,9 @@ export default function TranslationPanel({
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const isNearBottomRef = useRef(true);
+  const userScrollingRef = useRef(false);
+  const autoScrollRef = useRef(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set());
   // Cache original transcription text by startTime so delayed translations
@@ -250,23 +252,59 @@ export default function TranslationPanel({
     };
   }, [room, captionsLanguage, sessionId, sessionStartTime, userRole]);
 
-  // Track whether user is near the bottom (within 100px threshold)
+  // User-intent tracking: only disable auto-scroll on explicit user interaction
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-    const handleScroll = () => {
-      isNearBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 100;
+
+    const onInteractionStart = () => { userScrollingRef.current = true; };
+    const onInteractionEnd = () => {
+      setTimeout(() => { userScrollingRef.current = false; }, 150);
     };
-    el.addEventListener('scroll', handleScroll, { passive: true });
-    return () => el.removeEventListener('scroll', handleScroll);
+
+    const onScroll = () => {
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+      if (userScrollingRef.current && distFromBottom > 150) {
+        autoScrollRef.current = false;
+        setShowScrollButton(true);
+      }
+
+      if (distFromBottom < 150) {
+        autoScrollRef.current = true;
+        setShowScrollButton(false);
+      }
+    };
+
+    el.addEventListener('touchstart', onInteractionStart, { passive: true });
+    el.addEventListener('touchend', onInteractionEnd, { passive: true });
+    el.addEventListener('wheel', onInteractionStart, { passive: true });
+    el.addEventListener('pointerup', onInteractionEnd, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onInteractionStart);
+      el.removeEventListener('touchend', onInteractionEnd);
+      el.removeEventListener('wheel', onInteractionStart);
+      el.removeEventListener('pointerup', onInteractionEnd);
+      el.removeEventListener('scroll', onScroll);
+    };
   }, []);
 
-  // Auto-scroll only if user hasn't scrolled up to read
-  useEffect(() => {
-    if (scrollRef.current && translations.length > 0 && isNearBottomRef.current) {
+  // Auto-scroll synchronously after DOM mutation to avoid race with scroll events
+  useLayoutEffect(() => {
+    if (scrollRef.current && translations.length > 0 && autoScrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [translations]);
+
+  const scrollToLatest = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      autoScrollRef.current = true;
+      setShowScrollButton(false);
+    }
+  }, []);
 
   // Get language name from code
   const getLanguageName = (code: string) => {
@@ -319,6 +357,16 @@ export default function TranslationPanel({
           ))
         )}
       </div>
+
+      {showScrollButton && translations.length > 0 && (
+        <button
+          className={styles.scrollToLatest}
+          onClick={scrollToLatest}
+          aria-label="Scroll to latest translation"
+        >
+          <ArrowDown size={18} />
+        </button>
+      )}
 
       {/* Bottom Bar */}
       <div className={styles.bottomBar}>

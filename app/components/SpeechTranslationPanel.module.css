@@ -1,5 +1,6 @@
 /* Container and layout */
 .container {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -427,6 +428,43 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Scroll to latest button */
+.scrollToLatest {
+  position: absolute;
+  bottom: 60px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.9);
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 10;
+  animation: fadeInUp 0.2s ease;
+}
+
+.scrollToLatest:hover {
+  transform: scale(1.1);
+  background: rgba(102, 126, 234, 1);
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
