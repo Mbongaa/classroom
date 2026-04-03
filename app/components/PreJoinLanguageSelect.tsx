@@ -17,6 +17,7 @@ const LANGUAGES_BY_REGION = [
     region: 'Popular',
     items: [
       { value: 'ar', label: 'العربية الفصحى (Arabic Fusha)', flag: '🇸🇦' },
+      { value: 'ar-eleven', label: 'العربية الفصحى - ElevenLabs (Arabic Fusha v2)', flag: '🇸🇦' },
     ],
   },
   {
