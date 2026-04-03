@@ -64,7 +64,12 @@
       "WebFetch(domain:pypi.org)",
       "WebFetch(domain:artificialanalysis.ai)",
       "WebFetch(domain:help.elevenlabs.io)",
-      "WebFetch(domain:reference-server.pipecat.ai)"
+      "WebFetch(domain:reference-server.pipecat.ai)",
+      "Bash(echo:*)",
+      "Bash(pip show:*)",
+      "WebFetch(domain:docs.speechmatics.com)",
+      "Bash(pip3 install:*)",
+      "Bash(pip3 download:*)"
     ],
     "deny": [],
     "ask": []
