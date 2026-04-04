@@ -59,6 +59,8 @@ interface ClassroomClientImplWithRequestsProps {
   sessionId: string;
   orgSlug?: string | null;
   orgName?: string | null;
+  transcriptionApiUrl?: string;
+  translationApiUrl?: string;
 }
 
 export function ClassroomClientImplWithRequests({
@@ -68,6 +70,8 @@ export function ClassroomClientImplWithRequests({
   sessionId,
   orgSlug,
   orgName,
+  transcriptionApiUrl,
+  translationApiUrl,
 }: ClassroomClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -902,6 +906,7 @@ export function ClassroomClientImplWithRequests({
                 onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
                 showVideo={showVideo}
                 onVideoToggle={() => setShowVideo((prev) => !prev)}
+                translationApiUrl={translationApiUrl}
               />
               {showVideo && (
                 <div
@@ -1223,6 +1228,7 @@ export function ClassroomClientImplWithRequests({
           roomName={roomName}
           sessionStartTime={sessionStartTime}
           sessionId={sessionId}
+          apiUrl={transcriptionApiUrl}
         />
       )}
     </div>

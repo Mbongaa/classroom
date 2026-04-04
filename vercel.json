@@ -1,3 +1,9 @@
 {
-  "fluid": true
+  "fluid": true,
+  "crons": [
+    {
+      "path": "/api/v2/reaper",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }

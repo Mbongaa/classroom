@@ -54,6 +54,8 @@ interface SpeechClientImplWithRequestsProps {
   sessionId: string;
   orgSlug?: string | null;
   orgName?: string | null;
+  transcriptionApiUrl?: string;
+  translationApiUrl?: string;
 }
 
 export function SpeechClientImplWithRequests({
@@ -63,6 +65,8 @@ export function SpeechClientImplWithRequests({
   sessionId,
   orgSlug,
   orgName,
+  transcriptionApiUrl,
+  translationApiUrl,
 }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -721,6 +725,7 @@ export function SpeechClientImplWithRequests({
                 onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
                 showVideo={showVideo}
                 onVideoToggle={() => setShowVideo((prev) => !prev)}
+                translationApiUrl={translationApiUrl}
               />
               {showVideo && (
                 <div
@@ -1011,6 +1016,7 @@ export function SpeechClientImplWithRequests({
           roomName={roomName}
           sessionStartTime={sessionStartTime}
           sessionId={sessionId}
+          apiUrl={transcriptionApiUrl}
         />
       )}
     </div>

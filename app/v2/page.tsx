@@ -10,12 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 import { Settings, Trash2, Video, RefreshCw, ClipboardCopy, Check } from 'lucide-react';
 
-export default function DashboardRoomsPage() {
+export default function V2RoomsPage() {
   const router = useRouter();
   const [rooms, setRooms] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [copiedRoomId, setCopiedRoomId] = useState<string | null>(null);
 
   const fetchRooms = useCallback(async () => {
     setLoading(true);
@@ -35,7 +34,7 @@ export default function DashboardRoomsPage() {
 
       setRooms(data.classrooms || []);
     } catch {
-      setError('Failed to fetch rooms. Please try again.');
+      setError('Failed to fetch rooms. Are you logged in?');
     } finally {
       setLoading(false);
     }
@@ -57,28 +56,13 @@ export default function DashboardRoomsPage() {
     setRooms((prev) => prev.map((r) => (r.id === updatedRoom.id ? updatedRoom : r)));
   };
 
-  const handleJoinRoom = (room: Classroom) => {
-    let url = `/v2/t/${room.room_code}`;
+  const handleJoinRoom = (room: Classroom, role: 'teacher' | 'student') => {
+    const prefix = role === 'teacher' ? '/v2/t/' : '/v2/s/';
+    let url = `${prefix}${room.room_code}`;
     if (room.organization_slug) {
       url += `?org=${encodeURIComponent(room.organization_slug)}`;
     }
     router.push(url);
-  };
-
-  const buildStudentLink = (room: Classroom) => {
-    const prefix = room.room_type === 'speech' ? '/v2/speech-s/' : '/v2/s/';
-    let url = `${window.location.origin}${prefix}${room.room_code}`;
-    if (room.organization_slug) {
-      url += `?org=${encodeURIComponent(room.organization_slug)}`;
-    }
-    return url;
-  };
-
-  const handleCopyStudentLink = async (room: Classroom) => {
-    const link = buildStudentLink(room);
-    await navigator.clipboard.writeText(link);
-    setCopiedRoomId(room.id);
-    setTimeout(() => setCopiedRoomId(null), 2000);
   };
 
   const handleDeleteRoom = async (room: Classroom) => {
@@ -96,6 +80,24 @@ export default function DashboardRoomsPage() {
     }
   };
 
+  const [copiedRoomId, setCopiedRoomId] = useState<string | null>(null);
+
+  const buildStudentLink = (room: Classroom) => {
+    const prefix = room.room_type === 'speech' ? '/v2/speech-s/' : '/v2/s/';
+    let url = `${window.location.origin}${prefix}${room.room_code}`;
+    if (room.organization_slug) {
+      url += `?org=${encodeURIComponent(room.organization_slug)}`;
+    }
+    return url;
+  };
+
+  const handleCopyStudentLink = async (room: Classroom) => {
+    const link = buildStudentLink(room);
+    await navigator.clipboard.writeText(link);
+    setCopiedRoomId(room.id);
+    setTimeout(() => setCopiedRoomId(null), 2000);
+  };
+
   const getLanguageLabel = (code: string) => {
     const map: Record<string, string> = {
       ar: 'Arabic', en: 'English', fr: 'French', de: 'German',
@@ -106,19 +108,17 @@ export default function DashboardRoomsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-5 py-6 sm:py-10">
       {/* Header */}
-      <div className="flex items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Manage Classrooms
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Create and manage persistent room codes for recurring classes
+      <div className="flex items-start sm:items-center justify-between gap-3 mb-6 sm:mb-8">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Classrooms</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1">
+            Manage rooms with v2 session management
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button onClick={fetchRooms} variant="ghost" size="icon" className="h-9 w-9">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+          <Button onClick={fetchRooms} variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9">
             <RefreshCw className="h-4 w-4" />
           </Button>
           <CreateRoomDialog onRoomCreated={handleRoomCreated} />
@@ -127,34 +127,30 @@ export default function DashboardRoomsPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="flex items-center justify-center py-12">
+        <div className="flex items-center justify-center py-16">
           <PulsatingLoader />
         </div>
       )}
 
       {/* Error */}
       {error && !loading && (
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center py-12 text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-6">
-            <p className="font-medium mb-2">Error loading rooms</p>
-            <p className="text-sm">{error}</p>
-            <Button onClick={fetchRooms} variant="outline" className="mt-4">
-              Try Again
-            </Button>
-          </div>
+        <div className="text-center py-8 sm:py-10 text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-4 sm:p-6">
+          <p className="font-medium mb-1">Error loading rooms</p>
+          <p className="text-sm">{error}</p>
+          <Button onClick={fetchRooms} variant="outline" className="mt-4">
+            Try Again
+          </Button>
         </div>
       )}
 
       {/* Empty */}
       {!loading && !error && rooms.length === 0 && (
-        <div className="max-w-2xl mx-auto">
-          <div className="text-center py-12 border border-white/20 rounded-lg px-4">
-            <h2 className="text-xl font-semibold mb-2">No rooms yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Create your first persistent room to get started. Rooms can be reused for recurring sessions.
-            </p>
-            <CreateRoomDialog onRoomCreated={handleRoomCreated} />
-          </div>
+        <div className="text-center py-12 sm:py-16 border border-border/40 rounded-lg bg-card px-4">
+          <h2 className="text-lg font-semibold mb-2">No rooms yet</h2>
+          <p className="text-muted-foreground mb-6 text-sm">
+            Create your first room to get started.
+          </p>
+          <CreateRoomDialog onRoomCreated={handleRoomCreated} />
         </div>
       )}
 
@@ -203,7 +199,7 @@ export default function DashboardRoomsPage() {
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </Button>
-                  <div className="w-px h-6 bg-white/10 mx-1" />
+                  <div className="w-px h-6 bg-border/40 mx-1" />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -220,7 +216,7 @@ export default function DashboardRoomsPage() {
                   <Button
                     size="sm"
                     className="text-xs"
-                    onClick={() => handleJoinRoom(room)}
+                    onClick={() => handleJoinRoom(room, 'teacher')}
                   >
                     Join Room
                   </Button>
@@ -229,6 +225,7 @@ export default function DashboardRoomsPage() {
 
               {/* Mobile: stacked layout */}
               <div className="flex sm:hidden flex-col gap-3">
+                {/* Top: room info */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-semibold text-[15px]">{room.room_code}</span>
@@ -245,6 +242,7 @@ export default function DashboardRoomsPage() {
                   </div>
                 </div>
 
+                {/* Bottom: actions row */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <RoomFormDialog
@@ -284,7 +282,7 @@ export default function DashboardRoomsPage() {
                     <Button
                       size="sm"
                       className="text-xs h-8"
-                      onClick={() => handleJoinRoom(room)}
+                      onClick={() => handleJoinRoom(room, 'teacher')}
                     >
                       Join Room
                     </Button>

@@ -1,0 +1,574 @@
+'use client';
+
+import React from 'react';
+import { DebugMode } from '@/lib/Debug';
+import { KeyboardShortcuts } from '@/lib/KeyboardShortcuts';
+import { SettingsMenu } from '@/lib/SettingsMenu';
+import { ClassroomClientImplWithRequests as ClassroomClientImpl } from '@/app/rooms/[roomName]/ClassroomClientImplWithRequests';
+import { SpeechClientImplWithRequests as SpeechClientImpl } from '@/app/rooms/[roomName]/SpeechClientImplWithRequests';
+import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
+import { QRCodeCanvas } from 'qrcode.react';
+import { ThemeToggleButton } from '@/components/ui/theme-toggle';
+import { Button as StatefulButton } from '@/components/ui/stateful-button';
+import styles from '@/app/rooms/[roomName]/PageClient.module.css';
+import {
+  LocalUserChoices,
+  RoomContext,
+  LayoutContextProvider,
+} from '@livekit/components-react';
+import {
+  RoomOptions,
+  VideoCodec,
+  VideoPresets,
+  Room,
+  RoomConnectOptions,
+  RoomEvent,
+  TrackPublishDefaults,
+  VideoCaptureOptions,
+  DisconnectReason,
+} from 'livekit-client';
+import { useRouter } from 'next/navigation';
+
+// V2 token is 30 min, refresh at 25 min
+const TOKEN_REFRESH_INTERVAL_MS = 25 * 60 * 1000;
+
+interface V2ConnectResponse {
+  serverUrl: string;
+  participantToken: string;
+  participantIdentity: string;
+  sessionId: string;
+  livekitRoomName: string;
+  isNewSession: boolean;
+}
+
+export function V2PageClient({ roomCode }: { roomCode: string }) {
+  const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>();
+  const [selectedLanguage, setSelectedLanguage] = React.useState('');
+  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState('');
+  const [roomMetadata, setRoomMetadata] = React.useState<{
+    teacherName?: string;
+    language?: string;
+  } | null>(null);
+  const [orgSlug, setOrgSlug] = React.useState<string | null>(null);
+  const [orgName, setOrgName] = React.useState<string | null>(null);
+  const [connectResponse, setConnectResponse] = React.useState<V2ConnectResponse | undefined>();
+
+  // Read classroom/speech mode from URL
+  const [classroomInfo, setClassroomInfo] = React.useState<{
+    role: string;
+    pin: string | null;
+    mode?: 'classroom' | 'speech';
+  } | null>(null);
+
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    const isClassroom = url.searchParams.get('classroom') === 'true';
+    const isSpeech = url.searchParams.get('speech') === 'true';
+    const role = url.searchParams.get('role');
+    const pin = url.searchParams.get('pin');
+
+    if (isSpeech) {
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
+    } else {
+      // Default to classroom mode (v2 always requires a mode)
+      setClassroomInfo({ role: role || 'teacher', pin: pin || null, mode: 'classroom' });
+    }
+  }, []);
+
+  // Read org slug from URL
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    const urlOrg = url.searchParams.get('org');
+    if (urlOrg) setOrgSlug(urlOrg);
+  }, []);
+
+  // Fetch classroom metadata
+  React.useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const url = new URL(window.location.href);
+        const urlOrg = url.searchParams.get('org');
+        let apiUrl = `/api/classrooms/${roomCode}`;
+        if (urlOrg) apiUrl += `?org=${encodeURIComponent(urlOrg)}`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+
+        const metadata = data.classroom
+          ? { teacherName: data.classroom.name, language: data.classroom.settings?.language }
+          : data.metadata || null;
+
+        if (data.classroom?.organization_slug) setOrgSlug(data.classroom.organization_slug);
+        if (data.classroom?.organization_name) setOrgName(data.classroom.organization_name);
+
+        if (metadata) {
+          setRoomMetadata(metadata);
+          if (metadata.language && classroomInfo?.role === 'teacher') {
+            setSelectedLanguage(metadata.language);
+          }
+        }
+      } catch (error) {
+        console.error('[V2] Failed to fetch room metadata:', error);
+      }
+    };
+    fetchMetadata();
+  }, [roomCode, classroomInfo?.role]);
+
+  const qrCanvasRef = React.useRef<HTMLDivElement>(null);
+
+  const studentLink = React.useMemo(() => {
+    if (!classroomInfo || classroomInfo.role !== 'teacher') return '';
+    if (typeof window === 'undefined') return '';
+    const prefix = classroomInfo.mode === 'speech' ? '/v2/speech-s/' : '/v2/s/';
+    let link = `${window.location.origin}${prefix}${roomCode}`;
+    const params = new URLSearchParams();
+    if (orgSlug) params.set('org', orgSlug);
+    if (classroomInfo.pin) params.set('pin', classroomInfo.pin);
+    const qs = params.toString();
+    if (qs) link += `?${qs}`;
+    return link;
+  }, [classroomInfo, orgSlug, roomCode]);
+
+  const preJoinDefaults = React.useMemo(() => {
+    const isStudent = classroomInfo?.role === 'student';
+    const isTeacher = classroomInfo?.role === 'teacher';
+    return {
+      username: isTeacher && roomMetadata?.teacherName ? roomMetadata.teacherName : '',
+      videoEnabled: !isStudent,
+      audioEnabled: !isStudent,
+    };
+  }, [classroomInfo, roomMetadata]);
+
+  // V2: Single connect call on PreJoin submit
+  const handlePreJoinSubmit = React.useCallback(
+    async (values: LocalUserChoices) => {
+      setPreJoinChoices(values);
+
+      const mode = classroomInfo?.mode || 'classroom';
+      const role = classroomInfo?.role || 'teacher';
+
+      try {
+        const response = await fetch('/api/v2/connect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomCode,
+            participantName: values.username,
+            role,
+            orgSlug: orgSlug || undefined,
+            mode,
+          }),
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Connect failed (${response.status}): ${errText}`);
+        }
+
+        const data: V2ConnectResponse = await response.json();
+        setConnectResponse(data);
+      } catch (error) {
+        console.error('[V2] Connect error:', error);
+        alert(`Failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setPreJoinChoices(undefined);
+      }
+    },
+    [roomCode, orgSlug, classroomInfo],
+  );
+
+  const handlePreJoinError = React.useCallback((e: Error) => console.error(e), []);
+
+  return (
+    <main data-lk-theme="default" className={styles.mainContainer}>
+      {connectResponse === undefined || preJoinChoices === undefined ? (
+        <div className={styles.preJoinContainer}>
+          <div className={styles.header}>
+            <span className={styles.logo}>
+              {orgName ? orgName.replace(/\b\w/g, (c: string) => c.toUpperCase()) : 'bayaan.ai'}
+            </span>
+            <ThemeToggleButton start="top-right" />
+          </div>
+
+          <div className={styles.contentArea}>
+            <div className={styles.contentWrapper}>
+              {classroomInfo && (
+                <div>
+                  <h1 className={styles.lobbyTitle}>
+                    {classroomInfo.mode === 'speech'
+                      ? classroomInfo.role === 'teacher'
+                        ? 'speaker lobby'
+                        : 'listener lobby'
+                      : classroomInfo.role === 'teacher'
+                        ? 'teacher lobby'
+                        : 'student lobby'}
+                  </h1>
+
+                  {classroomInfo.role === 'student' && (
+                    <div className={styles.welcomeSection}>
+                      <div className={styles.welcomeTitle}>Welcome!</div>
+                      <div className={styles.welcomeText}>
+                        Enter your name below to join the session.
+                      </div>
+                    </div>
+                  )}
+
+                  {classroomInfo.role === 'teacher' && (
+                    <div className={styles.teacherInfo}>
+                      {studentLink && (
+                        <div ref={qrCanvasRef} className={styles.qrHiddenCanvas}>
+                          <QRCodeCanvas value={studentLink} size={256} />
+                        </div>
+                      )}
+                      <div className={styles.copyButtonWrapper}>
+                        <StatefulButton
+                          onClick={() =>
+                            new Promise((resolve) => {
+                              navigator.clipboard.writeText(studentLink);
+                              setTimeout(resolve, 500);
+                            })
+                          }
+                        >
+                          Copy Student Link
+                        </StatefulButton>
+                      </div>
+                      <div className={styles.linkDisplay}>{studentLink}</div>
+                      {classroomInfo.pin && (
+                        <div className={styles.pinInfo}>PIN: {classroomInfo.pin}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              <CustomPreJoin
+                defaults={preJoinDefaults}
+                onSubmit={handlePreJoinSubmit}
+                onError={handlePreJoinError}
+                showLanguageSelector={
+                  classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher'
+                }
+                selectedLanguage={selectedLanguage}
+                onLanguageChange={setSelectedLanguage}
+                selectedTranslationLanguage={selectedTranslationLanguage}
+                onTranslationLanguageChange={setSelectedTranslationLanguage}
+                isTeacher={classroomInfo?.role === 'teacher'}
+                isStudent={
+                  classroomInfo?.role === 'student' && classroomInfo?.mode === 'classroom'
+                }
+                isSpeechListener={
+                  classroomInfo?.mode === 'speech' && classroomInfo?.role === 'student'
+                }
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <V2VideoConference
+          connectResponse={connectResponse}
+          userChoices={preJoinChoices}
+          selectedLanguage={selectedLanguage}
+          selectedTranslationLanguage={selectedTranslationLanguage}
+          classroomRole={classroomInfo?.role}
+          roomCode={roomCode}
+          orgSlug={orgSlug}
+          orgName={orgName}
+        />
+      )}
+    </main>
+  );
+}
+
+/**
+ * V2 video conference component.
+ * Key differences from v1:
+ * - Uses server-provided identity (no cookie-based random postfix)
+ * - Uses server-provided sessionId (UUID, passed directly to data APIs)
+ * - No client session end — lifecycle is 100% webhook-driven
+ * - Token refresh via /api/v2/refresh-token at 25-min intervals
+ */
+function V2VideoConference(props: {
+  userChoices: LocalUserChoices;
+  connectResponse: V2ConnectResponse;
+  selectedLanguage?: string;
+  selectedTranslationLanguage?: string;
+  classroomRole?: string;
+  roomCode: string;
+  orgSlug?: string | null;
+  orgName?: string | null;
+}) {
+  const [sessionStartTime, setSessionStartTime] = React.useState(Date.now());
+  const router = useRouter();
+
+  const isConnectingRef = React.useRef(false);
+  const isReconnectingRef = React.useRef(false);
+
+  // Store latest token for reconnection
+  const latestTokenRef = React.useRef(props.connectResponse.participantToken);
+  const serverUrlRef = React.useRef(props.connectResponse.serverUrl);
+
+  const roomOptions = React.useMemo((): RoomOptions => {
+    const videoCaptureDefaults: VideoCaptureOptions = {
+      deviceId: props.userChoices.videoDeviceId ?? undefined,
+      resolution: VideoPresets.h720,
+    };
+    const publishDefaults: TrackPublishDefaults = {
+      dtx: false,
+      videoSimulcastLayers: [VideoPresets.h540, VideoPresets.h216],
+      red: true,
+      videoCodec: 'vp9' as VideoCodec,
+    };
+    return {
+      videoCaptureDefaults,
+      publishDefaults,
+      audioCaptureDefaults: {
+        deviceId: props.userChoices.audioDeviceId ?? undefined,
+      },
+      adaptiveStream: true,
+      dynacast: true,
+    };
+  }, [props.userChoices]);
+
+  const room = React.useMemo(() => new Room(roomOptions), [roomOptions]);
+
+  const connectOptions = React.useMemo((): RoomConnectOptions => ({ autoSubscribe: true }), []);
+  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const handleError = React.useCallback((error: Error) => {
+    console.error('[V2]', error);
+    alert(`Error: ${error.message}`);
+  }, []);
+
+  // Connect to room
+  React.useEffect(() => {
+    if (isConnectingRef.current) return;
+    isConnectingRef.current = true;
+
+    const connectWithRetry = async (attempt = 1): Promise<void> => {
+      try {
+        await room.connect(
+          props.connectResponse.serverUrl,
+          props.connectResponse.participantToken,
+          connectOptions,
+        );
+      } catch (error: any) {
+        if (
+          (error.message?.includes('not valid yet') || error.message?.includes('nbf')) &&
+          attempt < 3
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return connectWithRetry(attempt + 1);
+        }
+        throw error;
+      }
+    };
+
+    connectWithRetry()
+      .then(async () => {
+        setSessionStartTime(Date.now());
+        console.log('[V2] Connected. Session:', props.connectResponse.sessionId);
+
+        // Set language attributes
+        if (
+          (props.classroomRole === 'student' || props.classroomRole === 'teacher') &&
+          props.selectedLanguage
+        ) {
+          try {
+            if (props.classroomRole === 'teacher') {
+              const attrs: Record<string, string> = {
+                speaking_language: props.selectedLanguage,
+              };
+              if (props.selectedTranslationLanguage) {
+                attrs.captions_language = props.selectedTranslationLanguage;
+              }
+              await room.localParticipant.setAttributes(attrs);
+            } else {
+              await room.localParticipant.setAttributes({
+                captions_language: props.selectedLanguage,
+              });
+            }
+          } catch (error) {
+            console.error('[V2] Failed to set language attributes:', error);
+          }
+        }
+
+        // Fetch and set custom translation prompt for teachers
+        if (props.classroomRole === 'teacher') {
+          try {
+            const promptResponse = await fetch(`/api/classrooms/${props.roomCode}/prompt`);
+            const promptData = await promptResponse.json();
+            if (promptData.prompt_text) {
+              await room.localParticipant.setAttributes({
+                translation_prompt: promptData.prompt_text,
+              });
+            }
+          } catch (error) {
+            console.error('[V2] Failed to fetch translation prompt:', error);
+          }
+        }
+
+        // Enable media for non-students
+        const url = new URL(window.location.href);
+        const isStudent =
+          (url.searchParams.get('classroom') === 'true' ||
+            url.searchParams.get('speech') === 'true') &&
+          url.searchParams.get('role') === 'student';
+
+        if (!isStudent) {
+          if (props.userChoices.videoEnabled) {
+            room.localParticipant.setCameraEnabled(true).catch((e) => {
+              console.warn('[V2] Camera enable failed:', e);
+            });
+          }
+          if (props.userChoices.audioEnabled) {
+            room.localParticipant.setMicrophoneEnabled(true).catch((e) => {
+              console.warn('[V2] Mic enable failed:', e);
+            });
+          }
+        }
+      })
+      .catch((error) => {
+        isConnectingRef.current = false;
+        handleError(error);
+      });
+
+    return () => {
+      // Cleanup on unmount
+    };
+  }, [
+    room,
+    props.connectResponse,
+    props.userChoices,
+    connectOptions,
+    handleError,
+    props.classroomRole,
+    props.roomCode,
+    props.selectedLanguage,
+    props.selectedTranslationLanguage,
+  ]);
+
+  // Token refresh timer — every 25 minutes
+  React.useEffect(() => {
+    const refreshToken = async () => {
+      try {
+        console.log('[V2 Token Refresh] Refreshing...');
+        const response = await fetch('/api/v2/refresh-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomCode: props.roomCode,
+            participantIdentity: props.connectResponse.participantIdentity,
+            participantName: props.userChoices.username,
+            role: props.classroomRole || 'student',
+            orgSlug: props.orgSlug || undefined,
+          }),
+        });
+
+        if (!response.ok) throw new Error(`Refresh failed: ${response.status}`);
+        const data = await response.json();
+        latestTokenRef.current = data.participantToken;
+        console.log('[V2 Token Refresh] Fresh token stored');
+      } catch (error) {
+        console.error('[V2 Token Refresh] Failed:', error);
+      }
+    };
+
+    const interval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [
+    props.roomCode,
+    props.connectResponse.participantIdentity,
+    props.userChoices.username,
+    props.classroomRole,
+    props.orgSlug,
+  ]);
+
+  // Disconnect handler — reconnect with fresh token, NO client session end
+  React.useEffect(() => {
+    if (!room) return;
+
+    const handleDisconnected = async (reason?: DisconnectReason) => {
+      console.log('[V2] Disconnected, reason:', reason);
+
+      if (reason === DisconnectReason.CLIENT_INITIATED) {
+        handleOnLeave();
+        return;
+      }
+
+      if (isReconnectingRef.current) return;
+      isReconnectingRef.current = true;
+
+      try {
+        // Use stored fresh token for reconnection
+        console.log('[V2] Reconnecting with stored token...');
+        await room.connect(serverUrlRef.current, latestTokenRef.current, connectOptions);
+        console.log('[V2] Reconnected successfully');
+        isReconnectingRef.current = false;
+      } catch (error) {
+        console.error('[V2] Reconnection failed:', error);
+        isReconnectingRef.current = false;
+        handleOnLeave();
+      }
+    };
+
+    room.on(RoomEvent.Disconnected, handleDisconnected);
+    return () => {
+      room.off(RoomEvent.Disconnected, handleDisconnected);
+    };
+  }, [room, connectOptions, handleOnLeave]);
+
+  // Determine mode from URL
+  const [isClassroom, setIsClassroom] = React.useState(false);
+  const [isSpeech, setIsSpeech] = React.useState(false);
+  const [userRole, setUserRole] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const url = new URL(window.location.href);
+    setIsClassroom(url.searchParams.get('classroom') === 'true');
+    setIsSpeech(url.searchParams.get('speech') === 'true');
+    setUserRole(url.searchParams.get('role'));
+  }, []);
+
+  return (
+    <div className="lk-room-container" data-lk-theme="default">
+      <RoomContext.Provider value={room}>
+        <LayoutContextProvider>
+          <KeyboardShortcuts />
+          {isClassroom ? (
+            <ClassroomClientImpl
+              userRole={userRole}
+              roomName={props.roomCode}
+              sessionStartTime={sessionStartTime}
+              sessionId={props.connectResponse.sessionId}
+              orgSlug={props.orgSlug}
+              orgName={props.orgName}
+              transcriptionApiUrl="/api/v2/transcriptions"
+              translationApiUrl="/api/v2/translations"
+            />
+          ) : isSpeech ? (
+            <SpeechClientImpl
+              userRole={userRole}
+              roomName={props.roomCode}
+              sessionStartTime={sessionStartTime}
+              sessionId={props.connectResponse.sessionId}
+              orgSlug={props.orgSlug}
+              orgName={props.orgName}
+              transcriptionApiUrl="/api/v2/transcriptions"
+              translationApiUrl="/api/v2/translations"
+            />
+          ) : (
+            // Fallback: classroom mode by default for v2
+            <ClassroomClientImpl
+              userRole={userRole}
+              roomName={props.roomCode}
+              sessionStartTime={sessionStartTime}
+              sessionId={props.connectResponse.sessionId}
+              orgSlug={props.orgSlug}
+              orgName={props.orgName}
+              transcriptionApiUrl="/api/v2/transcriptions"
+              translationApiUrl="/api/v2/translations"
+            />
+          )}
+          <DebugMode />
+        </LayoutContextProvider>
+      </RoomContext.Provider>
+    </div>
+  );
+}

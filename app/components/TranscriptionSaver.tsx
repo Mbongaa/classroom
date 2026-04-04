@@ -8,6 +8,7 @@ interface TranscriptionSaverProps {
   roomName: string;
   sessionStartTime: number;
   sessionId: string;
+  apiUrl?: string; // V2 passes '/api/v2/transcriptions'
 }
 
 // Sentence boundary detection - multilingual punctuation
@@ -47,6 +48,7 @@ export default function TranscriptionSaver({
   roomName,
   sessionStartTime,
   sessionId,
+  apiUrl = '/api/transcriptions',
 }: TranscriptionSaverProps) {
   const room = useRoomContext();
   const savedSegmentIds = useRef<Set<string>>(new Set());
@@ -101,7 +103,7 @@ export default function TranscriptionSaver({
     // Save to transcriptions API with retry logic
     const saveWithRetry = async (attempt = 1): Promise<void> => {
       try {
-        const response = await fetch('/api/transcriptions', {
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

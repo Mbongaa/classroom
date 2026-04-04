@@ -17,6 +17,7 @@ interface SpeechTranslationPanelProps {
   onFullscreenToggle?: () => void;
   showVideo?: boolean;
   onVideoToggle?: () => void;
+  translationApiUrl?: string; // V2 passes '/api/v2/translations'
 }
 
 // Retry configuration
@@ -45,6 +46,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   onFullscreenToggle,
   showVideo = true,
   onVideoToggle,
+  translationApiUrl = '/api/recordings/translations',
 }) => {
   const room = useRoomContext();
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -205,7 +207,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             // Save with retry logic
             const saveWithRetry = async (attempt = 1): Promise<void> => {
               try {
-                const response = await fetch('/api/recordings/translations', {
+                const response = await fetch(translationApiUrl, {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({

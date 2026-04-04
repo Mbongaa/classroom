@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import PreJoinLanguageSelect from '@/app/components/PreJoinLanguageSelect';
 import { PromptTemplateSelector } from '@/app/components/PromptTemplateSelector';
@@ -38,10 +37,9 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
 
   // Form state
   const [roomCode, setRoomCode] = useState('');
-  const [roomType, setRoomType] = useState<RoomType>('classroom');
+  const [roomType, setRoomType] = useState<RoomType>('speech');
   const [teacherName, setTeacherName] = useState('');
   const [language, setLanguage] = useState('ar'); // Default to Arabic Fusha
-  const [description, setDescription] = useState('');
   const [translationPromptId, setTranslationPromptId] = useState<string | null>(null);
 
   // Advanced STT settings
@@ -53,55 +51,50 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
   // Templates for auto-selection
   const [templates, setTemplates] = useState<Array<{ id: string; name: string }>>([]);
 
-  // Fetch templates when dialog opens
+  // Fetch templates on first open and auto-select Khutba (Fusha) as default.
+  // This runs at dialog level so it works even if advanced settings are never opened.
   useEffect(() => {
     if (open && templates.length === 0) {
       fetch('/api/prompts')
         .then((res) => res.ok ? res.json() : null)
         .then((data) => {
           if (data?.templates) {
-            setTemplates(data.templates);
+            const all = data.templates as Array<{ id: string; name: string }>;
+            setTemplates(all);
+            // Auto-select Khutba (Fusha), fallback to first template
+            const khutba = all.find(
+              (t) => t.name.toLowerCase().includes('khutba') && t.name.toLowerCase().includes('fusha')
+            );
+            if (!translationPromptId) {
+              setTranslationPromptId(khutba?.id || all[0]?.id || null);
+            }
           }
         })
         .catch(() => {});
     }
-  }, [open, templates.length]);
+  }, [open, templates.length, translationPromptId]);
 
-  // Auto-select appropriate template based on language
   const handleLanguageChange = (newLanguage: string) => {
     setLanguage(newLanguage);
-
-    if (newLanguage === 'ar') {
-      // Arabic Fusha → Khutba (Fusha) template
-      const khutbaTemplate = templates.find(
-        (t) => t.name.toLowerCase().includes('khutba') && t.name.toLowerCase().includes('fusha')
-      );
-      if (khutbaTemplate) {
-        setTranslationPromptId(khutbaTemplate.id);
-      }
-    } else {
-      // Any other language → Islamic context translation (other) template
-      const islamicTemplate = templates.find(
-        (t) => t.name.toLowerCase().includes('islamic') && t.name.toLowerCase().includes('other')
-      );
-      if (islamicTemplate) {
-        setTranslationPromptId(islamicTemplate.id);
-      }
-    }
+    // Khutba (Fusha) stays as default regardless of language change.
+    // User can manually pick a different template if needed.
   };
 
   const resetForm = () => {
     setRoomCode('');
-    setRoomType('classroom');
+    setRoomType('speech');
     setTeacherName('');
     setLanguage('ar');
-    setDescription('');
-    setTranslationPromptId(null);
     setShowAdvanced(false);
     setContextWindowSize(12);
     setMaxDelay(2.5);
     setPunctuationSensitivity(0.5);
     setError('');
+    // Re-select Khutba (Fusha) default
+    const khutba = templates.find(
+      (t) => t.name.toLowerCase().includes('khutba') && t.name.toLowerCase().includes('fusha')
+    );
+    setTranslationPromptId(khutba?.id || null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,9 +127,8 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
         },
         body: JSON.stringify({
           roomCode: roomCode.trim(),
-          name: teacherName.trim() || roomCode.trim(), // Classroom name (teacher name or room code)
-          description: description.trim() || undefined,
-          roomType: roomType, // ✅ FIX: Include room type in request
+          name: teacherName.trim() || roomCode.trim(),
+          roomType: roomType,
           settings: {
             language: language || 'en',
             enable_recording: roomType === 'classroom',
@@ -204,74 +196,30 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
               </p>
             </div>
 
-            {/* Room Type */}
+            {/* Speaker Name */}
             <div className="grid gap-2">
-              <Label htmlFor="roomType">
-                Room Type <span className="text-red-500">*</span>
+              <Label htmlFor="teacherName">
+                Speaker Name <span className="text-red-500">*</span>
               </Label>
-              <Select
-                value={roomType}
-                onValueChange={(value) => setRoomType(value as RoomType)}
+              <Input
+                id="teacherName"
+                placeholder="Enter speaker name"
+                value={teacherName}
+                onChange={(e) => setTeacherName(e.target.value)}
                 disabled={loading}
-              >
-                <SelectTrigger id="roomType">
-                  <SelectValue placeholder="Select room type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="classroom">Classroom (Teacher/Student Roles)</SelectItem>
-                  <SelectItem value="speech">Speech (Speaker/Listener Roles)</SelectItem>
-                </SelectContent>
-              </Select>
+                maxLength={100}
+                className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
+              />
             </div>
 
-            {/* Teacher/Speaker Name (conditional) */}
-            {(roomType === 'classroom' || roomType === 'speech') && (
-              <div className="grid gap-2">
-                <Label htmlFor="teacherName">
-                  {roomType === 'classroom' ? 'Teacher' : 'Speaker'} Name{' '}
-                  <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="teacherName"
-                  placeholder={`Enter ${roomType === 'classroom' ? 'teacher' : 'speaker'} name`}
-                  value={teacherName}
-                  onChange={(e) => setTeacherName(e.target.value)}
-                  disabled={loading}
-                  maxLength={100}
-                  className="focus:ring-4 focus:ring-[#434549] focus:ring-offset-1 focus:ring-offset-[#b8b2b2] hover:border-[#6b7280]"
-                />
-              </div>
-            )}
-
-            {/* Speaker Language (optional) */}
+            {/* Speaker Language */}
             <div className="grid gap-2">
-              <Label htmlFor="language">Speaker Language (e.g. Arabic Fusha)</Label>
+              <Label htmlFor="language">Speaker Language</Label>
               <PreJoinLanguageSelect
                 selectedLanguage={language}
                 onLanguageChange={handleLanguageChange}
                 disabled={loading}
-                isTeacher={roomType === 'classroom' || roomType === 'speech'}
-              />
-            </div>
-
-            {/* Translation Prompt Template (optional) */}
-            <PromptTemplateSelector
-              value={translationPromptId}
-              onChange={setTranslationPromptId}
-              disabled={loading}
-            />
-
-            {/* Description (optional) */}
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                placeholder="Brief description of this room"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                disabled={loading}
-                maxLength={500}
-                rows={3}
+                isTeacher={true}
               />
             </div>
 
@@ -294,6 +242,31 @@ export function CreateRoomDialog({ onRoomCreated }: CreateRoomDialogProps) {
 
               {showAdvanced && (
                 <div className="grid gap-4 p-4 pt-2">
+                  {/* Room Type */}
+                  <div className="grid gap-2">
+                    <Label htmlFor="roomType">Room Type</Label>
+                    <Select
+                      value={roomType}
+                      onValueChange={(value) => setRoomType(value as RoomType)}
+                      disabled={loading}
+                    >
+                      <SelectTrigger id="roomType">
+                        <SelectValue placeholder="Select room type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="speech">Speech (Speaker/Listener Roles)</SelectItem>
+                        <SelectItem value="classroom">Classroom (Teacher/Student Roles)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Translation Prompt Template */}
+                  <PromptTemplateSelector
+                    value={translationPromptId}
+                    onChange={setTranslationPromptId}
+                    disabled={loading}
+                  />
+
                   {/* Context Window Size */}
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between">
