@@ -12,9 +12,10 @@ import {
   useLocalParticipant,
   useRoomContext,
 } from '@livekit/components-react';
-import { Track, ConnectionQuality } from 'livekit-client';
-import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2 } from 'lucide-react';
+import { Track, ConnectionQuality, TranscriptionSegment, RoomEvent } from 'livekit-client';
+import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2, Minus, Plus, ArrowDown } from 'lucide-react';
 import clsx from 'clsx';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -26,6 +27,7 @@ interface CustomParticipantTileProps {
   showMetadata?: boolean;
   aspectRatio?: '16:9' | '4:3' | '1:1';
   onClick?: () => void;
+  fullscreenOverlay?: React.ReactNode;
 }
 
 export function CustomParticipantTile({
@@ -36,6 +38,7 @@ export function CustomParticipantTile({
   showMetadata = true,
   aspectRatio = '1:1',
   onClick,
+  fullscreenOverlay,
 }: CustomParticipantTileProps) {
   const { elementProps } = useParticipantTile({
     trackRef,
@@ -64,6 +67,121 @@ export function CustomParticipantTile({
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
+
+  // Fullscreen translation captions — only listen when in fullscreen
+  const [fullscreenCaptions, setFullscreenCaptions] = React.useState<TranscriptionSegment[]>([]);
+  const captionsLanguage = localParticipant?.attributes?.captions_language || 'en';
+
+  // Translation service status: tracks whether segments are actively arriving
+  const [translationStatus, setTranslationStatus] = React.useState<'connecting' | 'active' | 'warning'>('connecting');
+  const healthTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (!isFullscreenMode || !room) return;
+
+    // Start as connecting
+    setTranslationStatus('connecting');
+
+    // Timeout to warning if nothing arrives
+    healthTimeoutRef.current = setTimeout(() => setTranslationStatus('warning'), 15000);
+
+    const handleTranscription = (segments: TranscriptionSegment[]) => {
+      const filtered = segments.filter((seg) => seg.language === captionsLanguage);
+      if (filtered.length === 0) return;
+
+      // Mark active and reset timeout
+      setTranslationStatus('active');
+      if (healthTimeoutRef.current) clearTimeout(healthTimeoutRef.current);
+      healthTimeoutRef.current = setTimeout(() => setTranslationStatus('warning'), 15000);
+
+      setFullscreenCaptions((prev) => {
+        const updated = { ...Object.fromEntries(prev.map((s) => [s.id, s])) };
+        for (const seg of filtered) {
+          updated[seg.id] = seg;
+        }
+        // Keep last 20 segments to fill the overlay
+        return Object.values(updated)
+          .sort((a, b) => (a.startTime || 0) - (b.startTime || 0))
+          .slice(-20);
+      });
+    };
+
+    room.on(RoomEvent.TranscriptionReceived, handleTranscription);
+    return () => {
+      room.off(RoomEvent.TranscriptionReceived, handleTranscription);
+      if (healthTimeoutRef.current) clearTimeout(healthTimeoutRef.current);
+      setFullscreenCaptions([]);
+    };
+  }, [isFullscreenMode, room, captionsLanguage]);
+
+  // On mobile, treat as fullscreen mode by default (overlay + top controls)
+  const isMobile = useIsMobile();
+  const isFullscreenMode = isFullscreen || isMobile;
+  const [overlayFontSize, setOverlayFontSize] = React.useState(() => isMobile ? 18 : 32);
+  const OVERLAY_MIN_FONT = 12;
+  const OVERLAY_MAX_FONT = 48;
+  const OVERLAY_FONT_STEP = 2;
+
+  // Auto-scroll for fullscreen captions (same pattern as SpeechTranslationPanel)
+  const overlayScrollRef = React.useRef<HTMLDivElement>(null);
+  const overlayUserScrollingRef = React.useRef(false);
+  const overlayAutoScrollRef = React.useRef(true);
+  const [showOverlayScrollBtn, setShowOverlayScrollBtn] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = overlayScrollRef.current;
+    if (!el || !isFullscreenMode) return;
+
+    const onInteractionStart = () => { overlayUserScrollingRef.current = true; };
+    const onInteractionEnd = () => {
+      setTimeout(() => { overlayUserScrollingRef.current = false; }, 150);
+    };
+    const onScroll = () => {
+      const distFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+
+      // User scrolled up — disable auto-scroll
+      if (overlayUserScrollingRef.current && distFromBottom > 150) {
+        overlayAutoScrollRef.current = false;
+        setShowOverlayScrollBtn(true);
+      }
+
+      // User scrolled back to bottom — re-enable
+      if (distFromBottom < 50) {
+        overlayAutoScrollRef.current = true;
+        setShowOverlayScrollBtn(false);
+      }
+    };
+
+    // Wheel immediately disables auto-scroll when scrolling up
+    const onWheel = (e: WheelEvent) => {
+      overlayUserScrollingRef.current = true;
+      if (e.deltaY < 0) {
+        overlayAutoScrollRef.current = false;
+        setShowOverlayScrollBtn(true);
+      }
+    };
+
+    el.addEventListener('touchstart', onInteractionStart, { passive: true });
+    el.addEventListener('touchend', onInteractionEnd, { passive: true });
+    el.addEventListener('wheel', onWheel, { passive: true });
+    el.addEventListener('pointerup', onInteractionEnd, { passive: true });
+    el.addEventListener('scroll', onScroll, { passive: true });
+
+    return () => {
+      el.removeEventListener('touchstart', onInteractionStart);
+      el.removeEventListener('touchend', onInteractionEnd);
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('pointerup', onInteractionEnd);
+      el.removeEventListener('scroll', onScroll);
+    };
+  }, [isFullscreenMode]);
+
+  // Auto-scroll on new captions — only if user hasn't scrolled up
+  React.useLayoutEffect(() => {
+    if (overlayScrollRef.current && fullscreenCaptions.length > 0 && overlayAutoScrollRef.current) {
+      overlayScrollRef.current.scrollTop = overlayScrollRef.current.scrollHeight;
+    }
+  }, [fullscreenCaptions]);
 
   const toggleFullscreen = React.useCallback(() => {
     if (!tileRef.current) return;
@@ -175,7 +293,7 @@ export function CustomParticipantTile({
         className={clsx(
           'relative overflow-hidden group',
           'w-full h-full',
-          isFullscreen ? 'rounded-none bg-black' : 'rounded-3xl',
+          isFullscreenMode ? 'rounded-none bg-black' : 'rounded-3xl',
           getAspectRatioClass(),
           className,
         )}
@@ -189,7 +307,10 @@ export function CustomParticipantTile({
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
-          <VideoTrack trackRef={trackRef} className={clsx("absolute inset-0 w-full h-full", isFullscreen ? "object-contain" : "object-cover")} />
+          <VideoTrack
+            trackRef={trackRef}
+            className={clsx("absolute inset-0 w-full h-full", isFullscreenMode ? "object-contain" : "object-cover")}
+          />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -237,17 +358,88 @@ export function CustomParticipantTile({
 
         {/* Overlay Information */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Top Bar */}
+          {/* Top Bar — in fullscreen all controls merge into one row */}
           <div className="absolute top-0 left-0 right-0 p-2">
             <div className="flex items-center justify-between">
-              {/* Participant Name */}
+              {/* Left: Status dot (fullscreen) + Name + media icons */}
               <div className="flex items-center gap-2">
+                {isFullscreenMode && (
+                  <span
+                    className={clsx(
+                      "w-2.5 h-2.5 rounded-full flex-shrink-0",
+                      translationStatus === 'active' && "bg-red-500 animate-pulse",
+                      translationStatus === 'connecting' && "bg-yellow-500 animate-pulse",
+                      translationStatus === 'warning' && "bg-gray-500",
+                    )}
+                    title={translationStatus === 'active' ? 'Live' : translationStatus === 'connecting' ? 'Connecting...' : 'No signal'}
+                  />
+                )}
                 <span
                   className="text-sm font-medium truncate max-w-[150px] text-white"
                   style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}
                 >
                   {participant.name || participant.identity}
                 </span>
+
+                {isFullscreenMode && (
+                  <>
+                    {/* Microphone Status */}
+                    <button
+                      className="p-1.5 rounded-full pointer-events-auto"
+                      style={{
+                        backgroundColor: isAudioEnabled ? 'var(--lk-bg3)' : '#ef4444',
+                        cursor: isLocalParticipant ? 'pointer' : 'default',
+                      }}
+                      title={isLocalParticipant
+                        ? (isAudioEnabled ? 'Click to mute' : 'Click to unmute')
+                        : (isAudioEnabled ? 'Microphone on' : 'Microphone off')}
+                      onClick={isLocalParticipant ? toggleMic : undefined}
+                    >
+                      {isAudioEnabled ? (
+                        <Mic className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
+                      ) : (
+                        <MicOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                      )}
+                    </button>
+
+                    {/* Camera Status */}
+                    {!isScreenShare && (
+                      <button
+                        className="p-1.5 rounded-full pointer-events-auto"
+                        style={{
+                          backgroundColor: isVideoEnabled ? 'var(--lk-bg3)' : '#ef4444',
+                          cursor: isLocalParticipant ? 'pointer' : 'default',
+                        }}
+                        title={isLocalParticipant
+                          ? (isVideoEnabled ? 'Click to turn off camera' : 'Click to turn on camera')
+                          : (isVideoEnabled ? 'Camera on' : 'Camera off')}
+                        onClick={isLocalParticipant ? toggleCamera : undefined}
+                      >
+                        {isVideoEnabled ? (
+                          <Video className="w-3.5 h-3.5" style={{ color: 'var(--lk-text1, white)' }} />
+                        ) : (
+                          <VideoOff className="w-3.5 h-3.5" style={{ color: 'white' }} />
+                        )}
+                      </button>
+                    )}
+
+                    {/* Speaking Indicator */}
+                    {showSpeakingIndicator && isSpeaking && (
+                      <div className="flex gap-0.5">
+                        {[0, 1, 2].map((i) => (
+                          <div
+                            key={i}
+                            className="w-1 h-3 rounded-full animate-pulse"
+                            style={{
+                              backgroundColor: 'var(--lk-text1, white)',
+                              animationDelay: `${i * 100}ms`,
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Fullscreen Toggle */}
@@ -266,12 +458,11 @@ export function CustomParticipantTile({
             </div>
           </div>
 
-          {/* Bottom Bar */}
+          {/* Bottom Bar — only in non-fullscreen mode (in fullscreen/mobile, controls are in top bar) */}
+          {!isFullscreenMode && (
           <div className="absolute bottom-0 left-0 right-0 p-2">
             <div className="flex items-center justify-between">
-              {/* Media Status Icons */}
               <div className="flex items-center gap-2">
-                {/* Microphone Status */}
                 <button
                   className="p-1.5 rounded-full pointer-events-auto"
                   style={{
@@ -290,7 +481,6 @@ export function CustomParticipantTile({
                   )}
                 </button>
 
-                {/* Camera Status (only if not screen share) */}
                 {!isScreenShare && (
                   <button
                     className="p-1.5 rounded-full pointer-events-auto"
@@ -312,7 +502,6 @@ export function CustomParticipantTile({
                 )}
               </div>
 
-              {/* Speaking Indicator */}
               {showSpeakingIndicator && isSpeaking && (
                 <div className="flex gap-0.5">
                   {[0, 1, 2].map((i) => (
@@ -329,6 +518,7 @@ export function CustomParticipantTile({
               )}
             </div>
           </div>
+          )}
 
           {/* Additional Metadata */}
           {showMetadata && metadata.additionalInfo && (
@@ -343,6 +533,93 @@ export function CustomParticipantTile({
             </div>
           )}
         </div>
+
+        {/* Fullscreen/Mobile Translation Overlay - bottom 33% */}
+        {isFullscreenMode && (
+          <div
+            className="absolute bottom-0 left-0 right-0 pointer-events-auto"
+            style={{ height: '33%' }}
+          >
+            {/* Black gradient background within the 33% overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0.5) 65%, rgba(0,0,0,0.7) 100%)',
+              }}
+            />
+            {/* Text content */}
+            <div className="relative h-full flex flex-col justify-end p-6">
+              {fullscreenOverlay || (
+                fullscreenCaptions.length > 0 && (
+                  <>
+                    <div
+                      ref={overlayScrollRef}
+                      className="h-full overflow-y-auto space-y-2 scrollbar-none"
+                      style={{
+                        maskImage: 'linear-gradient(to bottom, transparent 0%, white 70%)',
+                        WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, white 70%)',
+                        scrollbarWidth: 'none',
+                      } as React.CSSProperties}
+                    >
+                      {/* Spacer pushes content to bottom while allowing scroll up */}
+                      <div className="flex-shrink-0" style={{ minHeight: '100%' }} />
+                      {fullscreenCaptions.map((seg, i) => (
+                        <p
+                          key={seg.id}
+                          className="text-center text-white font-medium leading-relaxed"
+                          style={{
+                            fontSize: `${i === fullscreenCaptions.length - 1 ? overlayFontSize : overlayFontSize * 0.75}px`,
+                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                          }}
+                        >
+                          {seg.text}
+                        </p>
+                      ))}
+                    </div>
+
+                    {/* Scroll to latest button */}
+                    {showOverlayScrollBtn && (
+                      <button
+                        className="absolute bottom-14 left-1/2 -translate-x-1/2 p-2 rounded-full bg-white/20 hover:bg-white/30 transition-colors backdrop-blur-sm"
+                        onClick={() => {
+                          if (overlayScrollRef.current) {
+                            overlayScrollRef.current.scrollTop = overlayScrollRef.current.scrollHeight;
+                            overlayAutoScrollRef.current = true;
+                            setShowOverlayScrollBtn(false);
+                          }
+                        }}
+                        title="Scroll to latest"
+                      >
+                        <ArrowDown className="w-4 h-4 text-white" />
+                      </button>
+                    )}
+                  </>
+                )
+              )}
+
+              {/* Font size controls — bottom left */}
+              <div className="absolute bottom-2 left-2 flex items-center gap-1">
+                <button
+                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  onClick={() => setOverlayFontSize((prev) => Math.max(OVERLAY_MIN_FONT, prev - OVERLAY_FONT_STEP))}
+                  disabled={overlayFontSize <= OVERLAY_MIN_FONT}
+                  title="Decrease font size"
+                >
+                  <Minus className="w-3.5 h-3.5 text-white" />
+                </button>
+                <span className="text-xs text-white/70 min-w-[2ch] text-center">{overlayFontSize}</span>
+                <button
+                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                  onClick={() => setOverlayFontSize((prev) => Math.min(OVERLAY_MAX_FONT, prev + OVERLAY_FONT_STEP))}
+                  disabled={overlayFontSize >= OVERLAY_MAX_FONT}
+                  title="Increase font size"
+                >
+                  <Plus className="w-3.5 h-3.5 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </VideoErrorBoundary>
   );
