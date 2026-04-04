@@ -13,7 +13,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react';
 import { Track, ConnectionQuality } from 'livekit-client';
-import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2 } from 'lucide-react';
 import clsx from 'clsx';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -52,6 +52,27 @@ export function CustomParticipantTile({
   const { localParticipant, microphoneTrack, cameraTrack } = useLocalParticipant();
   const isLocalParticipant = participant.identity === localParticipant?.identity;
   const room = useRoomContext();
+
+  // Fullscreen state + ref
+  const tileRef = React.useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement === tileRef.current);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = React.useCallback(() => {
+    if (!tileRef.current) return;
+    if (document.fullscreenElement === tileRef.current) {
+      document.exitFullscreen();
+    } else {
+      tileRef.current.requestFullscreen();
+    }
+  }, []);
 
   const toggleMic = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -150,10 +171,12 @@ export function CustomParticipantTile({
     >
       <div
         {...elementProps}
+        ref={tileRef}
         className={clsx(
-          'relative overflow-hidden rounded-3xl',
+          'relative overflow-hidden group',
           'w-full h-full',
-          getAspectRatioClass(), // Apply the aspect ratio class
+          isFullscreen ? 'rounded-none bg-black' : 'rounded-3xl',
+          getAspectRatioClass(),
           className,
         )}
         style={{
@@ -166,7 +189,7 @@ export function CustomParticipantTile({
       >
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
-          <VideoTrack trackRef={trackRef} className="absolute inset-0 w-full h-full object-cover" />
+          <VideoTrack trackRef={trackRef} className={clsx("absolute inset-0 w-full h-full", isFullscreen ? "object-contain" : "object-cover")} />
         ) : (
           <div
             className="absolute inset-0 flex items-center justify-center"
@@ -227,7 +250,19 @@ export function CustomParticipantTile({
                 </span>
               </div>
 
-              {/* Status Icons - removed connection quality */}
+              {/* Fullscreen Toggle */}
+              <button
+                className="p-1.5 rounded-full pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="w-3.5 h-3.5 text-white" />
+                ) : (
+                  <Maximize2 className="w-3.5 h-3.5 text-white" />
+                )}
+              </button>
             </div>
           </div>
 

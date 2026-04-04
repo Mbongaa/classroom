@@ -14,8 +14,6 @@ import {
   getCredentialsForLanguage,
   verifyRoomExists,
   createLiveKitRoom,
-  deleteRoom,
-  listRoomParticipants,
 } from '@/lib/v2/livekit-helpers';
 
 /**
@@ -120,35 +118,14 @@ export async function POST(request: NextRequest) {
     if (session) {
       // Active session exists in DB — verify against LiveKit
       const room = await verifyRoomExists(livekitRoomName, language);
-      const activeSessionId = session.id;
 
       if (room) {
-        // Room exists in LiveKit
-        try {
-          const participants = await listRoomParticipants(livekitRoomName, language);
-          const humanCount = participants.filter(
-            (p: any) => p.kind !== 1, // kind=1 is AGENT in LiveKit proto
-          ).length;
-
-          if (humanCount === 0) {
-            // No humans in room (maybe just an agent lingering) → clean slate
-            console.log(`[V2 Connect] No humans in room for ${roomCode} (state: ${session.state}) — cleaning up`);
-            await deleteRoom(livekitRoomName, language);
-            await transitionV2Session(activeSessionId, 'ended', 'reaper');
-            session = null; // will create new below
-          }
-          // else: room has humans, reuse session
-        } catch (err: any) {
-          // Room disappeared between verifyRoomExists and listParticipants (race condition)
-          // Treat as "room gone" — not an error, just a timing gap
-          console.log(`[V2 Connect] Room vanished for ${roomCode} between checks — treating as gone`);
-          await transitionV2Session(activeSessionId, 'ended', 'reaper');
-          session = null;
-          // Also try to delete in case it's lingering
-          try { await deleteRoom(livekitRoomName, language); } catch { /* already gone */ }
-        }
+        // Room exists in LiveKit — reuse it. Don't check participants, don't delete.
+        // LiveKit handles DUPLICATE_IDENTITY automatically (kicks the ghost connection
+        // when the same identity reconnects). The agent stays alive.
+        console.log(`[V2 Connect] Reusing existing room for ${roomCode} (session: ${session.id})`);
       } else {
-        // Room gone from LiveKit but DB says active → stale session
+        // Room truly gone from LiveKit but DB says active → stale session
         console.log(`[V2 Connect] Stale session for ${roomCode} — LiveKit room gone`);
         await transitionV2Session(session.id, 'ended', 'reaper');
         session = null;
@@ -156,12 +133,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session) {
-      // Create new LiveKit room + v2 session
-      // Brief pause after any room deletion to let LiveKit fully clean up.
-      // Without this, creating a room with the same name immediately after deletion
-      // can prevent the Agent Framework from dispatching a new agent.
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
+      // No active session or room — create fresh
       console.log(
         `[V2 Connect] Creating new session for ${roomCode} (${livekitRoomName}) on ${language === 'ar' ? 'Bayaan' : 'Vertex'}`,
       );

@@ -430,7 +430,7 @@ function V2VideoConference(props: {
       });
 
     return () => {
-      // Cleanup on unmount
+      room.disconnect();
     };
   }, [
     room,
