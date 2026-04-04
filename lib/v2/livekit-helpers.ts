@@ -1,4 +1,4 @@
-import { RoomServiceClient } from 'livekit-server-sdk';
+import { RoomServiceClient, AgentDispatchClient } from 'livekit-server-sdk';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -99,4 +99,24 @@ export async function createLiveKitRoom(
     emptyTimeout,
     metadata: '',
   });
+}
+
+const AGENT_NAME = process.env.LIVEKIT_AGENT_NAME || 'bayaan-transcriber';
+
+/**
+ * Explicitly dispatch an agent to a room.
+ * Works on existing rooms — no need to delete/recreate.
+ */
+export async function dispatchAgentToRoom(
+  roomName: string,
+  language: string,
+  metadata?: string,
+) {
+  const creds = getCredentialsForLanguage(language);
+  const client = new AgentDispatchClient(creds.url, creds.apiKey, creds.apiSecret);
+  const dispatch = await client.createDispatch(roomName, AGENT_NAME, {
+    metadata: metadata || '',
+  });
+  console.log(`[LiveKit] Dispatched agent "${AGENT_NAME}" to room ${roomName}`, dispatch);
+  return dispatch;
 }

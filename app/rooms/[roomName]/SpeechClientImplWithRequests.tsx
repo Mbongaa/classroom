@@ -610,7 +610,15 @@ export function SpeechClientImplWithRequests({
       if (e.key === 'Escape') setIsFullscreen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Sync state when browser exits fullscreen (e.g. user presses Esc)
+    const onFsChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', onFsChange);
+    };
   }, [isFullscreen]);
 
   React.useEffect(() => {
@@ -652,10 +660,31 @@ export function SpeechClientImplWithRequests({
     );
   };
 
+  // Mobile: render only the video tile filling the entire screen
+  if (isMobile) {
+    const mobileTrack = teacherScreenShareTrack || teacherCameraTrack || teacherAudioTracks[0];
+    return (
+      <div className="fixed inset-0 bg-black" data-lk-theme="default">
+        {mobileTrack ? (
+          <CustomParticipantTile
+            trackRef={mobileTrack}
+            className="w-full h-full"
+            aspectRatio="16:9"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-white text-lg">
+            Waiting for speaker...
+          </div>
+        )}
+        <TranscriptionSaver roomName={roomName} sessionId={sessionId} />
+      </div>
+    );
+  }
+
   return (
     <div className={`${styles.speechContainer} ${isFullscreen ? styles.fullscreenMode : ''}`} data-lk-theme="default">
       {/* Fixed header with room info and request dropdown */}
-      {!isFullscreen && <div className={styles.header}>
+      {!isFullscreen && !isMobile && <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
             <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
@@ -932,7 +961,7 @@ export function SpeechClientImplWithRequests({
         )}
 
         {/* All Students section - Fixed at bottom - only for teachers, hidden in fullscreen */}
-        {isTeacher && !isFullscreen && (
+        {isTeacher && !isFullscreen && !isMobile && (
           <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`}>
             <div
               className={styles.sectionHeader}
@@ -982,7 +1011,7 @@ export function SpeechClientImplWithRequests({
       </div>
 
       {/* Control bar at the bottom - only for teachers, hidden in fullscreen */}
-      {isTeacher && !isFullscreen && (
+      {isTeacher && !isFullscreen && !isMobile && (
         <div className={styles.controlBar}>
           <CustomControlBar
             variation="minimal"

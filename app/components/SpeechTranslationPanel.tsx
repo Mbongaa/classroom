@@ -518,7 +518,15 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             )}
             {onFullscreenToggle && (
               <button
-                onClick={onFullscreenToggle}
+                onClick={() => {
+                  // Browser fullscreen must be called synchronously from click handler
+                  if (!isFullscreen) {
+                    document.documentElement.requestFullscreen?.();
+                  } else if (document.fullscreenElement) {
+                    document.exitFullscreen?.();
+                  }
+                  onFullscreenToggle();
+                }}
                 className={styles.fontButton}
                 title={isFullscreen ? 'Exit presentation mode (Esc)' : 'Presentation mode'}
               >

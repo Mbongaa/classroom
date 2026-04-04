@@ -68,6 +68,10 @@ export function CustomParticipantTile({
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
+  // On mobile, treat as fullscreen mode by default (overlay + top controls)
+  const isMobile = useIsMobile();
+  const isFullscreenMode = isFullscreen || isMobile;
+
   // Fullscreen translation captions — only listen when in fullscreen
   const [fullscreenCaptions, setFullscreenCaptions] = React.useState<TranscriptionSegment[]>([]);
   const captionsLanguage = localParticipant?.attributes?.captions_language || 'en';
@@ -114,9 +118,7 @@ export function CustomParticipantTile({
     };
   }, [isFullscreenMode, room, captionsLanguage]);
 
-  // On mobile, treat as fullscreen mode by default (overlay + top controls)
-  const isMobile = useIsMobile();
-  const isFullscreenMode = isFullscreen || isMobile;
+  // Fullscreen overlay font size — smaller default on mobile
   const [overlayFontSize, setOverlayFontSize] = React.useState(() => isMobile ? 18 : 32);
   const OVERLAY_MIN_FONT = 12;
   const OVERLAY_MAX_FONT = 48;

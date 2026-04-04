@@ -14,9 +14,10 @@ import {
   getCredentialsForLanguage,
   verifyRoomExists,
   createLiveKitRoom,
-  deleteRoom,
   listRoomParticipants,
+  dispatchAgentToRoom,
 } from '@/lib/v2/livekit-helpers';
+
 
 /**
  * POST /api/v2/connect
@@ -128,18 +129,20 @@ export async function POST(request: NextRequest) {
           const participants = await listRoomParticipants(livekitRoomName, language);
           hasAgent = participants.some((p: any) => p.kind === 1); // kind=1 = AGENT
         } catch {
-          // listParticipants failed (room dying) — treat as no agent
+          // listParticipants failed (room in transition) — assume no agent
         }
 
         if (hasAgent) {
-          // Agent alive → safe to reuse. DUPLICATE_IDENTITY kicks the ghost.
+          // Agent alive → reuse. DUPLICATE_IDENTITY kicks the ghost.
           console.log(`[V2 Connect] Reusing room with agent for ${roomCode} (session: ${session.id})`);
         } else {
-          // Agent gone → room is a shell. Delete it so we get a fresh agent dispatch.
-          console.log(`[V2 Connect] Room exists but agent gone for ${roomCode} — recreating`);
-          try { await deleteRoom(livekitRoomName, language); } catch { /* dying */ }
-          await transitionV2Session(session.id, 'ended', 'reaper');
-          session = null;
+          // Room alive but agent gone → explicitly dispatch a new agent to the existing room
+          console.log(`[V2 Connect] Room exists but agent gone for ${roomCode} — dispatching agent`);
+          try {
+            await dispatchAgentToRoom(livekitRoomName, language);
+          } catch (err) {
+            console.error(`[V2 Connect] Agent dispatch failed:`, err);
+          }
         }
       } else {
         // Room truly gone from LiveKit
@@ -150,19 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session) {
-      // Create fresh room + session. The room creation triggers Agent Framework dispatch.
-      // Wait briefly if we just deleted a room, to let LiveKit fully clean up.
-      const stale = await verifyRoomExists(livekitRoomName, language);
-      if (stale) {
-        console.log(`[V2 Connect] Waiting for old room to die...`);
-        try { await deleteRoom(livekitRoomName, language); } catch {}
-        // Poll until gone (max ~6s)
-        for (let i = 0; i < 3; i++) {
-          await new Promise((r) => setTimeout(r, 2000));
-          if (!(await verifyRoomExists(livekitRoomName, language))) break;
-        }
-      }
-
+      // No active session — create fresh room (triggers auto agent dispatch)
       console.log(
         `[V2 Connect] Creating new session for ${roomCode} (${livekitRoomName}) on ${language === 'ar' ? 'Bayaan' : 'Vertex'}`,
       );

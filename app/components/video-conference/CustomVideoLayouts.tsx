@@ -124,24 +124,22 @@ export function GridLayout({ tracks }: { tracks: TrackReference[] }) {
 
   // Special handling for single participant - minimal wrapper structure
   if (count === 1) {
-    // For single participant, return tile directly with minimal wrapper
-    // The parent container already handles centering and sizing
+    // On mobile: fill the screen for fullscreen-like experience
+    // On desktop: centered with padding
     return (
       <div
         className={clsx(
           'h-full w-full flex items-center justify-center',
-          isMobilePortrait ? 'p-4' : 'p-8',
+          isMobilePortrait ? 'p-0' : 'p-8',
         )}
       >
         <CustomParticipantTile
           trackRef={participantTracks[0]}
           className={clsx(
             'w-full h-full',
-            isMobilePortrait
-              ? 'max-w-[350px] max-h-[350px]' // Mobile: square constraint
-              : 'max-w-5xl max-h-[85vh]', // Desktop: wider constraint
+            !isMobilePortrait && 'max-w-5xl max-h-[85vh]',
           )}
-          aspectRatio={isMobilePortrait ? '1:1' : '16:9'}
+          aspectRatio={isMobilePortrait ? '16:9' : '16:9'}
         />
       </div>
     );

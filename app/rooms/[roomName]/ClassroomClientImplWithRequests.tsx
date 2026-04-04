@@ -789,7 +789,15 @@ export function ClassroomClientImplWithRequests({
       if (e.key === 'Escape') setIsFullscreen(false);
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Sync state when browser exits fullscreen (e.g. user presses Esc)
+    const onFsChange = () => {
+      if (!document.fullscreenElement) setIsFullscreen(false);
+    };
+    document.addEventListener('fullscreenchange', onFsChange);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('fullscreenchange', onFsChange);
+    };
   }, [isFullscreen]);
 
   React.useEffect(() => {
@@ -819,10 +827,31 @@ export function ClassroomClientImplWithRequests({
     );
   };
 
+  // Mobile: render only the video tile filling the entire screen
+  if (isMobile) {
+    const mobileTrack = teacherScreenShareTrack || teacherCameraTrack || teacherAudioTracks[0];
+    return (
+      <div className="fixed inset-0 bg-black" data-lk-theme="default">
+        {mobileTrack ? (
+          <CustomParticipantTile
+            trackRef={mobileTrack}
+            className="w-full h-full"
+            aspectRatio="16:9"
+          />
+        ) : (
+          <div className="flex items-center justify-center w-full h-full text-white text-lg">
+            Waiting for speaker...
+          </div>
+        )}
+        <TranscriptionSaver roomName={roomName} sessionId={sessionId} />
+      </div>
+    );
+  }
+
   return (
     <div className={`${styles.classroomContainer} ${isFullscreen ? styles.fullscreenMode : ''}`} data-lk-theme="default">
-      {/* Fixed header with room info and request dropdown */}
-      <div className={styles.header}>
+      {/* Fixed header with room info and request dropdown — hidden on mobile */}
+      <div className={styles.header} style={{ display: isMobile ? 'none' : undefined }}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
             <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
@@ -1106,8 +1135,8 @@ export function ClassroomClientImplWithRequests({
           </div>
         </div>
 
-        {/* Mobile translation panel - positioned between video area and students (mobile only) */}
-        {showTranslation && isMobile && (
+        {/* Mobile translation panel - hidden since tile overlay handles it */}
+        {showTranslation && isMobile && false && (
           <div className={styles.translationPanelMobile}>
             <SpeechTranslationPanel
               targetLanguage={captionsLanguage}
@@ -1125,7 +1154,7 @@ export function ClassroomClientImplWithRequests({
         )}
 
         {/* All Students section - Fixed at bottom, hidden in fullscreen */}
-        <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`} style={{ display: isFullscreen ? 'none' : undefined }}>
+        <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`} style={{ display: (isFullscreen || isMobile) ? 'none' : undefined }}>
           <div
             className={styles.sectionHeader}
             onClick={() => setShowStudents((prev) => !prev)}
@@ -1183,7 +1212,7 @@ export function ClassroomClientImplWithRequests({
       </div>
 
       {/* Control bar at the bottom with chat toggle and translation */}
-      {!isFullscreen && (
+      {!isFullscreen && !isMobile && (
         <div className={styles.controlBar}>
           <CustomControlBar
             variation="minimal"
