@@ -843,7 +843,7 @@ export function ClassroomClientImplWithRequests({
             Waiting for speaker...
           </div>
         )}
-        <TranscriptionSaver roomName={roomName} sessionId={sessionId} />
+        <TranscriptionSaver roomName={roomName} sessionId={sessionId} sessionStartTime={sessionStartTime} />
       </div>
     );
   }
