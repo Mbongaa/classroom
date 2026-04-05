@@ -13,7 +13,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react';
 import { Track, ConnectionQuality, TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2, Minus, Plus, ArrowDown } from 'lucide-react';
+import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2, Minus, Plus, ArrowDown, Volume2, VolumeOff } from 'lucide-react';
 import clsx from 'clsx';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
@@ -55,6 +55,9 @@ export function CustomParticipantTile({
   const { localParticipant, microphoneTrack, cameraTrack } = useLocalParticipant();
   const isLocalParticipant = participant.identity === localParticipant?.identity;
   const room = useRoomContext();
+
+  // Stream mute state (mutes incoming audio for the viewer, e.g. iOS can't lower volume to 0)
+  const [isStreamMuted, setIsStreamMuted] = React.useState(false);
 
   // Fullscreen state + ref
   const tileRef = React.useRef<HTMLDivElement>(null);
@@ -383,6 +386,7 @@ export function CustomParticipantTile({
               source: Track.Source.Microphone,
               publication: audioPublication,
             }}
+            volume={isStreamMuted ? 0 : 1}
           />
         )}
 
@@ -472,19 +476,37 @@ export function CustomParticipantTile({
                 )}
               </div>
 
-              {/* Fullscreen Toggle */}
-              <button
-                className="p-1.5 rounded-full pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
-                title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
-                onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
-              >
-                {isFullscreen ? (
-                  <Minimize2 className="w-3.5 h-3.5 text-white" />
-                ) : (
-                  <Maximize2 className="w-3.5 h-3.5 text-white" />
+              <div className="flex items-center gap-2">
+                {/* Stream mute toggle — mutes incoming audio (for viewers, e.g. iOS volume workaround) */}
+                {isFullscreenMode && !isLocalParticipant && (
+                  <button
+                    className="p-1.5 rounded-full pointer-events-auto"
+                    style={{ backgroundColor: isStreamMuted ? '#ef4444' : 'rgba(0,0,0,0.5)' }}
+                    title={isStreamMuted ? 'Unmute stream' : 'Mute stream'}
+                    onClick={(e) => { e.stopPropagation(); setIsStreamMuted((prev) => !prev); }}
+                  >
+                    {isStreamMuted ? (
+                      <VolumeOff className="w-3.5 h-3.5 text-white" />
+                    ) : (
+                      <Volume2 className="w-3.5 h-3.5 text-white" />
+                    )}
+                  </button>
                 )}
-              </button>
+
+                {/* Fullscreen Toggle */}
+                <button
+                  className="p-1.5 rounded-full pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                  title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                  onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
+                >
+                  {isFullscreen ? (
+                    <Minimize2 className="w-3.5 h-3.5 text-white" />
+                  ) : (
+                    <Maximize2 className="w-3.5 h-3.5 text-white" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
