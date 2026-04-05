@@ -568,7 +568,7 @@ export function CustomParticipantTile({
         {isFullscreenMode && (
           <div
             className="absolute bottom-0 left-0 right-0 pointer-events-auto"
-            style={{ height: '33%' }}
+            style={{ height: '33%', zIndex: 10 }}
           >
             {/* Black gradient background within the 33% overlay */}
             <div
