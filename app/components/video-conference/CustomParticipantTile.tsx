@@ -65,12 +65,27 @@ export function CustomParticipantTile({
       setIsFullscreen(document.fullscreenElement === tileRef.current);
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+
+    // Escape key exits CSS fallback fullscreen (browser API handles its own Escape)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   // On mobile, treat as fullscreen mode by default (overlay + top controls)
   const isMobile = useIsMobile();
   const isFullscreenMode = isFullscreen || isMobile;
+
+  // CSS-based fullscreen fallback: isFullscreen is true but browser API isn't active
+  const isCssFallbackFullscreen = isFullscreen && document.fullscreenElement !== tileRef.current;
 
   // Fullscreen translation captions — only listen when in fullscreen
   const [fullscreenCaptions, setFullscreenCaptions] = React.useState<TranscriptionSegment[]>([]);
@@ -188,9 +203,15 @@ export function CustomParticipantTile({
   const toggleFullscreen = React.useCallback(() => {
     if (!tileRef.current) return;
     if (document.fullscreenElement === tileRef.current) {
-      document.exitFullscreen();
+      document.exitFullscreen().catch(() => {
+        setIsFullscreen(false);
+      });
     } else {
-      tileRef.current.requestFullscreen();
+      tileRef.current.requestFullscreen().catch(() => {
+        // Fullscreen API failed (permissions policy, iframe, browser restriction).
+        // Fall back to CSS-based fullscreen so the overlay still works.
+        setIsFullscreen((prev) => !prev);
+      });
     }
   }, []);
 
@@ -305,6 +326,13 @@ export function CustomParticipantTile({
             showSpeakingIndicator && {
               boxShadow: `0 0 0 var(--lk-speaking-thickness, 6px) var(--lk-speaking-border, white)`,
             }),
+          ...(isCssFallbackFullscreen && {
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            width: '100vw',
+            height: '100vh',
+          }),
         }}
       >
         {/* Video/Placeholder */}
