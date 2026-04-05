@@ -52,6 +52,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
   const [orgSlug, setOrgSlug] = React.useState<string | null>(null);
   const [orgName, setOrgName] = React.useState<string | null>(null);
   const [connectResponse, setConnectResponse] = React.useState<V2ConnectResponse | undefined>();
+  const [isConnecting, setIsConnecting] = React.useState(false);
 
   // Read classroom/speech mode from URL
   const [classroomInfo, setClassroomInfo] = React.useState<{
@@ -139,9 +140,11 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
     };
   }, [classroomInfo, roomMetadata]);
 
-  // V2: Single connect call on PreJoin submit
+  // V2: Single connect call on PreJoin submit (guarded against double-click)
   const handlePreJoinSubmit = React.useCallback(
     async (values: LocalUserChoices) => {
+      if (isConnecting) return; // Guard against double-submit
+      setIsConnecting(true);
       setPreJoinChoices(values);
 
       const mode = classroomInfo?.mode || 'classroom';
@@ -169,11 +172,12 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
         setConnectResponse(data);
       } catch (error) {
         console.error('[V2] Connect error:', error);
-        alert(`Failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        setIsConnecting(false); // Reset on error only — allows retry
         setPreJoinChoices(undefined);
+        alert(`Failed to connect: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     },
-    [roomCode, orgSlug, classroomInfo],
+    [roomCode, orgSlug, classroomInfo, isConnecting],
   );
 
   const handlePreJoinError = React.useCallback((e: Error) => console.error(e), []);
@@ -243,6 +247,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
                 defaults={preJoinDefaults}
                 onSubmit={handlePreJoinSubmit}
                 onError={handlePreJoinError}
+                isConnecting={isConnecting}
                 showLanguageSelector={
                   classroomInfo?.role === 'student' || classroomInfo?.role === 'teacher'
                 }
@@ -301,9 +306,19 @@ function V2VideoConference(props: {
   const isConnectingRef = React.useRef(false);
   const isReconnectingRef = React.useRef(false);
 
-  // Store latest token for reconnection
+  // Store connect response in a ref so the connect useEffect doesn't re-fire on prop changes.
+  // This prevents the disconnect-reconnect cycle caused by double-submit race conditions.
+  const connectResponseRef = React.useRef(props.connectResponse);
+
+  // Store latest token for reconnection (updated by token refresh timer)
   const latestTokenRef = React.useRef(props.connectResponse.participantToken);
   const serverUrlRef = React.useRef(props.connectResponse.serverUrl);
+
+  // Keep refs in sync if props change (e.g. token refresh at parent level)
+  React.useEffect(() => {
+    latestTokenRef.current = props.connectResponse.participantToken;
+    serverUrlRef.current = props.connectResponse.serverUrl;
+  }, [props.connectResponse.participantToken, props.connectResponse.serverUrl]);
 
   const roomOptions = React.useMemo((): RoomOptions => {
     const videoCaptureDefaults: VideoCaptureOptions = {
@@ -336,18 +351,17 @@ function V2VideoConference(props: {
     alert(`Error: ${error.message}`);
   }, []);
 
-  // Connect to room
+  // Connect to room — uses ref for connectResponse to prevent re-firing on double-submit.
+  // This effect should only run once when the component mounts.
   React.useEffect(() => {
     if (isConnectingRef.current) return;
     isConnectingRef.current = true;
 
+    const cr = connectResponseRef.current;
+
     const connectWithRetry = async (attempt = 1): Promise<void> => {
       try {
-        await room.connect(
-          props.connectResponse.serverUrl,
-          props.connectResponse.participantToken,
-          connectOptions,
-        );
+        await room.connect(cr.serverUrl, cr.participantToken, connectOptions);
       } catch (error: any) {
         if (
           (error.message?.includes('not valid yet') || error.message?.includes('nbf')) &&
@@ -363,7 +377,7 @@ function V2VideoConference(props: {
     connectWithRetry()
       .then(async () => {
         setSessionStartTime(Date.now());
-        console.log('[V2] Connected. Session:', props.connectResponse.sessionId);
+        console.log('[V2] Connected. Session:', cr.sessionId);
 
         // Set language attributes
         if (
@@ -432,17 +446,8 @@ function V2VideoConference(props: {
     return () => {
       room.disconnect();
     };
-  }, [
-    room,
-    props.connectResponse,
-    props.userChoices,
-    connectOptions,
-    handleError,
-    props.classroomRole,
-    props.roomCode,
-    props.selectedLanguage,
-    props.selectedTranslationLanguage,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room, connectOptions]);
 
   // Token refresh timer — every 25 minutes
   React.useEffect(() => {

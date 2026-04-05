@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
-import { Mic, MicOff, Camera, CameraOff, ChevronDown } from 'lucide-react';
+import { Mic, MicOff, Camera, CameraOff, ChevronDown, Loader2 } from 'lucide-react';
 
 const LS_AUDIO_DEVICE_KEY = 'bayaan-preferred-audio-device';
 const LS_VIDEO_DEVICE_KEY = 'bayaan-preferred-video-device';
@@ -45,6 +45,7 @@ interface CustomPreJoinProps {
     videoEnabled?: boolean;
     audioEnabled?: boolean;
   };
+  isConnecting?: boolean;
   showLanguageSelector?: boolean;
   selectedLanguage?: string;
   onLanguageChange?: (language: string) => void;
@@ -59,6 +60,7 @@ export default function CustomPreJoin({
   onSubmit,
   onError,
   defaults,
+  isConnecting = false,
   showLanguageSelector = false,
   selectedLanguage = '',
   onLanguageChange,
@@ -494,17 +496,24 @@ export default function CustomPreJoin({
         <Button
           as="button"
           type="submit"
-          disabled={!username.trim()}
+          disabled={!username.trim() || isConnecting}
           borderRadius="1.75rem"
           containerClassName="w-full h-12"
           className={
-            username.trim()
+            username.trim() && !isConnecting
               ? 'bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
               : 'bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium'
           }
           duration={3000}
         >
-          Join Room
+          {isConnecting ? (
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Loader2 size={20} className="animate-spin" />
+              Connecting...
+            </span>
+          ) : (
+            'Join Room'
+          )}
         </Button>
       </form>
     </div>
