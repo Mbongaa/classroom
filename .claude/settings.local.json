@@ -69,7 +69,8 @@
       "Bash(pip show:*)",
       "WebFetch(domain:docs.speechmatics.com)",
       "Bash(pip3 install:*)",
-      "Bash(pip3 download:*)"
+      "Bash(pip3 download:*)",
+      "Bash(which supabase:*)"
     ],
     "deny": [],
     "ask": []
