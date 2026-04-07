@@ -109,6 +109,68 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     };
   }, [room]);
 
+  // Failsafe: if no agent appears within 10s of the room connecting,
+  // trigger a server-side re-dispatch. Only fires once per room session.
+  // Guards against race conditions, worker crashes, and dropped jobs.
+  useEffect(() => {
+    if (!room) return;
+
+    let dispatched = false;
+    let timer: NodeJS.Timeout | null = null;
+
+    const armFailsafe = () => {
+      if (timer || dispatched) return;
+      timer = setTimeout(async () => {
+        timer = null;
+        if (dispatched) return;
+        // Re-check current agent presence — state may have updated between
+        // schedule and fire.
+        let live = 0;
+        for (const p of room.remoteParticipants.values()) {
+          if (p.kind === ParticipantKind.AGENT) live++;
+        }
+        if (live > 0) return;
+
+        dispatched = true;
+        console.warn(
+          '[Translation Failsafe] Agent missing 10s after join — triggering re-dispatch',
+        );
+        try {
+          const res = await fetch('/api/v2/dispatch-agent', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // room.name is the actual LiveKit room name = classroom UUID
+            // (the `roomName` prop is the user-facing room code, which differs)
+            body: JSON.stringify({ classroomId: room.name }),
+          });
+          if (!res.ok) {
+            console.error('[Translation Failsafe] Re-dispatch failed:', res.status);
+          }
+        } catch (err) {
+          console.error('[Translation Failsafe] Re-dispatch error:', err);
+        }
+      }, 10000);
+    };
+
+    const cancel = () => {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+
+    // Arm on connect (covers both already-connected and future-connect cases)
+    if (room.state === 'connected') armFailsafe();
+    room.on(RoomEvent.Connected, armFailsafe);
+    room.on(RoomEvent.Disconnected, cancel);
+
+    return () => {
+      cancel();
+      room.off(RoomEvent.Connected, armFailsafe);
+      room.off(RoomEvent.Disconnected, cancel);
+    };
+  }, [room]);
+
   // Translation service health monitoring
   useEffect(() => {
     if (!room) return;

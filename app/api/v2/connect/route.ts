@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session) {
-      // No active session — create fresh room (triggers auto agent dispatch)
+      // No active session — create fresh LiveKit room + v2 session
       console.log(
         `[V2 Connect] Creating new session for ${roomCode} (${livekitRoomName}) on ${language === 'ar' ? 'Bayaan' : 'Vertex'}`,
       );
@@ -163,6 +163,18 @@ export async function POST(request: NextRequest) {
         livekitRoomName,
         organizationId || null,
       );
+
+      // Explicitly dispatch the agent — auto-dispatch is timing-sensitive and
+      // unreliable when the room is created milliseconds before the user joins.
+      // The same pattern is used in the existing-session branch above (line 142).
+      try {
+        await dispatchAgentToRoom(livekitRoomName, language);
+      } catch (err) {
+        console.error(`[V2 Connect] Agent dispatch failed for new session:`, err);
+        // Non-blocking: user can still join, but translations may not work
+        // until they reconnect (which will hit the existing-session fallback path)
+      }
+
       isNewSession = true;
     }
 

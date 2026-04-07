@@ -234,6 +234,49 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
                         >
                           Copy Student Link
                         </StatefulButton>
+                        <StatefulButton
+                          onClick={() => {
+                            return new Promise<void>((resolve, reject) => {
+                              const canvas = qrCanvasRef.current?.querySelector('canvas');
+                              if (!canvas) {
+                                reject(new Error('QR canvas not found'));
+                                return;
+                              }
+                              canvas.toBlob((blob) => {
+                                if (!blob) {
+                                  reject(new Error('Failed to generate QR image'));
+                                  return;
+                                }
+                                if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                                  navigator.clipboard
+                                    .write([new ClipboardItem({ 'image/png': blob })])
+                                    .then(() => setTimeout(resolve, 500))
+                                    .catch(() => {
+                                      // Fallback: download the PNG
+                                      const url = URL.createObjectURL(blob);
+                                      const a = document.createElement('a');
+                                      a.href = url;
+                                      a.download = `qr-${roomCode}.png`;
+                                      a.click();
+                                      URL.revokeObjectURL(url);
+                                      setTimeout(resolve, 500);
+                                    });
+                                } else {
+                                  // Fallback: download the PNG
+                                  const url = URL.createObjectURL(blob);
+                                  const a = document.createElement('a');
+                                  a.href = url;
+                                  a.download = `qr-${roomCode}.png`;
+                                  a.click();
+                                  URL.revokeObjectURL(url);
+                                  setTimeout(resolve, 500);
+                                }
+                              }, 'image/png');
+                            });
+                          }}
+                        >
+                          Copy QR
+                        </StatefulButton>
                       </div>
                       <div className={styles.linkDisplay}>{studentLink}</div>
                       {classroomInfo.pin && (
