@@ -3,7 +3,6 @@ import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   fetchMandateStatus,
-  fetchOrderStatus,
   parseExchangeBody,
   PayNLError,
   redactPII,
@@ -215,22 +214,13 @@ async function handleOrderPaid(
 ) {
   const { orderId } = event;
 
-  // Defense in depth: re-verify status directly with Pay.nl before mutating.
-  try {
-    const verified = await fetchOrderStatus(orderId);
-    if (!verified || !verified.orderId) {
-      console.error('[PayNL Webhook] order.paid re-verification returned no orderId', {
-        orderId,
-      });
-      return;
-    }
-  } catch (err) {
-    console.error('[PayNL Webhook] order.paid re-verification failed', {
-      orderId,
-      error: err instanceof Error ? err.message : err,
-    });
-    return;
-  }
+  // Note: we previously called fetchOrderStatus(orderId) here as a defense-
+  // in-depth re-verification step. That was removed because Pay.nl's
+  // /v1/orders/{id} endpoint expects the internal UUID, not the public
+  // short orderId (e.g. "52028325014X23cb"), and the webhook only carries
+  // the short form. The timing-safe token check on the exchange URL is
+  // sufficient to authenticate the webhook. Phase 2 can re-enable this
+  // once we persist the UUID alongside the orderId in the transactions row.
 
   // Idempotent: only PENDING → PAID. Replays become no-ops.
   const { error, count } = await supabase
