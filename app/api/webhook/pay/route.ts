@@ -58,9 +58,12 @@ function verifyToken(received: string | null): boolean {
   }
 }
 
-// Pay.nl contract: exchange response must be a 200 with body "TRUE".
-function trueResponse(): NextResponse {
-  return new NextResponse('TRUE', { status: 200, headers: { 'Content-Type': 'text/plain' } });
+// Pay.nl contract: exchange response must be a 200 with body starting with
+// "TRUE|" (the pipe is required per Pay.nl SDK docs). An optional message
+// after the pipe is shown in the Pay.nl admin "Payment state logs" panel.
+function trueResponse(message?: string): NextResponse {
+  const body = message ? `TRUE| ${message}` : 'TRUE|';
+  return new NextResponse(body, { status: 200, headers: { 'Content-Type': 'text/plain' } });
 }
 
 // ---------------------------------------------------------------------------
