@@ -13,11 +13,14 @@ import {
 import { getClientIp } from '@/lib/rate-limit';
 
 /**
- * POST /api/webhook/pay
+ * /api/webhook/pay — Pay.nl exchange webhook handler
  *
- * Pay.nl exchange webhook handler. Triggered for every payment lifecycle
- * event (one-time + SEPA direct debit). This is the most critical route in
- * the integration — idempotency and quick 200 TRUE responses are mandatory.
+ * Handles BOTH GET and POST. Pay.nl's legacy "Exchange URL" mechanism calls
+ * this endpoint with GET + query string parameters by default; the newer
+ * mechanism uses POST with a body (form-encoded or JSON). Both work.
+ *
+ * Triggered for every payment lifecycle event (one-time + SEPA direct
+ * debit). Idempotency and quick 200 TRUE responses are mandatory.
  *
  * Security model (Pay.nl lacks HMAC signatures, so defense in depth):
  *   1. URL secret: exchangeUrl is set to ?token=<PAYNL_EXCHANGE_SECRET>,
@@ -61,27 +64,77 @@ function trueResponse(): NextResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Handler
+// Handlers
 // ---------------------------------------------------------------------------
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-export async function POST(request: NextRequest) {
-  // ---- 1. Verify URL token ---------------------------------------------
-  const token = request.nextUrl.searchParams.get('token');
+/**
+ * GET /api/webhook/pay
+ *
+ * Pay.nl's legacy Exchange URL mechanism — all parameters arrive as query
+ * string entries (`?action=new_ppt&order_id=...&token=...`).
+ */
+export async function GET(request: NextRequest) {
+  const search = request.nextUrl.searchParams;
+  const token = search.get('token');
   if (!verifyToken(token)) {
-    console.warn('[PayNL Webhook] Rejected — bad or missing token', {
+    console.warn('[PayNL Webhook] Rejected GET — bad or missing token', {
       ip: getClientIp(request.headers),
     });
-    // Intentionally still return 200 TRUE so Pay.nl doesn't retry forever
-    // on a misconfigured exchange URL. Surfaces via server log instead.
     return trueResponse();
   }
 
-  // ---- 2. Parse body ----------------------------------------------------
+  // Build a flat key/value map from the query string, EXCLUDING the token
+  // itself (we don't want to log it or store it in the audit row).
+  const parsed: Record<string, string> = {};
+  for (const [key, value] of search.entries()) {
+    if (key === 'token') continue;
+    parsed[key] = value;
+  }
+
+  return processExchange({
+    parsed,
+    contentType: 'query-string',
+    ip: getClientIp(request.headers),
+  });
+}
+
+/**
+ * POST /api/webhook/pay
+ *
+ * Newer Exchange mechanism — body is form-encoded or JSON.
+ */
+export async function POST(request: NextRequest) {
+  const token = request.nextUrl.searchParams.get('token');
+  if (!verifyToken(token)) {
+    console.warn('[PayNL Webhook] Rejected POST — bad or missing token', {
+      ip: getClientIp(request.headers),
+    });
+    return trueResponse();
+  }
+
   const contentType = request.headers.get('content-type') || '';
   const text = await request.text();
   const parsed = parseExchangeBody(contentType, text);
+
+  return processExchange({
+    parsed,
+    contentType: contentType || null,
+    ip: getClientIp(request.headers),
+  });
+}
+
+/**
+ * Shared dispatcher used by both GET and POST handlers. Runs the audit
+ * insert + action switch and ALWAYS returns `200 TRUE`.
+ */
+async function processExchange(opts: {
+  parsed: Record<string, string>;
+  contentType: string | null;
+  ip: string;
+}): Promise<NextResponse> {
+  const { parsed, contentType, ip } = opts;
   const action = parsed.action as ExchangeAction | undefined;
   const orderId = parsed.order_id || parsed.orderId || null;
   const mandateId = parsed.mandateId || parsed.mandate_id || null;
@@ -89,25 +142,23 @@ export async function POST(request: NextRequest) {
 
   const supabaseAdmin = createAdminClient();
 
-  // ---- 3. Audit log (always, before any handler runs) ------------------
+  // Audit log first — even on handler failure we have a record.
   try {
     await supabaseAdmin.from('exchange_events').insert({
       action: action || null,
       order_id: orderId,
       paynl_directdebit_id: referenceId,
       paynl_mandate_id: mandateId,
-      content_type: contentType || null,
+      content_type: contentType,
       payload: redactPII(parsed) as Record<string, unknown>,
-      remote_ip: getClientIp(request.headers),
+      remote_ip: ip,
     });
   } catch (auditErr) {
-    // Audit log failure is non-fatal — continue handling, but log loudly.
     console.error('[PayNL Webhook] Audit insert failed', auditErr);
   }
 
   console.log('[PayNL Webhook] Received', { action, orderId, mandateId, referenceId });
 
-  // ---- 4. Dispatch action ----------------------------------------------
   try {
     switch (action) {
       case 'new_ppt':
@@ -129,7 +180,6 @@ export async function POST(request: NextRequest) {
         break;
 
       case 'incassosend':
-        // Log-only; no state change required.
         console.log('[PayNL Webhook] incassosend', { referenceId });
         break;
 
@@ -145,7 +195,6 @@ export async function POST(request: NextRequest) {
         console.warn('[PayNL Webhook] Unknown action', { action });
     }
   } catch (err) {
-    // NEVER rethrow — Pay.nl would retry and mask real bugs. Log + TRUE.
     if (err instanceof PayNLError) {
       console.error('[PayNL Webhook] Handler PayNL error', {
         action,
