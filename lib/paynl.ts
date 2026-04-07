@@ -263,18 +263,6 @@ export interface DirectDebitResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Types — Exchange (webhook) actions
-// ---------------------------------------------------------------------------
-
-export type ExchangeAction =
-  | 'new_ppt'
-  | 'cancel'
-  | 'incassopending'
-  | 'incassosend'
-  | 'incassocollected'
-  | 'incassostorno';
-
-// ---------------------------------------------------------------------------
 // Typed helpers
 // ---------------------------------------------------------------------------
 

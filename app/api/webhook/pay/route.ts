@@ -4,50 +4,66 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import {
   fetchMandateStatus,
   fetchOrderStatus,
-  parseAmountToCents,
   parseExchangeBody,
   PayNLError,
   redactPII,
-  type ExchangeAction,
 } from '@/lib/paynl';
+import {
+  auditFieldsFor,
+  parseWebhookEvent,
+  type WebhookEvent,
+} from '@/lib/paynl-webhook';
 import { getClientIp } from '@/lib/rate-limit';
 
 /**
  * /api/webhook/pay — Pay.nl exchange webhook handler
  *
- * Handles BOTH GET and POST. Pay.nl's legacy "Exchange URL" mechanism calls
- * this endpoint with GET + query string parameters by default; the newer
- * mechanism uses POST with a body (form-encoded or JSON). Both work.
+ * Accepts either a GET with query-string parameters or a POST with a body
+ * (form-encoded, JSON, or TGU bracket-notation form fields). Pay.nl uses
+ * one of two wire formats depending on the API generation:
  *
- * Triggered for every payment lifecycle event (one-time + SEPA direct
- * debit). Idempotency and quick 200 TRUE responses are mandatory.
+ *   1. TGU (Transaction Gateway Unit) — the Connect API `/v1/orders` flow
+ *      emits these. Top-level fields: `event`, `type`, `version`, `id`.
+ *      Nested fields are form-encoded with bracket notation:
+ *        object[orderId]
+ *        object[status][action]   (e.g. "PAID", "CANCELLED")
+ *        object[status][code]     (e.g. "100" = paid, "50" = pending)
+ *        object[amount][value]    (ALREADY IN CENTS — no parsing needed)
+ *
+ *   2. GMS (legacy) — flat key/value pairs:
+ *        action=new_ppt&order_id=XXX&amount=10.00
+ *      Amount is decimal euros. Older sales locations and the direct-debit
+ *      subsystem still emit this shape.
+ *
+ * The handler turns either shape into a typed discriminated-union event,
+ * then dispatches to small focused handlers. Nothing downstream of the
+ * parser touches raw strings.
  *
  * Security model (Pay.nl lacks HMAC signatures, so defense in depth):
- *   1. URL secret: exchangeUrl is set to ?token=<PAYNL_EXCHANGE_SECRET>,
- *      compared with timing-safe equality.
- *   2. Server-side re-verification for new_ppt / incassocollected via
- *      fetchOrderStatus / fetchMandateStatus before mutating state.
+ *   1. URL secret `?token=` compared with timing-safe equality.
+ *   2. Server-side re-verification via fetchOrderStatus / fetchMandateStatus
+ *      before mutating state for paid/collected transitions.
  *   3. Remote IP captured in exchange_events for future allowlisting.
  *
  * Idempotency (Pay.nl retries up to 6× in 2h):
  *   - Every UPDATE includes a `WHERE status = <previous>` guard so replays
  *     are no-ops.
  *   - INSERTs on unique constraints use upsert with onConflict.
- *   - coalesce(paid_at, now()) preserves the original timestamp on replay.
  *
- * Response contract: ALWAYS return `200 TRUE` (even on handler errors).
+ * Response contract: ALWAYS return `200 TRUE|` (even on handler errors).
  * Non-200 triggers Pay.nl's retry scheme, which would mask bugs instead of
- * fixing them. Log structured errors for alerting instead.
+ * fixing them. Log structured errors for alerting instead. The pipe after
+ * TRUE is required per Pay.nl SDK docs; anything after the pipe is shown
+ * in the Pay.nl admin "Payment state logs" panel.
  */
 
 // ---------------------------------------------------------------------------
-// Timing-safe token compare
+// Security
 // ---------------------------------------------------------------------------
 
 function verifyToken(received: string | null): boolean {
   const expected = process.env.PAYNL_EXCHANGE_SECRET;
   if (!expected || !received) return false;
-  // Prevent length-oracle by comparing fixed-length buffers.
   const a = Buffer.from(received);
   const b = Buffer.from(expected);
   if (a.length !== b.length) return false;
@@ -58,26 +74,17 @@ function verifyToken(received: string | null): boolean {
   }
 }
 
-// Pay.nl contract: exchange response must be a 200 with body starting with
-// "TRUE|" (the pipe is required per Pay.nl SDK docs). An optional message
-// after the pipe is shown in the Pay.nl admin "Payment state logs" panel.
 function trueResponse(message?: string): NextResponse {
   const body = message ? `TRUE| ${message}` : 'TRUE|';
   return new NextResponse(body, { status: 200, headers: { 'Content-Type': 'text/plain' } });
 }
 
-// ---------------------------------------------------------------------------
-// Handlers
-// ---------------------------------------------------------------------------
-
 type AdminClient = ReturnType<typeof createAdminClient>;
 
-/**
- * GET /api/webhook/pay
- *
- * Pay.nl's legacy Exchange URL mechanism — all parameters arrive as query
- * string entries (`?action=new_ppt&order_id=...&token=...`).
- */
+// ---------------------------------------------------------------------------
+// HTTP entry points
+// ---------------------------------------------------------------------------
+
 export async function GET(request: NextRequest) {
   const search = request.nextUrl.searchParams;
   const token = search.get('token');
@@ -88,8 +95,6 @@ export async function GET(request: NextRequest) {
     return trueResponse();
   }
 
-  // Build a flat key/value map from the query string, EXCLUDING the token
-  // itself (we don't want to log it or store it in the audit row).
   const parsed: Record<string, string> = {};
   for (const [key, value] of search.entries()) {
     if (key === 'token') continue;
@@ -103,11 +108,6 @@ export async function GET(request: NextRequest) {
   });
 }
 
-/**
- * POST /api/webhook/pay
- *
- * Newer Exchange mechanism — body is form-encoded or JSON.
- */
 export async function POST(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
   if (!verifyToken(token)) {
@@ -128,30 +128,28 @@ export async function POST(request: NextRequest) {
   });
 }
 
-/**
- * Shared dispatcher used by both GET and POST handlers. Runs the audit
- * insert + action switch and ALWAYS returns `200 TRUE`.
- */
+// ---------------------------------------------------------------------------
+// Dispatcher
+// ---------------------------------------------------------------------------
+
 async function processExchange(opts: {
   parsed: Record<string, string>;
   contentType: string | null;
   ip: string;
 }): Promise<NextResponse> {
   const { parsed, contentType, ip } = opts;
-  const action = parsed.action as ExchangeAction | undefined;
-  const orderId = parsed.order_id || parsed.orderId || null;
-  const mandateId = parsed.mandateId || parsed.mandate_id || null;
-  const referenceId = parsed.referenceId || parsed.reference_id || null;
+  const event = parseWebhookEvent(parsed);
+  const audit = auditFieldsFor(event);
 
   const supabaseAdmin = createAdminClient();
 
-  // Audit log first — even on handler failure we have a record.
+  // Audit log first — even on handler failure we have a record we can replay.
   try {
     await supabaseAdmin.from('exchange_events').insert({
-      action: action || null,
-      order_id: orderId,
-      paynl_directdebit_id: referenceId,
-      paynl_mandate_id: mandateId,
+      action: event.kind,
+      order_id: audit.orderId,
+      paynl_directdebit_id: audit.directDebitId,
+      paynl_mandate_id: audit.mandateCode,
       content_type: contentType,
       payload: redactPII(parsed) as Record<string, unknown>,
       remote_ip: ip,
@@ -160,52 +158,47 @@ async function processExchange(opts: {
     console.error('[PayNL Webhook] Audit insert failed', auditErr);
   }
 
-  console.log('[PayNL Webhook] Received', { action, orderId, mandateId, referenceId });
+  console.log('[PayNL Webhook] Received', { kind: event.kind, ...audit });
 
   try {
-    switch (action) {
-      case 'new_ppt':
-        await handleNewPpt(supabaseAdmin, orderId);
+    switch (event.kind) {
+      case 'order.paid':
+        await handleOrderPaid(supabaseAdmin, event);
         break;
-
-      case 'cancel':
-        await handleCancel(supabaseAdmin, orderId);
+      case 'order.cancelled':
+        await handleOrderCancelled(supabaseAdmin, event);
         break;
-
-      case 'incassopending':
-        await handleIncassoPending(supabaseAdmin, {
-          mandateId,
-          referenceId,
-          orderId,
-          amountString: parsed.amount,
-          processDate: parsed.processDate || parsed.process_date || null,
+      case 'directdebit.pending':
+        await handleDirectDebitPending(supabaseAdmin, event);
+        break;
+      case 'directdebit.sent':
+        console.log('[PayNL Webhook] directdebit.sent', { id: event.directDebitId });
+        break;
+      case 'directdebit.collected':
+        await handleDirectDebitCollected(supabaseAdmin, event);
+        break;
+      case 'directdebit.storno':
+        await handleDirectDebitStorno(supabaseAdmin, event);
+        break;
+      case 'ignored':
+        console.log('[PayNL Webhook] Ignored', { reason: event.reason });
+        break;
+      case 'unknown':
+        console.warn('[PayNL Webhook] Unknown event', {
+          reason: event.reason,
+          payload: redactPII(parsed),
         });
         break;
-
-      case 'incassosend':
-        console.log('[PayNL Webhook] incassosend', { referenceId });
-        break;
-
-      case 'incassocollected':
-        await handleIncassoCollected(supabaseAdmin, { mandateId, referenceId });
-        break;
-
-      case 'incassostorno':
-        await handleIncassoStorno(supabaseAdmin, { referenceId });
-        break;
-
-      default:
-        console.warn('[PayNL Webhook] Unknown action', { action });
     }
   } catch (err) {
     if (err instanceof PayNLError) {
       console.error('[PayNL Webhook] Handler PayNL error', {
-        action,
+        kind: event.kind,
         status: err.status,
         body: redactPII(err.body),
       });
     } else {
-      console.error('[PayNL Webhook] Handler error', { action, error: err });
+      console.error('[PayNL Webhook] Handler error', { kind: event.kind, error: err });
     }
   }
 
@@ -213,232 +206,202 @@ async function processExchange(opts: {
 }
 
 // ---------------------------------------------------------------------------
-// new_ppt — one-time order paid
+// Handlers — each takes a fully-typed event, no raw strings
 // ---------------------------------------------------------------------------
 
-async function handleNewPpt(supabase: AdminClient, orderId: string | null) {
-  if (!orderId) {
-    console.error('[PayNL Webhook] new_ppt without order_id');
-    return;
-  }
+async function handleOrderPaid(
+  supabase: AdminClient,
+  event: Extract<WebhookEvent, { kind: 'order.paid' }>,
+) {
+  const { orderId } = event;
 
-  // Defense in depth: re-verify with Pay.nl before mutating state.
+  // Defense in depth: re-verify status directly with Pay.nl before mutating.
   try {
     const verified = await fetchOrderStatus(orderId);
     if (!verified || !verified.orderId) {
-      console.error('[PayNL Webhook] new_ppt re-verification returned no orderId', { orderId });
+      console.error('[PayNL Webhook] order.paid re-verification returned no orderId', {
+        orderId,
+      });
       return;
     }
   } catch (err) {
-    console.error('[PayNL Webhook] new_ppt re-verification failed', { orderId, error: err });
+    console.error('[PayNL Webhook] order.paid re-verification failed', {
+      orderId,
+      error: err instanceof Error ? err.message : err,
+    });
     return;
   }
 
-  // Idempotent: only update PENDING → PAID. Replays become no-ops because
-  // the WHERE clause no longer matches. paid_at is NOT overwritten on
-  // subsequent rows (only the first match sets it).
-  const { error } = await supabase
+  // Idempotent: only PENDING → PAID. Replays become no-ops.
+  const { error, count } = await supabase
     .from('transactions')
-    .update({ status: 'PAID', paid_at: new Date().toISOString() })
+    .update({ status: 'PAID', paid_at: new Date().toISOString() }, { count: 'exact' })
     .eq('paynl_order_id', orderId)
     .eq('status', 'PENDING');
 
   if (error) {
-    console.error('[PayNL Webhook] new_ppt update failed', { orderId, error: error.message });
+    console.error('[PayNL Webhook] order.paid update failed', {
+      orderId,
+      error: error.message,
+    });
+    return;
+  }
+
+  if (count === 0) {
+    console.log('[PayNL Webhook] order.paid no-op (already PAID or missing)', { orderId });
     return;
   }
 
   console.log('[PayNL Webhook] Transaction PAID', { orderId });
 }
 
-// ---------------------------------------------------------------------------
-// cancel — one-time order cancelled/expired
-// ---------------------------------------------------------------------------
-
-async function handleCancel(supabase: AdminClient, orderId: string | null) {
-  if (!orderId) {
-    console.error('[PayNL Webhook] cancel without order_id');
-    return;
-  }
-
-  const { error } = await supabase
+async function handleOrderCancelled(
+  supabase: AdminClient,
+  event: Extract<WebhookEvent, { kind: 'order.cancelled' }>,
+) {
+  const { orderId } = event;
+  const { error, count } = await supabase
     .from('transactions')
-    .update({ status: 'CANCEL' })
+    .update({ status: 'CANCEL' }, { count: 'exact' })
     .eq('paynl_order_id', orderId)
     .eq('status', 'PENDING');
 
   if (error) {
-    console.error('[PayNL Webhook] cancel update failed', { orderId, error: error.message });
+    console.error('[PayNL Webhook] order.cancelled update failed', {
+      orderId,
+      error: error.message,
+    });
+    return;
+  }
+
+  if (count === 0) {
+    console.log('[PayNL Webhook] order.cancelled no-op (not PENDING)', { orderId });
     return;
   }
 
   console.log('[PayNL Webhook] Transaction CANCELLED', { orderId });
 }
 
-// ---------------------------------------------------------------------------
-// incassopending — first direct debit queued at the bank
-// ---------------------------------------------------------------------------
-
-async function handleIncassoPending(
+async function handleDirectDebitPending(
   supabase: AdminClient,
-  opts: {
-    mandateId: string | null;
-    referenceId: string | null;
-    orderId: string | null;
-    amountString?: string;
-    processDate: string | null;
-  },
+  event: Extract<WebhookEvent, { kind: 'directdebit.pending' }>,
 ) {
-  const { mandateId, referenceId, orderId, amountString, processDate } = opts;
-  if (!mandateId || !referenceId) {
-    console.error('[PayNL Webhook] incassopending missing ids', { mandateId, referenceId });
-    return;
-  }
+  const { mandateCode, directDebitId, amountCents, processDate } = event;
 
-  // Look up the parent mandate by paynl_mandate_id.
   const { data: mandate, error: lookupError } = await supabase
     .from('mandates')
     .select('id, paynl_service_id')
-    .eq('paynl_mandate_id', mandateId)
+    .eq('paynl_mandate_id', mandateCode)
     .single();
 
   if (lookupError || !mandate) {
-    console.error('[PayNL Webhook] incassopending: mandate not found', {
-      mandateId,
+    console.error('[PayNL Webhook] directdebit.pending: mandate not found', {
+      mandateCode,
       error: lookupError?.message,
     });
     return;
   }
 
-  // Parse amount from decimal-euros string (Pay.nl's direct-debit format).
-  let amountCents = 0;
-  if (amountString) {
-    try {
-      amountCents = parseAmountToCents(amountString);
-    } catch (err) {
-      console.error('[PayNL Webhook] incassopending: bad amount', {
-        referenceId,
-        amountString,
-        error: err,
-      });
-      return;
-    }
-  }
-
-  // Idempotent upsert on the unique paynl_directdebit_id. Replays become
-  // no-ops because the row already exists with the same values.
+  // Idempotent upsert keyed on the unique directdebit id.
   const { error: upsertError } = await supabase.from('direct_debits').upsert(
     {
       mandate_id: mandate.id,
-      paynl_directdebit_id: referenceId,
-      paynl_order_id: orderId || null,
+      paynl_directdebit_id: directDebitId,
       paynl_service_id: mandate.paynl_service_id,
       amount: amountCents,
-      process_date: processDate || null,
+      process_date: processDate,
       status: 'PENDING',
     },
     { onConflict: 'paynl_directdebit_id' },
   );
 
   if (upsertError) {
-    console.error('[PayNL Webhook] incassopending upsert failed', {
-      referenceId,
+    console.error('[PayNL Webhook] directdebit.pending upsert failed', {
+      directDebitId,
       error: upsertError.message,
     });
     return;
   }
 
-  console.log('[PayNL Webhook] DirectDebit PENDING', { mandateId, referenceId });
+  console.log('[PayNL Webhook] DirectDebit PENDING', { mandateCode, directDebitId });
 }
 
-// ---------------------------------------------------------------------------
-// incassocollected — funds arrived; mandate becomes ACTIVE
-// ---------------------------------------------------------------------------
-
-async function handleIncassoCollected(
+async function handleDirectDebitCollected(
   supabase: AdminClient,
-  opts: { mandateId: string | null; referenceId: string | null },
+  event: Extract<WebhookEvent, { kind: 'directdebit.collected' }>,
 ) {
-  const { mandateId, referenceId } = opts;
+  const { mandateCode, directDebitId } = event;
 
-  if (referenceId) {
-    // Defense in depth: re-verify mandate status with Pay.nl.
-    if (mandateId) {
-      try {
-        await fetchMandateStatus(mandateId);
-      } catch (err) {
-        console.error('[PayNL Webhook] incassocollected re-verification failed', {
-          mandateId,
-          error: err,
-        });
-        // Don't hard-fail; still mark the debit as collected since we
-        // have the referenceId. Worst case we reconcile later.
-      }
-    }
-
-    const { error: ddError } = await supabase
-      .from('direct_debits')
-      .update({ status: 'COLLECTED', collected_at: new Date().toISOString() })
-      .eq('paynl_directdebit_id', referenceId)
-      .eq('status', 'PENDING');
-
-    if (ddError) {
-      console.error('[PayNL Webhook] incassocollected direct_debits update failed', {
-        referenceId,
-        error: ddError.message,
+  // Defense in depth: re-verify mandate status with Pay.nl. Soft fail — we
+  // still mark the debit as collected even if verification errors, since
+  // we already have the directDebitId.
+  if (mandateCode) {
+    try {
+      await fetchMandateStatus(mandateCode);
+    } catch (err) {
+      console.error('[PayNL Webhook] directdebit.collected re-verification failed', {
+        mandateCode,
+        error: err instanceof Error ? err.message : err,
       });
     }
   }
 
-  if (mandateId) {
-    // Only flip PENDING → ACTIVE on the FIRST collection. Replays become
-    // no-ops because the mandate is already ACTIVE.
+  const { error: ddError } = await supabase
+    .from('direct_debits')
+    .update({ status: 'COLLECTED', collected_at: new Date().toISOString() })
+    .eq('paynl_directdebit_id', directDebitId)
+    .eq('status', 'PENDING');
+
+  if (ddError) {
+    console.error('[PayNL Webhook] directdebit.collected update failed', {
+      directDebitId,
+      error: ddError.message,
+    });
+    return;
+  }
+
+  if (mandateCode) {
+    // First collection flips the mandate PENDING → ACTIVE. Replays are
+    // no-ops because the WHERE clause no longer matches.
     const { error: mandateError } = await supabase
       .from('mandates')
       .update({ status: 'ACTIVE', first_debit_at: new Date().toISOString() })
-      .eq('paynl_mandate_id', mandateId)
+      .eq('paynl_mandate_id', mandateCode)
       .eq('status', 'PENDING');
 
     if (mandateError) {
-      console.error('[PayNL Webhook] incassocollected mandate update failed', {
-        mandateId,
+      console.error('[PayNL Webhook] directdebit.collected mandate update failed', {
+        mandateCode,
         error: mandateError.message,
       });
+      return;
     }
   }
 
-  console.log('[PayNL Webhook] DirectDebit COLLECTED', { mandateId, referenceId });
+  console.log('[PayNL Webhook] DirectDebit COLLECTED', { mandateCode, directDebitId });
 }
 
-// ---------------------------------------------------------------------------
-// incassostorno — reversal (can happen up to 56 days after collection)
-// ---------------------------------------------------------------------------
-
-async function handleIncassoStorno(
+async function handleDirectDebitStorno(
   supabase: AdminClient,
-  opts: { referenceId: string | null },
+  event: Extract<WebhookEvent, { kind: 'directdebit.storno' }>,
 ) {
-  const { referenceId } = opts;
-  if (!referenceId) {
-    console.error('[PayNL Webhook] incassostorno without referenceId');
-    return;
-  }
+  const { directDebitId } = event;
 
   const { error } = await supabase
     .from('direct_debits')
     .update({ status: 'STORNO', storno_at: new Date().toISOString() })
-    .eq('paynl_directdebit_id', referenceId)
+    .eq('paynl_directdebit_id', directDebitId)
     .neq('status', 'STORNO');
 
   if (error) {
-    console.error('[PayNL Webhook] incassostorno update failed', {
-      referenceId,
+    console.error('[PayNL Webhook] directdebit.storno update failed', {
+      directDebitId,
       error: error.message,
     });
     return;
   }
 
-  console.log('[PayNL Webhook] DirectDebit STORNO', { referenceId });
+  console.log('[PayNL Webhook] DirectDebit STORNO', { directDebitId });
 
   // TODO(Phase 2): notify mosque admin via Resend email. Deferred because
   // Phase 1 has no mosque-scoped admin contact list yet.
