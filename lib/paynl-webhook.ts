@@ -100,14 +100,27 @@ function parseTguEvent(p: Record<string, string>): WebhookEvent {
     switch (statusAction) {
       case 'PAID':
         return { kind: 'order.paid', orderId, amountCents };
+      // Final negative states per Pay.nl docs:
+      //   -90 / -61 CANCEL, -80 EXPIRED, -64 / -63 DENIED, -60 FAILURE,
+      //   -71 CHARGEBACK, -81 REFUND, -82 PARTIAL REFUND.
+      // All collapse to a single "this donation will not complete" state
+      // for Phase 1. Phase 2 may split CHARGEBACK into its own event so
+      // mosque admins get a distinct alert.
       case 'CANCEL':
       case 'CANCELLED':
       case 'CANCELED':
       case 'EXPIRED':
       case 'DENIED':
+      case 'FAILURE':
       case 'REFUND':
+      case 'PARTIAL_REFUND':
+      case 'PARTIAL REFUND':
+      case 'CHARGEBACK':
         return { kind: 'order.cancelled', orderId };
       default:
+        // Intermediate states like INIT/PENDING/AUTHORIZE/VERIFY/PARTLY_CAPTURED
+        // arrive here and are correctly ignored — the next status_changed
+        // event will tell us the final outcome.
         return { kind: 'ignored', reason: `order status=${statusAction || 'empty'}` };
     }
   }

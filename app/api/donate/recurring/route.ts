@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createMandate, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
+import { resolveMosqueServiceIdForCampaign } from '@/lib/paynl-mosque-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
@@ -145,7 +146,7 @@ export async function POST(request: NextRequest) {
   const body = validation.body;
 
   try {
-    // ---- 3. Fetch active campaign --------------------------------------
+    // ---- 3. Fetch active campaign + its mosque's Pay.nl details --------
     const supabaseAdmin = createAdminClient();
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
@@ -158,12 +159,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
     }
 
-    // ---- 4. Build mandate payload --------------------------------------
-    const serviceId = process.env.PAYNL_SERVICE_ID;
-    if (!serviceId) {
-      console.error('[PayNL] Missing PAYNL_SERVICE_ID');
-      return NextResponse.json({ error: 'Server not configured for payments' }, { status: 500 });
+    // Phase 2: resolve paynl_service_id per mosque (falls back to env var).
+    const resolved = await resolveMosqueServiceIdForCampaign(supabaseAdmin, campaign.id);
+    if (!resolved) {
+      return NextResponse.json(
+        { error: 'Campaign is not configured for payments yet' },
+        { status: 503 },
+      );
     }
+    const serviceId = resolved.serviceId;
 
     const slugSafe = campaign.slug.slice(0, 16);
 
@@ -235,6 +239,8 @@ export async function POST(request: NextRequest) {
       mandateRowId: mandateRow.id,
       paynlMandateId: mandateRow.paynl_mandate_id,
       campaignId: campaign.id,
+      mosqueId: resolved.mosqueId,
+      routing: resolved.usedFallback ? 'env-fallback' : 'per-mosque',
       sandbox: isSandboxMode(),
     });
 

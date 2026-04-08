@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createOrder, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
+import { resolveMosqueServiceIdForCampaign } from '@/lib/paynl-mosque-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
@@ -119,7 +120,7 @@ export async function POST(request: NextRequest) {
   const body = validation.body;
 
   try {
-    // ---- 3. Fetch active campaign --------------------------------------
+    // ---- 3. Fetch active campaign + its mosque's Pay.nl details --------
     const supabaseAdmin = createAdminClient();
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
@@ -132,19 +133,38 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
     }
 
+    // Phase 2: resolve the correct paynl_service_id based on the campaign's
+    // mosque. Falls back to PAYNL_SERVICE_ID env var for mosques that have
+    // not yet been onboarded via Alliance createMerchant.
+    const resolved = await resolveMosqueServiceIdForCampaign(supabaseAdmin, campaign.id);
+    if (!resolved) {
+      return NextResponse.json(
+        { error: 'Campaign is not configured for payments yet' },
+        { status: 503 },
+      );
+    }
+    const serviceId = resolved.serviceId;
+
     // ---- 4. Build Pay.nl order payload ---------------------------------
-    const serviceId = process.env.PAYNL_SERVICE_ID;
     const exchangeSecret = process.env.PAYNL_EXCHANGE_SECRET;
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
 
-    if (!serviceId || !exchangeSecret || !siteUrl) {
+    if (!exchangeSecret || !siteUrl) {
       console.error(
-        '[PayNL] Missing required env: PAYNL_SERVICE_ID / PAYNL_EXCHANGE_SECRET / NEXT_PUBLIC_SITE_URL',
+        '[PayNL] Missing required env: PAYNL_EXCHANGE_SECRET / NEXT_PUBLIC_SITE_URL',
       );
       return NextResponse.json({ error: 'Server not configured for payments' }, { status: 500 });
     }
 
-    const exchangeUrl = `${siteUrl.replace(/\/$/, '')}/api/webhook/pay?token=${encodeURIComponent(exchangeSecret)}`;
+    // Defensive: if NEXT_PUBLIC_SITE_URL accidentally contains "www." on a
+    // *.vercel.app host, the wildcard cert (*.vercel.app) does not cover
+    // the nested subdomain and Pay.nl's webhook sender fails the TLS
+    // handshake with "no alternative subject name target host name".
+    // Strip the www. prefix for vercel.app hosts to avoid this footgun.
+    const exchangeBase = siteUrl
+      .replace(/\/$/, '')
+      .replace(/^(https?:\/\/)www\.([^/]*\.vercel\.app)/i, '$1$2');
+    const exchangeUrl = `${exchangeBase}/api/webhook/pay?token=${encodeURIComponent(exchangeSecret)}`;
 
     // Split donor name conservatively — Pay.nl wants firstName + lastName.
     const nameParts = body.donor_name.split(/\s+/).filter(Boolean);
@@ -207,6 +227,8 @@ export async function POST(request: NextRequest) {
       console.log('[PayNL] One-time order created', {
         orderId: order.orderId,
         campaignId: campaign.id,
+        mosqueId: resolved.mosqueId,
+        routing: resolved.usedFallback ? 'env-fallback' : 'per-mosque',
         sandbox: isSandboxMode(),
       });
     }

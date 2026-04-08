@@ -55,7 +55,11 @@ describe('parseWebhookEvent — TGU order events', () => {
     ['CANCELED'],
     ['EXPIRED'],
     ['DENIED'],
+    ['FAILURE'],
     ['REFUND'],
+    ['PARTIAL_REFUND'],
+    ['PARTIAL REFUND'],
+    ['CHARGEBACK'],
   ])('parses a %s order as cancelled', (status) => {
     const event = parseWebhookEvent(tguOrderPayload({ 'object[status][action]': status }));
     expect(event).toEqual({

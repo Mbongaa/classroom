@@ -235,3 +235,92 @@ export async function requireOrgMember(organizationId: string): Promise<AuthResu
     profile: member,
   };
 }
+
+/**
+ * Allowed roles for a mosque admin guard. Pass a subset to restrict
+ * access further (e.g. ['admin'] for destructive operations,
+ * ['admin', 'manager'] for campaign edits, all three for read-only views).
+ */
+export type MosqueRole = 'admin' | 'manager' | 'viewer';
+
+/**
+ * Require mosque admin / member access for API route
+ *
+ * Checks that the authenticated user either:
+ *   1. has a row in `mosque_members` for the given mosque with an
+ *      allowed role, OR
+ *   2. is a platform superadmin (bypasses mosque membership checks).
+ *
+ * @param mosqueId - The mosque ID to check membership for
+ * @param allowedRoles - Which mosque roles are permitted (default: ['admin'])
+ *
+ * @example
+ * export async function POST(request: NextRequest, { params }) {
+ *   const { mosqueId } = await params;
+ *   const auth = await requireMosqueAdmin(mosqueId);
+ *   if (!auth.success) return auth.response;
+ *   // auth.profile.role is the user's mosque role (or 'superadmin')
+ * }
+ */
+export async function requireMosqueAdmin(
+  mosqueId: string,
+  allowedRoles: MosqueRole[] = ['admin'],
+): Promise<AuthResult> {
+  const authResult = await requireAuth();
+  if (!authResult.success) return authResult;
+
+  const { user, supabase } = authResult;
+
+  // Superadmins bypass mosque-scoped checks entirely.
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_superadmin')
+    .eq('id', user.id)
+    .single();
+
+  if (profile?.is_superadmin) {
+    return {
+      success: true,
+      user,
+      supabase,
+      profile: { role: 'superadmin', mosque_id: mosqueId },
+    };
+  }
+
+  // Check mosque membership + role.
+  const { data: member, error } = await supabase
+    .from('mosque_members')
+    .select('role, mosque_id')
+    .eq('user_id', user.id)
+    .eq('mosque_id', mosqueId)
+    .single();
+
+  if (error || !member) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        { error: 'Forbidden - Not a member of this mosque' },
+        { status: 403 },
+      ),
+    };
+  }
+
+  if (!allowedRoles.includes(member.role as MosqueRole)) {
+    return {
+      success: false,
+      response: NextResponse.json(
+        {
+          error: `Forbidden - Mosque role '${member.role}' not permitted (requires one of: ${allowedRoles.join(', ')})`,
+        },
+        { status: 403 },
+      ),
+    };
+  }
+
+  return {
+    success: true,
+    user,
+    supabase,
+    profile: member,
+  };
+}
