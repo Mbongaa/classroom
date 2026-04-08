@@ -90,7 +90,10 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
       data: {
         full_name: fullName,
       },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      // Where the user lands after clicking the confirmation link in their email.
+      // The actual confirmation endpoint is /api/auth/confirm (handled by the
+      // Send Email Hook + verifyOtp); this is just the post-confirmation destination.
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/dashboard`,
     },
   });
 
@@ -209,6 +212,81 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     success: true,
     checkoutUrl: checkoutSession.url!,
   };
+}
+
+/**
+ * Send a password reset email.
+ *
+ * Triggers Supabase's `recovery` auth event, which fires the Send Email Hook
+ * (`/api/auth/email-hook`) → branded `PasswordResetEmail` via Resend.
+ *
+ * Always returns success even if the email doesn't exist, to avoid leaking
+ * which addresses are registered (account-enumeration protection).
+ */
+export async function requestPasswordReset(formData: FormData): Promise<AuthResult> {
+  const email = formData.get('email') as string;
+
+  if (!email) {
+    return { success: false, error: 'Email is required' };
+  }
+
+  const supabase = await createClient();
+  const redirectTo = `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/reset-password`;
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) {
+    // Log internally but don't surface — protect against account enumeration.
+    console.error('[requestPasswordReset]', error.message);
+  }
+
+  return { success: true };
+}
+
+/**
+ * Update the current user's password.
+ *
+ * Called from /reset-password after the user clicks the email link.
+ * The verifyOtp() in /api/auth/confirm has already created an authenticated
+ * session by the time this runs, so updateUser() will work.
+ */
+export async function updatePassword(formData: FormData): Promise<AuthResult> {
+  const password = formData.get('password') as string;
+  const confirmPassword = formData.get('confirmPassword') as string;
+
+  if (!password || !confirmPassword) {
+    return { success: false, error: 'Both password fields are required' };
+  }
+  if (password.length < 8) {
+    return { success: false, error: 'Password must be at least 8 characters' };
+  }
+  if (password !== confirmPassword) {
+    return { success: false, error: 'Passwords do not match' };
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return {
+      success: false,
+      error: 'Your reset link has expired. Please request a new password reset.',
+    };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath('/', 'layout');
+  return { success: true, redirectUrl: '/dashboard' };
 }
 
 /**

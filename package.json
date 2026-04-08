@@ -53,6 +53,7 @@
     "react-email": "^5.2.5",
     "react-hot-toast": "^2.5.2",
     "resend": "^6.7.0",
+    "standardwebhooks": "^1.0.0",
     "stripe": "^20.1.2",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",

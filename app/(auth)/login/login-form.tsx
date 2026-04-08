@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
 import { signIn } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/moving-border';
@@ -99,6 +100,14 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-xs text-gray-600 dark:text-gray-400 underline underline-offset-4 hover:text-primary"
+            >
+              Forgot password?
+            </Link>
+          </div>
           {error && (
             <div className="text-sm text-destructive bg-destructive/10 p-3 rounded-md">{error}</div>
           )}

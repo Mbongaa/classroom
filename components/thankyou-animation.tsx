@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { useEffect, useState } from 'react';
 import { CANCELLED_ANIMATION, getThankYouAnimation } from '@/lib/thankyou-animations';
 
 /**
@@ -46,6 +47,14 @@ export function ThankYouAnimationPlayer({
 }: ThankYouAnimationPlayerProps) {
   const file = kind === 'cancelled' ? CANCELLED_ANIMATION.file : getThankYouAnimation(animationId).file;
 
+  // Delay mounting the player by 1s so the page has time to paint before the
+  // animation begins — otherwise it starts mid-load and the user misses it.
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <div
       className={className}
@@ -53,7 +62,11 @@ export function ThankYouAnimationPlayer({
       role="presentation"
       aria-hidden="true"
     >
-      <DotLottieReact src={file} autoplay loop={loop} style={{ width: '100%', height: '100%' }} />
+      {ready ? (
+        <DotLottieReact src={file} autoplay loop={loop} style={{ width: '100%', height: '100%' }} />
+      ) : (
+        <AnimationSkeleton />
+      )}
     </div>
   );
 }
