@@ -157,7 +157,6 @@ env var fallback can be retired.
 
 - `lib/paynl.test.ts` — 26 tests
 - `lib/paynl-webhook.test.ts` — 48 tests
-- `test-webhook.ps1`, `test-cancel-webhook.ps1` — manual webhook smoke tests
 
 **All 84 paynl unit tests passing.** Run with `pnpm test -- --run lib/paynl`.
 

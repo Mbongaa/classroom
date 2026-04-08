@@ -82,8 +82,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   }
 
   return (
-    <main>
-      <div className="mx-auto max-w-4xl px-4 py-12">
+    <div className="mx-auto max-w-4xl py-6">
         <div className="mb-8 flex items-start justify-between">
           <div>
             <p className="text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -99,8 +98,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
           </Link>
         </div>
 
-        <SettingsTabs organization={organization} />
-      </div>
-    </main>
+      <SettingsTabs organization={organization} />
+    </div>
   );
 }

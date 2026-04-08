@@ -88,13 +88,12 @@ This is a Next.js 15 application using React 18 with LiveKit Components for vide
 
 **Persistent Rooms** (`/manage-rooms`)
 
-- ✅ **NEW**: Zoom-like persistent room management
+- Zoom-like persistent room management
 - Create reusable room codes (e.g., "MATH101") for recurring lectures
 - LiveKit metadata-only architecture (no external database)
 - Auto-population of teacher name and language (teachers only)
 - Room management UI with create, list, delete operations
 - 7-day empty timeout for room persistence
-- See `PERSISTENT_ROOMS_IMPLEMENTATION.md` for complete details
 
 ### Token Generation & Permissions
 
@@ -110,55 +109,13 @@ Token structure includes metadata with role information for client-side UI adapt
 
 ### Classroom Feature Implementation
 
-The codebase includes classroom features for educational use (Phases 1-6 complete, 55% of roadmap):
+The codebase includes classroom features for educational use:
 
-**Phase 1 - Role-Based Access**:
-
-- Token generation with teacher/student permissions
-- Smart PreJoin defaults (students join with mic/camera off)
-- Role badges and graceful error handling
-
-**Phase 2 - Teacher-Shares-Link Flow**:
-
-- URL shortcuts: `/s/[roomName]` for students, `/t/[roomName]` for teachers
-- Copy Student Link button for teachers (floating top-right in conference)
-- Optional PIN protection (4-6 digits)
-- Enhanced student welcome experience
-
-**Phase 3 - Classroom Client UI**:
-
-- Custom classroom layout with teacher spotlight and student grid
-- Role-based UI with visual badges
-- Translation sidebar for students
-- Chat integration with LiveKit patterns
-
-**Phase 4 - UI Enhancements & Bug Fixes**:
-
-- Fixed audio routing and duplicate sections
-- Speaking indicator for teacher
-- Resizable sidebars (translation and chat)
-- Unified dark theme
-- LiveKit-compliant implementations
-
-**Phase 5 - Teacher Permission Controls**:
-
-- LiveKit updateParticipant API for dynamic permissions (best practice)
-- Real-time permission updates without reconnection
-- Portal-based dropdown UI (floating above all content)
-- Grant/Revoke speaking permissions
-- Remove participant functionality
-- No token regeneration needed (server-side updates)
-
-**Phase 6 - Student Request System (COMPLETED)**:
-
-- Dual-mode request system (voice 🎤 or text 💬)
-- Floating raise hand button for students
-- Request mode selection modal
-- Visual indicators on student avatars (✋ icon)
-- Question bubbles for text display
-- Teacher queue panel for request management
-- Integration with Phase 5 permission system
-- Real-time updates via LiveKit Data Channels
+- **Role-based access**: Token generation with teacher/student permissions; students join with mic/camera off by default, teachers with media on
+- **Teacher-shares-link flow**: URL shortcuts `/s/[roomName]` (students) and `/t/[roomName]` (teachers); optional PIN protection
+- **Classroom client UI**: Teacher spotlight + student grid layout, role badges, translation sidebar, chat
+- **Teacher permission controls**: Uses LiveKit `updateParticipant` API for real-time permission changes (no reconnect/token regeneration required); portal-based dropdown for grant/revoke speaking permissions and removing participants
+- **Student request system**: Dual-mode (voice 🎤 or text 💬) raise-hand requests with avatar indicators, question bubbles, and a teacher queue panel; communicated via LiveKit Data Channels
 
 **Usage**:
 
@@ -167,23 +124,9 @@ The codebase includes classroom features for educational use (Phases 1-6 complet
 
 **Testing**: Test utilities at `/test-classroom` with role selection UI
 
-See `CLASSROOM_PHASE_1.md` through `CLASSROOM_PHASE_6_COMPLETED.md` for implementation details.
-See `CLASSROOM_ROADMAP.md` for next phases (Phase 8: Interactive Learning Tools ready to start).
-
-**Important Notes**:
-
-- Translation sidebar exists but is UI-only (no actual translation functionality)
-- Phase 7 (Permissions API) removed from roadmap as Phase 5 already implements this
-- updateParticipant API confirmed as LiveKit best practice for dynamic permissions
-
 ### Translation System
 
-The project includes two translation implementations:
-
-1. **Local Translation Agent** (`translation_agent/`) - Development/testing agent using OpenAI
-2. **Bayaan Server Integration** - Production-grade translation with Speechmatics + OpenAI
-
-For details on using the superior Bayaan server for production, see: `BAYAAN_SERVER_INTEGRATION.md`
+Production translation runs through a separate **Bayaan server** (Speechmatics + OpenAI) located at `Translator Server_Arabic_Fusha/Bayaan-server/` (its own git repo). The classroom app communicates with it over LiveKit data channels.
 
 ### LiveKit Integration
 
@@ -204,9 +147,7 @@ For details on using the superior Bayaan server for production, see: `BAYAAN_SER
 
 ### LiveKit UI Customization
 
-**CRITICAL**: Before creating ANY UI components, you MUST read and understand:
-
-- **`LIVEKIT_CUSTOM_UI_INTEGRATION_GUIDE.md`** - Complete guide on proper LiveKit UI integration
+**CRITICAL**: Before creating ANY UI components, read the LiveKit guidance in `.claude/livekit/` (foundation, patterns, integration points, troubleshooting).
 
 **Key Principle**: "We provide the logic, you provide the presentation"
 
@@ -315,63 +256,20 @@ Test files use `.test.ts` extension and are co-located with source files.
 
 ## WSL-to-Windows Environment Configuration
 
-**CRITICAL**: Claude Code is running in WSL (Linux subsystem), but the user operates in Windows.
+**CRITICAL**: Claude Code runs in WSL (Linux subsystem), but the user operates in Windows. Run development commands through `cmd.exe` or `powershell.exe` so they use the Windows Node/pnpm installation, not the WSL one.
 
-### Command Execution Rules
-
-**ALWAYS use Windows commands** when interacting with the project to avoid token waste on faulty Linux commands:
-
-```bash
-# ✅ CORRECT: Execute Windows commands from WSL
-cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm dev"
-cmd.exe /c "type C:\Users\HP\Desktop\meet\.env.local"
-powershell.exe -Command "Get-Process | Where-Object {\$_.ProcessName -like '*node*'}"
-
-# ❌ WRONG: Linux commands that will fail or be inefficient
-cat /mnt/c/Users/HP/Desktop/meet/.env.local  # Works but uses wrong environment
-pnpm dev  # May use wrong Node version or WSL environment
-```
-
-### Path Conversion
-
-- **WSL path**: `/mnt/c/Users/HP/Desktop/meet`
-- **Windows path**: `C:\Users\HP\Desktop\meet`
-- **Always use Windows paths** with `cmd.exe` and `powershell.exe`
-
-### Common Command Patterns
+- **WSL path**: `/mnt/c/Users/hassa/OneDrive/Desktop/Bayaan.ai/classroom`
+- **Windows path**: `C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom`
 
 ```bash
-# File operations
-cmd.exe /c "type C:\path\to\file.txt"        # Read file
-cmd.exe /c "dir C:\path\to\directory"        # List directory
-
 # Development commands
-cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm install"
-cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm build"
-cmd.exe /c "cd C:\Users\HP\Desktop\meet && pnpm dev"
+cmd.exe /c "cd C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom && pnpm install"
+cmd.exe /c "cd C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom && pnpm dev"
+cmd.exe /c "cd C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom && pnpm build"
 
 # Process management
 powershell.exe -Command "Get-Process | Where-Object {\$_.ProcessName -eq 'node'}"
 powershell.exe -Command "Stop-Process -Name 'node' -Force"
-
-# Environment checks
-cmd.exe /c "node --version"
-cmd.exe /c "pnpm --version"
-cmd.exe /c "npx shadcn@latest --version"
 ```
 
-### Why This Matters
-
-- **Saves tokens**: Avoids retry cycles when Linux commands fail or use wrong environment
-- **Correct environment**: Uses Windows Node.js, npm, pnpm installations (not WSL versions)
-- **Process access**: Can interact with Windows processes (Claude Code, browsers, dev servers)
-- **File system**: Ensures proper file permissions and line endings (CRLF vs LF)
-
-### MCP Server Configuration
-
-The `.mcp.json` file is configured for Windows environment:
-
-- Uses `npx` (Windows executable, not WSL)
-- Paths resolve correctly in Windows context
-- MCP servers run in Windows Node.js environment
-- Claude Code loads MCP servers from Windows paths
+The `.mcp.json` file is configured for the Windows environment and uses `npx` from the Windows PATH.

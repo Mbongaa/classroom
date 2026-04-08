@@ -169,8 +169,7 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
   const recentTransactions: TransactionRow[] = recentResult.data || [];
 
   return (
-    <main>
-      <div className="mx-auto max-w-5xl px-4 py-12">
+    <div className="mx-auto max-w-5xl py-6">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
@@ -334,7 +333,6 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
             )}
           </CardContent>
         </Card>
-      </div>
-    </main>
+    </div>
   );
 }

@@ -11,7 +11,7 @@ function DashboardSkeleton() {
   return (
     <div className="flex w-full h-screen">
       {/* Sidebar skeleton */}
-      <div className="h-full px-4 py-4 hidden md:flex md:flex-col bg-sidebar w-[60px] shrink-0 border-r border-sidebar-border">
+      <div className="h-full px-4 py-4 hidden md:flex md:flex-col bg-background w-[60px] shrink-0 border-r border-[rgba(128,128,128,0.3)]">
         <div className="animate-pulse">
           {/* Logo skeleton */}
           <div className="h-8 w-8 bg-sidebar-accent rounded mb-8" />
@@ -25,7 +25,7 @@ function DashboardSkeleton() {
       </div>
       {/* Main content skeleton */}
       <div className="flex flex-1 flex-col">
-        <header className="border-b border-sidebar-border bg-background h-16" />
+        <header className="border-b border-[rgba(128,128,128,0.3)] bg-background h-16" />
         <main className="flex-1 p-6">
           <div className="h-8 w-48 bg-sidebar-accent rounded animate-pulse" />
         </main>
