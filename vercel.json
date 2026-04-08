@@ -5,5 +5,13 @@
       "path": "/api/v2/reaper",
       "schedule": "*/5 * * * *"
     }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "classroom-umber.vercel.app" }],
+      "destination": "https://www.bayaan.app/:path*",
+      "permanent": true
+    }
   ]
 }

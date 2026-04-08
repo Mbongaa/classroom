@@ -19,20 +19,7 @@ import { updateSession } from '@/lib/supabase/middleware';
  * To add authentication protection (redirecting unauthenticated users),
  * uncomment the logic in lib/supabase/middleware.ts
  */
-const LEGACY_HOSTS = new Set(['classroom-umber.vercel.app']);
-const CANONICAL_HOST = 'bayaan.app';
-
 export async function middleware(request: NextRequest) {
-  const host = request.headers.get('host')?.toLowerCase() ?? '';
-
-  if (LEGACY_HOSTS.has(host)) {
-    const url = new URL(request.nextUrl.toString());
-    url.host = CANONICAL_HOST;
-    url.protocol = 'https:';
-    url.port = '';
-    return NextResponse.redirect(url, 308);
-  }
-
   return updateSession(request);
 }
 
