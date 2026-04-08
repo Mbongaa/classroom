@@ -80,9 +80,14 @@ export async function POST(req: NextRequest) {
 
   const rawBody = await req.text();
 
+  // Supabase recommends storing secrets as "v1,whsec_<base64>" but the
+  // standardwebhooks library only strips the "whsec_" prefix automatically.
+  // Strip the "v1," prefix here so the library can decode the base64 key.
+  const normalizedSecret = secret.startsWith('v1,') ? secret.slice(3) : secret;
+
   let payload: AuthHookPayload;
   try {
-    const wh = new Webhook(secret);
+    const wh = new Webhook(normalizedSecret);
     payload = wh.verify(rawBody, headers) as AuthHookPayload;
   } catch (err) {
     console.error('[email-hook] Signature verification failed:', err);

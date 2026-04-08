@@ -11,7 +11,7 @@ import {
 
 /**
  * GET /api/sessions/[sessionId]/download/transcription
- * Download transcription by session UUID — no recording required.
+ * Download transcription by session UUID — works for v2 (preferred) and legacy sessions.
  * Query params:
  *   - format: srt|vtt|txt (default: srt)
  */
@@ -29,21 +29,44 @@ export async function GET(
 
     const supabase = createAdminClient();
 
-    // Get session for room_name (used in filename)
-    const { data: session } = await supabase
-      .from('sessions')
-      .select('room_name')
+    // Try v2 first (source of truth)
+    const { data: v2Session } = await supabase
+      .from('v2_sessions')
+      .select('livekit_room_name, classroom_id, classrooms:classroom_id(room_code)')
       .eq('id', sessionId)
-      .single();
+      .maybeSingle();
 
-    // Get transcriptions directly by session_id
-    const { data: transcriptions, error } = await supabase
-      .from('transcriptions')
-      .select('*')
-      .eq('session_id', sessionId)
-      .order('timestamp_ms', { ascending: true });
+    let transcriptions: any[] | null = null;
+    let roomName = 'session';
 
-    if (error || !transcriptions || transcriptions.length === 0) {
+    if (v2Session) {
+      const { data: v2Trans } = await supabase
+        .from('v2_transcriptions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('timestamp_ms', { ascending: true });
+      transcriptions = v2Trans ?? null;
+      roomName =
+        (v2Session as any).classrooms?.room_code ||
+        v2Session.livekit_room_name ||
+        'session';
+    } else {
+      // Legacy fallback
+      const { data: legacySession } = await supabase
+        .from('sessions')
+        .select('room_name')
+        .eq('id', sessionId)
+        .maybeSingle();
+      const { data: legacyTrans } = await supabase
+        .from('transcriptions')
+        .select('*')
+        .eq('session_id', sessionId)
+        .order('timestamp_ms', { ascending: true });
+      transcriptions = legacyTrans ?? null;
+      roomName = legacySession?.room_name || 'session';
+    }
+
+    if (!transcriptions || transcriptions.length === 0) {
       return NextResponse.json(
         { error: 'No transcriptions available for this session' },
         { status: 404 },
@@ -51,7 +74,6 @@ export async function GET(
     }
 
     const language = transcriptions[0]?.language || 'unknown';
-    const roomName = session?.room_name || 'session';
 
     let content: string;
     switch (format) {
