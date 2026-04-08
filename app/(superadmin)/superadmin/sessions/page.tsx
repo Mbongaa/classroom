@@ -29,12 +29,20 @@ import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
 interface SessionEntry {
   id: string | null;
   room_name: string;
+  livekit_room_name?: string;
   session_id: string | null;
   started_at: string;
   ended_at: string | null;
   organization: string | null;
   organization_slug: string | null;
   room_type: 'meeting' | 'classroom' | 'speech' | null;
+  // True when the v2_session row says active/draining but no LiveKit room exists.
+  // The reaper will close this on its next pass.
+  stale?: boolean;
+  // True when a LiveKit room is alive but has no v2_session row (legacy / out-of-band).
+  // /api/v2/connect reaps these on the next join; until then we display them so an
+  // admin can see the leak.
+  orphan?: boolean;
 }
 
 type SortField = 'room_name' | 'organization' | 'started_at' | 'status';
@@ -258,13 +266,35 @@ export default function SuperadminSessionsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedSessions.map((session, idx) => (
+              paginatedSessions.map((session, idx) => {
+                const rowClass = session.orphan
+                  ? 'bg-amber-500/10 hover:bg-amber-500/15'
+                  : session.stale
+                    ? 'bg-orange-500/10 hover:bg-orange-500/15'
+                    : session.ended_at === null
+                      ? 'bg-green-500/10 hover:bg-green-500/15'
+                      : '';
+                return (
                 <TableRow
-                  key={session.id ?? `live-${idx}`}
-                  className={session.ended_at === null ? 'bg-green-500/10 hover:bg-green-500/15' : ''}
+                  key={session.id ?? `live-${idx}-${session.livekit_room_name ?? session.room_name}`}
+                  className={rowClass}
                 >
                   <TableCell className="text-center">
-                    {session.ended_at === null ? (
+                    {session.orphan ? (
+                      <Badge
+                        className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        title="LiveKit room is alive but has no v2_session row. Will be reaped on the next v2 join."
+                      >
+                        Orphan
+                      </Badge>
+                    ) : session.stale ? (
+                      <Badge
+                        className="bg-orange-500/20 text-orange-700 dark:text-orange-300 border-orange-500/30"
+                        title="DB says active but LiveKit room is gone. Reaper will close this."
+                      >
+                        Stale
+                      </Badge>
+                    ) : session.ended_at === null ? (
                       <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30">
                         Active
                       </Badge>
@@ -322,7 +352,8 @@ export default function SuperadminSessionsPage() {
                     )}
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

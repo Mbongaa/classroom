@@ -3,6 +3,7 @@ import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
 import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot, ArrowDown } from 'lucide-react';
 import { isIOSDevice } from '@/lib/client-utils';
+import { sentenceAccumulator } from '@/lib/sentence-accumulator';
 import styles from './SpeechTranslationPanel.module.css';
 
 interface SpeechTranslationPanelProps {
@@ -66,9 +67,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   const [showScrollButton, setShowScrollButton] = useState(false);
   const lastUpdateRef = useRef<number>(Date.now());
   const savedSegmentIds = useRef<Set<string>>(new Set()); // Track saved segments to prevent duplicates
-  // Cache original transcription text by startTime so delayed translations
-  // can look up the correct original (they share the same audio position)
-  const originalTextCache = useRef<Map<number, string>>(new Map());
 
   // Translation service health tracking
   const [translationServiceStatus, setTranslationServiceStatus] = useState<
@@ -239,11 +237,18 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                 (p) => p.attributes?.speaking_language !== undefined,
               )?.attributes?.speaking_language;
 
-        // Cache ALL original-language segments by startTime for later lookup.
-        // Translations may arrive in a later event but share the same startTime.
-        for (const seg of finalSegments) {
-          if (seg.language === speakingLanguage) {
-            originalTextCache.current.set(seg.startTime, seg.text);
+        // Feed every original-language chunk into the shared accumulator. The
+        // agent emits chunks (not sentences), so this is the only place we get
+        // to reconstruct the full original sentence to denormalize onto the
+        // translation row. Calls are idempotent on segment id, so it's safe
+        // even when TranscriptionSaver is also feeding the same accumulator.
+        if (speakingLanguage) {
+          const speakerKey = `${sessionId}:${speakingLanguage}`;
+          const sessionTimeMs = Date.now() - sessionStartTime;
+          for (const seg of finalSegments) {
+            if (seg.language === speakingLanguage && seg.text && seg.text.trim()) {
+              sentenceAccumulator.addChunk(speakerKey, seg.id, seg.text, sessionTimeMs);
+            }
           }
         }
 
@@ -253,18 +258,40 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
           if (!savedSegmentIds.current.has(segmentKey)) {
             savedSegmentIds.current.add(segmentKey);
 
-            // Use LiveKit segment's startTime (actual audio position) instead of
-            // Date.now() - sessionStartTime. This preserves chronological order
-            // regardless of when each participant joins the room.
-            const timestampMs = Math.round(translation.startTime * 1000);
             const participantName =
               room.localParticipant?.name || room.localParticipant?.identity || (userRole === 'teacher' ? 'Teacher' : 'Student');
-            // Look up original text by matching audio position (startTime).
-            // The same-event ID match is a fallback if cache misses.
-            const originalText =
-              originalTextCache.current.get(translation.startTime)
-              || finalSegments.find((seg) => seg.id === translation.id && seg.language === speakingLanguage)?.text
-              || '';
+            // The translation event fires AFTER all chunks of its source
+            // sentence have been published, so the accumulator's last completed
+            // sentence is the matching original. If accumulation hasn't found a
+            // sentence boundary yet (e.g. punctuation never arrived), flush
+            // whatever is pending so the bilingual download still has SOME
+            // original text.
+            const speakerKey = speakingLanguage ? `${sessionId}:${speakingLanguage}` : '';
+            let originalText = speakerKey
+              ? sentenceAccumulator.getLastCompletedSentence(speakerKey)
+              : '';
+            let originalStartMs = speakerKey
+              ? sentenceAccumulator.getLastCompletedStartMs(speakerKey)
+              : null;
+            if (!originalText && speakerKey && sentenceAccumulator.hasPendingText(speakerKey)) {
+              const flushed = sentenceAccumulator.flushRemaining(speakerKey);
+              if (flushed) {
+                originalText = flushed.sentence;
+                originalStartMs = flushed.startMs;
+              }
+            }
+            if (!originalText) {
+              // Last-resort fallback: same-event ID match (rarely populated)
+              originalText =
+                finalSegments.find(
+                  (seg) => seg.id === translation.id && seg.language === speakingLanguage,
+                )?.text || '';
+            }
+            // Prefer the source sentence's start timestamp so the bilingual
+            // SRT cue lines up with when the speaker actually started talking.
+            // Fall back to wall-clock if the accumulator couldn't tell us.
+            // The agent always sets translation.startTime=0, so it can't be used.
+            const timestampMs = originalStartMs ?? Date.now() - sessionStartTime;
 
             // Save with retry logic
             const saveWithRetry = async (attempt = 1): Promise<void> => {

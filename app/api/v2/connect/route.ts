@@ -17,6 +17,7 @@ import {
   createLiveKitRoom,
   listRoomParticipants,
   dispatchAgentToRoom,
+  deleteRoom,
 } from '@/lib/v2/livekit-helpers';
 
 
@@ -105,6 +106,36 @@ export async function POST(request: NextRequest) {
         { error: 'LiveKit credentials not configured for selected language' },
         { status: 500 },
       );
+    }
+
+    // --- 2.5. Reap any stale legacy LiveKit room for this classroom ---
+    //
+    // Pre-v2, the LiveKit room name was the human room_code (e.g. "ShaykhRachidRoom2").
+    // v2 uses classroom.id (a UUID) instead. If a legacy room is still alive on the
+    // server, it'll show up forever as an "orphan" in the superadmin sessions table
+    // (no v2_session row → falls into the orphan branch with a misleading creationTime
+    // as Started At). Reap it here, but only if it's empty — we don't want to kick
+    // anyone still connected via an old shared link.
+    if (classroom.room_code && classroom.room_code !== classroom.id) {
+      try {
+        const legacyRoom = await verifyRoomExists(classroom.room_code, language);
+        if (legacyRoom) {
+          const numParticipants = Number(legacyRoom.numParticipants ?? 0);
+          if (numParticipants === 0) {
+            await deleteRoom(classroom.room_code, language);
+            console.log(
+              `[V2 Connect] Reaped stale legacy LiveKit room "${classroom.room_code}" for classroom ${classroom.id}`,
+            );
+          } else {
+            console.warn(
+              `[V2 Connect] Legacy LiveKit room "${classroom.room_code}" still has ${numParticipants} participant(s); leaving in place`,
+            );
+          }
+        }
+      } catch (err) {
+        // Non-blocking — connect should still succeed even if reap fails.
+        console.error('[V2 Connect] Legacy room reap failed:', err);
+      }
     }
 
     // --- 3. Build deterministic identity ---

@@ -98,14 +98,32 @@ export async function POST(req: NextRequest) {
   const userName = (user.user_metadata?.full_name as string | undefined) ?? undefined;
 
   // Build the absolute URL the user clicks in the email.
-  // Supabase passes site_url and redirect_to; we route through /api/auth/confirm
-  // which calls verifyOtp() server-side and then redirects to `next`.
-  const siteUrl = email_data.site_url.replace(/\/$/, '');
-  const next = email_data.redirect_to || '/dashboard';
+  //
+  // IMPORTANT: email_data.site_url is the Supabase auth API base, NOT your
+  // user-facing site URL. To build links to OUR /api/auth/confirm route we
+  // derive the base from email_data.redirect_to (which Supabase has already
+  // validated against your URL allowlist), falling back to NEXT_PUBLIC_SITE_URL.
+  // This auto-routes between bayaan.app, preview deployments, and localhost.
+  const fallbackBase = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
+  let baseUrl = fallbackBase;
+  let nextPath = '/dashboard';
+
+  if (email_data.redirect_to) {
+    try {
+      const parsed = new URL(email_data.redirect_to);
+      baseUrl = `${parsed.protocol}//${parsed.host}`;
+      // Pass only the path + query as `next` — the confirm route's
+      // same-origin guard rejects absolute URLs.
+      nextPath = parsed.pathname + parsed.search;
+    } catch {
+      // Malformed redirect_to: fall through with defaults.
+    }
+  }
+
   const buildUrl = (tokenHash: string, type: string) =>
-    `${siteUrl}/api/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(
+    `${baseUrl}/api/auth/confirm?token_hash=${encodeURIComponent(tokenHash)}&type=${encodeURIComponent(
       type,
-    )}&next=${encodeURIComponent(next)}`;
+    )}&next=${encodeURIComponent(nextPath)}`;
 
   try {
     switch (email_data.email_action_type) {

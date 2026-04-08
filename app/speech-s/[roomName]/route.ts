@@ -1,16 +1,14 @@
 import { redirect } from 'next/navigation';
 
+/**
+ * Legacy student speech entry — kept as a thin redirect shim to /v2/speech-s.
+ *
+ * All connect logic now lives in the v2 stack (/api/v2/connect → v2_sessions).
+ * This route exists only so previously-shared links keep working; it forwards
+ * the path + query string (including org and pin) to /v2/speech-s/[roomCode].
+ */
 export async function GET(request: Request, { params }: { params: Promise<{ roomName: string }> }) {
   const { roomName } = await params;
-
-  // Forward org and pin query params for organization-scoped room lookup
-  const url = new URL(request.url);
-  const org = url.searchParams.get('org');
-  const pin = url.searchParams.get('pin');
-
-  let redirectUrl = `/rooms/${roomName}?speech=true&role=student`;
-  if (org) redirectUrl += `&org=${encodeURIComponent(org)}`;
-  if (pin) redirectUrl += `&pin=${encodeURIComponent(pin)}`;
-
-  redirect(redirectUrl);
+  const search = new URL(request.url).search;
+  redirect(`/v2/speech-s/${roomName}${search}`);
 }
