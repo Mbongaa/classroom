@@ -8,7 +8,7 @@ import { RoomFormDialog } from '@/components/rooms/RoomFormDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
-import { Settings, Trash2, Video, RefreshCw, ClipboardCopy, Check } from 'lucide-react';
+import { Settings, Trash2, Video, RefreshCw, ClipboardCopy, Check, Loader2 } from 'lucide-react';
 
 export default function DashboardRoomsPage() {
   const router = useRouter();
@@ -16,6 +16,7 @@ export default function DashboardRoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copiedRoomId, setCopiedRoomId] = useState<string | null>(null);
+  const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
 
   const fetchRooms = useCallback(async () => {
     setLoading(true);
@@ -58,6 +59,8 @@ export default function DashboardRoomsPage() {
   };
 
   const handleJoinRoom = (room: Classroom) => {
+    if (joiningRoomId) return; // guard against double-click / re-entry
+    setJoiningRoomId(room.id);
     let url = `/v2/t/${room.room_code}`;
     if (room.organization_slug) {
       url += `?org=${encodeURIComponent(room.organization_slug)}`;
@@ -221,8 +224,17 @@ export default function DashboardRoomsPage() {
                     size="sm"
                     className="text-xs"
                     onClick={() => handleJoinRoom(room)}
+                    disabled={joiningRoomId === room.id}
+                    aria-busy={joiningRoomId === room.id}
                   >
-                    Join Room
+                    {joiningRoomId === room.id ? (
+                      <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                        Joining…
+                      </>
+                    ) : (
+                      'Join Room'
+                    )}
                   </Button>
                 </div>
               </div>
@@ -285,8 +297,17 @@ export default function DashboardRoomsPage() {
                       size="sm"
                       className="text-xs h-8"
                       onClick={() => handleJoinRoom(room)}
+                      disabled={joiningRoomId === room.id}
+                      aria-busy={joiningRoomId === room.id}
                     >
-                      Join Room
+                      {joiningRoomId === room.id ? (
+                        <>
+                          <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                          Joining…
+                        </>
+                      ) : (
+                        'Join Room'
+                      )}
                     </Button>
                   </div>
                 </div>

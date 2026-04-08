@@ -4,14 +4,28 @@
       "command": "cmd.exe",
       "args": ["/c", "npx", "shadcn@latest", "mcp"]
     },
-    "supabase": {
+    "supabase-mumbai": {
       "command": "cmd.exe",
       "args": [
         "/c",
         "npx",
         "-y",
         "@supabase/mcp-server-supabase@latest",
+        "--read-only",
         "--project-ref=vmxjczdwyhrierexjoph"
+      ],
+      "env": {
+        "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"
+      }
+    },
+    "supabase-ireland": {
+      "command": "cmd.exe",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@supabase/mcp-server-supabase@latest",
+        "--project-ref=ppyskoxxhnaoijevacam"
       ],
       "env": {
         "SUPABASE_ACCESS_TOKEN": "${SUPABASE_ACCESS_TOKEN}"

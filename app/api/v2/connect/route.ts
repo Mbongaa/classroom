@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
 import { getLiveKitURL } from '@/lib/getLiveKitURL';
 import {
@@ -55,21 +56,19 @@ export async function POST(request: NextRequest) {
     }
 
     // --- 1. Resolve authenticated user and org ---
+    // Trust x-supabase-user-id from middleware (already validated via getUser
+    // upstream). Skips a duplicate auth.getUser() round-trip to Supabase.
+    const userId = request.headers.get('x-supabase-user-id') ?? undefined;
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
 
     let organizationId: string | undefined;
     let userRole: 'teacher' | 'student' = requestedRole;
-    let userId: string | undefined;
 
-    if (user) {
-      userId = user.id;
+    if (userId) {
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, organization_id')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (profile) {
@@ -183,8 +182,12 @@ export async function POST(request: NextRequest) {
       await transitionV2Session(session.id, 'active');
     }
 
-    // --- 5. Record participant ---
-    await upsertV2Participant(session.id, identity, participantName, userRole);
+    // --- 5. Record participant (fire-and-forget) ---
+    // mintV2Token below does NOT depend on this row existing (it just signs a
+    // JWT from identity/role/credentials). Don't block the response on it.
+    void upsertV2Participant(session.id, identity, participantName, userRole).catch(
+      (err) => console.error('[V2 Connect] upsertV2Participant failed:', err),
+    );
 
     // --- 6. Mint token ---
     const token = await mintV2Token(
@@ -196,21 +199,26 @@ export async function POST(request: NextRequest) {
       '30m',
     );
 
-    // Track participation for authenticated users
-    if (user) {
-      try {
-        await supabase.from('classroom_participants').upsert(
+    // Track participation for authenticated users (fire-and-forget).
+    // Uses admin client so the write doesn't depend on SSR cookie scope
+    // surviving past the response return.
+    if (userId) {
+      void createAdminClient()
+        .from('classroom_participants')
+        .upsert(
           {
             classroom_id: classroom.id,
-            user_id: user.id,
+            user_id: userId,
             role: userRole,
             last_attended_at: new Date().toISOString(),
           },
           { onConflict: 'classroom_id,user_id' },
-        );
-      } catch {
-        // Non-critical
-      }
+        )
+        .then(({ error }) => {
+          if (error) {
+            console.error('[V2 Connect] classroom_participants tracking failed:', error);
+          }
+        });
     }
 
     const serverUrl = region ? getLiveKitURL(credentials.url, region) : credentials.url;

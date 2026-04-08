@@ -27,6 +27,8 @@ interface CampaignProp {
 
 interface DonationFormProps {
   campaign: CampaignProp;
+  /** Mosque slug from the route — used to build the mosque-scoped return URL. */
+  mosqueSlug: string;
 }
 
 type Frequency = 'one_time' | 'monthly';
@@ -50,7 +52,7 @@ function isoDatePlusDays(days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function DonationForm({ campaign }: DonationFormProps) {
+export function DonationForm({ campaign, mosqueSlug }: DonationFormProps) {
   const [frequency, setFrequency] = useState<Frequency>('one_time');
   const [selectedPreset, setSelectedPreset] = useState<number | 'custom'>(25);
   const [customAmount, setCustomAmount] = useState<string>('');
@@ -119,7 +121,12 @@ export function DonationForm({ campaign }: DonationFormProps) {
     setSubmitting(true);
     try {
       if (frequency === 'one_time') {
-        const returnUrl = `${window.location.origin}/thank-you`;
+        // Mosque-scoped thank-you so each mosque can show its own branding
+        // and personalized copy on completion. Falls back to /thank-you for
+        // safety in case the slug is somehow empty.
+        const returnUrl = mosqueSlug
+          ? `${window.location.origin}/donate/${mosqueSlug}/thank-you`
+          : `${window.location.origin}/thank-you`;
         const response = await fetch('/api/donate/one-time', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -5,11 +5,10 @@ import { DonationForm } from './DonationForm';
 /**
  * /donate/[mosque]/[campaign]
  *
- * Public donation page. Phase 1 uses the anon Supabase client (with the
+ * Public donation page. Uses the anon Supabase client (with the
  * "Public can view active campaigns" RLS policy on campaigns); no donor PII
- * is ever read here. The `mosque` route param is currently unused at the
- * query level — Phase 2 will use it for mosque-scoped lookups once the
- * `mosques` table lands.
+ * is ever read here. The `mosque` route param is the user-facing label (the
+ * organization slug) — the underlying tenant entity is `organizations`.
  */
 
 interface PageProps {
@@ -26,7 +25,7 @@ interface CampaignRow {
   description: string | null;
   goal_amount: number | null;
   cause_type: string | null;
-  mosque_id: string;
+  organization_id: string;
 }
 
 export default async function DonationPage({ params }: PageProps) {
@@ -35,7 +34,7 @@ export default async function DonationPage({ params }: PageProps) {
   const supabase = await createClient();
   const { data: campaign } = await supabase
     .from('campaigns')
-    .select('id, slug, title, description, goal_amount, cause_type, mosque_id')
+    .select('id, slug, title, description, goal_amount, cause_type, organization_id')
     .eq('slug', campaignSlug)
     .eq('is_active', true)
     .single<CampaignRow>();
@@ -58,7 +57,7 @@ export default async function DonationPage({ params }: PageProps) {
             </p>
           )}
         </div>
-        <DonationForm campaign={campaign} />
+        <DonationForm campaign={campaign} mosqueSlug={mosque} />
       </div>
     </main>
   );

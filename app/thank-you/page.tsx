@@ -1,3 +1,5 @@
+import { ThankYouAnimationPlayer } from '@/components/thankyou-animation';
+
 /**
  * /thank-you
  *
@@ -18,7 +20,7 @@
  * it does not leak anything.
  *
  * Phase 2 may add an authenticated mosque-admin receipt view that DOES
- * query the DB, scoped via mosque_members RLS.
+ * query the DB, scoped via organization_members RLS.
  */
 
 interface ThankYouPageProps {
@@ -72,46 +74,24 @@ export default async function ThankYouPage({ searchParams }: ThankYouPageProps) 
 
   return (
     <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-xl px-4 py-24 text-center">
-        {outcome === 'paid' && (
-          <div
-            aria-hidden="true"
-            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/40 dark:text-green-300"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-              className="h-8 w-8"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-            </svg>
-          </div>
-        )}
+      <div className="mx-auto flex min-h-screen max-w-xl items-center justify-center px-4 py-12">
+        <div className="w-full text-center duration-700 ease-out animate-in fade-in slide-in-from-bottom-4">
+          {outcome === 'paid' && (
+            <div className="mx-auto mb-4 flex justify-center delay-150 duration-500 animate-in fade-in zoom-in-50">
+              <ThankYouAnimationPlayer kind="paid" size={320} />
+            </div>
+          )}
 
-        {outcome === 'cancelled' && (
-          <div
-            aria-hidden="true"
-            className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2.5"
-              stroke="currentColor"
-              className="h-8 w-8"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-            </svg>
-          </div>
-        )}
+          {outcome === 'cancelled' && (
+            <div className="mx-auto mb-4 flex justify-center delay-150 duration-500 animate-in fade-in zoom-in-50">
+              <ThankYouAnimationPlayer kind="cancelled" size={560} />
+            </div>
+          )}
 
-        <h1 className="text-3xl font-semibold leading-tight">{copy.title}</h1>
-        <p className="mt-4 text-base text-slate-600 dark:text-slate-300">{copy.body}</p>
-        <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">Bayaan Hub</p>
+          <h1 className="text-3xl font-semibold leading-tight">{copy.title}</h1>
+          <p className="mt-4 text-base text-slate-600 dark:text-slate-300">{copy.body}</p>
+          <p className="mt-8 text-sm text-slate-500 dark:text-slate-400">Bayaan Hub</p>
+        </div>
       </div>
     </main>
   );

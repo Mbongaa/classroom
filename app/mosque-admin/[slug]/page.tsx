@@ -1,4 +1,5 @@
 import { notFound, redirect } from 'next/navigation';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,25 +9,25 @@ import { Separator } from '@/components/ui/separator';
 /**
  * /mosque-admin/[slug]
  *
- * Phase 2 foundation dashboard for mosque admins. Shows:
- *   - Mosque profile (name, KYC status, Pay.nl status)
+ * Phase 2 foundation dashboard for organization admins. Shows:
+ *   - Organization profile (name, KYC status, Pay.nl status)
  *   - Total donations (all-time + this month)
  *   - Active campaigns count
  *   - Recent transactions (last 10)
  *
- * Gated by: the user must be a member of this mosque (any role) OR a
+ * Gated by: the user must be a member of this organization (any role) OR a
  * platform superadmin. Redirects to /login when unauthenticated.
  *
- * This is a server component — all queries run with the logged-in user's
- * session so RLS policies enforce tenant isolation automatically. We only
- * use the admin client for aggregate counts that RLS would hide.
+ * The route is still called `/mosque-admin/[slug]` for the user-facing label,
+ * but the underlying tenant entity is `organizations` — there is no longer a
+ * separate `mosques` table. See migration 20260408_03 for the consolidation.
  */
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-interface MosqueRow {
+interface OrganizationRow {
   id: string;
   slug: string;
   name: string;
@@ -34,7 +35,7 @@ interface MosqueRow {
   city: string | null;
   country: string;
   kyc_status: 'pending' | 'submitted' | 'approved' | 'rejected';
-  is_active: boolean;
+  donations_active: boolean;
   paynl_service_id: string | null;
   paynl_merchant_id: string | null;
   platform_fee_bps: number;
@@ -59,7 +60,7 @@ function formatEuro(cents: number): string {
 }
 
 function kycBadgeVariant(
-  status: MosqueRow['kyc_status'],
+  status: OrganizationRow['kyc_status'],
 ): 'default' | 'secondary' | 'destructive' | 'outline' {
   switch (status) {
     case 'approved':
@@ -85,23 +86,24 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
     redirect(`/login?redirect=/mosque-admin/${slug}`);
   }
 
-  // Resolve mosque by slug (RLS: active mosques OR mosques where the user
-  // is a member are visible).
-  const { data: mosque } = await supabase
-    .from('mosques')
-    .select<string, MosqueRow>(
-      'id, slug, name, description, city, country, kyc_status, is_active, paynl_service_id, paynl_merchant_id, platform_fee_bps, created_at',
+  // Resolve organization by slug. We use the admin client because the
+  // existing organizations RLS only exposes the user's primary org via
+  // profiles.organization_id, which doesn't cover users who belong to
+  // multiple orgs via organization_members.
+  const supabaseAdmin = createAdminClient();
+  const { data: organization } = await supabaseAdmin
+    .from('organizations')
+    .select<string, OrganizationRow>(
+      'id, slug, name, description, city, country, kyc_status, donations_active, paynl_service_id, paynl_merchant_id, platform_fee_bps, created_at',
     )
     .eq('slug', slug)
     .single();
 
-  if (!mosque) {
+  if (!organization) {
     notFound();
   }
 
-  // Check membership — RLS on mosque_members already scopes to own rows.
-  // If the user is a superadmin they still need to see it; use admin client
-  // for the membership check as a secondary gate (defense in depth).
+  // Membership check (defense in depth on top of RLS).
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_superadmin')
@@ -111,10 +113,10 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
   const isSuperadmin = profile?.is_superadmin === true;
 
   if (!isSuperadmin) {
-    const { data: membership } = await supabase
-      .from('mosque_members')
+    const { data: membership } = await supabaseAdmin
+      .from('organization_members')
       .select('role')
-      .eq('mosque_id', mosque.id)
+      .eq('organization_id', organization.id)
       .eq('user_id', user.id)
       .single();
 
@@ -123,9 +125,7 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
     }
   }
 
-  // Aggregates — use admin client so superadmins and members see the same
-  // numbers regardless of RLS specifics on count queries.
-  const supabaseAdmin = createAdminClient();
+  // Aggregates — admin client so superadmins and members see the same numbers.
   const monthStart = new Date();
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
@@ -134,25 +134,25 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
     supabaseAdmin
       .from('transactions')
       .select('amount', { count: 'exact' })
-      .eq('stats_extra3', mosque.id)
+      .eq('stats_extra3', organization.id)
       .eq('status', 'PAID'),
     supabaseAdmin
       .from('transactions')
       .select('amount', { count: 'exact' })
-      .eq('stats_extra3', mosque.id)
+      .eq('stats_extra3', organization.id)
       .eq('status', 'PAID')
       .gte('paid_at', monthStart.toISOString()),
     supabaseAdmin
       .from('campaigns')
       .select('id', { count: 'exact', head: true })
-      .eq('mosque_id', mosque.id)
+      .eq('organization_id', organization.id)
       .eq('is_active', true),
     supabaseAdmin
       .from('transactions')
       .select<string, TransactionRow>(
         'id, paynl_order_id, amount, status, donor_name, created_at, paid_at',
       )
-      .eq('stats_extra3', mosque.id)
+      .eq('stats_extra3', organization.id)
       .order('created_at', { ascending: false })
       .limit(10),
   ]);
@@ -169,7 +169,7 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
   const recentTransactions: TransactionRow[] = recentResult.data || [];
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main>
       <div className="mx-auto max-w-5xl px-4 py-12">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
@@ -177,22 +177,28 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
             <p className="text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Mosque admin
             </p>
-            <h1 className="mt-1 text-3xl font-semibold leading-tight">{mosque.name}</h1>
-            {mosque.city && (
+            <h1 className="mt-1 text-3xl font-semibold leading-tight">{organization.name}</h1>
+            {organization.city && (
               <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-                {mosque.city}, {mosque.country}
+                {organization.city}, {organization.country}
               </p>
             )}
           </div>
           <div className="flex flex-col items-end gap-2">
-            <Badge variant={kycBadgeVariant(mosque.kyc_status)}>
-              KYC: {mosque.kyc_status}
+            <Badge variant={kycBadgeVariant(organization.kyc_status)}>
+              KYC: {organization.kyc_status}
             </Badge>
-            {mosque.is_active ? (
-              <Badge variant="default">Active</Badge>
+            {organization.donations_active ? (
+              <Badge variant="default">Donations active</Badge>
             ) : (
-              <Badge variant="outline">Inactive</Badge>
+              <Badge variant="outline">Donations inactive</Badge>
             )}
+            <Link
+              href={`/mosque-admin/${organization.slug}/settings`}
+              className="mt-2 text-xs text-slate-500 underline-offset-4 hover:underline dark:text-slate-400"
+            >
+              Settings →
+            </Link>
           </div>
         </div>
 
@@ -240,25 +246,25 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
           <CardHeader>
             <CardTitle className="text-lg">Pay.nl routing</CardTitle>
             <CardDescription>
-              Where donations currently flow for this mosque
+              Where donations currently flow for this organization
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            {mosque.paynl_service_id ? (
+            {organization.paynl_service_id ? (
               <>
                 <p>
                   <span className="text-slate-500 dark:text-slate-400">Service ID:</span>{' '}
-                  <code>{mosque.paynl_service_id}</code>
+                  <code>{organization.paynl_service_id}</code>
                 </p>
-                {mosque.paynl_merchant_id && (
+                {organization.paynl_merchant_id && (
                   <p>
                     <span className="text-slate-500 dark:text-slate-400">Merchant ID:</span>{' '}
-                    <code>{mosque.paynl_merchant_id}</code>
+                    <code>{organization.paynl_merchant_id}</code>
                   </p>
                 )}
                 <p>
                   <span className="text-slate-500 dark:text-slate-400">Platform fee:</span>{' '}
-                  {(mosque.platform_fee_bps / 100).toFixed(2)}%
+                  {(organization.platform_fee_bps / 100).toFixed(2)}%
                 </p>
               </>
             ) : (
@@ -274,7 +280,7 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Recent donations</CardTitle>
-            <CardDescription>Last 10 transactions for this mosque</CardDescription>
+            <CardDescription>Last 10 transactions for this organization</CardDescription>
           </CardHeader>
           <CardContent>
             {recentTransactions.length === 0 ? (

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createMandate, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
-import { resolveMosqueServiceIdForCampaign } from '@/lib/paynl-mosque-resolver';
+import { resolveOrganizationServiceIdForCampaign } from '@/lib/paynl-organization-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
@@ -146,11 +146,11 @@ export async function POST(request: NextRequest) {
   const body = validation.body;
 
   try {
-    // ---- 3. Fetch active campaign + its mosque's Pay.nl details --------
+    // ---- 3. Fetch active campaign + its organization's Pay.nl details --
     const supabaseAdmin = createAdminClient();
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
-      .select('id, title, slug, cause_type, mosque_id, is_active')
+      .select('id, title, slug, cause_type, organization_id, is_active')
       .eq('id', body.campaign_id)
       .eq('is_active', true)
       .single();
@@ -159,8 +159,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
     }
 
-    // Phase 2: resolve paynl_service_id per mosque (falls back to env var).
-    const resolved = await resolveMosqueServiceIdForCampaign(supabaseAdmin, campaign.id);
+    // Phase 2: resolve paynl_service_id per organization (falls back to env var).
+    const resolved = await resolveOrganizationServiceIdForCampaign(supabaseAdmin, campaign.id);
     if (!resolved) {
       return NextResponse.json(
         { error: 'Campaign is not configured for payments yet' },
@@ -190,7 +190,7 @@ export async function POST(request: NextRequest) {
       stats: {
         extra1: campaign.id,
         extra2: campaign.cause_type || '',
-        extra3: campaign.mosque_id,
+        extra3: campaign.organization_id,
       },
     };
 
@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
         monthly_amount: body.amount,
         stats_extra1: campaign.id,
         stats_extra2: campaign.cause_type || null,
-        stats_extra3: campaign.mosque_id,
+        stats_extra3: campaign.organization_id,
       })
       .select('id, paynl_mandate_id')
       .single();
@@ -239,8 +239,8 @@ export async function POST(request: NextRequest) {
       mandateRowId: mandateRow.id,
       paynlMandateId: mandateRow.paynl_mandate_id,
       campaignId: campaign.id,
-      mosqueId: resolved.mosqueId,
-      routing: resolved.usedFallback ? 'env-fallback' : 'per-mosque',
+      organizationId: resolved.organizationId,
+      routing: resolved.usedFallback ? 'env-fallback' : 'per-org',
       sandbox: isSandboxMode(),
     });
 

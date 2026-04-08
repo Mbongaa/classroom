@@ -17,8 +17,14 @@ import { NextResponse, type NextRequest } from 'next/server';
  * @returns NextResponse with updated session cookies
  */
 export async function updateSession(request: NextRequest) {
+  // Mutable headers we forward to downstream handlers. Always strip any
+  // client-supplied x-supabase-user-id to prevent header spoofing — this
+  // header is treated as authoritative by route handlers.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete('x-supabase-user-id');
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: { headers: requestHeaders },
   });
 
   const supabase = createServerClient(
@@ -32,7 +38,7 @@ export async function updateSession(request: NextRequest) {
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({
-            request,
+            request: { headers: requestHeaders },
           });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
@@ -49,6 +55,20 @@ export async function updateSession(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // Propagate the validated user id to downstream API routes so they can skip
+  // a duplicate auth.getUser() round-trip. Trusted because middleware always
+  // runs before route handlers and we strip any inbound value above.
+  if (user) {
+    requestHeaders.set('x-supabase-user-id', user.id);
+    // Rebuild the response so the new header is visible downstream, while
+    // preserving any cookies Supabase set during session refresh above.
+    const refreshedCookies = supabaseResponse.cookies.getAll();
+    supabaseResponse = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    refreshedCookies.forEach((cookie) => supabaseResponse.cookies.set(cookie));
+  }
 
   // Protected routes - require authentication
   const protectedPaths = ['/dashboard', '/manage-rooms', '/profile', '/org', '/superadmin'];

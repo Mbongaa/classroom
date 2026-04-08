@@ -237,41 +237,40 @@ export async function requireOrgMember(organizationId: string): Promise<AuthResu
 }
 
 /**
- * Allowed roles for a mosque admin guard. Pass a subset to restrict
- * access further (e.g. ['admin'] for destructive operations,
- * ['admin', 'manager'] for campaign edits, all three for read-only views).
+ * Allowed roles for an organization admin guard on Pay.nl-related endpoints.
+ * Maps onto the existing organization_members.role enum.
  */
-export type MosqueRole = 'admin' | 'manager' | 'viewer';
+export type OrgRole = 'admin' | 'teacher' | 'student';
 
 /**
- * Require mosque admin / member access for API route
+ * Require organization admin / member access for API route.
  *
  * Checks that the authenticated user either:
- *   1. has a row in `mosque_members` for the given mosque with an
- *      allowed role, OR
- *   2. is a platform superadmin (bypasses mosque membership checks).
+ *   1. has a row in `organization_members` for the given organization with
+ *      an allowed role, OR
+ *   2. is a platform superadmin (bypasses org membership checks).
  *
- * @param mosqueId - The mosque ID to check membership for
- * @param allowedRoles - Which mosque roles are permitted (default: ['admin'])
+ * @param organizationId - The organization ID to check membership for
+ * @param allowedRoles - Which org roles are permitted (default: ['admin'])
  *
  * @example
  * export async function POST(request: NextRequest, { params }) {
- *   const { mosqueId } = await params;
- *   const auth = await requireMosqueAdmin(mosqueId);
+ *   const { id } = await params;
+ *   const auth = await requireOrgAdmin(id);
  *   if (!auth.success) return auth.response;
- *   // auth.profile.role is the user's mosque role (or 'superadmin')
+ *   // auth.profile.role is the user's org role (or 'superadmin')
  * }
  */
-export async function requireMosqueAdmin(
-  mosqueId: string,
-  allowedRoles: MosqueRole[] = ['admin'],
+export async function requireOrgAdmin(
+  organizationId: string,
+  allowedRoles: OrgRole[] = ['admin'],
 ): Promise<AuthResult> {
   const authResult = await requireAuth();
   if (!authResult.success) return authResult;
 
   const { user, supabase } = authResult;
 
-  // Superadmins bypass mosque-scoped checks entirely.
+  // Superadmins bypass org-scoped checks entirely.
   const { data: profile } = await supabase
     .from('profiles')
     .select('is_superadmin')
@@ -283,34 +282,34 @@ export async function requireMosqueAdmin(
       success: true,
       user,
       supabase,
-      profile: { role: 'superadmin', mosque_id: mosqueId },
+      profile: { role: 'superadmin', organization_id: organizationId },
     };
   }
 
-  // Check mosque membership + role.
+  // Check org membership + role.
   const { data: member, error } = await supabase
-    .from('mosque_members')
-    .select('role, mosque_id')
+    .from('organization_members')
+    .select('role, organization_id')
     .eq('user_id', user.id)
-    .eq('mosque_id', mosqueId)
+    .eq('organization_id', organizationId)
     .single();
 
   if (error || !member) {
     return {
       success: false,
       response: NextResponse.json(
-        { error: 'Forbidden - Not a member of this mosque' },
+        { error: 'Forbidden - Not a member of this organization' },
         { status: 403 },
       ),
     };
   }
 
-  if (!allowedRoles.includes(member.role as MosqueRole)) {
+  if (!allowedRoles.includes(member.role as OrgRole)) {
     return {
       success: false,
       response: NextResponse.json(
         {
-          error: `Forbidden - Mosque role '${member.role}' not permitted (requires one of: ${allowedRoles.join(', ')})`,
+          error: `Forbidden - Org role '${member.role}' not permitted (requires one of: ${allowedRoles.join(', ')})`,
         },
         { status: 403 },
       ),

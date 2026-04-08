@@ -9,9 +9,10 @@ import { PayNLError, redactPII, triggerDirectDebit } from '@/lib/paynl';
  * Triggers a subsequent direct debit against an ACTIVE flexible mandate.
  *
  * Auth: requireSuperAdmin (platform superadmin only). Phase 1 does not have
- * a mosque-scoped admin role yet, so the platform superadmin is the only
- * safe gate. Phase 2 will introduce mosque-admin auth and this guard will
- * be swapped for a mosque-membership check tied to the mandate's mosque_id.
+ * an org-scoped admin role yet, so the platform superadmin is the only
+ * safe gate. Phase 2 will introduce org-admin auth and this guard will
+ * be swapped for an organization_members check tied to the mandate's
+ * campaign organization_id.
  *
  * Invariant: we refuse to debit unless mandate.status === 'ACTIVE'. This is
  * the "no second debit until the first is collected" rule from the plan.

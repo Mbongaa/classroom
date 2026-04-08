@@ -4,6 +4,7 @@ import AppSidebar from '@/components/dashboard-sidebar';
 import { DashboardHeader } from '@/app/dashboard/dashboard-header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 
 // Loading skeleton for the sidebar/content area
 function DashboardSkeleton() {
@@ -37,13 +38,36 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value === 'true';
 
+  // Resolve the user's primary organization slug so the header toggle can
+  // link to /mosque-admin/[slug]. Middleware already guarantees the user is
+  // authenticated by the time this layout renders.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let orgSlug: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('organization:organizations(slug)')
+      .eq('id', user.id)
+      .single();
+    const organization = (profile as { organization?: { slug?: string } | null } | null)
+      ?.organization;
+    orgSlug = organization?.slug ?? null;
+  }
+
   return (
     <UserProviderWrapper>
       <Suspense fallback={<DashboardSkeleton />}>
         <SidebarProvider defaultOpen={defaultOpen}>
           <AppSidebar />
           <SidebarInset>
-            <DashboardHeader />
+            <DashboardHeader
+              currentMode="translation"
+              orgSlug={orgSlug}
+              showSidebarTrigger
+            />
             <main
               className="flex-1 overflow-y-auto p-6 min-h-0"
               style={{

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createOrder, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
-import { resolveMosqueServiceIdForCampaign } from '@/lib/paynl-mosque-resolver';
+import { resolveOrganizationServiceIdForCampaign } from '@/lib/paynl-organization-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
@@ -120,11 +120,11 @@ export async function POST(request: NextRequest) {
   const body = validation.body;
 
   try {
-    // ---- 3. Fetch active campaign + its mosque's Pay.nl details --------
+    // ---- 3. Fetch active campaign + its organization's Pay.nl details --
     const supabaseAdmin = createAdminClient();
     const { data: campaign, error: campaignError } = await supabaseAdmin
       .from('campaigns')
-      .select('id, title, slug, cause_type, mosque_id, is_active')
+      .select('id, title, slug, cause_type, organization_id, is_active')
       .eq('id', body.campaign_id)
       .eq('is_active', true)
       .single();
@@ -134,9 +134,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Phase 2: resolve the correct paynl_service_id based on the campaign's
-    // mosque. Falls back to PAYNL_SERVICE_ID env var for mosques that have
-    // not yet been onboarded via Alliance createMerchant.
-    const resolved = await resolveMosqueServiceIdForCampaign(supabaseAdmin, campaign.id);
+    // organization. Falls back to PAYNL_SERVICE_ID env var for organizations
+    // that have not yet been onboarded via Alliance createMerchant.
+    const resolved = await resolveOrganizationServiceIdForCampaign(supabaseAdmin, campaign.id);
     if (!resolved) {
       return NextResponse.json(
         { error: 'Campaign is not configured for payments yet' },
@@ -189,7 +189,7 @@ export async function POST(request: NextRequest) {
       stats: {
         extra1: campaign.id,
         extra2: campaign.cause_type || '',
-        extra3: campaign.mosque_id,
+        extra3: campaign.organization_id,
         info: campaign.title,
       },
     };
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
       donor_email: body.donor_email,
       stats_extra1: campaign.id,
       stats_extra2: campaign.cause_type || null,
-      stats_extra3: campaign.mosque_id,
+      stats_extra3: campaign.organization_id,
       is_test: isSandboxMode(),
     });
 
@@ -227,8 +227,8 @@ export async function POST(request: NextRequest) {
       console.log('[PayNL] One-time order created', {
         orderId: order.orderId,
         campaignId: campaign.id,
-        mosqueId: resolved.mosqueId,
-        routing: resolved.usedFallback ? 'env-fallback' : 'per-mosque',
+        organizationId: resolved.organizationId,
+        routing: resolved.usedFallback ? 'env-fallback' : 'per-org',
         sandbox: isSandboxMode(),
       });
     }
