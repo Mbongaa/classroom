@@ -6,7 +6,9 @@ import {
   IconArrowLeft,
   IconCreditCard,
   IconHome,
+  IconLayoutDashboard,
   IconSchool,
+  IconSettings,
   IconHistory,
   IconUser,
 } from '@tabler/icons-react';
@@ -27,7 +29,13 @@ import {
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
-const navigation = [
+interface NavItem {
+  label: string;
+  href: string;
+  icon: typeof IconHome;
+}
+
+const translationNavigation: NavItem[] = [
   {
     label: 'Dashboard',
     href: '/dashboard',
@@ -55,6 +63,26 @@ const navigation = [
   },
 ];
 
+/**
+ * Build the finance dashboard navigation for a given org slug. Items here
+ * mirror the actual routes under `/mosque-admin/[slug]/*`. When new finance
+ * pages are added (e.g. campaigns, donors, payouts), drop them in here.
+ */
+function buildFinanceNavigation(slug: string): NavItem[] {
+  return [
+    {
+      label: 'Dashboard',
+      href: `/mosque-admin/${slug}`,
+      icon: IconLayoutDashboard,
+    },
+    {
+      label: 'Settings',
+      href: `/mosque-admin/${slug}/settings`,
+      icon: IconSettings,
+    },
+  ];
+}
+
 export function AppSidebar() {
   const { user, profile, loading } = useUser();
   const pathname = usePathname();
@@ -64,6 +92,16 @@ export function AppSidebar() {
   if (loading || !user || !profile) {
     return null;
   }
+
+  // Detect which dashboard mode we're in by inspecting the pathname.
+  // `/mosque-admin/<slug>/...` → finance nav, anything else → translation nav.
+  const financeMatch = pathname.match(/^\/mosque-admin\/([^/]+)/);
+  const isFinanceMode = financeMatch !== null;
+  const financeSlug = financeMatch?.[1] ?? null;
+  const navigation: NavItem[] =
+    isFinanceMode && financeSlug
+      ? buildFinanceNavigation(financeSlug)
+      : translationNavigation;
 
   async function handleSignOut() {
     // Close mobile sidebar before signing out
