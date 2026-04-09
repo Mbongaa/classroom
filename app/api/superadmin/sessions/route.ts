@@ -184,6 +184,9 @@ export async function GET() {
       organization: org?.name ?? null,
       organization_slug: org?.slug ?? null,
       room_type: (classroom?.room_type ?? null) as 'meeting' | 'classroom' | 'speech' | null,
+      // Language drives which LiveKit server (Bayaan vs Vertex) the close
+      // endpoint targets — Arabic → Bayaan, everything else → Vertex.
+      language: (classroom?.settings?.language ?? 'en') as string,
       stale: dbActive && !isLive, // for debugging / future UI
       orphan: false,
     };
@@ -265,6 +268,10 @@ export async function GET() {
       organization: classroom?.organization?.name ?? null,
       organization_slug: classroom?.organization?.slug ?? null,
       room_type: classroom?.room_type ?? null,
+      // We know the server tag from fetchLiveRooms: bayaan = Arabic.
+      // This lets the close endpoint pick the right LiveKit credentials
+      // even when there's no v2_session row to read settings from.
+      language: live.server === 'bayaan' ? 'ar' : 'en',
       stale: false,
       orphan: true,
     });

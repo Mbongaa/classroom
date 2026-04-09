@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/pagination';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowUpDown, Download, ExternalLink } from 'lucide-react';
+import { ArrowUpDown, Download, ExternalLink, XCircle } from 'lucide-react';
 import RecordingDownloadDialog from '@/app/components/RecordingDownloadDialog';
 
 interface SessionEntry {
@@ -36,6 +36,9 @@ interface SessionEntry {
   organization: string | null;
   organization_slug: string | null;
   room_type: 'meeting' | 'classroom' | 'speech' | null;
+  // 'ar' → Bayaan LiveKit server, anything else → Vertex. Drives credential
+  // routing on the close endpoint.
+  language?: string;
   // True when the v2_session row says active/draining but no LiveKit room exists.
   // The reaper will close this on its next pass.
   stale?: boolean;
@@ -87,6 +90,10 @@ export default function SuperadminSessionsPage() {
   const [sortField, setSortField] = useState<SortField>('status');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [currentPage, setCurrentPage] = useState(1);
+  // Tracks which row's Close button is mid-request so we can disable it and
+  // grey it out without interfering with the rest of the table. Keyed by
+  // session.id when present, livekit_room_name otherwise (orphans have no id).
+  const [closingKey, setClosingKey] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -122,6 +129,45 @@ export default function SuperadminSessionsPage() {
     const interval = setInterval(fetchSessions, 30000);
     return () => clearInterval(interval);
   }, [profile, fetchSessions]);
+
+  const handleCloseSession = useCallback(
+    async (session: SessionEntry) => {
+      const key = session.id ?? session.livekit_room_name ?? session.room_name;
+      const orgLabel = session.organization ?? 'Unlinked';
+      const ok = window.confirm(
+        `Force-close "${session.room_name}" (${orgLabel})?\n\n` +
+          `This will delete the LiveKit room and disconnect every participant ` +
+          `immediately. The v2 session row will be marked ended.\n\n` +
+          `This cannot be undone.`,
+      );
+      if (!ok) return;
+
+      setClosingKey(key);
+      try {
+        const res = await fetch('/api/superadmin/sessions/close', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId: session.id,
+            livekitRoomName: session.livekit_room_name ?? null,
+            language: session.language ?? null,
+          }),
+        });
+        if (!res.ok) {
+          const payload = await res.json().catch(() => ({}));
+          const detail = payload?.errors?.join('; ') || payload?.error || res.statusText;
+          throw new Error(`Close failed: ${detail}`);
+        }
+        // Refresh immediately so the row flips to Ended (or disappears for orphans).
+        await fetchSessions();
+      } catch (err: any) {
+        setError(err?.message ?? 'Failed to close session');
+      } finally {
+        setClosingKey(null);
+      }
+    },
+    [fetchSessions],
+  );
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -244,7 +290,7 @@ export default function SuperadminSessionsPage() {
                 </Button>
               </TableHead>
               <TableHead className="text-center">Duration</TableHead>
-              <TableHead className="text-center">Lobby</TableHead>
+              <TableHead className="text-center">Actions</TableHead>
               <TableHead className="text-center">Transcript</TableHead>
             </TableRow>
           </TableHeader>
@@ -317,23 +363,60 @@ export default function SuperadminSessionsPage() {
                     {formatDuration(session.started_at, session.ended_at)}
                   </TableCell>
                   <TableCell className="text-center">
-                    {session.ended_at === null ? (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 text-xs gap-1"
-                        onClick={() => {
-                          const prefix = session.room_type === 'speech' ? '/speech-s' : '/s';
-                          const orgParam = session.organization_slug ? `?org=${encodeURIComponent(session.organization_slug)}` : '';
-                          window.open(`${prefix}/${session.room_name}${orgParam}`, '_blank');
-                        }}
-                      >
-                        Join
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
-                    ) : (
-                      <span className="text-muted-foreground text-xs">—</span>
-                    )}
+                    {(() => {
+                      // A row is "live-ish" (and therefore closable) if it
+                      // is currently active, an orphan LiveKit room, or a
+                      // stale v2_session that the reaper hasn't caught yet.
+                      const isClosable =
+                        session.ended_at === null || session.stale === true;
+                      const canJoin = session.ended_at === null;
+                      const closingThis =
+                        closingKey ===
+                        (session.id ?? session.livekit_room_name ?? session.room_name);
+
+                      if (!isClosable && !canJoin) {
+                        return <span className="text-muted-foreground text-xs">—</span>;
+                      }
+
+                      return (
+                        <div className="flex items-center justify-center gap-1">
+                          {canJoin && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 text-xs gap-1"
+                              onClick={() => {
+                                const prefix =
+                                  session.room_type === 'speech' ? '/speech-s' : '/s';
+                                const orgParam = session.organization_slug
+                                  ? `?org=${encodeURIComponent(session.organization_slug)}`
+                                  : '';
+                                window.open(
+                                  `${prefix}/${session.room_name}${orgParam}`,
+                                  '_blank',
+                                );
+                              }}
+                            >
+                              Join
+                              <ExternalLink className="h-3 w-3" />
+                            </Button>
+                          )}
+                          {isClosable && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              className="h-7 text-xs gap-1"
+                              disabled={closingThis}
+                              onClick={() => handleCloseSession(session)}
+                              title="Force-close: deletes the LiveKit room and disconnects all participants"
+                            >
+                              <XCircle className="h-3 w-3" />
+                              {closingThis ? 'Closing…' : 'Close'}
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell className="text-center">
                     {session.id ? (
