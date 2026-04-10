@@ -18,7 +18,7 @@ import { CustomControlBar } from '@/app/components/video-conference/CustomContro
 import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
 import { Track, Participant, RoomEvent, DataPacket_Kind, ParticipantKind } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { QuestionBubble } from '@/lib/QuestionBubble';
@@ -33,6 +33,7 @@ import {
   RequestDisplayMessage,
 } from '@/lib/types/StudentRequest';
 import { useResizable } from '@/lib/useResizable';
+import { useVerticalResizable } from '@/lib/useVerticalResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
 import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtils';
 import styles from './SpeechClient.module.css';
@@ -114,6 +115,14 @@ export function SpeechClientImplWithRequests({
   // Get the student's selected caption language from attributes
   const captionsLanguage = localParticipant.attributes?.captions_language || 'en';
   const translationRef = React.useRef<HTMLDivElement>(null);
+
+  // Mobile vertical resize for translation panel
+  const mobileTranslationResize = useVerticalResizable({
+    initialHeight: Math.round(typeof window !== 'undefined' ? window.innerHeight * 0.65 : 450),
+    minHeight: 80,
+    maxHeight: typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.85) : 600,
+    heightCalculation: (clientY: number) => window.innerHeight - clientY,
+  });
 
   // State for chat sidebar width
   const chatResize = useResizable({
@@ -660,33 +669,19 @@ export function SpeechClientImplWithRequests({
     );
   };
 
-  // Mobile: render only the video tile filling the entire screen
-  if (isMobile) {
-    const mobileTrack = teacherScreenShareTrack || teacherCameraTrack || teacherAudioTracks[0];
-    return (
-      <div className="fixed inset-0 bg-black" data-lk-theme="default">
-        {mobileTrack ? (
-          <CustomParticipantTile
-            trackRef={mobileTrack}
-            className="w-full h-full"
-            aspectRatio="16:9"
-          />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full text-white text-lg">
-            Waiting for speaker...
-          </div>
-        )}
-        <TranscriptionSaver roomName={roomName} sessionId={sessionId} sessionStartTime={sessionStartTime} />
-      </div>
-    );
-  }
-
   return (
     <div className={`${styles.speechContainer} ${isFullscreen ? styles.fullscreenMode : ''}`} data-lk-theme="default">
       {/* Fixed header with room info and request dropdown */}
-      {!isFullscreen && !isMobile && <div className={styles.header}>
+      {!isFullscreen && <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
+            <button
+              className={styles.backButton}
+              onClick={() => { room.disconnect(); router.push('/'); }}
+              title="Leave room"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
             <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
             <RecordingIndicator />
           </div>
@@ -720,7 +715,7 @@ export function SpeechClientImplWithRequests({
             )}
 
             {/* Theme toggle - rightmost for all users */}
-            <ThemeToggleButton start="top-right" />
+            <ThemeToggleButton start="top-right" className="size-7 md:size-10" />
           </div>
         </div>
       </div>}
@@ -755,6 +750,27 @@ export function SpeechClientImplWithRequests({
                 showVideo={showVideo}
                 onVideoToggle={() => setShowVideo((prev) => !prev)}
                 translationApiUrl={translationApiUrl}
+                participantCount={participants.length}
+                onTranslationToggle={() => setShowTranslation(!showTranslation)}
+                showTranslation={showTranslation}
+                controlBar={
+                  <CustomControlBar
+                    variation="minimal"
+                    controls={{
+                      microphone: true,
+                      camera: true,
+                      chat: false,
+                      screenShare: true,
+                      leave: true,
+                      translation: false,
+                      record: isTeacher,
+                    }}
+                    onRecordClick={handleRecordToggle}
+                    isRecording={isRecording}
+                    recordingLoading={recordingLoading}
+                    isStudent={false}
+                  />
+                }
               />
               {showVideo && (
                 <div
@@ -942,9 +958,12 @@ export function SpeechClientImplWithRequests({
           )}
         </div>
 
-        {/* Mobile translation panel - positioned between video area and students (mobile only) */}
+        {/* Mobile translation panel - positioned below video area (mobile only) */}
         {showTranslation && isMobile && (
-          <div className={styles.translationPanelMobile}>
+          <div
+            className={styles.translationPanelMobile}
+            style={{ height: `${mobileTranslationResize.height}px`, flex: 'none' }}
+          >
             <SpeechTranslationPanel
               targetLanguage={captionsLanguage}
               hideCloseButton={true}
@@ -956,69 +975,23 @@ export function SpeechClientImplWithRequests({
               onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
               showVideo={showVideo}
               onVideoToggle={() => setShowVideo((prev) => !prev)}
+              onResizePointerDown={mobileTranslationResize.handlePointerDown}
+              participantCount={participants.length}
             />
           </div>
         )}
 
-        {/* All Students section - Fixed at bottom - only for teachers, hidden in fullscreen */}
-        {isTeacher && !isFullscreen && !isMobile && (
-          <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`}>
-            <div
-              className={styles.sectionHeader}
-              onClick={() => setShowStudents((prev) => !prev)}
-              style={{ cursor: 'pointer', userSelect: 'none' }}
-            >
-              <h3>All Students ({allStudents.length})</h3>
-              {showStudents ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </div>
-
-            {showStudents && <div className={styles.studentsGrid}>
-              {allStudents.length > 0 ? (
-                allStudents.map((student) => {
-                  const metadata = parseParticipantMetadata(student.metadata);
-                  const isSpeaking = metadata.role === 'student_speaker';
-                  const request = getParticipantRequest(student.identity);
-
-                  return (
-                    <div
-                      key={student.identity}
-                      className={`${styles.studentTile} ${isSpeaking ? styles.speaking : ''}`}
-                    >
-                      <div className={styles.studentNoVideo}>
-                        <AvatarWithDropdown
-                          participant={student}
-                          roomName={room.name}
-                          teacherToken={teacherAuthToken || ''}
-                          onPermissionUpdate={handlePermissionUpdate}
-                          currentRole={metadata.role || 'student'}
-                          isTeacher={isTeacher}
-                          getInitials={getInitials}
-                        />
-                      </div>
-
-                      <div className={styles.studentName}>{student.name || 'Student'}</div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className={styles.noStudents}>
-                  <p>No students in the speech session</p>
-                </div>
-              )}
-            </div>}
-          </div>
-        )}
       </div>
 
-      {/* Control bar at the bottom - only for teachers, hidden in fullscreen */}
-      {isTeacher && !isFullscreen && !isMobile && (
+      {/* Control bar at the bottom - only when translation panel is hidden (otherwise controls are inside the panel) */}
+      {isTeacher && !isFullscreen && !showTranslation && (
         <div className={styles.controlBar}>
           <CustomControlBar
             variation="minimal"
             controls={{
               microphone: true,
               camera: true,
-              chat: true,
+              chat: false,
               screenShare: true,
               leave: true,
               translation: true,

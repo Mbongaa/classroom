@@ -11,7 +11,40 @@
   border-right: 1px solid var(--lk-bg3);
 }
 
-/* Bottom Bar (moved from header) */
+/* Top Bar - title, language, status */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: var(--lk-bg);
+  border-bottom: 1px solid var(--lk-bg3);
+  flex-shrink: 0;
+}
+
+.topBarLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topBarRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topBarResizable {
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.topBarGrip {
+  color: var(--lk-text2, rgba(255, 255, 255, 0.4));
+  flex-shrink: 0;
+}
+
+/* Bottom Bar - controls */
 .bottomBar {
   display: flex;
   justify-content: space-between;
@@ -38,10 +71,26 @@
   color: var(--lk-text1, white);
 }
 
+.bottomBarCenter {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .bottomBarRight {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+.participantBadge {
+  padding: 4px 10px;
+  background: var(--lk-bg3);
+  color: var(--lk-text2, #6b7280);
+  border-radius: 16px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid var(--lk-bg4);
 }
 
 .languageBadge {
@@ -93,6 +142,11 @@
 .fontButton:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+.fontButtonActive {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
 }
 
 .muteButton {
@@ -470,12 +524,12 @@
 
 /* Responsive design */
 @media (max-width: 480px) {
-  .bottomBar {
-    padding: 10px 12px;
+  .topBar {
+    padding: 8px 12px;
   }
 
-  .bottomBarTitle {
-    display: none;
+  .bottomBar {
+    padding: 10px 12px;
   }
 
   .translationList {

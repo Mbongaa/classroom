@@ -15,7 +15,6 @@ import {
 import { Track, ConnectionQuality, TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Mic, MicOff, Video, VideoOff, Wifi, WifiOff, User, ScreenShare, Maximize2, Minimize2, Minus, Plus, ArrowDown, Volume2, VolumeOff } from 'lucide-react';
 import clsx from 'clsx';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { VideoErrorBoundary } from './VideoErrorBoundary';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
@@ -83,9 +82,8 @@ export function CustomParticipantTile({
     };
   }, []);
 
-  // On mobile, treat as fullscreen mode by default (overlay + top controls)
-  const isMobile = useIsMobile();
-  const isFullscreenMode = isFullscreen || isMobile;
+  // Fullscreen mode only activates via the actual fullscreen toggle button
+  const isFullscreenMode = isFullscreen;
 
   // CSS-based fullscreen fallback: isFullscreen is true but browser API isn't active
   const isCssFallbackFullscreen = isFullscreen && document.fullscreenElement !== tileRef.current;
@@ -137,7 +135,7 @@ export function CustomParticipantTile({
   }, [isFullscreenMode, room, captionsLanguage]);
 
   // Fullscreen overlay font size — smaller default on mobile
-  const [overlayFontSize, setOverlayFontSize] = React.useState(() => isMobile ? 18 : 32);
+  const [overlayFontSize, setOverlayFontSize] = React.useState(32);
   const OVERLAY_MIN_FONT = 12;
   const OVERLAY_MAX_FONT = 48;
   const OVERLAY_FONT_STEP = 2;
@@ -495,7 +493,7 @@ export function CustomParticipantTile({
 
                 {/* Fullscreen Toggle */}
                 <button
-                  className="p-1.5 rounded-full pointer-events-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="p-1.5 rounded-full pointer-events-auto opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                   style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
                   title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
                   onClick={(e) => { e.stopPropagation(); toggleFullscreen(); }}
@@ -621,7 +619,7 @@ export function CustomParticipantTile({
                           className="text-center text-white font-medium leading-relaxed"
                           style={{
                             fontSize: `${i === fullscreenCaptions.length - 1 ? overlayFontSize : overlayFontSize * 0.75}px`,
-                            textShadow: '0 2px 4px rgba(0,0,0,0.8)',
+                            textShadow: '0 1px 3px rgba(0,0,0,0.9), 0 2px 6px rgba(0,0,0,0.7), 0 0 12px rgba(0,0,0,0.5)',
                           }}
                         >
                           {seg.text}

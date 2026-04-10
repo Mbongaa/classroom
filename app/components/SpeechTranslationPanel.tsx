@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
-import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot, ArrowDown } from 'lucide-react';
+import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot, ArrowDown, GripHorizontal } from 'lucide-react';
 import { isIOSDevice } from '@/lib/client-utils';
 import { sentenceAccumulator } from '@/lib/sentence-accumulator';
 import styles from './SpeechTranslationPanel.module.css';
@@ -19,6 +19,11 @@ interface SpeechTranslationPanelProps {
   showVideo?: boolean;
   onVideoToggle?: () => void;
   translationApiUrl?: string; // V2 passes '/api/v2/translations'
+  onResizePointerDown?: (e: React.PointerEvent) => void;
+  controlBar?: React.ReactNode;
+  participantCount?: number;
+  onTranslationToggle?: () => void;
+  showTranslation?: boolean;
 }
 
 // Retry configuration
@@ -48,6 +53,11 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   showVideo = true,
   onVideoToggle,
   translationApiUrl = '/api/recordings/translations',
+  onResizePointerDown,
+  controlBar,
+  participantCount,
+  onTranslationToggle,
+  showTranslation = true,
 }) => {
   const room = useRoomContext();
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
@@ -516,7 +526,47 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
 
   return (
     <div className={styles.container}>
-      {/* Translation List - full height to top */}
+      {/* Top header bar — also acts as vertical resize handle on mobile */}
+      <div
+        className={`${styles.topBar} ${onResizePointerDown ? styles.topBarResizable : ''}`}
+        onPointerDown={onResizePointerDown}
+      >
+        <div className={styles.topBarLeft}>
+          <Languages className={styles.bottomBarIcon} size={18} />
+          <span className={styles.bottomBarTitle}>Live Translation</span>
+        </div>
+        {onResizePointerDown && (
+          <GripHorizontal className={styles.topBarGrip} size={18} />
+        )}
+        <div className={styles.topBarRight}>
+          {participantCount !== undefined && (
+            <span className={styles.participantBadge} title={`${participantCount} participant(s)`}>
+              {participantCount}
+            </span>
+          )}
+          <span className={styles.languageBadge}>{getLanguageLabel(targetLanguage)}</span>
+          <div
+            className={`${styles.agentBadge} ${agentCount > 0 ? styles.agentBadgeActive : styles.agentBadgeInactive}`}
+            title={`${agentCount} agent(s) in room`}
+          >
+            <Bot size={12} />
+            <span>{agentCount}</span>
+          </div>
+          <div
+            className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}
+            title={translationServiceStatus === 'warning' ? 'Offline' : translationServiceStatus === 'connecting' ? 'Connecting' : 'Live'}
+          >
+            <span className={`${styles.liveDot} ${translationServiceStatus === 'warning' ? styles.warningDot : translationServiceStatus === 'connecting' ? styles.connectingDot : ''}`}></span>
+          </div>
+          {!hideCloseButton && onClose && (
+            <button onClick={onClose} className={styles.closeButton}>
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Translation List */}
       <div className={styles.translationList} ref={scrollRef}>
         {translatedSegments.length === 0 ? (
           <div className={styles.emptyState}>
@@ -557,14 +607,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
         </button>
       )}
 
-      {/* Bottom Bar (moved from header) */}
+      {/* Bottom Bar - controls only */}
       <div className={styles.bottomBar}>
         <div className={styles.bottomBarLeft}>
-          <Languages className={styles.bottomBarIcon} size={18} />
-          <span className={styles.bottomBarTitle}>Live Translation</span>
-        </div>
-        <div className={styles.bottomBarRight}>
-          <span className={styles.languageBadge}>{getLanguageLabel(targetLanguage)}</span>
           {userRole === 'student' && (
             <button
               onClick={toggleAudioMute}
@@ -579,6 +624,9 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
           {translatedSegments.length > 0 && (
             <span className={styles.messageCountBadge}>{translatedSegments.length}</span>
           )}
+        </div>
+        {controlBar && !isFullscreen && <div className={styles.bottomBarCenter}>{controlBar}</div>}
+        <div className={styles.bottomBarRight}>
           <div className={styles.fontControls}>
             <button
               onClick={() => setFontSize((prev) => Math.max(MIN_FONT_SIZE, prev - FONT_STEP))}
@@ -608,7 +656,6 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             {onFullscreenToggle && (
               <button
                 onClick={() => {
-                  // Browser fullscreen must be called synchronously from click handler
                   if (!isFullscreen) {
                     document.documentElement.requestFullscreen?.();
                   } else if (document.fullscreenElement) {
@@ -622,25 +669,16 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
                 {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
               </button>
             )}
+            {onTranslationToggle && (
+              <button
+                onClick={onTranslationToggle}
+                className={`${styles.fontButton} ${showTranslation ? styles.fontButtonActive : ''}`}
+                title={showTranslation ? 'Hide translation' : 'Show translation'}
+              >
+                <Languages size={14} />
+              </button>
+            )}
           </div>
-          <div
-            className={`${styles.agentBadge} ${agentCount > 0 ? styles.agentBadgeActive : styles.agentBadgeInactive}`}
-            title={`${agentCount} agent(s) in room`}
-          >
-            <Bot size={12} />
-            <span>{agentCount}</span>
-          </div>
-          <div
-            className={`${styles.liveIndicator} ${translationServiceStatus === 'warning' ? styles.warningIndicator : ''}`}
-            title={translationServiceStatus === 'warning' ? 'Offline' : translationServiceStatus === 'connecting' ? 'Connecting' : 'Live'}
-          >
-            <span className={`${styles.liveDot} ${translationServiceStatus === 'warning' ? styles.warningDot : translationServiceStatus === 'connecting' ? styles.connectingDot : ''}`}></span>
-          </div>
-          {!hideCloseButton && onClose && (
-            <button onClick={onClose} className={styles.closeButton}>
-              ✕
-            </button>
-          )}
         </div>
       </div>
     </div>

@@ -57,8 +57,8 @@ export function PageClientImpl(props: {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>(
     undefined,
   );
-  const [selectedLanguage, setSelectedLanguage] = React.useState<string>(''); // Start with no selection
-  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState<string>('');
+  const [selectedLanguage, setSelectedLanguage] = React.useState<string>('nl'); // Default to Nederlands
+  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState<string>('nl');
   const [roomMetadata, setRoomMetadata] = React.useState<{
     teacherName?: string;
     language?: string;

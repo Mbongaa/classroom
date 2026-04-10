@@ -147,8 +147,8 @@ export function CustomControlBar({
   return (
     <div
       className={clsx(
-        'flex items-center justify-center gap-1.5 p-[3px] sm:p-4',
-        'backdrop-blur-sm border-t',
+        'flex items-center justify-center gap-1.5',
+        'backdrop-blur-sm',
         className,
       )}
       style={{

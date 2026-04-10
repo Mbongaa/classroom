@@ -43,8 +43,8 @@ interface V2ConnectResponse {
 
 export function V2PageClient({ roomCode }: { roomCode: string }) {
   const [preJoinChoices, setPreJoinChoices] = React.useState<LocalUserChoices | undefined>();
-  const [selectedLanguage, setSelectedLanguage] = React.useState('');
-  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState('');
+  const [selectedLanguage, setSelectedLanguage] = React.useState('nl'); // Default to Nederlands
+  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = React.useState('nl');
   const [roomMetadata, setRoomMetadata] = React.useState<{
     teacherName?: string;
     language?: string;

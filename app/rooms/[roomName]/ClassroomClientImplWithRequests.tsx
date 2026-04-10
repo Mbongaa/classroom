@@ -18,7 +18,7 @@ import { CustomControlBar } from '@/app/components/video-conference/CustomContro
 import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
 import { Track, Participant, RoomEvent, DataPacket_Kind, ParticipantKind } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
@@ -38,6 +38,7 @@ import {
   RequestDisplayMultilingualMessage,
 } from '@/lib/types/StudentRequest';
 import { useResizable } from '@/lib/useResizable';
+import { useVerticalResizable } from '@/lib/useVerticalResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
 import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtils';
 import styles from './ClassroomClient.module.css';
@@ -118,6 +119,15 @@ export function ClassroomClientImplWithRequests({
   // Get the student's selected caption language from attributes
   const captionsLanguage = localParticipant.attributes?.captions_language || 'en';
   const translationRef = React.useRef<HTMLDivElement>(null);
+
+  // Mobile vertical resize for translation panel
+  const mainContainerRef = React.useRef<HTMLDivElement>(null);
+  const mobileTranslationResize = useVerticalResizable({
+    initialHeight: Math.round(typeof window !== 'undefined' ? window.innerHeight * 0.65 : 450),
+    minHeight: 80,
+    maxHeight: typeof window !== 'undefined' ? Math.round(window.innerHeight * 0.85) : 600,
+    heightCalculation: (clientY: number) => window.innerHeight - clientY,
+  });
 
   // State for chat sidebar width
   const chatResize = useResizable({
@@ -827,33 +837,19 @@ export function ClassroomClientImplWithRequests({
     );
   };
 
-  // Mobile: render only the video tile filling the entire screen
-  if (isMobile) {
-    const mobileTrack = teacherScreenShareTrack || teacherCameraTrack || teacherAudioTracks[0];
-    return (
-      <div className="fixed inset-0 bg-black" data-lk-theme="default">
-        {mobileTrack ? (
-          <CustomParticipantTile
-            trackRef={mobileTrack}
-            className="w-full h-full"
-            aspectRatio="16:9"
-          />
-        ) : (
-          <div className="flex items-center justify-center w-full h-full text-white text-lg">
-            Waiting for speaker...
-          </div>
-        )}
-        <TranscriptionSaver roomName={roomName} sessionId={sessionId} sessionStartTime={sessionStartTime} />
-      </div>
-    );
-  }
-
   return (
     <div className={`${styles.classroomContainer} ${isFullscreen ? styles.fullscreenMode : ''}`} data-lk-theme="default">
-      {/* Fixed header with room info and request dropdown — hidden on mobile */}
-      <div className={styles.header} style={{ display: isMobile ? 'none' : undefined }}>
+      {/* Fixed header with room info and request dropdown */}
+      <div className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.roomInfo}>
+            <button
+              className={styles.backButton}
+              onClick={() => { room.disconnect(); router.push('/'); }}
+              title="Leave room"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </button>
             <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
             <RecordingIndicator />
           </div>
@@ -899,7 +895,7 @@ export function ClassroomClientImplWithRequests({
             )}
 
             {/* Theme toggle - rightmost for all users */}
-            <ThemeToggleButton start="top-right" />
+            <ThemeToggleButton start="top-right" className="size-7 md:size-10" />
           </div>
         </div>
       </div>
@@ -936,6 +932,26 @@ export function ClassroomClientImplWithRequests({
                 showVideo={showVideo}
                 onVideoToggle={() => setShowVideo((prev) => !prev)}
                 translationApiUrl={translationApiUrl}
+                controlBar={
+                  <CustomControlBar
+                    variation="minimal"
+                    controls={{
+                      microphone: canSpeak,
+                      camera: canSpeak,
+                      chat: true,
+                      screenShare: isTeacher,
+                      leave: true,
+                      translation: true,
+                      record: isTeacher,
+                    }}
+                    onTranslationClick={() => setShowTranslation(!showTranslation)}
+                    showTranslation={showTranslation}
+                    onRecordClick={handleRecordToggle}
+                    isRecording={isRecording}
+                    recordingLoading={recordingLoading}
+                    isStudent={!isTeacher}
+                  />
+                }
               />
               {showVideo && (
                 <div
@@ -1135,9 +1151,12 @@ export function ClassroomClientImplWithRequests({
           </div>
         </div>
 
-        {/* Mobile translation panel - hidden since tile overlay handles it */}
-        {showTranslation && isMobile && false && (
-          <div className={styles.translationPanelMobile}>
+        {/* Mobile translation panel - positioned below video area (mobile only) */}
+        {showTranslation && isMobile && (
+          <div
+            className={styles.translationPanelMobile}
+            style={{ height: `${mobileTranslationResize.height}px`, flex: 'none' }}
+          >
             <SpeechTranslationPanel
               targetLanguage={captionsLanguage}
               hideCloseButton={true}
@@ -1149,12 +1168,13 @@ export function ClassroomClientImplWithRequests({
               onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
               showVideo={showVideo}
               onVideoToggle={() => setShowVideo((prev) => !prev)}
+              onResizePointerDown={mobileTranslationResize.handlePointerDown}
             />
           </div>
         )}
 
         {/* All Students section - Fixed at bottom, hidden in fullscreen */}
-        <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`} style={{ display: (isFullscreen || isMobile) ? 'none' : undefined }}>
+        <div className={`${styles.studentsSection} ${showStudents ? styles.expanded : ''}`} style={{ display: isFullscreen ? 'none' : undefined }}>
           <div
             className={styles.sectionHeader}
             onClick={() => setShowStudents((prev) => !prev)}
@@ -1211,8 +1231,8 @@ export function ClassroomClientImplWithRequests({
         </div>
       </div>
 
-      {/* Control bar at the bottom with chat toggle and translation */}
-      {!isFullscreen && !isMobile && (
+      {/* Control bar at the bottom - only when translation panel is hidden (otherwise controls are inside the panel) */}
+      {!isFullscreen && !showTranslation && (
         <div className={styles.controlBar}>
           <CustomControlBar
             variation="minimal"

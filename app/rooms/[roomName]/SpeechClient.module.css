@@ -56,6 +56,24 @@
   color: var(--lk-text1, white);
 }
 
+.backButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--lk-text2, #6b7280);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.backButton:hover {
+  background: var(--lk-bg3);
+  color: var(--lk-text1, white);
+}
+
 .roomName {
   /* Responsive font size */
   font-size: clamp(0.875rem, 2vw, 1.25rem);
@@ -231,16 +249,15 @@
   box-sizing: border-box;
 }
 
-/* Base tile styles - squares based on height (when translation panel is visible) */
+/* Base tile styles - fill container */
 .mainVideoGrid > * {
   flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 1; /* Force square aspect ratio */
 }
 
-/* Override square aspect ratio for screen shares - allow natural aspect */
+/* Override for screen shares - allow natural aspect */
 .mainVideoGrid > .teacherScreenShareLayout {
   aspect-ratio: auto !important;
   width: 100% !important;
@@ -249,32 +266,28 @@
   max-height: none !important;
 }
 
-/* Single participant - large square based on container height */
+/* Single participant - fill container */
 .mainVideoGrid:has(> :only-child) > * {
-  --tile-size: min(calc(100% - 2rem), calc(100svh - 250px));
-  width: var(--tile-size);
-  height: var(--tile-size);
+  width: calc(100% - 2rem);
+  height: calc(100% - 2rem);
 }
 
-/* 2 participants - squares that fit side by side */
+/* 2 participants - side by side, full height */
 .mainVideoGrid:has(> :nth-child(2):last-child) > * {
-  --tile-size: min(calc(50% - 1rem), calc(100svh - 250px));
-  width: var(--tile-size);
-  height: var(--tile-size);
+  width: calc(50% - 1rem);
+  height: calc(100% - 2rem);
 }
 
-/* 3-4 participants - squares in 2x2 grid */
+/* 3-4 participants - 2x2 grid */
 .mainVideoGrid:has(> :nth-child(3)):not(:has(> :nth-child(5))) > * {
-  --tile-size: min(calc(45% - 1rem), calc(50svh - 125px));
-  width: var(--tile-size);
-  height: var(--tile-size);
+  width: calc(50% - 1rem);
+  height: calc(50% - 1rem);
 }
 
-/* 5+ participants - smaller squares */
+/* 5+ participants - 3 columns, 2 rows */
 .mainVideoGrid:has(> :nth-child(5)) > * {
-  --tile-size: min(calc(30% - 1rem), calc(33svh - 80px));
-  width: var(--tile-size);
-  height: var(--tile-size);
+  width: calc(33% - 1rem);
+  height: calc(50% - 1rem);
 }
 
 /* === When translation panel is HIDDEN, tiles fill the container === */
@@ -718,14 +731,12 @@
   display: flex;
 }
 
-/* Mobile translation panel (horizontal layout between video and students) */
+/* Mobile translation panel (stacked below video on mobile) */
 .translationPanelMobile {
-  display: none; /* Hidden by default */
-  height: 70svh; /* 70% of small viewport height (Safari compatible) */
+  display: none; /* Hidden by default, shown via media query */
   background: var(--lk-background-2);
-  border-top: 1px solid var(--lk-border);
-  border-bottom: 1px solid var(--lk-border);
-  flex-shrink: 0;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   flex-direction: column;
 }
@@ -737,10 +748,33 @@
     display: none !important;
   }
 
-  /* Show mobile translation panel */
+  /* Compact header on mobile */
+  .header {
+    height: 36px;
+    min-height: 32px;
+    max-height: 36px;
+    padding: 0 10px;
+  }
+
+  .roomInfo {
+    gap: 10px;
+  }
+
+  .headerControls {
+    gap: 6px;
+  }
+
+  .copyLinkButton {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+  }
+
+  /* Show mobile translation panel and resize handle */
   .translationPanelMobile {
     display: flex;
   }
+
   .videoArea {
     min-height: 0;
   }
@@ -749,66 +783,37 @@
     margin: 0.5rem;
   }
 
-  /* Fix mobile video sizing - much larger on mobile! */
+  /* Mobile: tiles fill the container responsively */
+  .mainVideoGrid > * {
+    aspect-ratio: auto !important;
+    max-width: none !important;
+    max-height: none !important;
+  }
+
   .mainVideoGrid:has(> :only-child) > * {
-    width: 80vw !important; /* 320px on 400px iPhone */
-    height: 80vw !important; /* Square aspect ratio */
-    max-width: 350px !important;
-    max-height: 350px !important;
+    width: 100% !important;
+    height: 100% !important;
   }
 
-  /* 2 participants on mobile */
   .mainVideoGrid:has(> :nth-child(2):last-child) > * {
-    width: 45vw !important;
-    height: 45vw !important;
-    max-width: 200px !important;
-    max-height: 200px !important;
+    width: calc(50% - 0.5rem) !important;
+    height: 100% !important;
   }
 
-  /* 3+ participants on mobile */
-  .mainVideoGrid:has(> :nth-child(3)) > * {
-    width: 40vw !important;
-    height: 40vw !important;
-    max-width: 150px !important;
-    max-height: 150px !important;
+  .mainVideoGrid:has(> :nth-child(3)):not(:has(> :nth-child(5))) > * {
+    width: calc(50% - 0.5rem) !important;
+    height: calc(50% - 0.5rem) !important;
   }
 
-  /* CONDITIONAL: When translation is active - fine-tuned camera tile sizes for sweet spot */
-  .mainContainer.withTranslation .mainVideoGrid:has(> :only-child) > * {
-    width: 45vw !important; /* Fine-tune: 50vw → 45vw */
-    height: 45vw !important;
-    max-width: 170px !important;
-    max-height: 170px !important;
+  .mainVideoGrid:has(> :nth-child(5)) > * {
+    width: calc(33% - 0.5rem) !important;
+    height: calc(50% - 0.5rem) !important;
   }
 
-  /* Override for screen share on mobile - use full available space */
+  /* Screen share always fills container */
   .mainVideoGrid > .teacherScreenShareLayout {
     width: 100% !important;
     height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-  }
-
-  /* Ensure screen share remains visible with translation panel */
-  .mainContainer.withTranslation .mainVideoGrid > .teacherScreenShareLayout {
-    width: 100% !important;
-    height: 100% !important;
-    max-width: none !important;
-    max-height: none !important;
-  }
-
-  .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(2):last-child) > * {
-    width: 32vw !important; /* Fine-tune: 35vw → 32vw */
-    height: 32vw !important;
-    max-width: 130px !important;
-    max-height: 130px !important;
-  }
-
-  .mainContainer.withTranslation .mainVideoGrid:has(> :nth-child(3)) > * {
-    width: 28vw !important; /* Fine-tune: 30vw → 28vw */
-    height: 28vw !important;
-    max-width: 115px !important;
-    max-height: 115px !important;
   }
 
   .translationSidebar {
@@ -835,9 +840,8 @@
   }
 
   .videoArea {
-    /* Reduce video area when translation panel is active (now 30vh with 70vh translation) */
     flex: 1;
-    min-height: 150px; /* Reduced minimum since translation takes more space */
+    min-height: 0;
   }
 
   .studentsGrid {
