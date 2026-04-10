@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
-import { validateCampaignBody } from '../route';
+import { validateCampaignBody } from '../validate';
 
 /**
  * /api/organizations/[id]/campaigns/[campaignId]
