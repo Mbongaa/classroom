@@ -108,6 +108,17 @@ export default function DashboardRoomsPage() {
     return map[code] || code;
   };
 
+  // Map each room type to its branded badge variant so types are visually
+  // distinct in the list (meeting=blue, classroom=green, speech=purple).
+  const getRoomTypeBadgeVariant = (
+    type: string,
+  ): 'meeting' | 'classroom' | 'speech' | 'secondary' => {
+    if (type === 'meeting' || type === 'classroom' || type === 'speech') {
+      return type;
+    }
+    return 'secondary';
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -174,10 +185,16 @@ export default function DashboardRoomsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-base">{room.room_code}</span>
-                    <Badge variant="secondary" className="text-[11px] px-1.5 py-0">
+                    <Badge
+                      variant={getRoomTypeBadgeVariant(room.room_type)}
+                      className="text-[11px] px-1.5 py-0"
+                    >
                       {room.room_type}
                     </Badge>
-                    <Badge variant="outline" className="text-[11px] px-1.5 py-0">
+                    <Badge
+                      variant="outline"
+                      className="text-[11px] px-1.5 py-0 border-white/30 text-slate-200"
+                    >
                       {getLanguageLabel(room.settings?.language || 'en')}
                     </Badge>
                   </div>
@@ -244,10 +261,16 @@ export default function DashboardRoomsPage() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-semibold text-[15px]">{room.room_code}</span>
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    <Badge
+                      variant={getRoomTypeBadgeVariant(room.room_type)}
+                      className="text-[10px] px-1.5 py-0"
+                    >
                       {room.room_type}
                     </Badge>
-                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] px-1.5 py-0 border-white/30 text-slate-200"
+                    >
                       {getLanguageLabel(room.settings?.language || 'en')}
                     </Badge>
                   </div>

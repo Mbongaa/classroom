@@ -343,6 +343,26 @@ export async function fetchMandateStatus(mandateCode: string): Promise<MandateRe
   );
 }
 
+/**
+ * DELETE /v2/directdebits/mandates/{code} — cancels a SEPA mandate at Pay.nl.
+ *
+ * Pay.nl's cancel endpoint is idempotent and returns 204 No Content on
+ * success. Once cancelled, no further debits can be triggered against the
+ * mandate. Local DB row should be flipped to status='CANCELLED' after a
+ * successful response.
+ *
+ * Use cases:
+ *   - donor calls the mosque and asks to cancel
+ *   - admin sees repeated stornos (insufficient funds) and pulls the plug
+ */
+export async function cancelMandate(mandateCode: string): Promise<void> {
+  await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/directdebits/mandates/${encodeURIComponent(mandateCode)}`,
+    'DELETE',
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Pure helpers (unit-testable)
 // ---------------------------------------------------------------------------

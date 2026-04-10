@@ -14,12 +14,18 @@ import {
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
+// Auto-close any session whose translation agent has been silent this long.
+// Mosques sometimes leave WebRTC running after a lecture ends — this kicks
+// everyone and frees up LiveKit minutes.
+const INACTIVITY_TIMEOUT_MS = 30 * 60 * 1000;
+
 /**
  * POST /api/v2/reaper  (also handles GET for Vercel cron)
  *
  * Periodic cleanup: validates every active/draining v2 session against LiveKit.
  * - If LiveKit room doesn't exist → end session
- * - If room exists with 0 participants for >5 min → delete room, end session
+ * - If room exists with 0 participants → transition to draining → delete on next pass
+ * - If agent has been silent (no translations/transcriptions) for >30 min → force-close
  *
  * Protected by CRON_SECRET header.
  */
@@ -72,6 +78,62 @@ async function handleReaper(request: NextRequest) {
           .single();
 
         const language = classroom?.settings?.language || 'en';
+
+        // ---- Inactivity check (agent silent for too long) -------------------
+        // last_activity_at = MAX(started_at, latest translation, latest transcription)
+        // Using started_at as the floor gives every new session a 30-min grace
+        // window before it's eligible for the inactivity kill.
+        const [latestTranslation, latestTranscription] = await Promise.all([
+          supabase
+            .from('v2_translation_entries')
+            .select('created_at')
+            .eq('session_id', session.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+          supabase
+            .from('v2_transcriptions')
+            .select('created_at')
+            .eq('session_id', session.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        ]);
+
+        const candidateTimestamps = [
+          new Date(session.started_at).getTime(),
+          latestTranslation.data?.created_at
+            ? new Date(latestTranslation.data.created_at).getTime()
+            : 0,
+          latestTranscription.data?.created_at
+            ? new Date(latestTranscription.data.created_at).getTime()
+            : 0,
+        ];
+        const lastActivityMs = Math.max(...candidateTimestamps);
+        const idleMs = Date.now() - lastActivityMs;
+
+        if (idleMs > INACTIVITY_TIMEOUT_MS) {
+          const idleMinutes = Math.round(idleMs / 60000);
+          console.log(
+            `[V2 Reaper] Inactivity timeout for session ${session.id} ` +
+              `(${idleMinutes}m silent) — force-closing room ${session.livekit_room_name}`,
+          );
+          // deleteRoom kicks every participant and removes the LiveKit room.
+          // Wrap in try/catch so a missing room doesn't block ending the DB session.
+          try {
+            await deleteRoom(session.livekit_room_name, language);
+          } catch (err) {
+            console.warn(
+              `[V2 Reaper] deleteRoom failed for ${session.livekit_room_name}:`,
+              err,
+            );
+          }
+          await markAllV2ParticipantsLeft(session.id);
+          await updateV2SessionCounts(session.id, 0, 0);
+          await transitionV2Session(session.id, 'ended', 'reaper');
+          reaped++;
+          continue;
+        }
 
         // Check LiveKit room state
         const room = await verifyRoomExists(session.livekit_room_name, language);

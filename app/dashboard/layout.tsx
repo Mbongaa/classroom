@@ -5,6 +5,8 @@ import { DashboardHeader } from '@/app/dashboard/dashboard-header';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
+import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
+import { ImpersonationBanner } from '@/app/dashboard/impersonation-banner';
 
 // Loading skeleton for the sidebar/content area
 function DashboardSkeleton() {
@@ -57,12 +59,21 @@ export default async function DashboardLayout({ children }: { children: React.Re
     orgSlug = organization?.slug ?? null;
   }
 
+  // If a superadmin is currently impersonating an organization, override the
+  // org slug shown in the header so links route to the impersonated tenant.
+  // The banner makes the impersonation visually unmistakable.
+  const actingAs = user ? await resolveActingAsForUser(user.id) : null;
+  if (actingAs?.organizationSlug) {
+    orgSlug = actingAs.organizationSlug;
+  }
+
   return (
     <UserProviderWrapper>
       <Suspense fallback={<DashboardSkeleton />}>
         <SidebarProvider defaultOpen={defaultOpen}>
           <AppSidebar />
           <SidebarInset>
+            {actingAs ? <ImpersonationBanner actingAs={actingAs} /> : null}
             <DashboardHeader
               currentMode="translation"
               orgSlug={orgSlug}

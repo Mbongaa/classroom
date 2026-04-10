@@ -3,7 +3,6 @@
 import { useUser } from '@/lib/contexts/UserContext';
 import { useEffect, useState } from 'react';
 import { DashboardContent } from './DashboardContent';
-import { createClient } from '@/lib/supabase/client';
 import { Classroom } from '@/lib/types';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 
@@ -18,33 +17,41 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!profile?.organization_id) {
+      if (!profile) {
         setLoading(false);
         return;
       }
 
-      const supabase = createClient();
+      // Use the same API routes the rest of the dashboard uses. They go
+      // through `requireTeacher`/`requireAuth` which honor superadmin
+      // impersonation, so this page automatically reflects the impersonated
+      // org without needing a separate code path.
+      try {
+        const [classroomsRes, sessionsRes] = await Promise.all([
+          fetch('/api/classrooms'),
+          fetch('/api/sessions'),
+        ]);
 
-      // Get classrooms (full data for display + count)
-      const { data: classrooms } = await supabase
-        .from('classrooms')
-        .select('*')
-        .eq('organization_id', profile.organization_id)
-        .order('created_at', { ascending: false })
-        .limit(3); // Show only 3 most recent rooms
+        const classrooms: Classroom[] = classroomsRes.ok
+          ? ((await classroomsRes.json()).classrooms ?? [])
+          : [];
+        const sessions: { recording: unknown }[] = sessionsRes.ok
+          ? ((await sessionsRes.json()).sessions ?? [])
+          : [];
 
-      // Get recording count
-      const { count: recordingCount } = await supabase
-        .from('session_recordings')
-        .select('*', { count: 'exact', head: true })
-        .in('classroom_id', classrooms?.map((c) => c.id) || []);
+        const recordingCount = sessions.filter((s) => s.recording !== null).length;
 
-      setStats({
-        classroomCount: classrooms?.length || 0,
-        recordingCount: recordingCount || 0,
-      });
-      setRooms(classrooms || []);
-      setLoading(false);
+        setStats({
+          classroomCount: classrooms.length,
+          recordingCount,
+        });
+        // Show 3 most recent rooms (API already orders by created_at desc).
+        setRooms(classrooms.slice(0, 3));
+      } catch (err) {
+        console.error('[Dashboard] Failed to load stats:', err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchData();

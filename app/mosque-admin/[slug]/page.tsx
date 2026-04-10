@@ -234,6 +234,12 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Visible on the donation page
               </p>
+              <Link
+                href={`/mosque-admin/${organization.slug}/campaigns`}
+                className="mt-2 inline-block text-xs text-slate-500 underline-offset-4 hover:underline dark:text-slate-400"
+              >
+                Manage campaigns →
+              </Link>
             </CardContent>
           </Card>
         </div>
@@ -278,8 +284,18 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
         {/* Recent transactions */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Recent donations</CardTitle>
-            <CardDescription>Last 10 transactions for this organization</CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-lg">Recent donations</CardTitle>
+                <CardDescription>Last 10 transactions for this organization</CardDescription>
+              </div>
+              <Link
+                href={`/mosque-admin/${organization.slug}/transactions`}
+                className="text-xs text-slate-500 underline-offset-4 hover:underline dark:text-slate-400"
+              >
+                View all →
+              </Link>
+            </div>
           </CardHeader>
           <CardContent>
             {recentTransactions.length === 0 ? (

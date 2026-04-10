@@ -6,6 +6,7 @@ import {
   listCustomerInvoices,
   getSubscriptionDetails,
 } from '@/lib/stripe';
+import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
 import { ManageSubscriptionButton } from './ManageSubscriptionButton';
 import { CurrentPlanCard } from './CurrentPlanCard';
 import { PaymentMethodCard } from './PaymentMethodCard';
@@ -29,14 +30,23 @@ export default async function BillingPage() {
     redirect('/login');
   }
 
-  // Get user's profile and organization
+  // Get user's profile. NOTE: superadmins legitimately have
+  // organization_id = NULL (they don't belong to a tenant), so we resolve
+  // impersonation BEFORE deciding whether to redirect. Otherwise a
+  // superadmin acting as an org would bounce back to /dashboard before we
+  // get a chance to honor the cookie.
   const { data: profile } = await supabase
     .from('profiles')
     .select('organization_id')
     .eq('id', user.id)
     .single();
 
-  if (!profile?.organization_id) {
+  // Honor superadmin "act as organization" impersonation. When active, we
+  // show the impersonated org's billing instead of the superadmin's home org.
+  const actingAs = await resolveActingAsForUser(user.id);
+  const organizationId = actingAs?.organizationId ?? profile?.organization_id;
+
+  if (!organizationId) {
     redirect('/dashboard');
   }
 
@@ -44,7 +54,7 @@ export default async function BillingPage() {
   const { data: organization } = await supabase
     .from('organizations')
     .select('*')
-    .eq('id', profile.organization_id)
+    .eq('id', organizationId)
     .single();
 
   if (!organization) {

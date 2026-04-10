@@ -47,7 +47,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
 
       const supabase = createClient();
 
-      // Get authenticated user
+      // Authenticated user — still pulled from the client SDK so we get a
+      // full Supabase User object (token, metadata, etc.) for callers that
+      // need it.
       const {
         data: { user: authUser },
         error: authError,
@@ -60,23 +62,17 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
       setUser(authUser);
 
       if (authUser) {
-        // Fetch profile with organization
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select(
-            `
-            *,
-            organization:organizations(*)
-          `,
-          )
-          .eq('id', authUser.id)
-          .single();
-
-        if (profileError) {
-          throw profileError;
+        // Profile is fetched via /api/me so it goes through the server-side
+        // impersonation overlay. When a superadmin is acting as an org, this
+        // endpoint returns the impersonated org's id + joined organization,
+        // which is the difference between "the dashboard shows my home org"
+        // and "the dashboard shows the org I'm impersonating".
+        const response = await fetch('/api/me', { credentials: 'include' });
+        if (!response.ok) {
+          throw new Error(`Failed to load profile (${response.status})`);
         }
-
-        setProfile(profileData);
+        const payload = await response.json();
+        setProfile(payload.profile ?? null);
       }
     } catch (err: any) {
       console.error('Error fetching user:', err);

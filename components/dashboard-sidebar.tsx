@@ -5,12 +5,15 @@ import { usePathname } from 'next/navigation';
 import {
   IconArrowLeft,
   IconCreditCard,
+  IconHeartHandshake,
   IconHome,
   IconLayoutDashboard,
+  IconReceipt,
   IconSchool,
   IconSettings,
   IconHistory,
   IconUser,
+  IconUsers,
 } from '@tabler/icons-react';
 import { signOut } from '@/lib/actions/auth';
 import { useUser } from '@/lib/contexts/UserContext';
@@ -74,6 +77,21 @@ function buildFinanceNavigation(slug: string): NavItem[] {
       label: 'Dashboard',
       href: `/mosque-admin/${slug}`,
       icon: IconLayoutDashboard,
+    },
+    {
+      label: 'Campaigns',
+      href: `/mosque-admin/${slug}/campaigns`,
+      icon: IconHeartHandshake,
+    },
+    {
+      label: 'Members',
+      href: `/mosque-admin/${slug}/members`,
+      icon: IconUsers,
+    },
+    {
+      label: 'Transactions',
+      href: `/mosque-admin/${slug}/transactions`,
+      icon: IconReceipt,
     },
     {
       label: 'Settings',

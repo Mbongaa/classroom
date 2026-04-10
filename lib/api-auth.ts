@@ -6,11 +6,49 @@
  */
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveActingAsForUser, type ActingAsContext } from '@/lib/superadmin/acting-as';
 import { NextResponse } from 'next/server';
 
 export type AuthResult =
-  | { success: true; user: any; supabase: any; profile?: any }
+  | {
+      success: true;
+      user: any;
+      supabase: any;
+      profile?: any;
+      /**
+       * Set when a superadmin is currently impersonating an organization.
+       * When present, `supabase` is the admin (service_role) client and
+       * `profile.organization_id` has been overridden to the impersonated org.
+       */
+      actingAs?: ActingAsContext | null;
+    }
   | { success: false; response: NextResponse };
+
+/**
+ * If the caller is a superadmin AND has an active acting-as cookie that
+ * validates, return an impersonation overlay: an admin Supabase client
+ * (RLS-bypass) and a profile with organization_id swapped to the impersonated
+ * org. Otherwise returns null.
+ *
+ * Centralised here so requireTeacher/requireAdmin/requireOrgAdmin all behave
+ * identically when impersonation is active.
+ */
+async function applyImpersonation(
+  user: any,
+  profile: any,
+): Promise<{ supabase: any; profile: any; actingAs: ActingAsContext } | null> {
+  if (!profile?.is_superadmin) return null;
+
+  const actingAs = await resolveActingAsForUser(user.id);
+  if (!actingAs) return null;
+
+  return {
+    supabase: createAdminClient(),
+    profile: { ...profile, organization_id: actingAs.organizationId },
+    actingAs,
+  };
+}
 
 /**
  * Require authentication for API route
@@ -92,6 +130,20 @@ export async function requireTeacher(): Promise<AuthResult> {
     };
   }
 
+  // If a superadmin is impersonating an org, override the org context
+  // and swap to the admin client so all downstream queries see the
+  // impersonated tenant's data without RLS pushback.
+  const impersonation = await applyImpersonation(user, profile);
+  if (impersonation) {
+    return {
+      success: true,
+      user,
+      supabase: impersonation.supabase,
+      profile: impersonation.profile,
+      actingAs: impersonation.actingAs,
+    };
+  }
+
   return {
     success: true,
     user,
@@ -137,6 +189,18 @@ export async function requireAdmin(): Promise<AuthResult> {
     return {
       success: false,
       response: NextResponse.json({ error: 'Forbidden - Admin role required' }, { status: 403 }),
+    };
+  }
+
+  // Honor superadmin "act as organization" impersonation.
+  const impersonation = await applyImpersonation(user, profile);
+  if (impersonation) {
+    return {
+      success: true,
+      user,
+      supabase: impersonation.supabase,
+      profile: impersonation.profile,
+      actingAs: impersonation.actingAs,
     };
   }
 
@@ -278,6 +342,21 @@ export async function requireOrgAdmin(
     .single();
 
   if (profile?.is_superadmin) {
+    // If a superadmin is impersonating an org, return the admin client and
+    // surface the impersonation context. The org-scoped check itself is
+    // already bypassed for superadmins, so the requested organizationId
+    // remains the authoritative scope for this call (callers pass the
+    // org id they want to act on).
+    const impersonation = await applyImpersonation(user, profile);
+    if (impersonation) {
+      return {
+        success: true,
+        user,
+        supabase: impersonation.supabase,
+        profile: { role: 'superadmin', organization_id: organizationId },
+        actingAs: impersonation.actingAs,
+      };
+    }
     return {
       success: true,
       user,

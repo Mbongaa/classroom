@@ -31,6 +31,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -40,7 +50,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowUpDown, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { ArrowUpDown, Pencil, Trash2, Loader2, LogIn } from 'lucide-react';
+import { enterOrganization } from '@/lib/actions/superadmin-impersonation';
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
   if (totalPages <= 7) {
@@ -92,6 +103,35 @@ export default function SuperadminOrganizationsPage() {
   const [deleteOrg, setDeleteOrg] = useState<Organization | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Impersonation state — `enterOrg` holds the org pending confirmation in
+  // the AlertDialog; `enteringId` tracks which row's button is currently
+  // showing the spinner while the server action is in flight.
+  const [enterOrg, setEnterOrg] = useState<Organization | null>(null);
+  const [enteringId, setEnteringId] = useState<string | null>(null);
+
+  async function confirmEnterOrganization() {
+    if (!enterOrg) return;
+    const org = enterOrg;
+    setEnteringId(org.id);
+    setEnterOrg(null);
+    try {
+      const result = await enterOrganization(org.id);
+      // The server action redirects on success — if we land here it failed.
+      if (result && !result.success) {
+        setError(result.error ?? 'Failed to enter organization');
+        setEnteringId(null);
+      }
+    } catch (err) {
+      // redirect() throws a special error in Next.js — that's the success path
+      // and the navigation will happen automatically. Any *other* error is real.
+      const message = err instanceof Error ? err.message : String(err);
+      if (!/NEXT_REDIRECT/i.test(message)) {
+        setError(message);
+        setEnteringId(null);
+      }
+    }
+  }
 
   useEffect(() => {
     if (!userLoading && (!profile || !profile.is_superadmin)) {
@@ -390,6 +430,21 @@ export default function SuperadminOrganizationsPage() {
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30"
+                        onClick={() => setEnterOrg(org)}
+                        disabled={enteringId === org.id}
+                        title={`Act as ${org.name}`}
+                      >
+                        {enteringId === org.id ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <LogIn className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">Enter {org.name}</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         className="h-8 w-8 p-0"
                         onClick={() => openEditDialog(org)}
                       >
@@ -461,6 +516,48 @@ export default function SuperadminOrganizationsPage() {
           </Pagination>
         </div>
       )}
+
+      {/* Enter (Impersonate) Organization Confirmation */}
+      <AlertDialog open={!!enterOrg} onOpenChange={(open) => !open && setEnterOrg(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <LogIn className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              Act as organization?
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  You&apos;re about to enter{' '}
+                  <strong className="text-foreground">{enterOrg?.name}</strong>
+                  {enterOrg?.slug ? (
+                    <span className="text-muted-foreground"> ({enterOrg.slug})</span>
+                  ) : null}{' '}
+                  as a superadmin.
+                </p>
+                <ul className="list-disc space-y-1 pl-5 text-sm">
+                  <li>You&apos;ll see this org&apos;s dashboard, classrooms, billing, and sessions.</li>
+                  <li>You&apos;ll act with full admin privileges inside it.</li>
+                  <li>Every enter and exit is written to the audit log.</li>
+                </ul>
+                <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-xs text-amber-800 dark:border-amber-700 dark:bg-amber-900/20 dark:text-amber-300">
+                  Click <strong>&quot;Exit impersonation&quot;</strong> in the red banner when you&apos;re done.
+                </div>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmEnterOrganization}
+              className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              <LogIn className="mr-2 h-4 w-4" />
+              Enter organization
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Edit Organization Dialog */}
       <Dialog open={!!editOrg} onOpenChange={(open) => !open && setEditOrg(null)}>

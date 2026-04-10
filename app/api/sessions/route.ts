@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
 
 /**
  * GET /api/sessions
@@ -15,22 +16,36 @@ export async function GET() {
   const { user } = auth;
   const supabase = createAdminClient();
 
-  // Get user's organization_id from profile
+  // Get user's organization_id from profile. NOTE: superadmins legitimately
+  // have organization_id = NULL (they don't belong to a tenant), so we can't
+  // bail out on a null org until AFTER we've checked for an active
+  // impersonation cookie below.
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('organization_id')
     .eq('id', user.id)
     .single();
 
-  if (profileError || !profile?.organization_id) {
-    return NextResponse.json({ error: 'Profile or organization not found' }, { status: 404 });
+  if (profileError || !profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+  }
+
+  // Honor superadmin "act as organization" impersonation. If active, the
+  // superadmin sees the impersonated org's sessions instead of their own.
+  // This must run before the null-org check so a superadmin with no home
+  // org can still fetch sessions for the org they're impersonating.
+  const actingAs = await resolveActingAsForUser(user.id);
+  const organizationId = actingAs?.organizationId ?? profile.organization_id;
+
+  if (!organizationId) {
+    return NextResponse.json({ error: 'No organization in scope' }, { status: 404 });
   }
 
   // Get all classroom room_codes for this organization
   const { data: classrooms, error: classroomError } = await supabase
     .from('classrooms')
     .select('room_code')
-    .eq('organization_id', profile.organization_id);
+    .eq('organization_id', organizationId);
 
   if (classroomError) {
     return NextResponse.json({ error: 'Failed to fetch classrooms' }, { status: 500 });
@@ -63,7 +78,7 @@ export async function GET() {
       )
     `)
     .in('room_name', roomCodes)
-    .eq('organization_id', profile.organization_id) // Scope to user's org
+    .eq('organization_id', organizationId) // Scope to user's org (or impersonated org)
     .order('started_at', { ascending: false });
 
   if (sessionsError) {
