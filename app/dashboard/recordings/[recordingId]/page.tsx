@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 import Link from 'next/link';
-import { Download, ArrowLeft } from 'lucide-react';
+import { Download } from 'lucide-react';
+import { ArrowLeftIcon } from '@/components/ui/arrow-left';
 
 interface Recording {
   id: string;
@@ -134,7 +135,7 @@ export default function RecordingPlaybackPage() {
           <p className="text-red-500 mb-4">{error || 'Recording not found'}</p>
           <Button asChild>
             <Link href="/dashboard/recordings">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeftIcon size={16} className="mr-2" />
               Back to Recordings
             </Link>
           </Button>
@@ -165,7 +166,7 @@ export default function RecordingPlaybackPage() {
           </p>
           <Button asChild className="mt-4">
             <Link href="/dashboard/recordings">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+              <ArrowLeftIcon size={16} className="mr-2" />
               Back to Recordings
             </Link>
           </Button>
@@ -189,7 +190,7 @@ export default function RecordingPlaybackPage() {
         </div>
         <Button asChild variant="ghost">
           <Link href="/dashboard/recordings">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            <ArrowLeftIcon size={16} className="mr-2" />
             Back
           </Link>
         </Button>

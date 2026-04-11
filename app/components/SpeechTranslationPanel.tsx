@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
-import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, Bot, ArrowDown, GripHorizontal } from 'lucide-react';
+import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, ArrowDown, GripHorizontal } from 'lucide-react';
+import { BotIcon } from '@/components/ui/bot';
 import { isIOSDevice } from '@/lib/client-utils';
 import { sentenceAccumulator } from '@/lib/sentence-accumulator';
 import styles from './SpeechTranslationPanel.module.css';
@@ -549,7 +550,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             className={`${styles.agentBadge} ${agentCount > 0 ? styles.agentBadgeActive : styles.agentBadgeInactive}`}
             title={`${agentCount} agent(s) in room`}
           >
-            <Bot size={12} />
+            <BotIcon size={12} />
             <span>{agentCount}</span>
           </div>
           <div

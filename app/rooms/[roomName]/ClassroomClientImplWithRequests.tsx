@@ -18,7 +18,10 @@ import { CustomControlBar } from '@/app/components/video-conference/CustomContro
 import CustomParticipantTile from '@/app/components/video-conference/CustomParticipantTile';
 import { Track, Participant, RoomEvent, DataPacket_Kind, ParticipantKind } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Clipboard, Check, GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { GripVertical, ChevronDown, ChevronUp } from 'lucide-react';
+import { CopyIcon, type CopyIconHandle } from '@/components/ui/copy';
+import { ArrowLeftIcon, type ArrowLeftIconHandle } from '@/components/ui/arrow-left';
+import { CheckIcon as AnimatedCheckIcon } from '@/components/ui/check';
 import { SettingsMenu } from '@/lib/SettingsMenu';
 import AvatarWithDropdown from '@/lib/AvatarWithDropdown';
 import { StudentPermissionNotification } from '@/lib/StudentPermissionNotification';
@@ -150,6 +153,8 @@ export function ClassroomClientImplWithRequests({
 
   // State for copy link feedback
   const [linkCopied, setLinkCopied] = React.useState(false);
+  const copyIconRef = React.useRef<CopyIconHandle>(null);
+  const backIconRef = React.useRef<ArrowLeftIconHandle>(null);
 
   // State for mobile detection
   const [isMobile, setIsMobile] = React.useState(false);
@@ -845,10 +850,12 @@ export function ClassroomClientImplWithRequests({
           <div className={styles.roomInfo}>
             <button
               className={styles.backButton}
-              onClick={() => { room.disconnect(); router.push('/'); }}
+              onClick={() => { backIconRef.current?.startAnimation(); room.disconnect(); router.push('/'); }}
+              onMouseEnter={() => backIconRef.current?.startAnimation()}
+              onMouseLeave={() => backIconRef.current?.stopAnimation()}
               title="Leave room"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeftIcon ref={backIconRef} size={16} />
             </button>
             <span className={styles.roomName}>{orgName ? orgName.replace(/\b\w/g, (c) => c.toUpperCase()) : 'bayaan.ai'}</span>
             <RecordingIndicator />
@@ -862,16 +869,19 @@ export function ClassroomClientImplWithRequests({
                 <button
                   className={`${styles.copyLinkButton} ${linkCopied ? styles.copied : ''}`}
                   onClick={() => {
+                    copyIconRef.current?.startAnimation();
                     let studentLink = `${window.location.origin}/s/${roomName}`;
                     if (orgSlug) studentLink += `?org=${encodeURIComponent(orgSlug)}`;
                     navigator.clipboard.writeText(studentLink);
                     setLinkCopied(true);
                     setTimeout(() => setLinkCopied(false), 2000);
                   }}
+                  onMouseEnter={() => copyIconRef.current?.startAnimation()}
+                  onMouseLeave={() => copyIconRef.current?.stopAnimation()}
                   title={linkCopied ? 'Link copied!' : 'Copy student link'}
                   aria-label="Copy student link to clipboard"
                 >
-                  {linkCopied ? <Check size={18} /> : <Clipboard size={18} />}
+                  {linkCopied ? <AnimatedCheckIcon size={18} /> : <CopyIcon ref={copyIconRef} size={18} />}
                 </button>
 
                 {/* Request Dropdown */}

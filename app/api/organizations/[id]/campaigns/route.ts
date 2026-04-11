@@ -29,13 +29,15 @@ interface CampaignRow {
   description: string | null;
   goal_amount: number | null;
   cause_type: string | null;
+  icon: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }
 
 const CAMPAIGN_COLUMNS =
-  'id, organization_id, slug, title, description, goal_amount, cause_type, is_active, created_at, updated_at';
+  'id, organization_id, slug, title, description, goal_amount, cause_type, icon, is_active, sort_order, created_at, updated_at';
 
 // ---------------------------------------------------------------------------
 // GET — list campaigns for an org
@@ -60,6 +62,8 @@ export async function GET(
     .from('campaigns')
     .select<string, CampaignRow>(CAMPAIGN_COLUMNS)
     .eq('organization_id', id)
+    .order('is_active', { ascending: false })
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
 
   if (error) {

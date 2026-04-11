@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Eye } from 'lucide-react';
+import { Edit, Eye } from 'lucide-react';
+import { TrashIcon } from '@/components/ui/trash';
 import { previewPrompt } from '@/lib/prompt-utils';
 import type { PromptTemplate } from '@/lib/prompt-utils';
 
@@ -103,7 +104,7 @@ export function PromptTemplateList({ templates, onEdit, onDelete }: PromptTempla
                       onClick={() => handleDeleteClick(template)}
                       title="Delete template"
                     >
-                      <Trash2 className="h-4 w-4 text-destructive" />
+                      <TrashIcon size={16} className="text-destructive" />
                     </Button>
                   </>
                 )}

@@ -6,9 +6,19 @@ import { motion, AnimatePresence, useAnimate } from 'framer-motion';
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   className?: string;
   children: React.ReactNode;
+  /**
+   * When false, skips the loader/check status animation and just invokes
+   * the onClick handler directly. Default: true.
+   */
+  showStatusIndicators?: boolean;
 }
 
-export const Button = ({ className, children, ...props }: ButtonProps) => {
+export const Button = ({
+  className,
+  children,
+  showStatusIndicators = true,
+  ...props
+}: ButtonProps) => {
   const [scope, animate] = useAnimate();
 
   const animateLoading = async () => {
@@ -64,6 +74,10 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
   };
 
   const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!showStatusIndicators) {
+      await props.onClick?.(event);
+      return;
+    }
     await animateLoading();
     await props.onClick?.(event);
     await animateSuccess();
@@ -92,8 +106,12 @@ export const Button = ({ className, children, ...props }: ButtonProps) => {
       onClick={handleClick}
     >
       <motion.div layout className="flex items-center gap-2">
-        <Loader />
-        <CheckIcon />
+        {showStatusIndicators && (
+          <>
+            <Loader />
+            <CheckIcon />
+          </>
+        )}
         <motion.span layout>{children}</motion.span>
       </motion.div>
     </motion.button>

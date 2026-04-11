@@ -50,7 +50,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { ArrowUpDown, Pencil, Trash2, Loader2, LogIn } from 'lucide-react';
+import { ArrowUpDown, Pencil, Loader2, LogIn } from 'lucide-react';
+import { TrashIcon } from '@/components/ui/trash';
 import { enterOrganization } from '@/lib/actions/superadmin-impersonation';
 
 function getPageNumbers(currentPage: number, totalPages: number): (number | 'ellipsis')[] {
@@ -457,7 +458,7 @@ export default function SuperadminOrganizationsPage() {
                         className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-100 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                         onClick={() => openDeleteDialog(org)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <TrashIcon size={16} />
                         <span className="sr-only">Delete {org.name}</span>
                       </Button>
                     </div>

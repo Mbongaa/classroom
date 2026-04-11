@@ -10,6 +10,9 @@ import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
 import { QRCodeCanvas } from 'qrcode.react';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
+import { CopyIcon, type CopyIconHandle } from '@/components/ui/copy';
+import { DownloadIcon, type DownloadIconHandle } from '@/components/ui/download';
+import { QrCodeIcon, type QrCodeIconHandle } from '@/components/ui/qr-code';
 import styles from '@/app/rooms/[roomName]/PageClient.module.css';
 import {
   LocalUserChoices,
@@ -116,6 +119,9 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
   }, [roomCode, classroomInfo?.role]);
 
   const qrCanvasRef = React.useRef<HTMLDivElement>(null);
+  const copyIconRef = React.useRef<CopyIconHandle>(null);
+  const downloadIconRef = React.useRef<DownloadIconHandle>(null);
+  const qrCodeIconRef = React.useRef<QrCodeIconHandle>(null);
 
   const studentLink = React.useMemo(() => {
     if (!classroomInfo || classroomInfo.role !== 'teacher') return '';
@@ -225,17 +231,34 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
                       )}
                       <div className={styles.copyButtonWrapper}>
                         <StatefulButton
-                          onClick={() =>
-                            new Promise((resolve) => {
+                          onMouseEnter={() => copyIconRef.current?.startAnimation()}
+                          onMouseLeave={() => copyIconRef.current?.stopAnimation()}
+                          onClick={() => {
+                            copyIconRef.current?.startAnimation();
+                            return new Promise((resolve) => {
                               navigator.clipboard.writeText(studentLink);
                               setTimeout(resolve, 500);
-                            })
-                          }
+                            });
+                          }}
                         >
-                          Copy Student Link
+                          <span className="inline-flex items-center gap-2">
+                            <CopyIcon ref={copyIconRef} size={16} className="inline-flex" />
+                            Student Link
+                          </span>
                         </StatefulButton>
                         <StatefulButton
+                          showStatusIndicators={false}
+                          onMouseEnter={() => {
+                            downloadIconRef.current?.startAnimation();
+                            qrCodeIconRef.current?.startAnimation();
+                          }}
+                          onMouseLeave={() => {
+                            downloadIconRef.current?.stopAnimation();
+                            qrCodeIconRef.current?.stopAnimation();
+                          }}
                           onClick={() => {
+                            downloadIconRef.current?.startAnimation();
+                            qrCodeIconRef.current?.startAnimation();
                             return new Promise<void>((resolve, reject) => {
                               const canvas = qrCanvasRef.current?.querySelector('canvas');
                               if (!canvas) {
@@ -247,35 +270,23 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
                                   reject(new Error('Failed to generate QR image'));
                                   return;
                                 }
-                                if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                                  navigator.clipboard
-                                    .write([new ClipboardItem({ 'image/png': blob })])
-                                    .then(() => setTimeout(resolve, 500))
-                                    .catch(() => {
-                                      // Fallback: download the PNG
-                                      const url = URL.createObjectURL(blob);
-                                      const a = document.createElement('a');
-                                      a.href = url;
-                                      a.download = `qr-${roomCode}.png`;
-                                      a.click();
-                                      URL.revokeObjectURL(url);
-                                      setTimeout(resolve, 500);
-                                    });
-                                } else {
-                                  // Fallback: download the PNG
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `qr-${roomCode}.png`;
-                                  a.click();
-                                  URL.revokeObjectURL(url);
-                                  setTimeout(resolve, 500);
-                                }
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${roomCode}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                setTimeout(resolve, 500);
                               }, 'image/png');
                             });
                           }}
                         >
-                          Copy QR
+                          <span className="inline-flex items-center gap-2">
+                            <DownloadIcon ref={downloadIconRef} size={16} className="inline-flex" />
+                            <QrCodeIcon ref={qrCodeIconRef} size={28} />
+                          </span>
                         </StatefulButton>
                       </div>
                       <div className={styles.linkDisplay}>{studentLink}</div>

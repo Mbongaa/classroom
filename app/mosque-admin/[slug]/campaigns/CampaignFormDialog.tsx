@@ -13,6 +13,9 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { CAMPAIGN_ICONS } from '@/lib/campaign-icons';
+import { LottieIcon } from '@/components/lottie-icon';
+import { cn } from '@/lib/utils';
 import type { Campaign } from './CampaignsClient';
 
 /**
@@ -67,6 +70,7 @@ export function CampaignFormDialog({
   const [description, setDescription] = useState('');
   const [causeType, setCauseType] = useState('');
   const [goalEuros, setGoalEuros] = useState('');
+  const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [isActive, setIsActive] = useState(true);
 
   const [submitting, setSubmitting] = useState(false);
@@ -82,6 +86,7 @@ export function CampaignFormDialog({
       setDescription(campaign.description ?? '');
       setCauseType(campaign.cause_type ?? '');
       setGoalEuros(campaign.goal_amount != null ? String(campaign.goal_amount / 100) : '');
+      setSelectedIcon(campaign.icon ?? null);
       setIsActive(campaign.is_active);
     } else {
       setTitle('');
@@ -90,6 +95,7 @@ export function CampaignFormDialog({
       setDescription('');
       setCauseType('');
       setGoalEuros('');
+      setSelectedIcon(null);
       setIsActive(true);
     }
     setError('');
@@ -140,6 +146,7 @@ export function CampaignFormDialog({
       description: description.trim() || null,
       cause_type: causeType.trim() || null,
       goal_amount: goalAmountCents,
+      icon: selectedIcon || null,
       is_active: isActive,
     };
     // Only send slug on create — see component header for rationale.
@@ -266,6 +273,49 @@ export function CampaignFormDialog({
                   Leave blank if no fixed goal.
                 </p>
               </div>
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Icon</Label>
+              <div className="grid grid-cols-5 gap-2">
+                {/* No-icon option */}
+                <button
+                  type="button"
+                  onClick={() => setSelectedIcon(null)}
+                  disabled={submitting}
+                  className={cn(
+                    'flex flex-col items-center justify-center rounded-lg border-2 p-2 transition-colors',
+                    selectedIcon === null
+                      ? 'border-black bg-slate-50 dark:border-white dark:bg-slate-900/60'
+                      : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600',
+                  )}
+                >
+                  <div className="flex h-[50px] w-[50px] items-center justify-center text-slate-400">
+                    <span className="text-lg">—</span>
+                  </div>
+                  <span className="mt-1 text-[10px] text-slate-500">None</span>
+                </button>
+                {CAMPAIGN_ICONS.map((entry) => (
+                  <button
+                    key={entry.id}
+                    type="button"
+                    onClick={() => setSelectedIcon(entry.id)}
+                    disabled={submitting}
+                    className={cn(
+                      'flex flex-col items-center justify-center rounded-lg border-2 p-2 transition-colors',
+                      selectedIcon === entry.id
+                        ? 'border-black bg-slate-50 dark:border-white dark:bg-slate-900/60'
+                        : 'border-transparent hover:border-slate-300 dark:hover:border-slate-600',
+                    )}
+                  >
+                    <LottieIcon src={entry.file} size={50} />
+                    <span className="mt-1 text-[10px] text-slate-500">{entry.label}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Shown on the donate page when this campaign is selected.
+              </p>
             </div>
 
             <div className="flex items-center gap-3 rounded-lg border border-[rgba(128,128,128,0.3)] p-3">

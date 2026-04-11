@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -29,15 +30,26 @@ export interface Campaign {
   description: string | null;
   goal_amount: number | null;
   cause_type: string | null;
+  icon: string | null;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Campaign enriched with server-computed raised amount. Kept separate from
+ * Campaign so the form dialog (which only cares about DB columns) doesn't
+ * need to know about aggregates.
+ */
+export interface CampaignWithRaised extends Campaign {
+  raised_cents: number;
 }
 
 interface CampaignsClientProps {
   organizationId: string;
   organizationSlug: string;
-  initialCampaigns: Campaign[];
+  initialCampaigns: CampaignWithRaised[];
   canManage: boolean;
   canDelete: boolean;
 }
@@ -51,6 +63,15 @@ function formatEuro(cents: number | null): string {
   }).format(cents / 100);
 }
 
+/** Sort: active first, then by sort_order, then by created_at desc. */
+function sortCampaigns(list: CampaignWithRaised[]): CampaignWithRaised[] {
+  return [...list].sort((a, b) => {
+    if (a.is_active !== b.is_active) return a.is_active ? -1 : 1;
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+  });
+}
+
 export function CampaignsClient({
   organizationId,
   organizationSlug,
@@ -58,20 +79,71 @@ export function CampaignsClient({
   canManage,
   canDelete,
 }: CampaignsClientProps) {
-  const [campaigns, setCampaigns] = useState<Campaign[]>(initialCampaigns);
-  const [editing, setEditing] = useState<Campaign | null>(null);
+  const [campaigns, setCampaigns] = useState<CampaignWithRaised[]>(initialCampaigns);
+  const [editing, setEditing] = useState<CampaignWithRaised | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [reordering, setReordering] = useState(false);
+
+  const activeCampaigns = campaigns.filter((c) => c.is_active);
+  const inactiveCampaigns = campaigns.filter((c) => !c.is_active);
 
   function handleCreated(created: Campaign) {
-    setCampaigns((prev) => [created, ...prev]);
+    setCampaigns((prev) => sortCampaigns([{ ...created, raised_cents: 0 }, ...prev]));
   }
 
   function handleUpdated(updated: Campaign) {
-    setCampaigns((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    setCampaigns((prev) =>
+      sortCampaigns(
+        prev.map((c) => (c.id === updated.id ? { ...updated, raised_cents: c.raised_cents } : c)),
+      ),
+    );
   }
 
   function handleDeleted(id: string) {
     setCampaigns((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  async function persistOrder(reordered: CampaignWithRaised[]) {
+    setReordering(true);
+    try {
+      const res = await fetch(`/api/organizations/${organizationId}/campaigns/reorder`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ campaign_ids: reordered.map((c) => c.id) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to reorder');
+      }
+      toast.success('Order updated');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to reorder');
+    } finally {
+      setReordering(false);
+    }
+  }
+
+  function handleMove(campaignId: string, direction: 'up' | 'down') {
+    const campaign = campaigns.find((c) => c.id === campaignId);
+    if (!campaign) return;
+
+    // Only reorder within the same active/inactive group.
+    const group = campaign.is_active ? activeCampaigns : inactiveCampaigns;
+    const idx = group.findIndex((c) => c.id === campaignId);
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (swapIdx < 0 || swapIdx >= group.length) return;
+
+    const newGroup = [...group];
+    [newGroup[idx], newGroup[swapIdx]] = [newGroup[swapIdx], newGroup[idx]];
+
+    // Reassign sort_order values within the group.
+    const updatedGroup = newGroup.map((c, i) => ({ ...c, sort_order: i }));
+
+    // Merge back with the other group and sort.
+    const otherGroup = campaign.is_active ? inactiveCampaigns : activeCampaigns;
+    const merged = sortCampaigns([...updatedGroup, ...otherGroup]);
+    setCampaigns(merged);
+    persistOrder(merged);
   }
 
   return (
@@ -120,27 +192,37 @@ export function CampaignsClient({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[rgba(128,128,128,0.3)] text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                    {canManage && <th className="px-4 py-3">Order</th>}
                     <th className="px-4 py-3">Campaign</th>
                     <th className="px-4 py-3">Cause</th>
+                    <th className="px-4 py-3">Raised</th>
                     <th className="px-4 py-3">Goal</th>
                     <th className="px-4 py-3">Active</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {campaigns.map((campaign) => (
-                    <CampaignRow
-                      key={campaign.id}
-                      campaign={campaign}
-                      organizationId={organizationId}
-                      organizationSlug={organizationSlug}
-                      canManage={canManage}
-                      canDelete={canDelete}
-                      onEdit={() => setEditing(campaign)}
-                      onUpdated={handleUpdated}
-                      onDeleted={handleDeleted}
-                    />
-                  ))}
+                  {campaigns.map((campaign) => {
+                    const group = campaign.is_active ? activeCampaigns : inactiveCampaigns;
+                    const idxInGroup = group.findIndex((c) => c.id === campaign.id);
+                    return (
+                      <CampaignRow
+                        key={campaign.id}
+                        campaign={campaign}
+                        organizationId={organizationId}
+                        organizationSlug={organizationSlug}
+                        canManage={canManage}
+                        canDelete={canDelete}
+                        isFirst={idxInGroup === 0}
+                        isLast={idxInGroup === group.length - 1}
+                        reordering={reordering}
+                        onMove={handleMove}
+                        onEdit={() => setEditing(campaign)}
+                        onUpdated={handleUpdated}
+                        onDeleted={handleDeleted}
+                      />
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -171,11 +253,15 @@ export function CampaignsClient({
 // ---------------------------------------------------------------------------
 
 interface CampaignRowProps {
-  campaign: Campaign;
+  campaign: CampaignWithRaised;
   organizationId: string;
   organizationSlug: string;
   canManage: boolean;
   canDelete: boolean;
+  isFirst: boolean;
+  isLast: boolean;
+  reordering: boolean;
+  onMove: (id: string, direction: 'up' | 'down') => void;
   onEdit: () => void;
   onUpdated: (campaign: Campaign) => void;
   onDeleted: (id: string) => void;
@@ -187,6 +273,10 @@ function CampaignRow({
   organizationSlug,
   canManage,
   canDelete,
+  isFirst,
+  isLast,
+  reordering,
+  onMove,
   onEdit,
   onUpdated,
   onDeleted,
@@ -248,6 +338,30 @@ function CampaignRow({
 
   return (
     <tr className="border-b border-[rgba(128,128,128,0.15)] last:border-b-0">
+      {canManage && (
+        <td className="px-4 py-3">
+          <div className="flex flex-col gap-0.5">
+            <button
+              type="button"
+              onClick={() => onMove(campaign.id, 'up')}
+              disabled={isFirst || reordering || pending}
+              className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
+              aria-label="Move up"
+            >
+              <IconArrowUp className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => onMove(campaign.id, 'down')}
+              disabled={isLast || reordering || pending}
+              className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
+              aria-label="Move down"
+            >
+              <IconArrowDown className="h-4 w-4" />
+            </button>
+          </div>
+        </td>
+      )}
       <td className="px-4 py-3">
         <div className="flex flex-col gap-1">
           <span className="font-medium">{campaign.title}</span>
@@ -271,6 +385,24 @@ function CampaignRow({
           <Badge variant="outline">{campaign.cause_type}</Badge>
         ) : (
           <span className="text-xs text-slate-400">—</span>
+        )}
+      </td>
+      <td className="px-4 py-3">
+        <span className="font-medium">{formatEuro(campaign.raised_cents)}</span>
+        {campaign.goal_amount != null && campaign.goal_amount > 0 && (
+          <div className="mt-1">
+            <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+              <div
+                className="h-full rounded-full bg-emerald-500"
+                style={{
+                  width: `${Math.min(100, (campaign.raised_cents / campaign.goal_amount) * 100)}%`,
+                }}
+              />
+            </div>
+            <span className="text-[10px] text-slate-400">
+              {Math.round((campaign.raised_cents / campaign.goal_amount) * 100)}%
+            </span>
+          </div>
         )}
       </td>
       <td className="px-4 py-3 font-medium">{formatEuro(campaign.goal_amount)}</td>

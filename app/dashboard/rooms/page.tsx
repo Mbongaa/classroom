@@ -8,7 +8,10 @@ import { RoomFormDialog } from '@/components/rooms/RoomFormDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
-import { Settings, Trash2, Video, RefreshCw, ClipboardCopy, Check, Loader2 } from 'lucide-react';
+import { Settings, Video, RefreshCw, Loader2 } from 'lucide-react';
+import { CopyIcon } from '@/components/ui/copy';
+import { CheckIcon as AnimatedCheckIcon } from '@/components/ui/check';
+import { TrashIcon } from '@/components/ui/trash';
 
 export default function DashboardRoomsPage() {
   const router = useRouter();
@@ -221,7 +224,7 @@ export default function DashboardRoomsPage() {
                     className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                     onClick={() => handleDeleteRoom(room)}
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <TrashIcon size={14} />
                   </Button>
                   <div className="w-px h-6 bg-white/10 mx-1" />
                   <Button
@@ -232,9 +235,9 @@ export default function DashboardRoomsPage() {
                     onClick={() => handleCopyStudentLink(room)}
                   >
                     {copiedRoomId === room.id ? (
-                      <Check className="h-3.5 w-3.5 text-green-500" />
+                      <AnimatedCheckIcon size={14} className="text-green-500" />
                     ) : (
-                      <ClipboardCopy className="h-3.5 w-3.5" />
+                      <CopyIcon size={14} />
                     )}
                   </Button>
                   <Button
@@ -298,7 +301,7 @@ export default function DashboardRoomsPage() {
                       className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                       onClick={() => handleDeleteRoom(room)}
                     >
-                      <Trash2 className="h-3.5 w-3.5" />
+                      <TrashIcon size={14} />
                     </Button>
                   </div>
 
@@ -311,9 +314,9 @@ export default function DashboardRoomsPage() {
                       onClick={() => handleCopyStudentLink(room)}
                     >
                       {copiedRoomId === room.id ? (
-                        <Check className="h-3.5 w-3.5 text-green-500" />
+                        <AnimatedCheckIcon size={14} className="text-green-500" />
                       ) : (
-                        <ClipboardCopy className="h-3.5 w-3.5" />
+                        <CopyIcon size={14} />
                       )}
                     </Button>
                     <Button

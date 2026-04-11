@@ -13,7 +13,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Settings, Trash2, Video } from 'lucide-react';
+import { Settings, Video } from 'lucide-react';
+import { TrashIcon } from '@/components/ui/trash';
 import { RoomFormDialog } from './RoomFormDialog';
 
 interface RoomCardProps {
@@ -146,7 +147,7 @@ export function RoomCard({ room, onDelete, onUpdate }: RoomCardProps) {
           }
         />
         <Button onClick={handleDeleteRoom} variant="ghost" size="icon" disabled={deleting}>
-          <Trash2 className="w-4 h-4 text-slate-700 dark:text-slate-200" />
+          <TrashIcon size={16} className="text-slate-700 dark:text-slate-200" />
         </Button>
       </CardFooter>
     </Card>

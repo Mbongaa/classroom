@@ -2,7 +2,7 @@ import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { CampaignsClient, type Campaign } from './CampaignsClient';
+import { CampaignsClient, type Campaign, type CampaignWithRaised } from './CampaignsClient';
 
 /**
  * /mosque-admin/[slug]/campaigns
@@ -31,7 +31,7 @@ interface OrganizationRow {
 }
 
 const CAMPAIGN_COLUMNS =
-  'id, organization_id, slug, title, description, goal_amount, cause_type, is_active, created_at, updated_at';
+  'id, organization_id, slug, title, description, goal_amount, cause_type, icon, is_active, sort_order, created_at, updated_at';
 
 export default async function CampaignsPage({ params }: PageProps) {
   const { slug } = await params;
@@ -89,7 +89,49 @@ export default async function CampaignsPage({ params }: PageProps) {
     .from('campaigns')
     .select<string, Campaign>(CAMPAIGN_COLUMNS)
     .eq('organization_id', organization.id)
+    .order('is_active', { ascending: false })
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
+
+  // Compute per-campaign raised amounts from both one-time transactions
+  // (status=PAID) and recurring direct debits (status=COLLECTED, joined
+  // through mandates.campaign_id). We sum in JS — the data volume per org
+  // is small enough that two flat queries + a reduce is faster and simpler
+  // than a SQL aggregate view.
+  const campaignIds = (campaigns ?? []).map((c) => c.id);
+  const raisedMap = new Map<string, number>();
+
+  if (campaignIds.length > 0) {
+    const [txResult, ddResult] = await Promise.all([
+      supabaseAdmin
+        .from('transactions')
+        .select('campaign_id, amount')
+        .in('campaign_id', campaignIds)
+        .eq('status', 'PAID'),
+      supabaseAdmin
+        .from('direct_debits')
+        .select('amount, mandates!inner(campaign_id)')
+        .in('mandates.campaign_id', campaignIds)
+        .eq('status', 'COLLECTED'),
+    ]);
+
+    for (const row of txResult.data ?? []) {
+      raisedMap.set(row.campaign_id, (raisedMap.get(row.campaign_id) ?? 0) + (row.amount ?? 0));
+    }
+    for (const row of ddResult.data ?? []) {
+      const cid = Array.isArray((row as any).mandates)
+        ? (row as any).mandates[0]?.campaign_id
+        : (row as any).mandates?.campaign_id;
+      if (cid) {
+        raisedMap.set(cid, (raisedMap.get(cid) ?? 0) + (row.amount ?? 0));
+      }
+    }
+  }
+
+  const campaignsWithRaised: CampaignWithRaised[] = (campaigns ?? []).map((c) => ({
+    ...c,
+    raised_cents: raisedMap.get(c.id) ?? 0,
+  }));
 
   return (
     <div className="mx-auto max-w-5xl py-6">
@@ -114,7 +156,7 @@ export default async function CampaignsPage({ params }: PageProps) {
       <CampaignsClient
         organizationId={organization.id}
         organizationSlug={organization.slug}
-        initialCampaigns={campaigns ?? []}
+        initialCampaigns={campaignsWithRaised}
         canManage={canManage}
         canDelete={canDelete}
       />

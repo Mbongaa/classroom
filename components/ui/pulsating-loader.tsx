@@ -9,7 +9,7 @@ export default function PulsatingLoader() {
         {[0, 0.2, 0.4].map((delay, index) => (
           <motion.div
             key={index}
-            className="h-4 w-4 rounded-full bg-[rgb(var(--pulse-color))]"
+            className="h-4 w-4 rounded-full bg-black dark:bg-white"
             animate={{
               scale: [1, 1.5, 1],
               opacity: [0.5, 1, 0.5],

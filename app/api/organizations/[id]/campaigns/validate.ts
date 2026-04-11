@@ -7,6 +7,7 @@ interface ValidatedFields {
     description?: string | null;
     goal_amount?: number | null;
     cause_type?: string | null;
+    icon?: string | null;
     is_active?: boolean;
   };
 }
@@ -88,6 +89,21 @@ export function validateCampaignBody(
         return { error: 'cause_type must be at most 50 characters' };
       }
       fields.cause_type = trimmed;
+    }
+  }
+
+  // icon — optional, nullable string (Tabler icon key)
+  if (body.icon !== undefined) {
+    if (body.icon === null || body.icon === '') {
+      fields.icon = null;
+    } else if (typeof body.icon !== 'string') {
+      return { error: 'icon must be a string or null' };
+    } else {
+      const trimmed = body.icon.trim();
+      if (trimmed.length > 60) {
+        return { error: 'icon must be at most 60 characters' };
+      }
+      fields.icon = trimmed;
     }
   }
 

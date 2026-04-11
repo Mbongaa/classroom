@@ -34,7 +34,7 @@ export function DashboardModeToggle({ currentMode, orgSlug }: DashboardModeToggl
     <div
       role="tablist"
       aria-label="Dashboard mode"
-      className="inline-flex items-center gap-0.5 rounded-full border border-[rgba(128,128,128,0.3)] bg-slate-100/60 p-0.5 dark:bg-slate-800/60"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[rgba(128,128,128,0.3)] bg-slate-200/80 p-0.5 dark:bg-slate-800/60"
     >
       <Link
         href="/dashboard"
@@ -45,8 +45,8 @@ export function DashboardModeToggle({ currentMode, orgSlug }: DashboardModeToggl
         className={cn(
           'flex h-8 w-10 items-center justify-center rounded-full transition-colors',
           translationActive
-            ? 'bg-background text-foreground shadow-sm'
-            : 'text-slate-500 hover:text-foreground dark:text-slate-400',
+            ? 'bg-white text-slate-900 shadow-md ring-1 ring-slate-300 dark:bg-background dark:text-foreground dark:shadow-sm dark:ring-0'
+            : 'text-slate-600 hover:text-foreground dark:text-slate-400',
         )}
       >
         <IconLanguage className="h-4 w-4" />

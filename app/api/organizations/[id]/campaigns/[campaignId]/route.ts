@@ -18,7 +18,7 @@ import { validateCampaignBody } from '../validate';
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const CAMPAIGN_COLUMNS =
-  'id, organization_id, slug, title, description, goal_amount, cause_type, is_active, created_at, updated_at';
+  'id, organization_id, slug, title, description, goal_amount, cause_type, icon, is_active, sort_order, created_at, updated_at';
 
 interface RouteParams {
   params: Promise<{ id: string; campaignId: string }>;

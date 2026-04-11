@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { XCircle, ArrowLeft, Mail } from 'lucide-react';
+import { XCircle, Mail } from 'lucide-react';
+import { ArrowLeftIcon } from '@/components/ui/arrow-left';
 
 export default function SignupCanceledPage() {
   const router = useRouter();
@@ -28,7 +29,7 @@ export default function SignupCanceledPage() {
               onClick={() => router.push('/signup')}
               className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeftIcon size={16} />
               Try Again
             </button>
 

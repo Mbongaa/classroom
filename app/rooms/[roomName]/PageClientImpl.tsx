@@ -13,6 +13,9 @@ import CustomPreJoin from '@/app/components/custom-prejoin/CustomPreJoin';
 import { QRCodeCanvas } from 'qrcode.react';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { Button as StatefulButton } from '@/components/ui/stateful-button';
+import { CopyIcon, type CopyIconHandle } from '@/components/ui/copy';
+import { DownloadIcon, type DownloadIconHandle } from '@/components/ui/download';
+import { QrCodeIcon, type QrCodeIconHandle } from '@/components/ui/qr-code';
 import styles from './PageClient.module.css';
 import {
   formatChatMessageLinks,
@@ -151,6 +154,9 @@ export function PageClientImpl(props: {
   }, [props.roomName, classroomInfo?.role]);
 
   const qrCanvasRef = React.useRef<HTMLDivElement>(null);
+  const copyIconRef = React.useRef<CopyIconHandle>(null);
+  const downloadIconRef = React.useRef<DownloadIconHandle>(null);
+  const qrCodeIconRef = React.useRef<QrCodeIconHandle>(null);
 
   // Compute student link once, shared by Copy Link button, Copy QR button, and display
   const studentLink = React.useMemo(() => {
@@ -277,17 +283,34 @@ export function PageClientImpl(props: {
                       {/* Copy buttons */}
                       <div className={styles.copyButtonWrapper}>
                         <StatefulButton
+                          onMouseEnter={() => copyIconRef.current?.startAnimation()}
+                          onMouseLeave={() => copyIconRef.current?.stopAnimation()}
                           onClick={() => {
+                            copyIconRef.current?.startAnimation();
                             return new Promise((resolve) => {
                               navigator.clipboard.writeText(studentLink);
                               setTimeout(resolve, 500);
                             });
                           }}
                         >
-                          Copy Student Link
+                          <span className="inline-flex items-center gap-2">
+                            <CopyIcon ref={copyIconRef} size={16} className="inline-flex" />
+                            Student Link
+                          </span>
                         </StatefulButton>
                         <StatefulButton
+                          showStatusIndicators={false}
+                          onMouseEnter={() => {
+                            downloadIconRef.current?.startAnimation();
+                            qrCodeIconRef.current?.startAnimation();
+                          }}
+                          onMouseLeave={() => {
+                            downloadIconRef.current?.stopAnimation();
+                            qrCodeIconRef.current?.stopAnimation();
+                          }}
                           onClick={() => {
+                            downloadIconRef.current?.startAnimation();
+                            qrCodeIconRef.current?.startAnimation();
                             return new Promise<void>((resolve, reject) => {
                               const canvas = qrCanvasRef.current?.querySelector('canvas');
                               if (!canvas) {
@@ -299,35 +322,23 @@ export function PageClientImpl(props: {
                                   reject(new Error('Failed to generate QR image'));
                                   return;
                                 }
-                                if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
-                                  navigator.clipboard
-                                    .write([new ClipboardItem({ 'image/png': blob })])
-                                    .then(() => setTimeout(resolve, 500))
-                                    .catch(() => {
-                                      // Fallback: download the PNG
-                                      const url = URL.createObjectURL(blob);
-                                      const a = document.createElement('a');
-                                      a.href = url;
-                                      a.download = `qr-${props.roomName}.png`;
-                                      a.click();
-                                      URL.revokeObjectURL(url);
-                                      setTimeout(resolve, 500);
-                                    });
-                                } else {
-                                  // Fallback: download the PNG
-                                  const url = URL.createObjectURL(blob);
-                                  const a = document.createElement('a');
-                                  a.href = url;
-                                  a.download = `qr-${props.roomName}.png`;
-                                  a.click();
-                                  URL.revokeObjectURL(url);
-                                  setTimeout(resolve, 500);
-                                }
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `${props.roomName}.png`;
+                                document.body.appendChild(a);
+                                a.click();
+                                document.body.removeChild(a);
+                                URL.revokeObjectURL(url);
+                                setTimeout(resolve, 500);
                               }, 'image/png');
                             });
                           }}
                         >
-                          Copy QR
+                          <span className="inline-flex items-center gap-2">
+                            <DownloadIcon ref={downloadIconRef} size={16} className="inline-flex" />
+                            <QrCodeIcon ref={qrCodeIconRef} size={28} />
+                          </span>
                         </StatefulButton>
                       </div>
 
