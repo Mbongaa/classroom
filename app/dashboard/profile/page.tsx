@@ -2,6 +2,7 @@
 
 import { useUser } from '@/lib/contexts/UserContext';
 import { ProfileForm } from '@/app/dashboard/profile/profile-form';
+import { OrganizationForm } from '@/app/dashboard/profile/organization-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
 
@@ -68,6 +69,18 @@ export default function ProfilePage() {
             </div>
           </CardContent>
         </Card>
+
+        {profile.role === 'admin' && profile.organization && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Organization</CardTitle>
+              <CardDescription>Update your organization&apos;s display name</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <OrganizationForm currentName={profile.organization.name} />
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

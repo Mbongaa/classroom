@@ -363,3 +363,63 @@ export async function updateProfile(formData: FormData): Promise<AuthResult> {
   revalidatePath('/dashboard/profile');
   return { success: true };
 }
+
+/**
+ * Rename the current user's organization.
+ *
+ * Only members with `profiles.role = 'admin'` are allowed — enforced both
+ * at the server-action layer and by the RLS policy on `organizations`.
+ * Leaves slug, subscription status, and Stripe ids untouched; only the
+ * display name changes.
+ */
+export async function updateOrganizationName(formData: FormData): Promise<AuthResult> {
+  const raw = (formData.get('orgName') as string | null) ?? '';
+  const orgName = raw.trim();
+
+  if (!orgName) {
+    return { success: false, error: 'Organization name is required' };
+  }
+  if (orgName.length > 100) {
+    return { success: false, error: 'Organization name must be 100 characters or fewer' };
+  }
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('organization_id, role')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return { success: false, error: 'Profile not found' };
+  }
+  if (!profile.organization_id) {
+    return { success: false, error: 'You do not belong to an organization' };
+  }
+  if (profile.role !== 'admin') {
+    return { success: false, error: 'Only organization admins can rename the organization' };
+  }
+
+  const { error } = await supabase
+    .from('organizations')
+    .update({ name: orgName })
+    .eq('id', profile.organization_id);
+
+  if (error) {
+    return { success: false, error: error.message };
+  }
+
+  // Org name surfaces in the sidebar, profile page, mosque-admin header,
+  // and donate landing — refresh the whole layout to pick it up.
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
