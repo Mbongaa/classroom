@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from
 import { useRoomContext } from '@livekit/components-react';
 import { TranscriptionSegment, RoomEvent, RemoteAudioTrack, ParticipantKind } from 'livekit-client';
 import { Languages, Maximize2, Minimize2, Video, VideoOff, Volume2, VolumeX, ArrowDown, GripHorizontal } from 'lucide-react';
+import { LottieIcon } from '@/components/lottie-icon';
 import { BotIcon } from '@/components/ui/bot';
 import { isIOSDevice } from '@/lib/client-utils';
 import { sentenceAccumulator } from '@/lib/sentence-accumulator';
@@ -572,8 +573,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
         {translatedSegments.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
-              <Languages className={styles.globeIcon} size={64} />
-              <span className={styles.pulseRing}></span>
+              <LottieIcon src="/lottie/translate-icon.lottie" size={400} />
             </div>
             <div className={styles.emptyTitle}>Waiting for Translation</div>
             <div className={styles.emptyDescription}>

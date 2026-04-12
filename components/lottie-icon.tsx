@@ -39,7 +39,13 @@ export function LottieIcon({ src, size, loop = true, className }: LottieIconProp
       role="presentation"
       aria-hidden="true"
     >
-      <DotLottieReact src={src} autoplay loop={loop} style={{ width: '100%', height: '100%' }} />
+      <DotLottieReact
+        src={src}
+        autoplay
+        loop={loop}
+        renderConfig={{ devicePixelRatio: 2.5 }}
+        style={{ width: '100%', height: '100%' }}
+      />
     </div>
   );
 }

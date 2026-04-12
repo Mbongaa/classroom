@@ -6,7 +6,7 @@ import {
   IconLock,
   IconLoader2,
   IconBuildingBank,
-  IconCreditCard,
+
   IconCheck,
   IconChevronLeft,
 } from '@tabler/icons-react';
@@ -461,7 +461,7 @@ export function DonationCheckout({
                     type="button"
                     onClick={selectIdeal}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 transition-all sm:gap-2 sm:px-4 sm:py-4',
+                      'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
                       paymentMethod === 'ideal'
                         ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
                         : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
@@ -470,16 +470,15 @@ export function DonationCheckout({
                     <Image
                       src="/images/paynl/payment_methods/1.svg"
                       alt="iDEAL | Wero"
-                      width={36}
-                      height={36}
-                      className="h-8 w-8 object-contain sm:h-9 sm:w-9"
+                      width={100}
+                      height={100}
+                      className="h-[100px] w-[100px] rounded-lg object-contain"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                         (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                       }}
                     />
-                    <IconBuildingBank className="hidden h-8 w-8 text-[#CC0066]" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">iDEAL</span>
+                    <IconBuildingBank className="hidden h-16 w-16 text-[#CC0066]" />
                   </button>
 
                   {/* Card tile */}
@@ -487,14 +486,13 @@ export function DonationCheckout({
                     type="button"
                     onClick={selectCard}
                     className={cn(
-                      'flex flex-col items-center gap-1.5 rounded-xl border-2 px-3 py-3 transition-all sm:gap-2 sm:px-4 sm:py-4',
+                      'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
                       paymentMethod === 'card'
                         ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
                         : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
                     )}
                   >
-                    <IconCreditCard className="h-7 w-7 text-slate-600 dark:text-slate-300 sm:h-8 sm:w-8" />
-                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Card</span>
+                    <LottieIcon src="/lottie/credit-card.lottie" size={100} loop={false} />
                   </button>
                 </div>
               </div>

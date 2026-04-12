@@ -4,6 +4,7 @@ import { useRoomContext } from '@livekit/components-react';
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { TranscriptionSegment, RoomEvent } from 'livekit-client';
 import { Languages, ArrowDown } from 'lucide-react';
+import { LottieIcon } from '@/components/lottie-icon';
 import styles from './TranslationPanel.module.css';
 
 import { generateSessionId } from '@/lib/client-utils';
@@ -332,8 +333,7 @@ export default function TranslationPanel({
         {translations.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
-              <Languages className={styles.globeIcon} size={64} />
-              <span className={styles.pulseRing}></span>
+              <LottieIcon src="/lottie/translate-icon.lottie" size={400} />
             </div>
             <div className={styles.emptyTitle}>Waiting for Translation</div>
             <div className={styles.emptyDescription}>

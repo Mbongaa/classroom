@@ -183,6 +183,14 @@ export async function POST(request: NextRequest) {
     }
 
     if (!session) {
+      // Only teachers can start new sessions — students must wait for a teacher
+      if (userRole === 'student') {
+        return NextResponse.json(
+          { error: 'No active session. Waiting for teacher to start the room.' },
+          { status: 409 },
+        );
+      }
+
       // No active session — create fresh LiveKit room + v2 session
       console.log(
         `[V2 Connect] Creating new session for ${roomCode} (${livekitRoomName}) on ${language === 'ar' ? 'Bayaan' : 'Vertex'}`,
