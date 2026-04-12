@@ -176,7 +176,6 @@ export function DonateLandingClient({
       : null;
 
   // ---- Bottom Lottie progress driven by selected campaign % ----
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dotLottieRef = useRef<any>(null);
   const lottieLoadedRef = useRef(false);
   const currentFrameRef = useRef(0);
@@ -206,7 +205,6 @@ export function DonateLandingClient({
   }, []);
 
   const dotLottieRefCallback = useCallback(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (dotLottie: any) => {
       dotLottieRef.current = dotLottie;
       if (dotLottie) {
@@ -275,8 +273,8 @@ export function DonateLandingClient({
               disabled={creatingSession}
               className="mb-6 flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
             >
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600">
-                <IconHeartHandshake className="h-6 w-6 text-white" />
+              <div className="shrink-0">
+                <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={48} />
               </div>
               <div className="flex-1">
                 <p className="text-lg font-semibold">Become a monthly supporter</p>
@@ -356,7 +354,7 @@ export function DonateLandingClient({
                           <div className="mt-1 flex items-center gap-2">
                             <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                               <div
-                                className="h-full rounded-full bg-emerald-500"
+                                className="h-full rounded-full bg-[#30f2cf]"
                                 style={{ width: `${cPct}%` }}
                               />
                             </div>
@@ -400,7 +398,7 @@ export function DonateLandingClient({
                     <div className="mt-4">
                       <div className="mx-auto h-2 max-w-xs overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                         <div
-                          className="h-full rounded-full bg-emerald-500 transition-all"
+                          className="h-full rounded-full bg-[#30f2cf] transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

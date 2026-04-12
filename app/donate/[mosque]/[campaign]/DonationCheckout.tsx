@@ -55,23 +55,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const IBAN_RE = /^[A-Z]{2}[0-9]{2}[A-Z0-9]{11,30}$/;
 const BIC_RE = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
 
-function getBankLogoFilename(bankName: string): string {
-  const lower = bankName.toLowerCase();
-  if (lower.includes('abn') || lower.includes('amro')) return 'ABN Amro';
-  if (lower.includes('ing')) return 'ING';
-  if (lower.includes('rabo')) return 'Rabobank';
-  if (lower.includes('sns')) return 'SNS';
-  if (lower.includes('asn')) return 'ASN';
-  if (lower.includes('triodos')) return 'Triodos';
-  if (lower.includes('knab')) return 'Knab';
-  if (lower.includes('bunq')) return 'Bunq';
-  if (lower.includes('revolut')) return 'Revolut';
-  if (lower.includes('handels')) return 'Handelsbanken';
-  if (lower.includes('regio')) return 'RegioBank';
-  if (lower.includes('lanschot')) return 'Van Lanschot';
-  if (lower.includes('yoursafe')) return 'Yoursafe';
-  return bankName;
-}
 
 function formatEuro(cents: number): string {
   return new Intl.NumberFormat('nl-NL', {
@@ -364,7 +347,7 @@ export function DonationCheckout({
             {hasGoal && (
               <div className="mt-2.5">
                 <div className="mx-auto h-1.5 max-w-xs overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all" style={{ width: `${pct}%` }} />
+                  <div className="h-full rounded-full bg-[#30f2cf] transition-all" style={{ width: `${pct}%` }} />
                 </div>
                 <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                   <span className="font-semibold text-slate-700 dark:text-slate-200">{formatEuro(campaign.raised_cents)}</span>
@@ -485,8 +468,8 @@ export function DonationCheckout({
                     )}
                   >
                     <Image
-                      src="/images/banks/ideal-logo-svgrepo-com.svg"
-                      alt="iDEAL"
+                      src="/images/paynl/payment_methods/1.svg"
+                      alt="iDEAL | Wero"
                       width={36}
                       height={36}
                       className="h-8 w-8 object-contain sm:h-9 sm:w-9"
@@ -528,7 +511,6 @@ export function DonationCheckout({
                 ) : (
                   <div className="h-full overflow-y-auto rounded-xl border-2 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
                     {idealIssuers.map((issuer, idx) => {
-                      const filename = getBankLogoFilename(issuer.name);
                       const isSelected = selectedIssuerId === issuer.id;
                       return (
                         <button
@@ -542,7 +524,7 @@ export function DonationCheckout({
                           )}
                         >
                           <Image
-                            src={`/images/banks/${encodeURIComponent(filename)}.svg`}
+                            src={`/images/paynl/issuers/${issuer.id}.svg`}
                             alt={issuer.name}
                             width={32}
                             height={32}
