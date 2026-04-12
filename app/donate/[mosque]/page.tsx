@@ -113,6 +113,7 @@ export default async function DonateLandingPage({ params }: PageProps) {
 
   return (
     <DonateLandingClient
+      orgId={organization.id}
       orgSlug={organization.slug}
       orgName={organization.name}
       orgCity={organization.city}

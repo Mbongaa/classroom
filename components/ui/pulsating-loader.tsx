@@ -1,27 +1,25 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then((m) => m.DotLottieReact),
+  {
+    ssr: false,
+    loading: () => <span className="inline-block" aria-hidden="true" />,
+  },
+);
 
 export default function PulsatingLoader() {
   return (
     <div className="flex items-center justify-center min-h-[100px]">
-      <div className="flex space-x-3">
-        {[0, 0.2, 0.4].map((delay, index) => (
-          <motion.div
-            key={index}
-            className="h-4 w-4 rounded-full bg-black dark:bg-white"
-            animate={{
-              scale: [1, 1.5, 1],
-              opacity: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 1.2,
-              ease: 'easeInOut',
-              repeat: Infinity,
-              delay: delay,
-            }}
-          />
-        ))}
+      <div className="dark:invert" style={{ width: 240, height: 180 }}>
+        <DotLottieReact
+          src="/lottie/typing-loader.lottie"
+          autoplay
+          loop
+          style={{ width: '100%', height: '100%' }}
+        />
       </div>
     </div>
   );

@@ -3,6 +3,11 @@ import { requireAuth } from '@/lib/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
 
+// Force dynamic execution so that `refetch()` after a server-action
+// revalidatePath always sees the fresh profile/org row instead of a
+// cached response from the previous render.
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/me — return the current user + profile, with impersonation applied.
  *

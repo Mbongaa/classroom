@@ -81,6 +81,14 @@ export async function PATCH(
     }
   }
 
+  // When name changes, always regenerate slug to keep them in sync
+  // (unless the caller also explicitly provided a slug override).
+  if (updates.name && !body.slug) {
+    const { slugify } = await import('@/lib/slugify');
+    const generated = slugify(updates.name);
+    if (generated) updates.slug = generated;
+  }
+
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
   }

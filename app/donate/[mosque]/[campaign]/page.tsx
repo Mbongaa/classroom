@@ -1,14 +1,18 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { DonationForm } from './DonationForm';
+import { createAdminClient } from '@/lib/supabase/admin';
+import { DonationCheckout } from './DonationCheckout';
 
 /**
  * /donate/[mosque]/[campaign]
  *
- * Public donation page. Uses the anon Supabase client (with the
- * "Public can view active campaigns" RLS policy on campaigns); no donor PII
- * is ever read here. The `mosque` route param is the user-facing label (the
- * organization slug) — the underlying tenant entity is `organizations`.
+ * Public donation page (Stripe-style checkout). Uses the anon Supabase
+ * client (public RLS on campaigns); no donor PII is read here.
+ *
+ * The `mosque` route param is the organization slug. When the URL contains
+ * `?kiosk=<session-id>`, this page was opened by scanning a QR code on the
+ * kiosk tablet — we mark the kiosk session as "scanned" so the tablet
+ * resets via Supabase Realtime.
  */
 
 interface PageProps {
@@ -16,6 +20,7 @@ interface PageProps {
     mosque: string;
     campaign: string;
   }>;
+  searchParams: Promise<{ kiosk?: string; recurring?: string }>;
 }
 
 interface CampaignRow {
@@ -25,40 +30,101 @@ interface CampaignRow {
   description: string | null;
   goal_amount: number | null;
   cause_type: string | null;
+  icon: string | null;
   organization_id: string;
 }
 
-export default async function DonationPage({ params }: PageProps) {
+interface OrganizationRow {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export default async function DonationPage({ params, searchParams }: PageProps) {
   const { mosque, campaign: campaignSlug } = await params;
+  const { kiosk: kioskSessionId, recurring } = await searchParams;
+
+  // If opened via QR scan from kiosk, mark the session as scanned so the
+  // kiosk tablet resets. Fire-and-forget — don't block page render.
+  if (kioskSessionId && UUID_RE.test(kioskSessionId)) {
+    const supabaseAdmin = createAdminClient();
+    supabaseAdmin
+      .from('kiosk_sessions')
+      .update({ status: 'scanned' })
+      .eq('id', kioskSessionId)
+      .eq('status', 'waiting')
+      .then(({ error }) => {
+        if (error) console.error('[KioskSession] scanned update failed', error);
+      });
+  }
 
   const supabase = await createClient();
-  const { data: campaign } = await supabase
+
+  // Fetch campaign + parent org in parallel.
+  const campaignQuery = supabase
     .from('campaigns')
-    .select('id, slug, title, description, goal_amount, cause_type, organization_id')
+    .select('id, slug, title, description, goal_amount, cause_type, icon, organization_id')
     .eq('slug', campaignSlug)
     .eq('is_active', true)
     .single<CampaignRow>();
 
-  if (!campaign) {
+  const orgQuery = supabase
+    .from('organizations')
+    .select<string, OrganizationRow>('id, name, slug')
+    .eq('slug', mosque)
+    .eq('donations_active', true)
+    .single();
+
+  const [{ data: campaign }, { data: organization }] = await Promise.all([
+    campaignQuery,
+    orgQuery,
+  ]);
+
+  if (!campaign || !organization) {
     notFound();
   }
 
+  // Compute raised amount for progress bar (admin client — transactions have no public RLS).
+  let raisedCents = 0;
+  if (campaign.goal_amount && campaign.goal_amount > 0) {
+    const supabaseAdmin = createAdminClient();
+    const [txResult, ddResult] = await Promise.all([
+      supabaseAdmin
+        .from('transactions')
+        .select('amount')
+        .eq('campaign_id', campaign.id)
+        .eq('status', 'PAID'),
+      supabaseAdmin
+        .from('direct_debits')
+        .select('amount, mandates!inner(campaign_id)')
+        .eq('mandates.campaign_id', campaign.id)
+        .eq('status', 'COLLECTED'),
+    ]);
+    for (const row of txResult.data ?? []) {
+      raisedCents += row.amount ?? 0;
+    }
+    for (const row of ddResult.data ?? []) {
+      raisedCents += row.amount ?? 0;
+    }
+  }
+
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto max-w-xl px-4 py-12">
-        <div className="mb-6">
-          <p className="text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            {mosque}
-          </p>
-          <h1 className="mt-2 text-3xl font-semibold leading-tight">{campaign.title}</h1>
-          {campaign.description && (
-            <p className="mt-3 text-base text-slate-600 dark:text-slate-300">
-              {campaign.description}
-            </p>
-          )}
-        </div>
-        <DonationForm campaign={campaign} mosqueSlug={mosque} />
-      </div>
-    </main>
+    <DonationCheckout
+      campaign={{
+        id: campaign.id,
+        slug: campaign.slug,
+        title: campaign.title,
+        description: campaign.description,
+        goal_amount: campaign.goal_amount,
+        cause_type: campaign.cause_type,
+        icon: campaign.icon,
+        raised_cents: raisedCents,
+      }}
+      orgName={organization.name}
+      orgSlug={organization.slug}
+      isRecurring={recurring === 'true'}
+    />
   );
 }

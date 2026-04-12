@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <defs>
+    <linearGradient id="ig" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D5006D"/>
+      <stop offset="100%" stop-color="#A0004E"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="10" fill="url(#ig)"/>
+  <g fill="white">
+    <!-- i -->
+    <circle cx="10.5" cy="15" r="1.8"/>
+    <rect x="9" y="19" width="3" height="12" rx="1"/>
+    <!-- D -->
+    <path d="M16 17h4a7 7 0 0 1 0 14h-4V17zm3 3h1a4 4 0 0 1 0 8h-1V20z"/>
+    <!-- E (simplified) -->
+    <rect x="28" y="17" width="2.5" height="14" rx="0.5"/>
+    <rect x="28" y="17" width="7" height="2.5" rx="0.5"/>
+    <rect x="28" y="23.5" width="5.5" height="2.5" rx="0.5"/>
+    <rect x="28" y="28.5" width="7" height="2.5" rx="0.5"/>
+    <!-- dot on i (brand mark) -->
+  </g>
+  <!-- Arrow swoosh -->
+  <path d="M36 20c2-1 4 0 4 3s-2 5-4 6" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+</svg>

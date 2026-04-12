@@ -46,6 +46,9 @@ export function OrganizationForm({ currentName }: OrganizationFormProps) {
     <form action={handleSubmit}>
       <div className="grid gap-4">
         <FloatingLabelInput
+          // Re-key on currentName so the uncontrolled input re-reads its
+          // defaultValue after a successful save → refetch() round-trip.
+          key={currentName}
           id="orgName"
           name="orgName"
           label="Organization Name"

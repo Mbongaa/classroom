@@ -30,6 +30,10 @@ interface OneTimeDonationBody {
   donor_email: string;
   return_url: string;
   locale?: string;
+  /** Pay.nl payment method ID (e.g. 10 = iDEAL). */
+  payment_method_id?: number;
+  /** iDEAL issuer/bank ID — goes straight to the selected bank. */
+  issuer_id?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -75,6 +79,12 @@ function validateBody(raw: unknown): { ok: true; body: OneTimeDonationBody } | {
   if (r.locale !== undefined && typeof r.locale !== 'string') {
     return { ok: false, error: 'locale must be a string if provided' };
   }
+  if (r.payment_method_id !== undefined && (typeof r.payment_method_id !== 'number' || !Number.isInteger(r.payment_method_id))) {
+    return { ok: false, error: 'payment_method_id must be an integer' };
+  }
+  if (r.issuer_id !== undefined && (typeof r.issuer_id !== 'string' || r.issuer_id.length === 0)) {
+    return { ok: false, error: 'issuer_id must be a non-empty string' };
+  }
 
   return {
     ok: true,
@@ -86,6 +96,8 @@ function validateBody(raw: unknown): { ok: true; body: OneTimeDonationBody } | {
       donor_email: r.donor_email.trim(),
       return_url: r.return_url,
       locale: (r.locale as string) || 'nl_NL',
+      payment_method_id: r.payment_method_id as number | undefined,
+      issuer_id: r.issuer_id as string | undefined,
     },
   };
 }
@@ -173,6 +185,15 @@ export async function POST(request: NextRequest) {
 
     const slugSafe = campaign.slug.slice(0, 16);
 
+    // Build optional paymentMethod object (iDEAL with bank pre-selected, card, etc.)
+    let paymentMethod: { id: number; input?: { issuerId: string } } | undefined;
+    if (body.payment_method_id) {
+      paymentMethod = { id: body.payment_method_id };
+      if (body.issuer_id) {
+        paymentMethod.input = { issuerId: body.issuer_id };
+      }
+    }
+
     const orderPayload = {
       serviceId,
       amount: { value: body.amount, currency: body.currency || 'EUR' },
@@ -180,6 +201,7 @@ export async function POST(request: NextRequest) {
       reference: `CAMPAIGN-${slugSafe}`,
       returnUrl: body.return_url,
       exchangeUrl,
+      ...(paymentMethod && { paymentMethod }),
       customer: {
         firstName,
         lastName,

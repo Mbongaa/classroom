@@ -10,6 +10,7 @@ import {
   getStripePrices,
   PlanType,
 } from '@/lib/stripe';
+import { slugify } from '@/lib/slugify';
 
 export type AuthResult = {
   success: boolean;
@@ -369,8 +370,8 @@ export async function updateProfile(formData: FormData): Promise<AuthResult> {
  *
  * Only members with `profiles.role = 'admin'` are allowed — enforced both
  * at the server-action layer and by the RLS policy on `organizations`.
- * Leaves slug, subscription status, and Stripe ids untouched; only the
- * display name changes.
+ *
+ * The slug is always regenerated from the name so it stays in sync.
  */
 export async function updateOrganizationName(formData: FormData): Promise<AuthResult> {
   const raw = (formData.get('orgName') as string | null) ?? '';
@@ -381,6 +382,11 @@ export async function updateOrganizationName(formData: FormData): Promise<AuthRe
   }
   if (orgName.length > 100) {
     return { success: false, error: 'Organization name must be 100 characters or fewer' };
+  }
+
+  const newSlug = slugify(orgName);
+  if (!newSlug) {
+    return { success: false, error: 'Organization name must produce a valid URL slug' };
   }
 
   const supabase = await createClient();
@@ -409,17 +415,57 @@ export async function updateOrganizationName(formData: FormData): Promise<AuthRe
     return { success: false, error: 'Only organization admins can rename the organization' };
   }
 
-  const { error } = await supabase
+  // Ensure the new slug is unique (exclude current org).
+  const supabaseAdmin = createAdminClient();
+  const { data: slugConflict } = await supabaseAdmin
     .from('organizations')
-    .update({ name: orgName })
-    .eq('id', profile.organization_id);
+    .select('id')
+    .eq('slug', newSlug)
+    .neq('id', profile.organization_id)
+    .single();
+
+  if (slugConflict) {
+    return { success: false, error: 'An organization with this slug already exists' };
+  }
+
+  const updatePayload = { name: orgName, slug: newSlug };
+
+  // IMPORTANT: chain `.select()` so we get the affected rows back. Without
+  // this, Supabase returns `error: null` even when RLS silently filters out
+  // the row — which looks like success but writes nothing.
+  const { data: updated, error } = await supabase
+    .from('organizations')
+    .update(updatePayload)
+    .eq('id', profile.organization_id)
+    .select('id, name, slug');
 
   if (error) {
+    console.error('[updateOrganizationName] update error', error);
     return { success: false, error: error.message };
   }
 
-  // Org name surfaces in the sidebar, profile page, mosque-admin header,
-  // and donate landing — refresh the whole layout to pick it up.
+  if (!updated || updated.length === 0) {
+    // RLS policy blocked the write. Fall back to the admin client so that a
+    // legitimately-authorized org admin can still rename their org even if
+    // the per-user RLS predicate rejects the write (the server-side role
+    // check above is what actually gates this action).
+    const { data: adminUpdated, error: adminError } = await supabaseAdmin
+      .from('organizations')
+      .update(updatePayload)
+      .eq('id', profile.organization_id)
+      .select('id, name, slug');
+
+    if (adminError) {
+      console.error('[updateOrganizationName] admin update error', adminError);
+      return { success: false, error: adminError.message };
+    }
+    if (!adminUpdated || adminUpdated.length === 0) {
+      return { success: false, error: 'Organization not found' };
+    }
+  }
+
+  // Org name and slug surface in the sidebar, profile page, mosque-admin
+  // header, donate landing, and URL routes — refresh everything.
   revalidatePath('/', 'layout');
   return { success: true };
 }

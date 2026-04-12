@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signUp } from '@/lib/actions/auth';
+import { slugify } from '@/lib/slugify';
 import { Button } from '@/components/ui/moving-border';
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 import { Check } from 'lucide-react';
@@ -84,14 +85,7 @@ function SubmitButton({
   );
 }
 
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/--+/g, '-')
-    .trim();
-}
+// slugify imported from @/lib/slugify
 
 export function SignupForm() {
   const [error, setError] = useState<string | null>(null);

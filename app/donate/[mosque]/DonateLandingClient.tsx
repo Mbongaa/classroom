@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { IconHeartHandshake, IconCreditCard, IconChevronRight } from '@tabler/icons-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
+import { IconHeartHandshake, IconChevronRight, IconX } from '@tabler/icons-react';
+import { createClient } from '@/lib/supabase/client';
 import { getCampaignIcon } from '@/lib/campaign-icons';
+import dynamic from 'next/dynamic';
 import { LottieIcon } from '@/components/lottie-icon';
+
+const DotLottieReact = dynamic(
+  () => import('@lottiefiles/dotlottie-react').then((m) => m.DotLottieReact),
+  { ssr: false },
+);
 
 /**
  * Dual-pane donation landing for the POS / kiosk tablet.
@@ -27,6 +34,7 @@ export interface CampaignDisplay {
 }
 
 interface DonateLandingClientProps {
+  orgId: string;
   orgSlug: string;
   orgName: string;
   orgCity: string | null;
@@ -43,7 +51,11 @@ function formatEuro(cents: number): string {
   }).format(cents / 100);
 }
 
+/** Auto-timeout for QR overlay (ms). */
+const QR_TIMEOUT_MS = 60_000;
+
 export function DonateLandingClient({
+  orgId,
   orgSlug,
   orgName,
   orgCity,
@@ -55,6 +67,105 @@ export function DonateLandingClient({
     campaigns.length > 0 ? campaigns[0] : null,
   );
 
+  // QR overlay state
+  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [qrKind, setQrKind] = useState<'one-time' | 'recurring' | null>(null);
+  const [creatingSession, setCreatingSession] = useState(false);
+  const realtimeChannelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const closeQrOverlay = useCallback(() => {
+    setQrSessionId(null);
+    setQrUrl(null);
+    setQrKind(null);
+    if (realtimeChannelRef.current) {
+      const supabase = createClient();
+      supabase.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, []);
+
+  /**
+   * Generic QR overlay opener. Creates a kiosk session, builds the
+   * phone URL, and subscribes to Realtime for scan detection.
+   *
+   * @param campaignSlug  - which campaign the QR points to
+   * @param kind          - 'one-time' or 'recurring' (controls overlay copy + URL params)
+   */
+  async function openQrOverlay(campaignSlug: string, kind: 'one-time' | 'recurring') {
+    if (creatingSession) return;
+    setCreatingSession(true);
+
+    try {
+      const res = await fetch('/api/kiosk-sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          organization_id: orgId,
+          campaign_slug: campaignSlug,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create session');
+
+      const sessionId = data.id as string;
+      const params = new URLSearchParams({ kiosk: sessionId });
+      if (kind === 'recurring') params.set('recurring', 'true');
+      const donateUrl = `${window.location.origin}/donate/${orgSlug}/${campaignSlug}?${params.toString()}`;
+
+      setQrSessionId(sessionId);
+      setQrUrl(donateUrl);
+      setQrKind(kind);
+
+      // Subscribe to Realtime updates on this session row.
+      const supabase = createClient();
+      const channel = supabase
+        .channel(`kiosk-${sessionId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'kiosk_sessions',
+            filter: `id=eq.${sessionId}`,
+          },
+          (payload) => {
+            if ((payload.new as { status?: string }).status === 'scanned') {
+              closeQrOverlay();
+            }
+          },
+        )
+        .subscribe();
+
+      realtimeChannelRef.current = channel;
+
+      // Auto-timeout fallback
+      timeoutRef.current = setTimeout(() => {
+        closeQrOverlay();
+      }, QR_TIMEOUT_MS);
+    } catch {
+      // Silently fail — worst case the link still works as a direct tap
+    } finally {
+      setCreatingSession(false);
+    }
+  }
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (realtimeChannelRef.current) {
+        const supabase = createClient();
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   const selectedIconEntry = getCampaignIcon(selected?.icon);
 
   const hasGoal =
@@ -63,6 +174,55 @@ export function DonateLandingClient({
     hasGoal && selected
       ? Math.min(100, Math.round((selected.raised_cents / selected.goal_amount!) * 100))
       : null;
+
+  // ---- Bottom Lottie progress driven by selected campaign % ----
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const dotLottieRef = useRef<any>(null);
+  const lottieLoadedRef = useRef(false);
+  const currentFrameRef = useRef(0);
+
+  const animateToPercentage = useCallback((p: number) => {
+    const instance = dotLottieRef.current;
+    if (!instance || !lottieLoadedRef.current) return;
+    const total = instance.totalFrames;
+    if (!total) return;
+    const clamped = Math.max(0, Math.min(100, p));
+    const targetFrame = Math.round((clamped / 100) * (total - 1));
+    const fromFrame = currentFrameRef.current;
+
+    if (fromFrame === targetFrame) return;
+
+    currentFrameRef.current = targetFrame;
+
+    if (fromFrame < targetFrame) {
+      instance.setMode('forward');
+      instance.setSegment(fromFrame, targetFrame);
+    } else {
+      instance.setMode('reverse');
+      instance.setSegment(targetFrame, fromFrame);
+    }
+    instance.setSpeed(2);
+    instance.play();
+  }, []);
+
+  const dotLottieRefCallback = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (dotLottie: any) => {
+      dotLottieRef.current = dotLottie;
+      if (dotLottie) {
+        dotLottie.addEventListener('load', () => {
+          lottieLoadedRef.current = true;
+          animateToPercentage(pct ?? 0);
+        });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  useEffect(() => {
+    animateToPercentage(pct ?? 0);
+  }, [pct, animateToPercentage]);
 
   return (
     <main className="flex min-h-screen flex-col bg-background text-foreground">
@@ -109,9 +269,11 @@ export function DonateLandingClient({
             )}
 
             {/* Monthly supporter — org-level, independent of campaign selection */}
-            <Link
-              href={`/donate/${orgSlug}/${campaigns[0].slug}?recurring=true`}
-              className="mb-6 flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
+            <button
+              type="button"
+              onClick={() => openQrOverlay(campaigns[0].slug, 'recurring')}
+              disabled={creatingSession}
+              className="mb-6 flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
             >
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-600">
                 <IconHeartHandshake className="h-6 w-6 text-white" />
@@ -123,7 +285,7 @@ export function DonateLandingClient({
                 </p>
               </div>
               <IconChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
-            </Link>
+            </button>
 
             <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Choose a cause
@@ -254,24 +416,28 @@ export function DonateLandingClient({
                   )}
                 </div>
 
-                {/* Payment CTAs */}
+                {/* Payment CTA */}
                 <div className="space-y-4">
-                  <Link
-                    href={`/donate/${orgSlug}/${selected.slug}`}
-                    className="flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
+                  <button
+                    type="button"
+                    onClick={() => openQrOverlay(selected!.slug, 'one-time')}
+                    disabled={creatingSession}
+                    className="flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
                   >
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-black dark:bg-white">
-                      <IconCreditCard className="h-6 w-6 text-white dark:text-black" />
+                    <div className="shrink-0">
+                      <LottieIcon src="/lottie/qr-code.json" size={64} className="dark:hidden" />
+                      <LottieIcon src="/lottie/qr-code-white.json" size={64} className="hidden dark:block" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-lg font-semibold">One-time donation</p>
+                      <p className="text-lg font-semibold">
+                        {creatingSession ? 'Preparing…' : 'One-time donation'}
+                      </p>
                       <p className="text-sm text-slate-500 dark:text-slate-400">
-                        iDEAL, card, or other payment method
+                        Scan the QR code with your phone to donate
                       </p>
                     </div>
                     <IconChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
-                  </Link>
-
+                  </button>
                 </div>
 
                 {/* Campaign icon animation */}
@@ -301,6 +467,58 @@ export function DonateLandingClient({
                 </p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ---- Bottom Lottie progress — driven by selected campaign % ---- */}
+      <div className="mt-auto w-full overflow-hidden" style={{ height: 60 }}>
+        <DotLottieReact
+          src="/lottie/donation-progress.lottie"
+          autoplay={false}
+          loop={false}
+          dotLottieRefCallback={dotLottieRefCallback}
+          style={{ width: '100%', height: 120 }}
+        />
+      </div>
+
+      {/* ---- QR Code Overlay ---- */}
+      {qrUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="relative mx-4 w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900">
+            <button
+              type="button"
+              onClick={closeQrOverlay}
+              className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              aria-label="Close"
+            >
+              <IconX className="h-5 w-5" />
+            </button>
+
+            <h2 className="text-xl font-bold">
+              {qrKind === 'recurring' ? 'Become a monthly supporter' : 'Scan to donate'}
+            </h2>
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              {qrKind === 'recurring'
+                ? 'Scan with your phone to set up a recurring donation'
+                : 'Open your phone camera and scan this QR code'}
+            </p>
+
+            <div className="mx-auto mt-6 inline-block rounded-xl bg-white p-4">
+              <QRCodeSVG
+                value={qrUrl}
+                size={240}
+                level="M"
+                includeMargin={false}
+              />
+            </div>
+
+            <p className="mt-4 text-xs text-slate-400">
+              {selected?.title} — {orgName}
+            </p>
+            <p className="mt-6 text-xs text-slate-400">
+              This screen will close automatically when the QR is scanned
+            </p>
           </div>
         </div>
       )}

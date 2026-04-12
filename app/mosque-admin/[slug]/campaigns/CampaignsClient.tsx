@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { TrashIcon } from '@/components/ui/trash';
 import { CampaignFormDialog } from './CampaignFormDialog';
 
 /**
@@ -433,13 +434,15 @@ function CampaignRow({
           )}
           {canDelete && (
             <Button
-              size="sm"
+              size="icon"
               variant="ghost"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
+              className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
               onClick={handleDelete}
               disabled={deleting || pending}
+              title={deleting ? 'Deleting…' : 'Delete campaign'}
+              aria-label="Delete campaign"
             >
-              {deleting ? 'Deleting…' : 'Delete'}
+              <TrashIcon size={16} />
             </Button>
           )}
         </div>

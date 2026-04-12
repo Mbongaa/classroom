@@ -185,6 +185,15 @@ export interface OrderStats {
   info?: string;
 }
 
+export interface OrderPaymentMethod {
+  /** Pay.nl payment method ID (e.g. 10 = iDEAL, 706 = Visa, 436 = Card). */
+  id: number;
+  input?: {
+    /** iDEAL issuer/bank ID — skips Pay.nl's checkout and goes straight to the bank. */
+    issuerId?: string;
+  };
+}
+
 export interface OrderCreatePayload {
   serviceId: string;
   amount: OrderAmount;
@@ -192,6 +201,7 @@ export interface OrderCreatePayload {
   reference: string;
   returnUrl: string;
   exchangeUrl: string;
+  paymentMethod?: OrderPaymentMethod;
   customer?: OrderCustomer;
   stats?: OrderStats;
   integration?: { test: boolean };

@@ -10,6 +10,7 @@ import {
   groupAnimationsByCategory,
   type ThankYouAnimation,
 } from '@/lib/thankyou-animations';
+import { IconExternalLink } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
 /**
@@ -91,6 +92,18 @@ function GeneralPanel({ organization }: { organization: OrganizationProp }) {
         {organization.description && (
           <Field label="Description" value={organization.description} multiline />
         )}
+
+        <div className="pt-2">
+          <a
+            href={`/donate/${organization.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 underline-offset-4 hover:underline dark:text-emerald-400"
+          >
+            <IconExternalLink className="h-4 w-4" />
+            View donate landing page
+          </a>
+        </div>
       </CardContent>
     </Card>
   );
