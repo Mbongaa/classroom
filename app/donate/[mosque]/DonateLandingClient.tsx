@@ -470,13 +470,13 @@ export function DonateLandingClient({
       )}
 
       {/* ---- Bottom Lottie progress — driven by selected campaign % ---- */}
-      <div className="mt-auto w-full overflow-hidden" style={{ height: 60 }}>
+      <div className="mt-auto w-screen overflow-hidden" style={{ height: 60 }}>
         <DotLottieReact
           src="/lottie/donation-progress.lottie"
           autoplay={false}
           loop={false}
           dotLottieRefCallback={dotLottieRefCallback}
-          style={{ width: '100%', height: 120 }}
+          style={{ width: '100vw', height: 120 }}
         />
       </div>
 

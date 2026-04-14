@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { UserProviderWrapper } from '@/app/dashboard/user-provider-wrapper';
+import { UserProviderWrapper } from '@/components/user-provider-wrapper';
 import SuperadminSidebar from '@/components/superadmin-sidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';

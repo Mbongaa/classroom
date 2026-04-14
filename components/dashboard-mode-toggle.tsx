@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { IconLanguage, IconCurrencyEuro } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
@@ -12,22 +13,22 @@ import { cn } from '@/lib/utils';
  * Rendered inside the shared DashboardHeader so it lives in the exact same
  * spot on both sides — the user never loses the toggle when switching modes.
  *
+ * Detects the active mode from the current URL pathname.
+ *
  * When `orgSlug` is null (the user has no primary org yet), the finance side
  * is rendered as a disabled affordance instead of a link, so the user isn't
  * sent to a 404 /mosque-admin/undefined route.
  */
 
-export type DashboardMode = 'translation' | 'finance';
-
 interface DashboardModeToggleProps {
-  currentMode: DashboardMode;
   /** Org slug for the finance route. Null = user has no primary org yet. */
   orgSlug: string | null;
 }
 
-export function DashboardModeToggle({ currentMode, orgSlug }: DashboardModeToggleProps) {
-  const translationActive = currentMode === 'translation';
-  const financeActive = currentMode === 'finance';
+export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
+  const pathname = usePathname();
+  const financeActive = pathname.startsWith('/mosque-admin');
+  const translationActive = !financeActive;
   const financeHref = orgSlug ? `/mosque-admin/${orgSlug}` : null;
 
   return (

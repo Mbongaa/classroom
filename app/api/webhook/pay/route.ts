@@ -7,6 +7,7 @@ import {
   PayNLError,
   redactPII,
 } from '@/lib/paynl';
+import { addInvoice, isAllianceEnabled } from '@/lib/paynl-alliance';
 import {
   auditFieldsFor,
   parseWebhookEvent,
@@ -223,11 +224,12 @@ async function handleOrderPaid(
   // once we persist the UUID alongside the orderId in the transactions row.
 
   // Idempotent: only PENDING → PAID. Replays become no-ops.
-  const { error, count } = await supabase
+  const { data: updatedRows, error, count } = await supabase
     .from('transactions')
     .update({ status: 'PAID', paid_at: new Date().toISOString() }, { count: 'exact' })
     .eq('paynl_order_id', orderId)
-    .eq('status', 'PENDING');
+    .eq('status', 'PENDING')
+    .select('id, amount, stats_extra3');
 
   if (error) {
     console.error('[PayNL Webhook] order.paid update failed', {
@@ -243,6 +245,76 @@ async function handleOrderPaid(
   }
 
   console.log('[PayNL Webhook] Transaction PAID', { orderId });
+
+  // ------------------------------------------------------------------
+  // Platform fee deduction via Alliance addInvoice.
+  // Only applies when the org has been onboarded as a sub-merchant.
+  // Non-fatal: if the invoice call fails, the donation is still PAID —
+  // the fee can be reconciled manually.
+  // ------------------------------------------------------------------
+  if (isAllianceEnabled() && updatedRows && updatedRows.length > 0) {
+    const tx = updatedRows[0];
+    const orgId = tx.stats_extra3;
+    if (orgId) {
+      await deductPlatformFee(supabase, orgId, tx.amount, orderId);
+    }
+  }
+}
+
+/**
+ * Deduct the platform fee from a sub-merchant's wallet after a successful
+ * donation. Looks up the org's merchant_id and platform_fee_bps, calculates
+ * the fee in cents, and calls Pay.nl Alliance addInvoice.
+ *
+ * Designed to be non-fatal — logs errors but never throws, so the webhook
+ * handler always returns 200 TRUE to Pay.nl.
+ */
+async function deductPlatformFee(
+  supabase: AdminClient,
+  organizationId: string,
+  amountCents: number,
+  orderId: string,
+) {
+  try {
+    const { data: org } = await supabase
+      .from('organizations')
+      .select('paynl_merchant_id, platform_fee_bps')
+      .eq('id', organizationId)
+      .single();
+
+    if (!org?.paynl_merchant_id) {
+      // Org is not an Alliance sub-merchant — no fee to deduct.
+      return;
+    }
+
+    const feeCents = Math.round((amountCents * org.platform_fee_bps) / 10_000);
+    if (feeCents <= 0) {
+      return;
+    }
+
+    const result = await addInvoice(org.paynl_merchant_id, {
+      amount: feeCents,
+      currency: 'EUR',
+      description: `Platform fee – ${orderId}`.slice(0, 32),
+      reference: orderId,
+    });
+
+    console.log('[PayNL Webhook] Platform fee deducted', {
+      orderId,
+      organizationId,
+      merchantId: org.paynl_merchant_id,
+      feeCents,
+      feeBps: org.platform_fee_bps,
+      invoiceId: result.invoiceId,
+    });
+  } catch (err) {
+    // Non-fatal: log the failure for manual reconciliation.
+    console.error('[PayNL Webhook] Platform fee deduction failed', {
+      orderId,
+      organizationId,
+      error: err instanceof Error ? err.message : err,
+    });
+  }
 }
 
 async function handleOrderCancelled(

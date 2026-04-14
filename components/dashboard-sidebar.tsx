@@ -8,6 +8,7 @@ import {
   IconHeartHandshake,
   IconHome,
   IconLayoutDashboard,
+  IconPackage,
   IconReceipt,
   IconSchool,
   IconSettings,
@@ -54,16 +55,6 @@ const translationNavigation: NavItem[] = [
     href: '/dashboard/recordings',
     icon: IconHistory,
   },
-  {
-    label: 'Billing',
-    href: '/dashboard/billing',
-    icon: IconCreditCard,
-  },
-  {
-    label: 'Profile',
-    href: '/dashboard/profile',
-    icon: IconUser,
-  },
 ];
 
 /**
@@ -82,6 +73,11 @@ function buildFinanceNavigation(slug: string): NavItem[] {
       label: 'Campaigns',
       href: `/mosque-admin/${slug}/campaigns`,
       icon: IconHeartHandshake,
+    },
+    {
+      label: 'Products',
+      href: `/mosque-admin/${slug}/products`,
+      icon: IconPackage,
     },
     {
       label: 'Members',
@@ -176,15 +172,46 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
+              isActive={pathname === '/dashboard/billing'}
+              tooltip={state === 'collapsed' ? 'Billing' : undefined}
+            >
+              <Link
+                href="/dashboard/billing"
+                onClick={() => {
+                  if (isMobile) setOpenMobile(false);
+                }}
+              >
+                <IconCreditCard className="size-4 text-black dark:text-white" />
+                <span className="text-black dark:text-white">Billing</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              isActive={pathname === '/dashboard/profile'}
+              tooltip={state === 'collapsed' ? 'Profile' : undefined}
+            >
+              <Link
+                href="/dashboard/profile"
+                onClick={() => {
+                  if (isMobile) setOpenMobile(false);
+                }}
+              >
+                <IconUser className="size-4 text-black dark:text-white" />
+                <span className="text-black dark:text-white">Profile</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
               tooltip={state === 'collapsed' ? profile.full_name || user.email : undefined}
             >
               <Link
                 href="/dashboard/profile"
                 onClick={() => {
-                  // Close mobile sidebar when navigating
-                  if (isMobile) {
-                    setOpenMobile(false);
-                  }
+                  if (isMobile) setOpenMobile(false);
                 }}
               >
                 <div

@@ -1,18 +1,18 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { DonationCheckout } from './DonationCheckout';
+import { MandateRegistration } from './MandateRegistration';
 
 /**
- * /donate/[mosque]/[campaign]
+ * /donate/[mosque]/[campaign]/mandate
  *
- * Public donation page (Stripe-style checkout). Uses the anon Supabase
- * client (public RLS on campaigns); no donor PII is read here.
+ * Public SEPA Direct Debit mandate registration page. Donors fill in their
+ * bank details (IBAN + BIC) and sign a SEPA mandate authorising the mosque
+ * to collect monthly donations via Pay.nl.
  *
- * The `mosque` route param is the organization slug. When the URL contains
- * `?kiosk=<session-id>`, this page was opened by scanning a QR code on the
- * kiosk tablet — we mark the kiosk session as "scanned" so the tablet
- * resets via Supabase Realtime.
+ * No authentication required — mirrors the one-time donation page pattern.
+ * Campaign + org data is fetched server-side; the interactive form is a
+ * client component.
  */
 
 interface PageProps {
@@ -20,7 +20,7 @@ interface PageProps {
     mosque: string;
     campaign: string;
   }>;
-  searchParams: Promise<{ kiosk?: string; recurring?: string }>;
+  searchParams: Promise<{ kiosk?: string }>;
 }
 
 interface CampaignRow {
@@ -42,21 +42,14 @@ interface OrganizationRow {
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export default async function DonationPage({ params, searchParams }: PageProps) {
+export default async function MandatePage({ params, searchParams }: PageProps) {
   const { mosque, campaign: campaignSlug } = await params;
-  const { kiosk: kioskSessionId, recurring } = await searchParams;
+  const { kiosk: kioskSessionId } = await searchParams;
 
-  // Recurring donations use the dedicated mandate registration page.
-  if (recurring === 'true') {
-    const mandateUrl = `/donate/${mosque}/${campaignSlug}/mandate`;
-    redirect(kioskSessionId ? `${mandateUrl}?kiosk=${kioskSessionId}` : mandateUrl);
-  }
-
-  // If opened via QR scan from kiosk, mark the session as scanned so the
-  // kiosk tablet resets. Fire-and-forget — don't block page render.
+  // If opened via QR scan from kiosk, mark the session as scanned.
   if (kioskSessionId && UUID_RE.test(kioskSessionId)) {
-    const supabaseAdmin = createAdminClient();
-    supabaseAdmin
+    const adminClient = createAdminClient();
+    adminClient
       .from('kiosk_sessions')
       .update({ status: 'scanned' })
       .eq('id', kioskSessionId)
@@ -68,24 +61,19 @@ export default async function DonationPage({ params, searchParams }: PageProps) 
 
   const supabase = await createClient();
 
-  // Fetch campaign + parent org in parallel.
-  const campaignQuery = supabase
-    .from('campaigns')
-    .select('id, slug, title, description, goal_amount, cause_type, icon, organization_id')
-    .eq('slug', campaignSlug)
-    .eq('is_active', true)
-    .single<CampaignRow>();
-
-  const orgQuery = supabase
-    .from('organizations')
-    .select<string, OrganizationRow>('id, name, slug')
-    .eq('slug', mosque)
-    .eq('donations_active', true)
-    .single();
-
   const [{ data: campaign }, { data: organization }] = await Promise.all([
-    campaignQuery,
-    orgQuery,
+    supabase
+      .from('campaigns')
+      .select('id, slug, title, description, goal_amount, cause_type, icon, organization_id')
+      .eq('slug', campaignSlug)
+      .eq('is_active', true)
+      .single<CampaignRow>(),
+    supabase
+      .from('organizations')
+      .select<string, OrganizationRow>('id, name, slug')
+      .eq('slug', mosque)
+      .eq('donations_active', true)
+      .single(),
   ]);
 
   if (!campaign || !organization) {
@@ -117,7 +105,7 @@ export default async function DonationPage({ params, searchParams }: PageProps) 
   }
 
   return (
-    <DonationCheckout
+    <MandateRegistration
       campaign={{
         id: campaign.id,
         slug: campaign.slug,
@@ -130,7 +118,6 @@ export default async function DonationPage({ params, searchParams }: PageProps) 
       }}
       orgName={organization.name}
       orgSlug={organization.slug}
-      isRecurring={recurring === 'true'}
     />
   );
 }
