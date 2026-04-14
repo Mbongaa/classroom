@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
 import {
   IconArrowLeft,
   IconCreditCard,
@@ -32,6 +33,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import { rtlLocales, type Locale } from '@/i18n/config';
 
 interface NavItem {
   label: string;
@@ -39,86 +41,72 @@ interface NavItem {
   icon: typeof IconHome;
 }
 
-const translationNavigation: NavItem[] = [
-  {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: IconHome,
-  },
-  {
-    label: 'Classrooms',
-    href: '/dashboard/rooms',
-    icon: IconSchool,
-  },
-  {
-    label: 'Session History',
-    href: '/dashboard/recordings',
-    icon: IconHistory,
-  },
-];
-
-/**
- * Build the finance dashboard navigation for a given org slug. Items here
- * mirror the actual routes under `/mosque-admin/[slug]/*`. When new finance
- * pages are added (e.g. campaigns, donors, payouts), drop them in here.
- */
-function buildFinanceNavigation(slug: string): NavItem[] {
-  return [
-    {
-      label: 'Dashboard',
-      href: `/mosque-admin/${slug}`,
-      icon: IconLayoutDashboard,
-    },
-    {
-      label: 'Campaigns',
-      href: `/mosque-admin/${slug}/campaigns`,
-      icon: IconHeartHandshake,
-    },
-    {
-      label: 'Products',
-      href: `/mosque-admin/${slug}/products`,
-      icon: IconPackage,
-    },
-    {
-      label: 'Members',
-      href: `/mosque-admin/${slug}/members`,
-      icon: IconUsers,
-    },
-    {
-      label: 'Transactions',
-      href: `/mosque-admin/${slug}/transactions`,
-      icon: IconReceipt,
-    },
-    {
-      label: 'Settings',
-      href: `/mosque-admin/${slug}/settings`,
-      icon: IconSettings,
-    },
-  ];
-}
-
 export function AppSidebar() {
   const { user, profile, loading } = useUser();
   const pathname = usePathname();
   const { state, isMobile, setOpenMobile } = useSidebar();
+  const locale = useLocale() as Locale;
+  const t = useTranslations('sidebar');
+  const isRTL = rtlLocales.has(locale);
 
-  // Show nothing while loading (middleware will handle auth)
   if (loading || !user || !profile) {
     return null;
   }
 
-  // Detect which dashboard mode we're in by inspecting the pathname.
-  // `/mosque-admin/<slug>/...` → finance nav, anything else → translation nav.
   const financeMatch = pathname.match(/^\/mosque-admin\/([^/]+)/);
   const isFinanceMode = financeMatch !== null;
   const financeSlug = financeMatch?.[1] ?? null;
-  const navigation: NavItem[] =
+
+  const translationNavigation: NavItem[] = [
+    { label: t('translation.dashboard'), href: '/dashboard', icon: IconHome },
+    { label: t('translation.classrooms'), href: '/dashboard/rooms', icon: IconSchool },
+    {
+      label: t('translation.sessionHistory'),
+      href: '/dashboard/recordings',
+      icon: IconHistory,
+    },
+  ];
+
+  const financeNavigation: NavItem[] =
     isFinanceMode && financeSlug
-      ? buildFinanceNavigation(financeSlug)
-      : translationNavigation;
+      ? [
+          {
+            label: t('finance.dashboard'),
+            href: `/mosque-admin/${financeSlug}`,
+            icon: IconLayoutDashboard,
+          },
+          {
+            label: t('finance.campaigns'),
+            href: `/mosque-admin/${financeSlug}/campaigns`,
+            icon: IconHeartHandshake,
+          },
+          {
+            label: t('finance.products'),
+            href: `/mosque-admin/${financeSlug}/products`,
+            icon: IconPackage,
+          },
+          {
+            label: t('finance.members'),
+            href: `/mosque-admin/${financeSlug}/members`,
+            icon: IconUsers,
+          },
+          {
+            label: t('finance.transactions'),
+            href: `/mosque-admin/${financeSlug}/transactions`,
+            icon: IconReceipt,
+          },
+          {
+            label: t('finance.settings'),
+            href: `/mosque-admin/${financeSlug}/settings`,
+            icon: IconSettings,
+          },
+        ]
+      : [];
+
+  const navigation: NavItem[] =
+    isFinanceMode && financeSlug ? financeNavigation : translationNavigation;
 
   async function handleSignOut() {
-    // Close mobile sidebar before signing out
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -126,7 +114,7 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" side={isRTL ? 'right' : 'left'}>
       <SidebarHeader>
         <div className="flex items-center p-2">
           <SidebarTrigger />
@@ -140,7 +128,7 @@ export function AppSidebar() {
               {navigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
-                  <SidebarMenuItem key={item.label}>
+                  <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
@@ -149,7 +137,6 @@ export function AppSidebar() {
                       <Link
                         href={item.href}
                         onClick={() => {
-                          // Close mobile sidebar when navigating
                           if (isMobile) {
                             setOpenMobile(false);
                           }
@@ -173,7 +160,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === '/dashboard/billing'}
-              tooltip={state === 'collapsed' ? 'Billing' : undefined}
+              tooltip={state === 'collapsed' ? t('footer.billing') : undefined}
             >
               <Link
                 href="/dashboard/billing"
@@ -182,7 +169,7 @@ export function AppSidebar() {
                 }}
               >
                 <IconCreditCard className="size-4 text-black dark:text-white" />
-                <span className="text-black dark:text-white">Billing</span>
+                <span className="text-black dark:text-white">{t('footer.billing')}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -190,7 +177,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               asChild
               isActive={pathname === '/dashboard/profile'}
-              tooltip={state === 'collapsed' ? 'Profile' : undefined}
+              tooltip={state === 'collapsed' ? t('footer.profile') : undefined}
             >
               <Link
                 href="/dashboard/profile"
@@ -199,7 +186,7 @@ export function AppSidebar() {
                 }}
               >
                 <IconUser className="size-4 text-black dark:text-white" />
-                <span className="text-black dark:text-white">Profile</span>
+                <span className="text-black dark:text-white">{t('footer.profile')}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -234,7 +221,7 @@ export function AppSidebar() {
                     <span className="font-semibold text-black dark:text-white">
                       {profile.full_name || user.email}
                     </span>
-                    <span className="text-xs text-black dark:text-white">Profile</span>
+                    <span className="text-xs text-black dark:text-white">{t('footer.profile')}</span>
                   </div>
                 )}
               </Link>
@@ -243,10 +230,10 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               onClick={handleSignOut}
-              tooltip={state === 'collapsed' ? 'Sign Out' : undefined}
+              tooltip={state === 'collapsed' ? t('footer.signOut') : undefined}
             >
               <IconArrowLeft className="size-4 text-black dark:text-white" />
-              <span className="text-black dark:text-white">Sign Out</span>
+              <span className="text-black dark:text-white">{t('footer.signOut')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

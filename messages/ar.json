@@ -1,0 +1,25 @@
+{
+  "common": {
+    "appName": "بيان",
+    "loading": "جارٍ التحميل...",
+    "save": "حفظ",
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "confirm": "تأكيد"
+  },
+  "locale": {
+    "switchLanguage": "اللغة",
+    "english": "English",
+    "arabic": "العربية"
+  },
+  "dashboard": {
+    "nav": {
+      "home": "الرئيسية",
+      "rooms": "الغرف",
+      "prompts": "التعليمات",
+      "recordings": "التسجيلات",
+      "profile": "الملف الشخصي",
+      "billing": "الفوترة"
+    }
+  }
+}

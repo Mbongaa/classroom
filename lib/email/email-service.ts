@@ -7,16 +7,18 @@ export interface SendEmailOptions {
   to: string | string[];
   subject: string;
   react: ReactElement;
+  /** Override the default From. Format: `"Name <addr@domain>"` or just `"addr@domain"`. */
+  from?: string;
   replyTo?: string;
   tags?: { name: string; value: string }[];
 }
 
 export async function sendEmail(options: SendEmailOptions) {
-  const { to, subject, react, replyTo, tags } = options;
+  const { to, subject, react, from, replyTo, tags } = options;
 
   try {
     const { data, error } = await resend.emails.send({
-      from: `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM}>`,
+      from: from ?? `${process.env.EMAIL_FROM_NAME} <${process.env.EMAIL_FROM}>`,
       to: Array.isArray(to) ? to : [to],
       subject,
       react,

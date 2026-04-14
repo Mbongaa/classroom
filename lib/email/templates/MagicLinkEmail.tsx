@@ -39,3 +39,10 @@ export function MagicLinkEmail({ userName, magicLinkUrl }: MagicLinkEmailProps) 
     </EmailLayout>
   );
 }
+
+MagicLinkEmail.PreviewProps = {
+  userName: 'Ahmed',
+  magicLinkUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=magiclink&next=/dashboard',
+} satisfies MagicLinkEmailProps;
+
+export default MagicLinkEmail;

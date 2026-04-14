@@ -39,3 +39,10 @@ export function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailPro
     </EmailLayout>
   );
 }
+
+PasswordResetEmail.PreviewProps = {
+  userName: 'Ahmed',
+  resetUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=recovery&next=/reset-password',
+} satisfies PasswordResetEmailProps;
+
+export default PasswordResetEmail;

@@ -14,6 +14,20 @@ import {
   type WebhookEvent,
 } from '@/lib/paynl-webhook';
 import { getClientIp } from '@/lib/rate-limit';
+import { sendEmail } from '@/lib/email/email-service';
+import { formatMoney, formatBillingDate } from '@/lib/email/billing-utils';
+import {
+  buildDonorFrom,
+  getDonationContext,
+  getMandateContext,
+  getStornoContext,
+} from '@/lib/email/donation-utils';
+import { NewDonationReceivedEmail } from '@/lib/email/templates/NewDonationReceivedEmail';
+import { NewMandateCreatedEmail } from '@/lib/email/templates/NewMandateCreatedEmail';
+import { RecurringDonationFailedEmail } from '@/lib/email/templates/RecurringDonationFailedEmail';
+import { DonorReceiptEmail } from '@/lib/email/templates/DonorReceiptEmail';
+import { DonorRecurringActivatedEmail } from '@/lib/email/templates/DonorRecurringActivatedEmail';
+import { DonorRecurringReversedEmail } from '@/lib/email/templates/DonorRecurringReversedEmail';
 
 /**
  * /api/webhook/pay — Pay.nl exchange webhook handler
@@ -80,6 +94,28 @@ function trueResponse(message?: string): NextResponse {
 }
 
 type AdminClient = ReturnType<typeof createAdminClient>;
+
+// ---------------------------------------------------------------------------
+// Email helpers (tenant-facing donation notifications — Phase 3a)
+// ---------------------------------------------------------------------------
+
+const siteUrl = () => (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
+const donationsDashboardUrl = () => `${siteUrl()}/dashboard/donations`;
+const recurringDashboardUrl = () => `${siteUrl()}/dashboard/donations/recurring`;
+
+/**
+ * Wraps a send so an email failure never bubbles up into the webhook handler.
+ * Pay.nl retries on non-200, and we don't want a flaky email provider
+ * triggering duplicate state transitions.
+ */
+async function safeSend(label: string, fn: () => Promise<unknown>) {
+  try {
+    await fn();
+    console.log(`[PayNL Webhook] Email sent: ${label}`);
+  } catch (err) {
+    console.error(`[PayNL Webhook] Email failed (${label}):`, err);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // HTTP entry points
@@ -259,6 +295,80 @@ async function handleOrderPaid(
       await deductPlatformFee(supabase, orgId, tx.amount, orderId);
     }
   }
+
+  // Notify the mosque admin that a donation just landed.
+  const ctx = await getDonationContext(supabase, orderId);
+  if (!ctx) return;
+
+  const amount = formatMoney(ctx.amountCents, ctx.currency);
+  const donor = ctx.donorName?.trim() || 'Anonymous';
+
+  await safeSend('new_donation_received', () =>
+    sendEmail({
+      to: ctx.admin.email,
+      subject: `${ctx.admin.organizationName} received ${amount} from ${donor}`,
+      react: NewDonationReceivedEmail({
+        userName: ctx.admin.fullName,
+        organizationName: ctx.admin.organizationName,
+        amount,
+        donorName: donor,
+        campaignTitle: ctx.campaignTitle ?? 'General donations',
+        paidDate: formatBillingDate(ctx.paidAt),
+        dashboardUrl: donationsDashboardUrl(),
+      }),
+      tags: [
+        { name: 'type', value: 'new_donation_received' },
+        { name: 'organization_id', value: ctx.admin.organizationId },
+      ],
+    }),
+  );
+
+  // Donor-facing receipt. Only sent if donor left an email at checkout —
+  // iDEAL / bank transfer donors can choose to donate anonymously.
+  const { data: tx } = await supabase
+    .from('transactions')
+    .select('payment_method')
+    .eq('paynl_order_id', orderId)
+    .maybeSingle();
+
+  if (ctx.donorEmail) {
+    await safeSend('donor_receipt', () =>
+      sendEmail({
+        to: ctx.donorEmail!,
+        from: buildDonorFrom(ctx.admin.organizationName),
+        replyTo: ctx.admin.email,
+        subject: `Thank you for your ${amount} donation to ${ctx.admin.organizationName}`,
+        react: DonorReceiptEmail({
+          donorName: donor,
+          mosqueName: ctx.admin.organizationName,
+          amount,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          paidDate: formatBillingDate(ctx.paidAt),
+          paymentMethod: formatPaymentMethod(tx?.payment_method),
+          orderReference: ctx.orderId,
+        }),
+        tags: [
+          { name: 'type', value: 'donor_receipt' },
+          { name: 'organization_id', value: ctx.admin.organizationId },
+        ],
+      }),
+    );
+  }
+}
+
+/** Pay.nl returns lowercase slugs like "ideal"; donor receipts want a label. */
+function formatPaymentMethod(method: string | null | undefined): string {
+  if (!method) return '—';
+  const map: Record<string, string> = {
+    ideal: 'iDEAL',
+    card: 'Card',
+    creditcard: 'Card',
+    bancontact: 'Bancontact',
+    sepa: 'SEPA Direct Debit',
+    directdebit: 'SEPA Direct Debit',
+    paypal: 'PayPal',
+  };
+  return map[method.toLowerCase()] ?? method;
 }
 
 /**
@@ -386,6 +496,36 @@ async function handleDirectDebitPending(
   }
 
   console.log('[PayNL Webhook] DirectDebit PENDING', { mandateCode, directDebitId });
+
+  // First pending debit on a mandate = fresh recurring signup. Replays of
+  // this webhook still re-send the email, but Pay.nl only emits pending
+  // once per directDebitId so duplicates are rare in practice.
+  const ctx = await getMandateContext(supabase, mandateCode, { firstDebitDate: processDate });
+  if (!ctx) return;
+
+  // Prefer the actual debit amount (what Pay.nl will pull) over the
+  // display-only monthly_amount column.
+  const amount = formatMoney(amountCents, ctx.currency);
+
+  await safeSend('new_mandate_created', () =>
+    sendEmail({
+      to: ctx.admin.email,
+      subject: `${ctx.donorName} set up ${amount}/month for ${ctx.admin.organizationName}`,
+      react: NewMandateCreatedEmail({
+        userName: ctx.admin.fullName,
+        organizationName: ctx.admin.organizationName,
+        donorName: ctx.donorName,
+        monthlyAmount: amount,
+        campaignTitle: ctx.campaignTitle ?? 'General donations',
+        firstDebitDate: formatBillingDate(processDate),
+        dashboardUrl: recurringDashboardUrl(),
+      }),
+      tags: [
+        { name: 'type', value: 'new_mandate_created' },
+        { name: 'organization_id', value: ctx.admin.organizationId },
+      ],
+    }),
+  );
 }
 
 async function handleDirectDebitCollected(
@@ -422,12 +562,17 @@ async function handleDirectDebitCollected(
     return;
   }
 
+  let isFirstCollection = false;
   if (mandateCode) {
     // First collection flips the mandate PENDING → ACTIVE. Replays are
-    // no-ops because the WHERE clause no longer matches.
-    const { error: mandateError } = await supabase
+    // no-ops because the WHERE clause no longer matches — we use the
+    // affected-row count to detect the first-time transition.
+    const { error: mandateError, count } = await supabase
       .from('mandates')
-      .update({ status: 'ACTIVE', first_debit_at: new Date().toISOString() })
+      .update(
+        { status: 'ACTIVE', first_debit_at: new Date().toISOString() },
+        { count: 'exact' },
+      )
       .eq('paynl_mandate_id', mandateCode)
       .eq('status', 'PENDING');
 
@@ -438,9 +583,50 @@ async function handleDirectDebitCollected(
       });
       return;
     }
+
+    isFirstCollection = (count ?? 0) > 0;
   }
 
-  console.log('[PayNL Webhook] DirectDebit COLLECTED', { mandateCode, directDebitId });
+  console.log('[PayNL Webhook] DirectDebit COLLECTED', {
+    mandateCode,
+    directDebitId,
+    isFirstCollection,
+  });
+
+  // Donor-facing activation email — only on the first successful collection
+  // of a brand-new mandate. Subsequent monthly collections are silent to
+  // avoid inbox fatigue (donors expect SEPA to "just work").
+  if (!isFirstCollection || !mandateCode) return;
+
+  const ctx = await getMandateContext(supabase, mandateCode, {
+    firstDebitDate: new Date().toISOString(),
+  });
+  if (!ctx?.donorEmail) return;
+
+  const amount = ctx.monthlyAmountCents
+    ? formatMoney(ctx.monthlyAmountCents, ctx.currency)
+    : '—';
+
+  await safeSend('donor_recurring_activated', () =>
+    sendEmail({
+      to: ctx.donorEmail!,
+      from: buildDonorFrom(ctx.admin.organizationName),
+      replyTo: ctx.admin.email,
+      subject: `Your ${amount}/month to ${ctx.admin.organizationName} is active`,
+      react: DonorRecurringActivatedEmail({
+        donorName: ctx.donorName,
+        mosqueName: ctx.admin.organizationName,
+        monthlyAmount: amount,
+        campaignTitle: ctx.campaignTitle ?? 'General donations',
+        firstDebitDate: formatBillingDate(new Date().toISOString()),
+        mandateReference: ctx.mandateCode,
+      }),
+      tags: [
+        { name: 'type', value: 'donor_recurring_activated' },
+        { name: 'organization_id', value: ctx.admin.organizationId },
+      ],
+    }),
+  );
 }
 
 async function handleDirectDebitStorno(
@@ -465,6 +651,53 @@ async function handleDirectDebitStorno(
 
   console.log('[PayNL Webhook] DirectDebit STORNO', { directDebitId });
 
-  // TODO(Phase 2): notify mosque admin via Resend email. Deferred because
-  // Phase 1 has no mosque-scoped admin contact list yet.
+  const ctx = await getStornoContext(supabase, directDebitId);
+  if (!ctx) return;
+
+  const amount = formatMoney(ctx.amountCents, ctx.currency);
+
+  await safeSend('recurring_donation_failed', () =>
+    sendEmail({
+      to: ctx.admin.email,
+      subject: `A ${amount} recurring donation from ${ctx.donorName} was reversed`,
+      react: RecurringDonationFailedEmail({
+        userName: ctx.admin.fullName,
+        organizationName: ctx.admin.organizationName,
+        donorName: ctx.donorName,
+        amount,
+        campaignTitle: ctx.campaignTitle ?? 'General donations',
+        processDate: formatBillingDate(ctx.processDate),
+        dashboardUrl: recurringDashboardUrl(),
+      }),
+      tags: [
+        { name: 'type', value: 'recurring_donation_failed' },
+        { name: 'organization_id', value: ctx.admin.organizationId },
+      ],
+    }),
+  );
+
+  // Donor-facing reversal email. Helpful if their bank reversed because of
+  // insufficient funds — they may not have noticed.
+  const donorEmail = ctx.donorEmail;
+  if (donorEmail) {
+    await safeSend('donor_recurring_reversed', () =>
+      sendEmail({
+        to: donorEmail,
+        from: buildDonorFrom(ctx.admin.organizationName),
+        replyTo: ctx.admin.email,
+        subject: `Your ${amount} donation to ${ctx.admin.organizationName} was reversed`,
+        react: DonorRecurringReversedEmail({
+          donorName: ctx.donorName,
+          mosqueName: ctx.admin.organizationName,
+          amount,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          processDate: formatBillingDate(ctx.processDate),
+        }),
+        tags: [
+          { name: 'type', value: 'donor_recurring_reversed' },
+          { name: 'organization_id', value: ctx.admin.organizationId },
+        ],
+      }),
+    );
+  }
 }

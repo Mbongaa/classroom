@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { IconLanguage, IconCurrencyEuro } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 
@@ -27,6 +28,7 @@ interface DashboardModeToggleProps {
 
 export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
   const pathname = usePathname();
+  const t = useTranslations('header.mode');
   const financeActive = pathname.startsWith('/mosque-admin');
   const translationActive = !financeActive;
   const financeHref = orgSlug ? `/mosque-admin/${orgSlug}` : null;
@@ -34,15 +36,15 @@ export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
   return (
     <div
       role="tablist"
-      aria-label="Dashboard mode"
+      aria-label={t('label')}
       className="inline-flex items-center gap-0.5 rounded-full border border-[rgba(128,128,128,0.3)] bg-slate-200/80 p-0.5 dark:bg-slate-800/60"
     >
       <Link
         href="/dashboard"
         role="tab"
         aria-selected={translationActive}
-        aria-label="Translation dashboard"
-        title="Translation dashboard"
+        aria-label={t('translation')}
+        title={t('translation')}
         className={cn(
           'flex h-8 w-10 items-center justify-center rounded-full transition-colors',
           translationActive
@@ -57,8 +59,8 @@ export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
           href={financeHref}
           role="tab"
           aria-selected={financeActive}
-          aria-label="Finance dashboard"
-          title="Finance dashboard"
+          aria-label={t('finance')}
+          title={t('finance')}
           className={cn(
             'flex h-8 w-10 items-center justify-center rounded-full transition-colors',
             financeActive
@@ -73,8 +75,8 @@ export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
           role="tab"
           aria-selected={false}
           aria-disabled
-          aria-label="Finance dashboard (no organization)"
-          title="Finance dashboard — requires an organization"
+          aria-label={t('financeDisabled')}
+          title={t('financeDisabledTitle')}
           className="flex h-8 w-10 cursor-not-allowed items-center justify-center rounded-full text-slate-400 opacity-50 dark:text-slate-600"
         >
           <IconCurrencyEuro className="h-4 w-4" />

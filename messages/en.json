@@ -1,0 +1,81 @@
+{
+  "common": {
+    "appName": "Bayaan.ai",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "viewAll": "View all",
+    "back": "Back"
+  },
+  "locale": {
+    "switchLanguage": "Language",
+    "english": "English",
+    "arabic": "العربية",
+    "dutch": "Nederlands",
+    "french": "Français",
+    "german": "Deutsch"
+  },
+  "sidebar": {
+    "translation": {
+      "dashboard": "Dashboard",
+      "classrooms": "Classrooms",
+      "sessionHistory": "Session History"
+    },
+    "finance": {
+      "dashboard": "Dashboard",
+      "campaigns": "Campaigns",
+      "products": "Products",
+      "members": "Members",
+      "transactions": "Transactions",
+      "settings": "Settings"
+    },
+    "footer": {
+      "billing": "Billing",
+      "profile": "Profile",
+      "signOut": "Sign Out"
+    }
+  },
+  "header": {
+    "mode": {
+      "label": "Dashboard mode",
+      "translation": "Translation dashboard",
+      "finance": "Finance dashboard",
+      "financeDisabled": "Finance dashboard (no organization)",
+      "financeDisabledTitle": "Finance dashboard — requires an organization"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welcome back, {name}!",
+    "subtitle": "Here's what's happening with your classrooms today.",
+    "stats": {
+      "activeClassrooms": "Active Classrooms",
+      "activeClassroomsDescription": "Live and scheduled classes",
+      "recordings": "Recordings",
+      "recordingsDescription": "Saved session recordings",
+      "organization": "Organization",
+      "organizationDescription": "Your organization",
+      "organizationFallback": "N/A"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "description": "Start or join a session instantly",
+      "intro": "Start or join a video conference session.",
+      "startClassroom": "Start Classroom",
+      "startSpeechSession": "Start Speech Session",
+      "managePersistentRooms": "Manage Persistent Rooms"
+    },
+    "recentRooms": {
+      "title": "Recent Rooms",
+      "description": "Your most recently created classrooms",
+      "empty": "No rooms created yet",
+      "createFirst": "Create your first room",
+      "types": {
+        "classroom": "Classroom",
+        "speech": "Speech",
+        "meeting": "Meeting"
+      }
+    }
+  }
+}

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,12 +23,12 @@ export function DashboardContent({
   classroomCount,
   recordingCount,
   organizationName,
-  organizationSlug,
   rooms,
 }: DashboardContentProps) {
   const router = useRouter();
+  const t = useTranslations('dashboard');
+  const tCommon = useTranslations('common');
 
-  // Handler functions - redirect to rooms page
   const startClassroom = () => {
     router.push('/dashboard/rooms');
   };
@@ -38,21 +39,21 @@ export function DashboardContent({
 
   const stats = [
     {
-      title: 'Active Classrooms',
+      title: t('stats.activeClassrooms'),
       value: classroomCount || 0,
-      description: 'Live and scheduled classes',
+      description: t('stats.activeClassroomsDescription'),
       link: '/dashboard/classrooms',
     },
     {
-      title: 'Recordings',
+      title: t('stats.recordings'),
       value: recordingCount || 0,
-      description: 'Saved session recordings',
+      description: t('stats.recordingsDescription'),
       link: '/dashboard/recordings',
     },
     {
-      title: 'Organization',
-      value: organizationName || 'N/A',
-      description: 'Your organization',
+      title: t('stats.organization'),
+      value: organizationName || t('stats.organizationFallback'),
+      description: t('stats.organizationDescription'),
       link: '/dashboard/organization',
     },
   ];
@@ -61,11 +62,9 @@ export function DashboardContent({
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
-          Welcome back, {userName}!
+          {t('welcome', { name: userName })}
         </h1>
-        <p className="text-slate-500 dark:text-slate-400">
-          Here&apos;s what&apos;s happening with your classrooms today.
-        </p>
+        <p className="text-slate-500 dark:text-slate-400">{t('subtitle')}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -80,7 +79,7 @@ export function DashboardContent({
               {stat.link && (
                 <Link href={stat.link}>
                   <Button variant="link" className="px-0 mt-2" size="sm">
-                    View all →
+                    {tCommon('viewAll')} →
                   </Button>
                 </Link>
               )}
@@ -92,13 +91,12 @@ export function DashboardContent({
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Start or join a session instantly</CardDescription>
+            <CardTitle>{t('quickActions.title')}</CardTitle>
+            <CardDescription>{t('quickActions.description')}</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* EXACT original styling from homepage */}
             <p className="text-black dark:text-white" style={{ margin: '0 0 1rem 0' }}>
-              Start or join a video conference session.
+              {t('quickActions.intro')}
             </p>
 
             <div
@@ -109,23 +107,20 @@ export function DashboardContent({
                 alignItems: 'center',
               }}
             >
-              {/* Start Classroom */}
               <button
                 onClick={startClassroom}
                 className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
               >
-                Start Classroom
+                {t('quickActions.startClassroom')}
               </button>
 
-              {/* Start Speech Session */}
               <button
                 onClick={startSpeechSession}
                 className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
               >
-                Start Speech Session
+                {t('quickActions.startSpeechSession')}
               </button>
 
-              {/* Divider */}
               <div
                 style={{
                   width: '100%',
@@ -135,12 +130,11 @@ export function DashboardContent({
                 }}
               />
 
-              {/* Manage Persistent Rooms */}
               <button
                 onClick={() => router.push('/dashboard/rooms')}
                 className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
               >
-                Manage Persistent Rooms
+                {t('quickActions.managePersistentRooms')}
               </button>
             </div>
           </CardContent>
@@ -150,12 +144,12 @@ export function DashboardContent({
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Rooms</CardTitle>
-                <CardDescription>Your most recently created classrooms</CardDescription>
+                <CardTitle>{t('recentRooms.title')}</CardTitle>
+                <CardDescription>{t('recentRooms.description')}</CardDescription>
               </div>
               <Link href="/dashboard/rooms">
                 <Button variant="ghost" size="sm" className="gap-1">
-                  View all
+                  {tCommon('viewAll')}
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -165,11 +159,9 @@ export function DashboardContent({
             {rooms.length === 0 ? (
               <div className="text-center py-8">
                 <Video className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                <p className="text-sm text-muted-foreground mb-4">
-                  No rooms created yet
-                </p>
+                <p className="text-sm text-muted-foreground mb-4">{t('recentRooms.empty')}</p>
                 <Link href="/dashboard/rooms">
-                  <Button size="sm">Create your first room</Button>
+                  <Button size="sm">{t('recentRooms.createFirst')}</Button>
                 </Link>
               </div>
             ) : (
@@ -187,16 +179,14 @@ export function DashboardContent({
                         </p>
                         <Badge variant="secondary" className="text-xs">
                           {room.room_type === 'classroom'
-                            ? 'Classroom'
+                            ? t('recentRooms.types.classroom')
                             : room.room_type === 'speech'
-                              ? 'Speech'
-                              : 'Meeting'}
+                              ? t('recentRooms.types.speech')
+                              : t('recentRooms.types.meeting')}
                         </Badge>
                       </div>
                       {room.name && (
-                        <p className="text-sm text-muted-foreground truncate">
-                          {room.name}
-                        </p>
+                        <p className="text-sm text-muted-foreground truncate">{room.name}</p>
                       )}
                     </div>
                     <Video className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />

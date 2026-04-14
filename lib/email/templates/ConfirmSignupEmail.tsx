@@ -38,3 +38,10 @@ export function ConfirmSignupEmail({ userName, confirmationUrl }: ConfirmSignupE
     </EmailLayout>
   );
 }
+
+ConfirmSignupEmail.PreviewProps = {
+  userName: 'Ahmed',
+  confirmationUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=signup&next=/dashboard',
+} satisfies ConfirmSignupEmailProps;
+
+export default ConfirmSignupEmail;

@@ -73,3 +73,13 @@ export function EmailChangeEmail({
     </EmailLayout>
   );
 }
+
+EmailChangeEmail.PreviewProps = {
+  userName: 'Ahmed',
+  oldEmail: 'ahmed@old-example.com',
+  newEmail: 'ahmed@new-example.com',
+  confirmationUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=email_change&next=/dashboard',
+  recipient: 'new',
+} satisfies EmailChangeEmailProps;
+
+export default EmailChangeEmail;

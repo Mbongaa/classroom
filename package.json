@@ -10,7 +10,8 @@
     "lint:fix": "next lint --fix",
     "test": "vitest run",
     "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\"",
-    "format:write": "prettier --write \"**/*.{ts,tsx,md,json}\""
+    "format:write": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "email": "email dev --dir lib/email/templates --port 3001"
   },
   "dependencies": {
     "@datadog/browser-logs": "^5.23.3",
@@ -48,6 +49,7 @@
     "lucide-react": "^0.544.0",
     "motion": "^12.38.0",
     "next": "15.2.8",
+    "next-intl": "^4.9.1",
     "next-themes": "^0.4.6",
     "qrcode.react": "^4.2.0",
     "react": "18.3.1",
@@ -62,6 +64,7 @@
     "tinykeys": "^3.0.0"
   },
   "devDependencies": {
+    "@react-email/preview-server": "^5.2.5",
     "@types/hls.js": "^1.0.0",
     "@types/node": "22.17.2",
     "@types/react": "18.3.23",

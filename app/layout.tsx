@@ -3,6 +3,9 @@ import '@livekit/components-styles';
 import '@livekit/components-styles/prefabs';
 import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
+import { getDirection, type Locale } from '@/i18n/config';
 import { ToasterProvider } from './components/ToasterProvider';
 import { Providers } from './providers';
 
@@ -46,14 +49,20 @@ export const viewport: Viewport = {
   themeColor: '#070707',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = (await getLocale()) as Locale;
+  const messages = await getMessages();
+  const dir = getDirection(locale);
+
   return (
-    <html lang="en" className={poppins.variable} suppressHydrationWarning>
+    <html lang={locale} dir={dir} className={poppins.variable} suppressHydrationWarning>
       <body data-lk-theme="default" className={poppins.className}>
-        <Providers>
-          <ToasterProvider />
-          {children}
-        </Providers>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <Providers>
+            <ToasterProvider />
+            {children}
+          </Providers>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

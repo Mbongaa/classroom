@@ -1,6 +1,7 @@
 import { ThemeToggleButton } from '@/components/ui/theme-toggle';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardModeToggle } from '@/components/dashboard-mode-toggle';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 
 interface DashboardHeaderProps {
   /** Org slug for the finance route. Null = user has no primary org yet. */
@@ -30,8 +31,11 @@ export function DashboardHeader({
         {/* CENTER: Dashboard mode toggle */}
         <DashboardModeToggle orgSlug={orgSlug} />
 
-        {/* RIGHT: Theme toggle */}
-        <ThemeToggleButton start="top-right" />
+        {/* RIGHT: Language + Theme toggle */}
+        <div className="flex items-center gap-2">
+          <LocaleSwitcher />
+          <ThemeToggleButton start="top-right" />
+        </div>
       </div>
     </header>
   );
