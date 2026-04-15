@@ -1,34 +1,44 @@
 /**
- * Pay.nl Alliance API client — Phase 2 scaffolding
+ * Pay.nl Alliance (GMS) API client — REST v2
  *
- * ⚠️ STUBBED UNTIL ALLIANCE ACTIVATION.
+ * Bayaan Hub acts as an Alliance partner: we programmatically register
+ * every mosque as a sub-merchant, collect KYC (persons + documents) and
+ * submit the boarding for Pay.nl's review. Everything here targets the
+ * v2 REST API at https://rest.pay.nl/v2.
  *
- * The Alliance API lets Bayaan Hub act as a platform that programmatically
- * creates and manages sub-merchants (one per mosque). Access to these
- * endpoints is granted by Pay.nl only after they review a working sandbox
- * integration + business KYC. Until then, every function in this module
- * throws `PayNLAllianceNotActivatedError`.
+ * Flow (called in this order by /api/organizations/{id}/merchant/*):
  *
- * This file exists so the rest of Phase 2 can:
- *   - Import typed function signatures (no magic strings)
- *   - Wire up the mosque onboarding flow with clean call sites
- *   - Replace stub bodies with real fetch calls the day Pay.nl flips the
- *     switch, without touching any calling code
+ *   1. createMerchant(payload)                 → POST   /v2/merchants
+ *      Returns merchantCode (M-XXXX-XXXX).
  *
- * Enable with PAYNL_ALLIANCE_ENABLED=true once Alliance is granted.
+ *   2. createLicense(merchantCode, person)     → POST   /v2/licenses
+ *      Register each signee / UBO. Returns licenseCode per person.
  *
- * Endpoint reference (TBD — verify against Pay.nl docs once activated):
- *   POST   rest.pay.nl/v1/merchants                      → createMerchant
- *   GET    rest.pay.nl/v1/merchants/{id}                 → getMerchant
- *   POST   rest.pay.nl/v1/merchants/{id}/invoices        → addInvoice
- *   POST   rest.pay.nl/v1/merchants/{id}/clearings       → addClearing
- *   GET    rest.pay.nl/v1/merchants/{id}/statistics      → getMerchantStats
+ *   3. getMerchantInfo(merchantCode)           → GET    /v2/merchants/{code}/info
+ *      Tells us which documents Pay.nl now requires. We persist that
+ *      list as "requested" rows in organization_kyc_documents so the
+ *      admin UI can show what's outstanding.
+ *
+ *   4. addDocument({code, fileName, base64})   → POST   /v2/documents
+ *      Upload each requested document, keyed by the code from step 3.
+ *
+ *   5. submitForReview(merchantCode)           → PATCH  /v2/boarding/{code}/ready
+ *      Pay.nl Compliance review begins. Final status arrives async via
+ *      boardingStatus / kycStatus on the merchant (poll /info).
+ *
+ * Auth: Basic auth using PAYNL_TOKEN_CODE (AT-code) as username and
+ * PAYNL_API_TOKEN as password — same credentials we already use for
+ * the order/mandate endpoints.
+ *
+ * Activation gate: every function throws PayNLAllianceNotActivatedError
+ * unless PAYNL_ALLIANCE_ENABLED=true. This lets us ship the code before
+ * Pay.nl formally flips the alliance flag on our account.
  */
 
 import { paynlRequest, PayNLError } from './paynl';
 
 // ---------------------------------------------------------------------------
-// Activation check
+// Activation gate
 // ---------------------------------------------------------------------------
 
 export class PayNLAllianceNotActivatedError extends Error {
@@ -56,14 +66,13 @@ function getRestBase(): string {
 }
 
 // ---------------------------------------------------------------------------
-// createMerchant
+// Shared types
 // ---------------------------------------------------------------------------
 
 /**
- * Dutch legal forms Pay.nl will accept. The exact string values Pay.nl
- * expects on the wire may differ — verify against Alliance docs when
- * activation lands. The mapping lives in one place (`LEGAL_FORM_LABELS`)
- * so a rename is one-line.
+ * Dutch legal forms Pay.nl accepts. The wire value sent to Pay.nl is the
+ * string itself (lower-cased). Verify the accepted enum against the GMS
+ * OpenAPI spec on first sandbox call — Pay.nl may normalise internally.
  */
 export type LegalForm =
   | 'eenmanszaak'
@@ -76,50 +85,50 @@ export type LegalForm =
   | 'cooperatie'
   | 'other';
 
-/**
- * A natural person attached to the merchant. Pay.nl's Merchant:Create
- * requires at least one signee, plus every UBO (≥25% ownership/control)
- * for entities that have them (VOF, BV, stichting, vereniging, coöperatie).
- * A single person may be both signee and UBO.
- */
-export interface MerchantPerson {
-  /** Stable client-side id; echoed back so we can match the Pay.nl id to our row. */
-  clientRef: string;
-  fullName: string;
-  /** ISO date "YYYY-MM-DD". */
-  dateOfBirth: string;
+export interface PayNLAddress {
+  street: string;
+  houseNumber: string;
+  /** May include a suffix ("12A", "12 bis"). Pay.nl accepts a separate field in some forms; keep as single string. */
+  houseNumberSuffix?: string;
+  postalCode: string;
+  city: string;
   /** ISO 3166-1 alpha-2, e.g. "NL". */
-  nationality: string;
-  email?: string;
-  phone?: string;
-  address: {
-    street: string;
-    houseNumber: string;
-    postalCode: string;
-    city: string;
-    country: string;
-  };
-  isSignee: boolean;
-  isUbo: boolean;
-  /** Required when isUbo=true. 0 < pct ≤ 100. */
-  uboPercentage?: number;
+  country: string;
 }
 
+/** Merchant lifecycle values Pay.nl reports on the merchant record. */
+export type BoardingStatus =
+  | 'REGISTERED'
+  | 'ONBOARDING'
+  | 'ACCEPTED'
+  | 'SUSPENDED'
+  | 'OFFBOARDED';
+
+export type MerchantStatus = 'ACTIVE' | 'INACTIVE';
+export type PayoutStatus = 'ENABLED' | 'DISABLED';
+
+// ---------------------------------------------------------------------------
+// 1. createMerchant — POST /v2/merchants
+// ---------------------------------------------------------------------------
+
 /**
- * Fields Pay.nl's Merchant:Create endpoint expects. Field names follow the
- * pattern used elsewhere in this client (camelCase). Pay.nl's wire format
- * may differ on cosmetics — the shape is what matters.
+ * Body for POST /v2/merchants.
+ *
+ * The top-level envelope is `{ merchant: {...}, partner?: {...} }`. We
+ * represent the merchant sub-object with a flat TypeScript interface and
+ * build the envelope inside createMerchant() — callers don't have to know
+ * about the envelope.
  */
 export interface CreateMerchantPayload {
   /** Legal business name as registered with KvK. */
   legalName: string;
   /** Trading name shown on checkout screens. */
   tradingName: string;
-  /** Legal form — drives which documents / UBO rules apply. */
+  /** Legal form — drives which documents / UBO rules apply server-side. */
   legalForm: LegalForm;
   /** Merchant Category Code (ISO 18245). Donations typically 8398. */
   mcc: string;
-  /** KvK (Dutch Chamber of Commerce) number. */
+  /** KvK (Dutch Chamber of Commerce) number. 8 digits. */
   kvkNumber: string;
   /** Optional VAT id. */
   vatNumber?: string;
@@ -132,271 +141,398 @@ export interface CreateMerchantPayload {
   /** Account holder name (must match IBAN). */
   ibanOwner: string;
   /** Address of the merchant's registered office. */
-  address: {
-    street: string;
-    houseNumber: string;
-    postalCode: string;
-    city: string;
-    country: string; // ISO 3166-1 alpha-2, e.g. "NL"
-  };
+  address: PayNLAddress;
   /** Brief description of what the merchant sells/accepts donations for. */
   businessDescription: string;
   /** URL of the merchant's public website. */
   websiteUrl?: string;
-  /**
-   * Signees + UBOs. Must contain ≥1 signee. For all legal forms except
-   * `eenmanszaak`, must also contain ≥1 UBO.
-   */
-  persons: MerchantPerson[];
+  /** ISO 4217 currency code. Defaults to "EUR" when omitted. */
+  currency?: string;
 }
 
 export interface CreateMerchantResponse {
-  /** Pay.nl internal merchant id (e.g. "M-XXXX-XXXX"). */
-  merchantId: string;
-  /** Sales location automatically created for the merchant. */
-  serviceId: string; // SL-XXXX-XXXX
-  /** Secret associated with the new sales location. */
-  serviceSecret: string;
-  /** Current KYC state reported by Pay.nl. */
-  kycStatus: 'pending' | 'submitted' | 'approved' | 'rejected';
-  /**
-   * Per-person ids Pay.nl assigned. Matched back to our rows by clientRef.
-   * Used as the target for `id_front` / `id_back` document uploads.
-   */
-  persons?: Array<{ clientRef: string; paynlPersonId: string }>;
+  /** M-XXXX-XXXX. */
+  merchantCode: string;
+  /** Initial boarding state reported by Pay.nl. Usually REGISTERED. */
+  boardingStatus: BoardingStatus;
+  /** Usually INACTIVE until KYC completes. */
+  status?: MerchantStatus;
+  payoutStatus?: PayoutStatus;
 }
 
 /**
- * Register a new sub-merchant under the Bayaan Hub Alliance account.
- * Returns the Pay.nl merchant id + the SL-code for the mosque's own
- * sales location.
+ * Register a new sub-merchant under the Alliance account.
+ *
+ * On success Pay.nl returns a merchantCode (M-XXXX-XXXX). Subsequent
+ * license + document operations are keyed by this code.
  */
 export async function createMerchant(
   payload: CreateMerchantPayload,
 ): Promise<CreateMerchantResponse> {
   assertAllianceEnabled('createMerchant');
-  return paynlRequest<CreateMerchantResponse>(getRestBase(), '/v1/merchants', 'POST', payload);
+
+  const merchantObject = {
+    name: payload.legalName,
+    tradingName: payload.tradingName,
+    companyType: payload.legalForm,
+    mcc: payload.mcc,
+    kvkNumber: payload.kvkNumber,
+    ...(payload.vatNumber ? { vatNumber: payload.vatNumber } : {}),
+    contactEmail: payload.contactEmail,
+    ...(payload.contactPhone ? { contactPhone: payload.contactPhone } : {}),
+    bankAccount: {
+      iban: payload.iban,
+      owner: payload.ibanOwner,
+    },
+    address: {
+      street: payload.address.street,
+      houseNumber: payload.address.houseNumber,
+      ...(payload.address.houseNumberSuffix
+        ? { houseNumberSuffix: payload.address.houseNumberSuffix }
+        : {}),
+      postalCode: payload.address.postalCode,
+      city: payload.address.city,
+      country: payload.address.country,
+    },
+    description: payload.businessDescription,
+    ...(payload.websiteUrl ? { website: payload.websiteUrl } : {}),
+    currency: payload.currency ?? 'EUR',
+  };
+
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    '/v2/merchants',
+    'POST',
+    { merchant: merchantObject },
+  );
+
+  return normaliseMerchantCreateResponse(raw);
 }
 
-// ---------------------------------------------------------------------------
-// uploadMerchantDocument — KYC file upload
-// ---------------------------------------------------------------------------
+function normaliseMerchantCreateResponse(raw: unknown): CreateMerchantResponse {
+  // Pay.nl responses nest the record under different keys across endpoints.
+  // Tolerate { merchant: {...} }, { data: {...} }, or a flat record.
+  const root = raw as Record<string, unknown> | null;
+  const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
 
-export type KycDocumentType =
-  | 'kvk_extract'
-  | 'ubo_extract'
-  | 'id_front'
-  | 'id_back'
-  | 'bank_statement'
-  | 'power_of_attorney'
-  | 'other';
+  const merchantCode =
+    (m.code as string | undefined) ??
+    (m.merchantCode as string | undefined) ??
+    (m.id as string | undefined);
 
-export interface UploadMerchantDocumentParams {
-  merchantId: string;
-  docType: KycDocumentType;
-  /** Required for `id_front` / `id_back`. */
-  paynlPersonId?: string;
-  fileName: string;
-  mimeType: string;
-  /** Raw bytes to upload. */
-  data: Uint8Array | ArrayBuffer | Buffer;
-}
-
-export interface UploadMerchantDocumentResponse {
-  documentId: string;
-  status: 'received' | 'accepted' | 'rejected';
-}
-
-/**
- * Forward a single KYC document to Pay.nl. The exact endpoint path + body
- * shape (multipart vs base64) will need a small tweak once Alliance lands;
- * the shape below mirrors Pay.nl's documented document-upload convention
- * (multipart/form-data with `docType`, `personId`, and `file`).
- */
-export async function uploadMerchantDocument(
-  params: UploadMerchantDocumentParams,
-): Promise<UploadMerchantDocumentResponse> {
-  assertAllianceEnabled('uploadMerchantDocument');
-
-  const { merchantId, docType, paynlPersonId, fileName, mimeType, data } = params;
-  const form = new FormData();
-  form.append('docType', docType);
-  if (paynlPersonId) form.append('personId', paynlPersonId);
-  const blob = new Blob([toArrayBuffer(data)], { type: mimeType });
-  form.append('file', blob, fileName);
-
-  // Use a bare fetch here: paynlRequest serialises JSON, which breaks
-  // multipart. Auth still goes through the same basic-auth helper.
-  const url = `${getRestBase()}/v1/merchants/${encodeURIComponent(merchantId)}/documents`;
-  const tokenCode = process.env.PAYNL_TOKEN_CODE;
-  const apiToken = process.env.PAYNL_API_TOKEN;
-  if (!tokenCode || !apiToken) {
-    throw new PayNLError(
-      500,
-      'Pay.nl credentials missing (PAYNL_TOKEN_CODE / PAYNL_API_TOKEN).',
-    );
+  if (!merchantCode) {
+    throw new PayNLError(502, raw, 'Pay.nl did not return a merchantCode');
   }
-  const basic = Buffer.from(`${tokenCode}:${apiToken}`).toString('base64');
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { Authorization: `Basic ${basic}` },
-    body: form,
-  });
-
-  if (!res.ok) {
-    const text = await res.text().catch(() => '');
-    throw new PayNLError(res.status, `Pay.nl document upload failed: ${text || res.statusText}`);
-  }
-  return (await res.json()) as UploadMerchantDocumentResponse;
-}
-
-function toArrayBuffer(input: Uint8Array | ArrayBuffer | Buffer): ArrayBuffer {
-  if (input instanceof ArrayBuffer) return input;
-  // Buffer and Uint8Array both have .byteOffset/.byteLength on a shared buffer.
-  const view = input as Uint8Array;
-  return view.buffer.slice(view.byteOffset, view.byteOffset + view.byteLength) as ArrayBuffer;
-}
-
-// ---------------------------------------------------------------------------
-// getMerchant
-// ---------------------------------------------------------------------------
-
-export interface MerchantResponse {
-  merchantId: string;
-  serviceId: string;
-  legalName: string;
-  tradingName: string;
-  kycStatus: 'pending' | 'submitted' | 'approved' | 'rejected';
-  isActive: boolean;
-  walletBalance?: {
-    value: number; // cents
-    currency: string;
+  return {
+    merchantCode,
+    boardingStatus: (m.boardingStatus as BoardingStatus) ?? 'REGISTERED',
+    status: m.status as MerchantStatus | undefined,
+    payoutStatus: m.payoutStatus as PayoutStatus | undefined,
   };
 }
 
-export async function getMerchant(merchantId: string): Promise<MerchantResponse> {
-  assertAllianceEnabled('getMerchant');
-  return paynlRequest<MerchantResponse>(
-    getRestBase(),
-    `/v1/merchants/${encodeURIComponent(merchantId)}`,
-    'GET',
-  );
-}
-
 // ---------------------------------------------------------------------------
-// addInvoice — platform fee deduction
+// 2. createLicense — POST /v2/licenses
+//
+// One call per natural person associated with the merchant (signees, UBOs,
+// directors). Pay.nl returns a licenseCode that we store on our person row.
 // ---------------------------------------------------------------------------
 
-export interface AddInvoicePayload {
-  /** Amount to deduct from the merchant's wallet, in cents. */
-  amount: number;
-  currency: string;
-  /** Description shown on the merchant's invoice. */
-  description: string;
-  /** Optional reference (e.g. the transaction id this fee relates to). */
-  reference?: string;
+export interface MerchantPerson {
+  /** Stable client-side id; echoed so we can map Pay.nl's licenseCode back. */
+  clientRef: string;
+  fullName: string;
+  /** Optional split for Pay.nl variants that want first/last separately. */
+  firstName?: string;
+  lastName?: string;
+  /** ISO date "YYYY-MM-DD". */
+  dateOfBirth: string;
+  /** ISO 3166-1 alpha-2, e.g. "NL". */
+  nationality: string;
+  email?: string;
+  phone?: string;
+  address: PayNLAddress;
+  isSignee: boolean;
+  isUbo: boolean;
+  /** Required when isUbo=true. 0 < pct ≤ 100. */
+  uboPercentage?: number;
 }
 
-export interface AddInvoiceResponse {
-  invoiceId: string;
-  status: 'created' | 'posted' | 'failed';
+export interface CreateLicenseResponse {
+  /** The licenseCode Pay.nl assigned (stored on organization_persons.paynl_license_code). */
+  licenseCode: string;
+  /** If present, same as licenseCode on some responses. */
+  code?: string;
 }
 
 /**
- * Deduct the platform fee (e.g. 2% of a successful donation) from the
- * mosque's Pay.nl wallet. Called after `order.paid` webhook processing.
+ * Register one person (signee / UBO) against the merchant. Returns the
+ * license code, which becomes the target for any person-scoped document
+ * upload (id_front, id_back).
  */
-export async function addInvoice(
-  merchantId: string,
-  payload: AddInvoicePayload,
-): Promise<AddInvoiceResponse> {
-  assertAllianceEnabled('addInvoice');
-  return paynlRequest<AddInvoiceResponse>(
-    getRestBase(),
-    `/v1/merchants/${encodeURIComponent(merchantId)}/invoices`,
-    'POST',
-    payload,
-  );
-}
+export async function createLicense(
+  merchantCode: string,
+  person: MerchantPerson,
+): Promise<CreateLicenseResponse> {
+  assertAllianceEnabled('createLicense');
 
-// ---------------------------------------------------------------------------
-// addClearing — trigger payout to mosque bank account
-// ---------------------------------------------------------------------------
+  const personObject = {
+    name: person.fullName,
+    ...(person.firstName ? { firstName: person.firstName } : {}),
+    ...(person.lastName ? { lastName: person.lastName } : {}),
+    dateOfBirth: person.dateOfBirth,
+    nationality: person.nationality,
+    ...(person.email ? { email: person.email } : {}),
+    ...(person.phone ? { phone: person.phone } : {}),
+    address: {
+      street: person.address.street,
+      houseNumber: person.address.houseNumber,
+      ...(person.address.houseNumberSuffix
+        ? { houseNumberSuffix: person.address.houseNumberSuffix }
+        : {}),
+      postalCode: person.address.postalCode,
+      city: person.address.city,
+      country: person.address.country,
+    },
+    isSignee: person.isSignee,
+    isUbo: person.isUbo,
+    ...(person.uboPercentage !== undefined
+      ? { uboPercentage: person.uboPercentage }
+      : {}),
+  };
 
-export interface AddClearingPayload {
-  /** Amount to clear in cents; omit for "clear full balance". */
-  amount?: number;
-  currency: string;
-  /** Human-readable note shown on the SEPA transfer. */
-  description: string;
-}
-
-export interface AddClearingResponse {
-  clearingId: string;
-  status: 'scheduled' | 'processing' | 'completed' | 'failed';
-  /** Expected settlement date. */
-  processDate?: string; // ISO date
-}
-
-/**
- * Schedule a SEPA payout from the merchant's wallet to their bank account.
- * Can be manual (mosque admin presses "withdraw") or automated (cron).
- */
-export async function addClearing(
-  merchantId: string,
-  payload: AddClearingPayload,
-): Promise<AddClearingResponse> {
-  assertAllianceEnabled('addClearing');
-  return paynlRequest<AddClearingResponse>(
-    getRestBase(),
-    `/v1/merchants/${encodeURIComponent(merchantId)}/clearings`,
-    'POST',
-    payload,
-  );
-}
-
-// ---------------------------------------------------------------------------
-// getMerchantStats — reporting
-// ---------------------------------------------------------------------------
-
-export interface MerchantStatsQuery {
-  from: string; // ISO date
-  to: string; // ISO date
-  groupBy?: 'day' | 'week' | 'month';
-}
-
-export interface MerchantStatsResponse {
-  merchantId: string;
-  totalDonations: number; // cents
-  totalPlatformFees: number; // cents
-  transactionCount: number;
-  buckets: Array<{
-    period: string;
-    amount: number;
-    count: number;
-  }>;
-}
-
-export async function getMerchantStats(
-  merchantId: string,
-  query: MerchantStatsQuery,
-): Promise<MerchantStatsResponse> {
-  assertAllianceEnabled('getMerchantStats');
-  const params = new URLSearchParams({
-    from: query.from,
-    to: query.to,
-    ...(query.groupBy ? { groupBy: query.groupBy } : {}),
+  const raw = await paynlRequest<unknown>(getRestBase(), '/v2/licenses', 'POST', {
+    merchantCode,
+    person: personObject,
   });
-  return paynlRequest<MerchantStatsResponse>(
-    getRestBase(),
-    `/v1/merchants/${encodeURIComponent(merchantId)}/statistics?${params.toString()}`,
-    'GET',
-  );
+
+  return normaliseLicenseResponse(raw);
+}
+
+function normaliseLicenseResponse(raw: unknown): CreateLicenseResponse {
+  const root = raw as Record<string, unknown> | null;
+  const l = (root?.license ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+
+  const code =
+    (l.code as string | undefined) ??
+    (l.licenseCode as string | undefined) ??
+    (l.id as string | undefined);
+
+  if (!code) {
+    throw new PayNLError(502, raw, 'Pay.nl did not return a licenseCode');
+  }
+
+  return { licenseCode: code, code };
 }
 
 // ---------------------------------------------------------------------------
-// Error-path export — re-export so callers have a single import surface.
+// 3. getMerchantInfo — GET /v2/merchants/{code}/info
+//
+// Pay.nl dynamically computes which documents the merchant must supply
+// based on legal form, UBO composition and risk profile. We call this
+// right after createMerchant + all createLicense calls, persist the
+// returned documents[] as "requested" rows, and surface them in the UI.
+// ---------------------------------------------------------------------------
+
+export interface MerchantInfoDocument {
+  /** Pay.nl's upload identifier. POST /v2/documents uses this as `code`. */
+  code: string;
+  /** Free-text classification, e.g. "coc_extract", "id_front". */
+  type: string;
+  /** Lifecycle state. */
+  status: 'REQUESTED' | 'UPLOADED' | 'ACCEPTED' | 'REJECTED' | string;
+  /** Human label if Pay.nl supplies one. */
+  name?: string;
+  /** Optional merchant-facing translations. */
+  translations?: Record<string, { name?: string; description?: string }>;
+  /** If the doc relates to a specific person/license, Pay.nl sets one of these. */
+  licenseCode?: string;
+  personCode?: string;
+}
+
+export interface MerchantInfoResponse {
+  merchantCode: string;
+  status?: MerchantStatus;
+  boardingStatus?: BoardingStatus;
+  payoutStatus?: PayoutStatus;
+  documents: MerchantInfoDocument[];
+  /** Raw response kept for forward compatibility / debugging. */
+  raw: unknown;
+}
+
+export async function getMerchantInfo(
+  merchantCode: string,
+): Promise<MerchantInfoResponse> {
+  assertAllianceEnabled('getMerchantInfo');
+
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/merchants/${encodeURIComponent(merchantCode)}/info`,
+    'GET',
+  );
+
+  const root = raw as Record<string, unknown> | null;
+  const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+
+  const documentsRaw =
+    (m.documents as unknown[] | undefined) ??
+    (root?.documents as unknown[] | undefined) ??
+    [];
+
+  const documents: MerchantInfoDocument[] = documentsRaw.map((d) => {
+    const doc = (d ?? {}) as Record<string, unknown>;
+    return {
+      code: String(doc.code ?? ''),
+      type: String(doc.type ?? ''),
+      status: (doc.status as MerchantInfoDocument['status']) ?? 'REQUESTED',
+      name: doc.name as string | undefined,
+      translations: doc.translations as MerchantInfoDocument['translations'],
+      licenseCode: doc.licenseCode as string | undefined,
+      personCode: doc.personCode as string | undefined,
+    };
+  });
+
+  return {
+    merchantCode: String(m.code ?? m.merchantCode ?? merchantCode),
+    status: m.status as MerchantStatus | undefined,
+    boardingStatus: m.boardingStatus as BoardingStatus | undefined,
+    payoutStatus: m.payoutStatus as PayoutStatus | undefined,
+    documents,
+    raw,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 4. addDocument — POST /v2/documents
+//
+// JSON body with base64-encoded file contents. Keyed by the `code` from
+// getMerchantInfo()'s documents[].
+// ---------------------------------------------------------------------------
+
+export interface AddDocumentParams {
+  /** Value of MerchantInfoDocument.code. */
+  code: string;
+  fileName: string;
+  /** Raw bytes. Will be base64-encoded before sending. */
+  data: Uint8Array | ArrayBuffer | Buffer;
+}
+
+export interface AddDocumentResponse {
+  /** Internal Pay.nl reference for the uploaded artefact (if returned). */
+  documentId?: string;
+  /** Same as AddDocumentParams.code, echoed back. */
+  code?: string;
+  /** Final lifecycle state after ingest. */
+  status: 'UPLOADED' | 'ACCEPTED' | 'REJECTED' | string;
+  raw: unknown;
+}
+
+export async function addDocument(
+  params: AddDocumentParams,
+): Promise<AddDocumentResponse> {
+  assertAllianceEnabled('addDocument');
+
+  const base64 = toBase64(params.data);
+
+  const raw = await paynlRequest<unknown>(getRestBase(), '/v2/documents', 'POST', {
+    code: params.code,
+    fileName: params.fileName,
+    documentFile: base64,
+  });
+
+  const root = raw as Record<string, unknown> | null;
+  const d = (root?.document ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+
+  return {
+    documentId: (d.id as string | undefined) ?? (d.documentId as string | undefined),
+    code: (d.code as string | undefined) ?? params.code,
+    status: (d.status as AddDocumentResponse['status']) ?? 'UPLOADED',
+    raw,
+  };
+}
+
+function toBase64(input: Uint8Array | ArrayBuffer | Buffer): string {
+  if (Buffer.isBuffer(input)) return input.toString('base64');
+  if (input instanceof ArrayBuffer) return Buffer.from(new Uint8Array(input)).toString('base64');
+  // Uint8Array
+  const view = input as Uint8Array;
+  return Buffer.from(view.buffer, view.byteOffset, view.byteLength).toString('base64');
+}
+
+// ---------------------------------------------------------------------------
+// 5. submitForReview — PATCH /v2/boarding/{code}/ready
+//
+// Flips the merchant from REGISTERED/ONBOARDING into the Compliance queue.
+// Pay.nl then returns ACCEPTED / SUSPENDED asynchronously; poll /info to
+// pick up the final status.
+// ---------------------------------------------------------------------------
+
+export interface SubmitForReviewResponse {
+  boardingStatus: BoardingStatus;
+  raw: unknown;
+}
+
+export async function submitForReview(
+  merchantCode: string,
+): Promise<SubmitForReviewResponse> {
+  assertAllianceEnabled('submitForReview');
+
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/boarding/${encodeURIComponent(merchantCode)}/ready`,
+    'PATCH',
+  );
+
+  const root = raw as Record<string, unknown> | null;
+  const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+
+  return {
+    boardingStatus: (m.boardingStatus as BoardingStatus) ?? 'ONBOARDING',
+    raw,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// 6. getMerchant — GET /v2/merchants/{code}
+//
+// Lightweight status probe. Use this when the UI wants a quick refresh
+// without the documents[] payload that /info carries.
+// ---------------------------------------------------------------------------
+
+export interface MerchantSummary {
+  merchantCode: string;
+  name?: string;
+  status?: MerchantStatus;
+  boardingStatus?: BoardingStatus;
+  payoutStatus?: PayoutStatus;
+  raw: unknown;
+}
+
+export async function getMerchant(merchantCode: string): Promise<MerchantSummary> {
+  assertAllianceEnabled('getMerchant');
+
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/merchants/${encodeURIComponent(merchantCode)}`,
+    'GET',
+  );
+
+  const root = raw as Record<string, unknown> | null;
+  const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+
+  return {
+    merchantCode: String(m.code ?? m.merchantCode ?? merchantCode),
+    name: m.name as string | undefined,
+    status: m.status as MerchantStatus | undefined,
+    boardingStatus: m.boardingStatus as BoardingStatus | undefined,
+    payoutStatus: m.payoutStatus as PayoutStatus | undefined,
+    raw,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Error-path re-export — single import surface for API routes.
 // ---------------------------------------------------------------------------
 
 export { PayNLError };

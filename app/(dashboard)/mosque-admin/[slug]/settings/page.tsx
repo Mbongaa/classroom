@@ -37,6 +37,7 @@ interface OrganizationRow {
   thankyou_animation_id: string | null;
   paynl_merchant_id: string | null;
   paynl_service_id: string | null;
+  paynl_boarding_status: 'REGISTERED' | 'ONBOARDING' | 'ACCEPTED' | 'SUSPENDED' | 'OFFBOARDED' | null;
   kyc_status: 'pending' | 'submitted' | 'approved' | 'rejected';
   donations_active: boolean;
   onboarded_at: string | null;
@@ -50,6 +51,7 @@ interface OrganizationRow {
   address_street: string | null;
   address_house_number: string | null;
   address_postal_code: string | null;
+  preferred_locale: 'en' | 'ar' | 'nl' | 'fr' | 'de';
 }
 
 interface PersonRow {
@@ -57,22 +59,18 @@ interface PersonRow {
   full_name: string;
   is_signee: boolean;
   is_ubo: boolean;
-  paynl_person_id: string | null;
+  paynl_license_code: string | null;
 }
 
 interface KycDocumentRow {
   id: string;
-  doc_type:
-    | 'kvk_extract'
-    | 'ubo_extract'
-    | 'id_front'
-    | 'id_back'
-    | 'bank_statement'
-    | 'power_of_attorney'
-    | 'other';
+  doc_type: string;
   person_id: string | null;
-  status: 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
-  uploaded_at: string;
+  paynl_document_code: string | null;
+  paynl_required: boolean;
+  translations: Record<string, { name?: string; description?: string }> | null;
+  status: 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
+  uploaded_at: string | null;
 }
 
 export default async function MosqueSettingsPage({ params }: PageProps) {
@@ -96,7 +94,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>(
-      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban, bank_account_holder, thankyou_animation_id, paynl_merchant_id, paynl_service_id, kyc_status, donations_active, onboarded_at, platform_fee_bps, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code',
+      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban, bank_account_holder, thankyou_animation_id, paynl_merchant_id, paynl_service_id, paynl_boarding_status, kyc_status, donations_active, onboarded_at, platform_fee_bps, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code, preferred_locale',
     )
     .eq('slug', slug)
     .single();
@@ -110,14 +108,16 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   const [{ data: personsData }, { data: documentsData }] = await Promise.all([
     supabaseAdmin
       .from('organization_persons')
-      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_person_id')
+      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_license_code')
       .eq('organization_id', organization.id)
       .order('created_at', { ascending: true }),
     supabaseAdmin
       .from('organization_kyc_documents')
-      .select<string, KycDocumentRow>('id, doc_type, person_id, status, uploaded_at')
+      .select<string, KycDocumentRow>(
+        'id, doc_type, person_id, paynl_document_code, paynl_required, translations, status, uploaded_at',
+      )
       .eq('organization_id', organization.id)
-      .order('uploaded_at', { ascending: true }),
+      .order('created_at', { ascending: true }),
   ]);
 
   // Membership check (defense in depth).

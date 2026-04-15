@@ -7,7 +7,7 @@ import {
   PayNLError,
   redactPII,
 } from '@/lib/paynl';
-import { addInvoice, isAllianceEnabled } from '@/lib/paynl-alliance';
+import { isAllianceEnabled } from '@/lib/paynl-alliance';
 import {
   auditFieldsFor,
   parseWebhookEvent,
@@ -110,12 +110,22 @@ const recurringDashboardUrl = () => `${siteUrl()}/dashboard/donations/recurring`
  * Pay.nl retries on non-200, and we don't want a flaky email provider
  * triggering duplicate state transitions.
  */
-async function safeSend(label: string, fn: () => Promise<unknown>) {
+async function safeSend(
+  label: string,
+  fn: () => Promise<{ success?: boolean; id?: string; error?: unknown } | unknown>,
+) {
   try {
-    await fn();
+    const result = await fn();
+    // sendEmail returns `{ success: false, error }` on failure instead of
+    // throwing, so check the flag explicitly — otherwise we'd log "sent"
+    // for every rejected email.
+    if (result && typeof result === 'object' && 'success' in result && result.success === false) {
+      console.error(`[PayNL Webhook] Email failed (${label}):`, (result as { error?: unknown }).error);
+      return;
+    }
     console.log(`[PayNL Webhook] Email sent: ${label}`);
   } catch (err) {
-    console.error(`[PayNL Webhook] Email failed (${label}):`, err);
+    console.error(`[PayNL Webhook] Email threw (${label}):`, err);
   }
 }
 
@@ -591,20 +601,15 @@ async function deductPlatformFee(
       return;
     }
 
-    const result = await addInvoice(org.paynl_merchant_id, {
-      amount: feeCents,
-      currency: 'EUR',
-      description: `Platform fee – ${orderId}`.slice(0, 32),
-      reference: orderId,
-    });
-
-    console.log('[PayNL Webhook] Platform fee deducted', {
+    // TODO: v2 port — the v1-era `addInvoice` has no direct v2 equivalent
+    // here yet. Log the intended deduction so fees can be reconciled
+    // manually until the v2 Alliance invoicing endpoint is wired.
+    console.warn('[PayNL Webhook] Platform fee pending v2 invoicing endpoint', {
       orderId,
       organizationId,
-      merchantId: org.paynl_merchant_id,
+      merchantCode: org.paynl_merchant_id,
       feeCents,
       feeBps: org.platform_fee_bps,
-      invoiceId: result.invoiceId,
     });
   } catch (err) {
     // Non-fatal: log the failure for manual reconciliation.

@@ -1,3 +1,5 @@
+import { type Locale } from '@/i18n/config';
+import { resolveEmailLocale } from '@/lib/email/i18n';
 import { createAdminClient } from '@/lib/supabase/admin';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
@@ -9,6 +11,7 @@ export interface OrgAdminContact {
   fullName: string;
   subscriptionTier: string | null;
   currentPeriodEnd: string | null;
+  preferredLocale: Locale;
 }
 
 /**
@@ -36,7 +39,8 @@ export async function getOrgAdminContact(
     name,
     subscription_tier,
     current_period_end,
-    org_members!inner(
+    preferred_locale,
+    organization_members!inner(
       role,
       profiles!inner(full_name, email)
     )
@@ -47,13 +51,13 @@ export async function getOrgAdminContact(
         .from('organizations')
         .select(baseSelect)
         .eq('id', organizationId)
-        .eq('org_members.role', 'admin')
+        .eq('organization_members.role', 'admin')
         .maybeSingle()
     : await supabase
         .from('organizations')
         .select(baseSelect)
         .eq('stripe_customer_id', customerId!)
-        .eq('org_members.role', 'admin')
+        .eq('organization_members.role', 'admin')
         .maybeSingle();
 
   if (error || !data) {
@@ -61,8 +65,8 @@ export async function getOrgAdminContact(
     return null;
   }
 
-  const orgMember = (data as { org_members?: Array<{ profiles?: { full_name?: string; email?: string } }> })
-    .org_members?.[0];
+  const orgMember = (data as { organization_members?: Array<{ profiles?: { full_name?: string; email?: string } }> })
+    .organization_members?.[0];
   const profile = orgMember?.profiles;
 
   if (!profile?.email) {
@@ -77,6 +81,9 @@ export async function getOrgAdminContact(
     fullName: profile.full_name || 'there',
     subscriptionTier: data.subscription_tier ?? null,
     currentPeriodEnd: data.current_period_end ?? null,
+    preferredLocale: resolveEmailLocale(
+      (data as { preferred_locale?: string | null }).preferred_locale,
+    ),
   };
 }
 

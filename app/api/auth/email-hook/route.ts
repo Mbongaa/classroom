@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Webhook } from 'standardwebhooks';
 import { sendEmail } from '@/lib/email/email-service';
+import { getEmailLocaleForUser, getEmailTranslator } from '@/lib/email/i18n';
 import { ConfirmSignupEmail } from '@/lib/email/templates/ConfirmSignupEmail';
 import { PasswordResetEmail } from '@/lib/email/templates/PasswordResetEmail';
 import { EmailChangeEmail } from '@/lib/email/templates/EmailChangeEmail';
@@ -125,14 +126,20 @@ export async function POST(req: NextRequest) {
       type,
     )}&next=${encodeURIComponent(nextPath)}`;
 
+  // Resolve recipient locale from their org's preferred_locale. Brand-new
+  // signups have no profile row yet, so this falls back to defaultLocale —
+  // that's expected and acceptable for the first confirmation email.
+  const locale = await getEmailLocaleForUser(user.id);
+  const tEmails = getEmailTranslator(locale, 'emails');
+
   try {
     switch (email_data.email_action_type) {
       case 'signup': {
         const url = buildUrl(email_data.token_hash, 'signup');
         await sendEmail({
           to: user.email,
-          subject: 'Confirm your Bayaan Classroom account',
-          react: ConfirmSignupEmail({ userName, confirmationUrl: url }),
+          subject: tEmails('confirmSignup.subject'),
+          react: ConfirmSignupEmail({ userName, confirmationUrl: url, locale }),
           tags: [{ name: 'type', value: 'signup_confirmation' }],
         });
         break;
@@ -142,8 +149,8 @@ export async function POST(req: NextRequest) {
         const url = buildUrl(email_data.token_hash, 'recovery');
         await sendEmail({
           to: user.email,
-          subject: 'Reset your Bayaan Classroom password',
-          react: PasswordResetEmail({ userName, resetUrl: url }),
+          subject: tEmails('passwordReset.subject'),
+          react: PasswordResetEmail({ userName, resetUrl: url, locale }),
           tags: [{ name: 'type', value: 'password_reset' }],
         });
         break;
@@ -153,8 +160,8 @@ export async function POST(req: NextRequest) {
         const url = buildUrl(email_data.token_hash, 'magiclink');
         await sendEmail({
           to: user.email,
-          subject: 'Sign in to Bayaan Classroom',
-          react: MagicLinkEmail({ userName, magicLinkUrl: url }),
+          subject: tEmails('magicLink.subject'),
+          react: MagicLinkEmail({ userName, magicLinkUrl: url, locale }),
           tags: [{ name: 'type', value: 'magic_link' }],
         });
         break;
@@ -166,13 +173,14 @@ export async function POST(req: NextRequest) {
         const url = buildUrl(email_data.token_hash_new ?? email_data.token_hash, 'email_change');
         await sendEmail({
           to: user.new_email ?? user.email,
-          subject: 'Confirm your new Bayaan Classroom email',
+          subject: tEmails('emailChange.subjectNew'),
           react: EmailChangeEmail({
             userName,
             oldEmail: user.email,
             newEmail: user.new_email ?? user.email,
             confirmationUrl: url,
             recipient: 'new',
+            locale,
           }),
           tags: [{ name: 'type', value: 'email_change_new' }],
         });
@@ -184,13 +192,14 @@ export async function POST(req: NextRequest) {
         const url = buildUrl(email_data.token_hash, 'email_change');
         await sendEmail({
           to: user.email,
-          subject: 'Your Bayaan Classroom email is being changed',
+          subject: tEmails('emailChange.subjectCurrent'),
           react: EmailChangeEmail({
             userName,
             oldEmail: user.email,
             newEmail: user.new_email ?? '',
             confirmationUrl: url,
             recipient: 'current',
+            locale,
           }),
           tags: [{ name: 'type', value: 'email_change_current' }],
         });

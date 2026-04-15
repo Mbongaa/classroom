@@ -1,4 +1,6 @@
 import { Link, Section, Text } from '@react-email/components';
+import { defaultLocale, type Locale } from '@/i18n/config';
+import { getEmailTranslator } from '../i18n';
 import { EmailLayout, Hr, styles } from './_layout';
 
 interface WelcomeEmailProps {
@@ -8,6 +10,7 @@ interface WelcomeEmailProps {
   billingPeriodEnd: string;
   dashboardUrl: string;
   billingPortalUrl: string;
+  locale?: Locale;
 }
 
 export function WelcomeEmail({
@@ -17,38 +20,35 @@ export function WelcomeEmail({
   billingPeriodEnd,
   dashboardUrl,
   billingPortalUrl,
+  locale = defaultLocale,
 }: WelcomeEmailProps) {
-  return (
-    <EmailLayout
-      preview="Welcome to Bayaan — your subscription is active"
-      heading="Welcome to Bayaan 🎉"
-    >
-      <Text style={styles.text}>Hi {userName},</Text>
+  const t = getEmailTranslator(locale, 'emails.welcome');
 
-      <Text style={styles.text}>
-        Thanks for subscribing. Your <strong>{planName}</strong> plan is now active and
-        ready to use.
-      </Text>
+  return (
+    <EmailLayout preview={t('preview')} heading={t('heading')} locale={locale}>
+      <Text style={styles.text}>{t('greeting', { name: userName })}</Text>
+
+      <Text style={styles.text}>{t('body', { plan: planName })}</Text>
 
       <Section style={styles.infoBox}>
         <Text style={styles.infoText}>
-          <strong>Organization:</strong> {organizationName}
+          <strong>{t('organizationLabel')}</strong> {organizationName}
           <br />
-          <strong>Plan:</strong> {planName}
+          <strong>{t('planLabel')}</strong> {planName}
           <br />
-          <strong>Next billing date:</strong> {billingPeriodEnd}
+          <strong>{t('nextBillingLabel')}</strong> {billingPeriodEnd}
         </Text>
       </Section>
 
       <Link href={dashboardUrl} style={styles.button}>
-        Go to dashboard
+        {t('cta')}
       </Link>
 
       <Hr style={{ borderColor: 'rgba(255,255,255,0.08)', margin: '24px 0' }} />
 
-      <Text style={styles.textMuted}>Manage your subscription anytime:</Text>
+      <Text style={styles.textMuted}>{t('manageLabel')}</Text>
       <Link href={billingPortalUrl} style={styles.linkText}>
-        Billing portal
+        {t('billingPortal')}
       </Link>
     </EmailLayout>
   );
@@ -61,6 +61,7 @@ WelcomeEmail.PreviewProps = {
   billingPeriodEnd: 'May 14, 2026',
   dashboardUrl: 'https://bayaan.ai/dashboard',
   billingPortalUrl: 'https://bayaan.ai/dashboard/billing',
+  locale: 'en',
 } satisfies WelcomeEmailProps;
 
 export default WelcomeEmail;

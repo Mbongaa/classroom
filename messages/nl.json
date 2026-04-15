@@ -13,6 +13,69 @@
     "saveChanges": "Wijzigingen opslaan",
     "saving": "Opslaan..."
   },
+  "emails": {
+    "layout": {
+      "footerHelp": "Hulp nodig? Beantwoord deze e-mail gewoon.",
+      "footerTag": "Realtime-vertaling voor moderne klaslokalen"
+    },
+    "common": {
+      "greetingNamed": "Hallo {name},",
+      "greetingAnon": "Hallo,",
+      "orCopyUrl": "Of kopieer en plak deze URL in je browser:"
+    },
+    "confirmSignup": {
+      "subject": "Bevestig je Bayaan Classroom-account",
+      "preview": "Bevestig je e-mailadres om je Bayaan Classroom-account te activeren",
+      "heading": "Bevestig je e-mailadres",
+      "body": "Welkom bij Bayaan Classroom! Klik op de knop hieronder om je e-mailadres te bevestigen en je account te activeren.",
+      "cta": "E-mailadres bevestigen",
+      "disclaimer": "Heb je geen Bayaan Classroom-account aangemaakt? Dan kun je deze e-mail veilig negeren."
+    },
+    "magicLink": {
+      "subject": "Inloggen bij Bayaan Classroom",
+      "preview": "Je inloglink voor Bayaan Classroom",
+      "heading": "Inloggen bij Bayaan Classroom",
+      "body": "Klik op de knop hieronder om in te loggen op je Bayaan Classroom-account. Met deze link log je in zonder wachtwoord.",
+      "cta": "Inloggen",
+      "disclaimer": "Deze link verloopt over 1 uur en kan maar één keer worden gebruikt. Heb je geen inloglink aangevraagd? Dan kun je deze e-mail veilig negeren."
+    },
+    "passwordReset": {
+      "subject": "Wachtwoord voor Bayaan Classroom opnieuw instellen",
+      "preview": "Wachtwoord voor Bayaan Classroom opnieuw instellen",
+      "heading": "Wachtwoord opnieuw instellen",
+      "body": "We hebben een verzoek ontvangen om het wachtwoord van je Bayaan Classroom-account opnieuw in te stellen. Klik op de knop hieronder om een nieuw wachtwoord te kiezen.",
+      "cta": "Wachtwoord opnieuw instellen",
+      "disclaimer": "Deze link verloopt over 1 uur. Heb je geen wachtwoordherstel aangevraagd? Dan kun je deze e-mail veilig negeren — je wachtwoord verandert niet."
+    },
+    "emailChange": {
+      "subjectNew": "Bevestig je nieuwe Bayaan Classroom-e-mailadres",
+      "subjectCurrent": "Je Bayaan Classroom-e-mailadres wordt gewijzigd",
+      "previewNew": "Bevestig je nieuwe Bayaan Classroom-e-mailadres",
+      "previewCurrent": "Je Bayaan Classroom-e-mailadres wordt gewijzigd",
+      "headingNew": "Bevestig je nieuwe e-mailadres",
+      "headingCurrent": "Wijziging van e-mailadres aangevraagd",
+      "bodyNew": "We hebben een verzoek ontvangen om het e-mailadres van je Bayaan Classroom-account te wijzigen. Klik op de knop hieronder om te bevestigen dat dit je nieuwe e-mailadres is.",
+      "bodyCurrent": "Er is een verzoek gedaan om het e-mailadres van je Bayaan Classroom-account te wijzigen. Voor de veiligheid brengen we zowel het oude als het nieuwe adres op de hoogte.",
+      "fromLabel": "Van:",
+      "toLabel": "Naar:",
+      "cta": "Nieuw e-mailadres bevestigen",
+      "warningNew": "Heb je deze wijziging niet aangevraagd? Klik dan niet op de link en neem direct contact op met support.",
+      "warningCurrent": "Heb je deze wijziging niet aangevraagd? Neem dan direct contact op met support — je account kan in gevaar zijn."
+    },
+    "welcome": {
+      "subject": "Welkom bij Bayaan — je abonnement is actief",
+      "preview": "Welkom bij Bayaan — je abonnement is actief",
+      "heading": "Welkom bij Bayaan 🎉",
+      "greeting": "Hallo {name},",
+      "body": "Bedankt voor je abonnement. Je {plan}-plan is nu actief en klaar voor gebruik.",
+      "organizationLabel": "Organisatie:",
+      "planLabel": "Plan:",
+      "nextBillingLabel": "Volgende factuurdatum:",
+      "cta": "Naar dashboard",
+      "manageLabel": "Beheer je abonnement op elk moment:",
+      "billingPortal": "Factuurportaal"
+    }
+  },
   "locale": {
     "switchLanguage": "Taal",
     "english": "English",
@@ -639,7 +702,8 @@
       "tabs": {
         "general": "Algemeen",
         "payments": "Betalingen",
-        "animation": "Bedank-animatie"
+        "animation": "Bedank-animatie",
+        "language": "Taal"
       },
       "general": {
         "title": "Algemene informatie",
@@ -737,6 +801,14 @@
         "updated": "Bedank-animatie bijgewerkt",
         "updateFailed": "Bijwerken van animatie mislukt",
         "saveFailed": "Opslaan mislukt"
+      },
+      "language": {
+        "title": "Standaardtaal",
+        "description": "Bepaalt de interfacetaal voor leden van deze organisatie en de taal voor transactionele e-mails (registratiebevestigingen, wachtwoordherstel, factuurbonnen).",
+        "selectLabel": "Taal",
+        "hint": "Geldt voor nieuwe sessies van alle leden van deze organisatie en voor alle geautomatiseerde e-mails die we namens u versturen.",
+        "updated": "Taal bijgewerkt",
+        "updateFailed": "Taal bijwerken mislukt"
       }
     }
   }

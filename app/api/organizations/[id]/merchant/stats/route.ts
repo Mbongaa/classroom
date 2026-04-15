@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
-import {
-  getMerchantStats,
-  getMerchant,
-  isAllianceEnabled,
-  PayNLAllianceNotActivatedError,
-  PayNLError,
-} from '@/lib/paynl-alliance';
+import { isAllianceEnabled } from '@/lib/paynl-alliance';
 
 /**
  * GET /api/organizations/[id]/merchant/stats
@@ -120,37 +114,15 @@ export async function GET(
     (totalDonationsCents * (org.platform_fee_bps || 200)) / 10_000,
   );
 
-  // ---- 2. Pay.nl Alliance stats (if available) ----------------------------
-  let walletBalance = null;
-  let paynlStats = null;
-
+  // ---- 2. Pay.nl Alliance stats ---------------------------------------
+  // Wallet balance + aggregated stats need dedicated v2 endpoints that are
+  // not part of the merchant onboarding surface. Local DB aggregates cover
+  // donation counts + totals for now; wallet/remote stats are pending the
+  // v2 port.
+  const walletBalance = null;
+  const paynlStats = null;
   if (isAllianceEnabled() && org.paynl_merchant_id) {
-    // Fetch wallet balance and Pay.nl stats in parallel.
-    const [merchantResult, statsResult] = await Promise.allSettled([
-      getMerchant(org.paynl_merchant_id),
-      getMerchantStats(org.paynl_merchant_id, { from, to, groupBy }),
-    ]);
-
-    if (merchantResult.status === 'fulfilled') {
-      walletBalance = merchantResult.value.walletBalance || null;
-    } else {
-      console.error('[Alliance] getMerchant failed in stats', {
-        organizationId: id,
-        error: merchantResult.reason instanceof Error ? merchantResult.reason.message : merchantResult.reason,
-      });
-    }
-
-    if (statsResult.status === 'fulfilled') {
-      paynlStats = statsResult.value;
-    } else {
-      const err = statsResult.reason;
-      if (!(err instanceof PayNLAllianceNotActivatedError)) {
-        console.error('[Alliance] getMerchantStats failed', {
-          organizationId: id,
-          error: err instanceof Error ? err.message : err,
-        });
-      }
-    }
+    // No-op: v2 endpoints for wallet + stats not yet wired.
   }
 
   return NextResponse.json({

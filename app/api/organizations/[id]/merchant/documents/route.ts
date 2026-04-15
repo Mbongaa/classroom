@@ -2,48 +2,39 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import {
+  addDocument,
   isAllianceEnabled,
-  uploadMerchantDocument,
   PayNLAllianceNotActivatedError,
   PayNLError,
-  type KycDocumentType,
 } from '@/lib/paynl-alliance';
 
 /**
  * POST /api/organizations/[id]/merchant/documents
  *
- * Upload a single KYC document for a sub-merchant. Called after the org
- * has been onboarded via POST /merchant/onboard — the org must already
- * have a paynl_merchant_id.
+ * Upload one of the KYC documents Pay.nl has requested for this merchant.
  *
- * Request: multipart/form-data with:
- *   file       — the document (PDF / PNG / JPEG / WEBP, ≤10 MB)
- *   docType    — one of: kvk_extract, ubo_extract, id_front, id_back,
- *                bank_statement, power_of_attorney, other
- *   personId   — OUR organization_persons.id (not Pay.nl's). Required for
- *                id_front / id_back.
+ * Prerequisites:
+ *   - Organization already has a paynl_merchant_id (via /merchant/onboard)
+ *   - A row in organization_kyc_documents with the given `documentCode`
+ *     exists and is in status='requested'. That row is created by
+ *     /merchant/onboard after it reads /v2/merchants/{code}/info, or later
+ *     by a refresh.
+ *
+ * Request: multipart/form-data with
+ *   file         — the document (PDF / PNG / JPEG / WEBP, ≤10 MB)
+ *   documentCode — the Pay.nl-issued upload identifier from merchants/info
+ *                  (stored on organization_kyc_documents.paynl_document_code)
  *
  * Flow:
- *   1. Store the file in the private `kyc-documents` Supabase Storage bucket
- *   2. Forward it to Pay.nl via the Alliance API
- *   3. Record metadata in `organization_kyc_documents`
+ *   1. Resolve the existing requested row by (organization_id, documentCode)
+ *   2. Store bytes in the private `kyc-documents` Supabase Storage bucket
+ *   3. POST /v2/documents with base64-encoded file
+ *   4. Update the existing row with storage path, file meta, and status
  *
  * Auth: org admin or platform superadmin.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const DOC_TYPES: readonly KycDocumentType[] = [
-  'kvk_extract',
-  'ubo_extract',
-  'id_front',
-  'id_back',
-  'bank_statement',
-  'power_of_attorney',
-  'other',
-];
-
-const PERSON_SCOPED_DOCS: readonly KycDocumentType[] = ['id_front', 'id_back'];
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 const ALLOWED_MIME = new Set([
@@ -54,6 +45,27 @@ const ALLOWED_MIME = new Set([
 ]);
 
 const STORAGE_BUCKET = 'kyc-documents';
+
+type LocalDocStatus = 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
+
+function mapRemoteDocStatus(remote: string): LocalDocStatus {
+  switch (remote?.toUpperCase()) {
+    case 'UPLOADED':
+      return 'forwarded';
+    case 'ACCEPTED':
+      return 'accepted';
+    case 'REJECTED':
+      return 'rejected';
+    case 'REQUESTED':
+      return 'requested';
+    default:
+      return 'forwarded';
+  }
+}
+
+function sanitiseFileName(name: string): string {
+  return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'upload';
+}
 
 export async function POST(
   request: NextRequest,
@@ -74,7 +86,7 @@ export async function POST(
     );
   }
 
-  // Parse multipart body
+  // ---- Parse multipart ------------------------------------------------------
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -82,35 +94,16 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid multipart body' }, { status: 400 });
   }
 
-  const docTypeRaw = formData.get('docType');
-  const personIdRaw = formData.get('personId');
+  const documentCodeRaw = formData.get('documentCode');
   const file = formData.get('file');
 
-  if (typeof docTypeRaw !== 'string' || !DOC_TYPES.includes(docTypeRaw as KycDocumentType)) {
+  if (typeof documentCodeRaw !== 'string' || documentCodeRaw.trim().length === 0) {
     return NextResponse.json(
-      { error: `docType must be one of: ${DOC_TYPES.join(', ')}` },
+      { error: 'documentCode is required (the Pay.nl code from merchants/info)' },
       { status: 400 },
     );
   }
-  const docType = docTypeRaw as KycDocumentType;
-
-  const personScoped = PERSON_SCOPED_DOCS.includes(docType);
-  let personId: string | null = null;
-  if (personScoped) {
-    if (typeof personIdRaw !== 'string' || !UUID_RE.test(personIdRaw)) {
-      return NextResponse.json(
-        { error: `personId is required and must be a UUID for docType "${docType}"` },
-        { status: 400 },
-      );
-    }
-    personId = personIdRaw;
-  } else if (typeof personIdRaw === 'string' && personIdRaw) {
-    // Allow personId on non-person-scoped docs, but validate format.
-    if (!UUID_RE.test(personIdRaw)) {
-      return NextResponse.json({ error: 'personId must be a UUID' }, { status: 400 });
-    }
-    personId = personIdRaw;
-  }
+  const documentCode = documentCodeRaw.trim();
 
   if (!(file instanceof File)) {
     return NextResponse.json({ error: 'file is required' }, { status: 400 });
@@ -133,7 +126,7 @@ export async function POST(
 
   const supabaseAdmin = createAdminClient();
 
-  // Verify org exists + has a merchant id
+  // ---- Resolve org + requested row -----------------------------------------
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .select('id, paynl_merchant_id')
@@ -149,35 +142,41 @@ export async function POST(
     );
   }
 
-  // If personId supplied, verify it belongs to this org and fetch the Pay.nl id
-  let paynlPersonId: string | null = null;
-  if (personId) {
-    const { data: person, error: personError } = await supabaseAdmin
-      .from('organization_persons')
-      .select('id, organization_id, paynl_person_id')
-      .eq('id', personId)
-      .single();
-    if (personError || !person) {
-      return NextResponse.json({ error: 'Person not found' }, { status: 404 });
-    }
-    if (person.organization_id !== id) {
-      return NextResponse.json({ error: 'Person does not belong to this org' }, { status: 403 });
-    }
-    paynlPersonId = person.paynl_person_id ?? null;
-    if (personScoped && !paynlPersonId) {
-      return NextResponse.json(
-        {
-          error:
-            'This person has no Pay.nl id yet. Pay.nl must acknowledge the merchant submission before ID documents can be attached.',
-        },
-        { status: 409 },
-      );
-    }
+  const { data: existingDoc, error: docLookupError } = await supabaseAdmin
+    .from('organization_kyc_documents')
+    .select('id, status, paynl_document_code, doc_type, person_id')
+    .eq('organization_id', id)
+    .eq('paynl_document_code', documentCode)
+    .maybeSingle();
+
+  if (docLookupError) {
+    console.error('[Alliance] Failed to look up requested doc row', {
+      organizationId: id,
+      documentCode,
+      error: docLookupError.message,
+    });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+  if (!existingDoc) {
+    return NextResponse.json(
+      {
+        error:
+          `No Pay.nl-requested document exists for code "${documentCode}". ` +
+          'Refresh the merchant info from Pay.nl and try again.',
+      },
+      { status: 404 },
+    );
+  }
+  if (existingDoc.status === 'accepted') {
+    return NextResponse.json(
+      { error: 'This document has already been accepted by Pay.nl.' },
+      { status: 409 },
+    );
   }
 
-  // ---- 1. Persist to Supabase Storage -------------------------------------
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 80) || 'upload';
-  const storagePath = `${id}/${docType}/${crypto.randomUUID()}-${safeName}`;
+  // ---- 1. Persist to Supabase Storage --------------------------------------
+  const safeName = sanitiseFileName(file.name);
+  const storagePath = `${id}/${documentCode}/${crypto.randomUUID()}-${safeName}`;
   const arrayBuffer = await file.arrayBuffer();
 
   const { error: uploadError } = await supabaseAdmin.storage
@@ -189,31 +188,23 @@ export async function POST(
   if (uploadError) {
     console.error('[Alliance] Storage upload failed', {
       organizationId: id,
-      docType,
+      documentCode,
       error: uploadError.message,
     });
     return NextResponse.json({ error: 'Failed to store the document' }, { status: 500 });
   }
 
-  // ---- 2. Forward to Pay.nl -----------------------------------------------
+  // ---- 2. Forward to Pay.nl -------------------------------------------------
   let paynlDocumentId: string | null = null;
-  let remoteStatus: 'uploaded' | 'forwarded' | 'accepted' | 'rejected' = 'uploaded';
+  let remoteStatus: LocalDocStatus = 'forwarded';
   try {
-    const remote = await uploadMerchantDocument({
-      merchantId: org.paynl_merchant_id,
-      docType,
-      paynlPersonId: paynlPersonId ?? undefined,
+    const remote = await addDocument({
+      code: documentCode,
       fileName: safeName,
-      mimeType: file.type,
       data: new Uint8Array(arrayBuffer),
     });
-    paynlDocumentId = remote.documentId;
-    remoteStatus =
-      remote.status === 'accepted'
-        ? 'accepted'
-        : remote.status === 'rejected'
-          ? 'rejected'
-          : 'forwarded';
+    paynlDocumentId = remote.documentId ?? null;
+    remoteStatus = mapRemoteDocStatus(remote.status);
   } catch (error) {
     if (error instanceof PayNLAllianceNotActivatedError) {
       return NextResponse.json({ error: error.message }, { status: 503 });
@@ -222,13 +213,15 @@ export async function POST(
       // File is stored locally — keep it so the user can retry without re-uploading.
       console.error('[Alliance] Pay.nl document upload failed', {
         organizationId: id,
+        documentCode,
         storagePath,
-        docType,
         status: error.status,
       });
       return NextResponse.json(
         {
-          error: 'Stored locally but Pay.nl rejected the upload. Please try again or contact support.',
+          error:
+            'Stored locally but Pay.nl rejected the upload. ' +
+            'Please verify the file and try again.',
           storagePath,
         },
         { status: 502 },
@@ -236,34 +229,36 @@ export async function POST(
     }
     console.error('[Alliance] Unexpected error forwarding document', {
       organizationId: id,
+      documentCode,
       storagePath,
       error,
     });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  // ---- 3. Persist metadata row --------------------------------------------
-  const { data: docRow, error: insertError } = await supabaseAdmin
+  // ---- 3. Update the existing requested row --------------------------------
+  const { data: updatedRow, error: updateError } = await supabaseAdmin
     .from('organization_kyc_documents')
-    .insert({
-      organization_id: id,
-      person_id: personId,
-      doc_type: docType,
+    .update({
       storage_path: storagePath,
       mime_type: file.type,
       file_size_bytes: file.size,
       paynl_document_id: paynlDocumentId,
       status: remoteStatus,
       uploaded_by: auth.user?.id ?? null,
+      uploaded_at: new Date().toISOString(),
+      last_synced_at: new Date().toISOString(),
     })
-    .select('id, doc_type, status, uploaded_at')
+    .eq('id', existingDoc.id)
+    .select('id, doc_type, paynl_document_code, status, uploaded_at')
     .single();
 
-  if (insertError) {
-    console.error('[Alliance] Failed to persist document metadata', {
+  if (updateError || !updatedRow) {
+    console.error('[Alliance] Failed to update document row after upload', {
       organizationId: id,
+      documentCode,
       storagePath,
-      error: insertError.message,
+      error: updateError?.message,
     });
     return NextResponse.json(
       {
@@ -275,10 +270,11 @@ export async function POST(
   }
 
   return NextResponse.json({
-    id: docRow.id,
-    docType: docRow.doc_type,
-    status: docRow.status,
-    uploadedAt: docRow.uploaded_at,
+    id: updatedRow.id,
+    documentCode: updatedRow.paynl_document_code,
+    docType: updatedRow.doc_type,
+    status: updatedRow.status,
+    uploadedAt: updatedRow.uploaded_at,
     paynlDocumentId,
   });
 }

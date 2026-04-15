@@ -2,32 +2,65 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import {
-  getMerchant,
+  getMerchantInfo,
   isAllianceEnabled,
   PayNLAllianceNotActivatedError,
   PayNLError,
+  type BoardingStatus,
 } from '@/lib/paynl-alliance';
 
 /**
  * GET /api/organizations/[id]/merchant/status
  *
- * Fetches the current merchant status from Pay.nl and syncs it to the
- * organization row. This is the polling endpoint that the onboarding UI
- * calls to check whether KYC has been approved.
+ * Refresh merchant status + document statuses from Pay.nl and sync the
+ * relevant rows locally. The onboarding UI polls this endpoint.
+ *
+ * Lifecycle mapping (Pay.nl boardingStatus → our kyc_status):
+ *   REGISTERED / ONBOARDING      → submitted (default)
+ *   ACCEPTED                     → approved (donations_active=true)
+ *   SUSPENDED / OFFBOARDED       → rejected  (donations_active=false)
  *
  * Auth: org admin or platform superadmin.
- *
- * If the org has no paynl_merchant_id yet, returns the local kyc_status
- * without calling Pay.nl (the org hasn't been submitted yet).
- *
- * When KYC transitions to 'approved', this endpoint automatically:
- *   - sets donations_active = true
- *   - sets onboarded_at = now()
- *
- * When KYC transitions to 'rejected', donations_active stays false.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+type KycStatus = 'pending' | 'submitted' | 'approved' | 'rejected';
+
+function mapBoardingToKyc(
+  boarding: BoardingStatus | undefined,
+  current: KycStatus,
+): KycStatus {
+  switch (boarding) {
+    case 'ACCEPTED':
+      return 'approved';
+    case 'SUSPENDED':
+    case 'OFFBOARDED':
+      return 'rejected';
+    case 'REGISTERED':
+    case 'ONBOARDING':
+      return 'submitted';
+    default:
+      return current;
+  }
+}
+
+function mapRemoteDocStatus(
+  remote: string,
+): 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected' {
+  switch (remote?.toUpperCase()) {
+    case 'REQUESTED':
+      return 'requested';
+    case 'UPLOADED':
+      return 'forwarded';
+    case 'ACCEPTED':
+      return 'accepted';
+    case 'REJECTED':
+      return 'rejected';
+    default:
+      return 'requested';
+  }
+}
 
 export async function GET(
   _request: NextRequest,
@@ -38,17 +71,15 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid organization id' }, { status: 400 });
   }
 
-  // ---- 1. Auth: org admin or superadmin -----------------------------------
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   const supabaseAdmin = createAdminClient();
 
-  // ---- 2. Fetch the org's current merchant fields -------------------------
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .select(
-      'id, name, slug, paynl_merchant_id, paynl_service_id, kyc_status, donations_active, onboarded_at, platform_fee_bps',
+      'id, name, slug, paynl_merchant_id, paynl_service_id, paynl_boarding_status, kyc_status, donations_active, onboarded_at, platform_fee_bps',
     )
     .eq('id', id)
     .single();
@@ -57,55 +88,50 @@ export async function GET(
     return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
   }
 
-  // If no merchant_id, the org hasn't submitted KYC yet — return local state.
+  // No merchant yet → return local state.
   if (!org.paynl_merchant_id) {
     return NextResponse.json({
       merchantId: null,
-      serviceId: org.paynl_service_id || null,
+      serviceId: org.paynl_service_id,
+      boardingStatus: null,
       kycStatus: org.kyc_status,
       donationsActive: org.donations_active,
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
-      walletBalance: null,
       source: 'local',
     });
   }
 
-  // ---- 3. Sync from Pay.nl if Alliance is enabled -------------------------
   if (!isAllianceEnabled()) {
-    // Alliance not enabled but we have a merchant_id (maybe set manually by superadmin).
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
+      boardingStatus: org.paynl_boarding_status,
       kycStatus: org.kyc_status,
       donationsActive: org.donations_active,
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
-      walletBalance: null,
       source: 'local',
     });
   }
 
   try {
-    const merchant = await getMerchant(org.paynl_merchant_id);
+    const info = await getMerchantInfo(org.paynl_merchant_id);
 
-    // ---- 4. Detect KYC status changes and update locally ------------------
+    const nextKyc = mapBoardingToKyc(info.boardingStatus, org.kyc_status as KycStatus);
+
     const update: Record<string, unknown> = {};
-    let kycChanged = false;
-
-    if (merchant.kycStatus !== org.kyc_status) {
-      update.kyc_status = merchant.kycStatus;
-      kycChanged = true;
+    if (info.boardingStatus && info.boardingStatus !== org.paynl_boarding_status) {
+      update.paynl_boarding_status = info.boardingStatus;
     }
-
-    // Auto-activate donations when approved (one-way latch).
-    if (merchant.kycStatus === 'approved' && !org.donations_active) {
+    if (nextKyc !== org.kyc_status) {
+      update.kyc_status = nextKyc;
+    }
+    if (nextKyc === 'approved' && !org.donations_active) {
       update.donations_active = true;
-      update.onboarded_at = new Date().toISOString();
+      update.onboarded_at = org.onboarded_at ?? new Date().toISOString();
     }
-
-    // If KYC was revoked/rejected after being approved, deactivate.
-    if (merchant.kycStatus === 'rejected' && org.donations_active) {
+    if (nextKyc === 'rejected' && org.donations_active) {
       update.donations_active = false;
     }
 
@@ -114,37 +140,68 @@ export async function GET(
         .from('organizations')
         .update(update)
         .eq('id', id);
-
       if (updateError) {
         console.error('[Alliance] Failed to sync merchant status', {
           organizationId: id,
-          merchantId: org.paynl_merchant_id,
+          merchantCode: org.paynl_merchant_id,
           error: updateError.message,
         });
-      } else if (kycChanged) {
+      } else if (update.kyc_status) {
         console.log('[Alliance] KYC status synced', {
           organizationId: id,
-          merchantId: org.paynl_merchant_id,
+          merchantCode: org.paynl_merchant_id,
           from: org.kyc_status,
-          to: merchant.kycStatus,
+          to: update.kyc_status,
+        });
+      }
+    }
+
+    // Refresh document statuses (best-effort). Map license → local person id.
+    if (info.documents.length > 0) {
+      const { data: personRows } = await supabaseAdmin
+        .from('organization_persons')
+        .select('id, paynl_license_code')
+        .eq('organization_id', id);
+      const localIdByLicense = new Map<string, string>();
+      for (const row of personRows ?? []) {
+        if (row.paynl_license_code) localIdByLicense.set(row.paynl_license_code, row.id);
+      }
+
+      const docRows = info.documents.map((d) => ({
+        organization_id: id,
+        person_id: d.licenseCode ? (localIdByLicense.get(d.licenseCode) ?? null) : null,
+        doc_type: d.type,
+        paynl_document_code: d.code,
+        paynl_required: true,
+        translations: d.translations ?? null,
+        status: mapRemoteDocStatus(d.status),
+        last_synced_at: new Date().toISOString(),
+      }));
+      const { error: docsError } = await supabaseAdmin
+        .from('organization_kyc_documents')
+        .upsert(docRows, {
+          onConflict: 'organization_id,paynl_document_code',
+          ignoreDuplicates: false,
+        });
+      if (docsError) {
+        console.warn('[Alliance] Failed to sync doc statuses', {
+          organizationId: id,
+          error: docsError.message,
         });
       }
     }
 
     return NextResponse.json({
-      merchantId: merchant.merchantId,
-      serviceId: merchant.serviceId,
-      kycStatus: merchant.kycStatus,
-      isActive: merchant.isActive,
-      donationsActive: merchant.kycStatus === 'approved' ? true : org.donations_active,
+      merchantId: org.paynl_merchant_id,
+      serviceId: org.paynl_service_id,
+      boardingStatus: info.boardingStatus ?? org.paynl_boarding_status,
+      kycStatus: nextKyc,
+      donationsActive: nextKyc === 'approved' ? true : org.donations_active,
       onboardedAt:
-        merchant.kycStatus === 'approved' && !org.onboarded_at
+        nextKyc === 'approved' && !org.onboarded_at
           ? new Date().toISOString()
           : org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
-      walletBalance: merchant.walletBalance || null,
-      legalName: merchant.legalName,
-      tradingName: merchant.tradingName,
       source: 'paynl',
     });
   } catch (error) {
@@ -152,21 +209,20 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 503 });
     }
     if (error instanceof PayNLError) {
-      console.error('[Alliance] getMerchant failed', {
+      console.error('[Alliance] getMerchantInfo failed', {
         organizationId: id,
-        merchantId: org.paynl_merchant_id,
+        merchantCode: org.paynl_merchant_id,
         status: error.status,
         body: error.body,
       });
-      // Fall back to local data on Pay.nl errors so the UI doesn't break.
       return NextResponse.json({
         merchantId: org.paynl_merchant_id,
         serviceId: org.paynl_service_id,
+        boardingStatus: org.paynl_boarding_status,
         kycStatus: org.kyc_status,
         donationsActive: org.donations_active,
         onboardedAt: org.onboarded_at,
         platformFeeBps: org.platform_fee_bps,
-        walletBalance: null,
         source: 'local-fallback',
         warning: 'Could not reach Pay.nl — showing cached status.',
       });

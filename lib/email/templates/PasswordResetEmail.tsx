@@ -1,40 +1,40 @@
 import { Link, Section, Text } from '@react-email/components';
+import { defaultLocale, type Locale } from '@/i18n/config';
+import { getEmailTranslator } from '../i18n';
 import { EmailLayout, styles } from './_layout';
 
 interface PasswordResetEmailProps {
   userName?: string;
   resetUrl: string;
+  locale?: Locale;
 }
 
-export function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailProps) {
-  return (
-    <EmailLayout
-      preview="Reset your Bayaan Classroom password"
-      heading="Reset your password"
-    >
-      <Text style={styles.text}>{userName ? `Hi ${userName},` : 'Hi,'}</Text>
+export function PasswordResetEmail({
+  userName,
+  resetUrl,
+  locale = defaultLocale,
+}: PasswordResetEmailProps) {
+  const t = getEmailTranslator(locale, 'emails.passwordReset');
+  const tCommon = getEmailTranslator(locale, 'emails.common');
+  const greeting = userName ? tCommon('greetingNamed', { name: userName }) : tCommon('greetingAnon');
 
-      <Text style={styles.text}>
-        We received a request to reset the password for your Bayaan Classroom account.
-        Click the button below to choose a new password.
-      </Text>
+  return (
+    <EmailLayout preview={t('preview')} heading={t('heading')} locale={locale}>
+      <Text style={styles.text}>{greeting}</Text>
+
+      <Text style={styles.text}>{t('body')}</Text>
 
       <Link href={resetUrl} style={styles.button}>
-        Reset password
+        {t('cta')}
       </Link>
 
-      <Text style={styles.textMuted}>
-        Or copy and paste this URL into your browser:
-      </Text>
+      <Text style={styles.textMuted}>{tCommon('orCopyUrl')}</Text>
       <Link href={resetUrl} style={styles.linkText}>
         {resetUrl}
       </Link>
 
       <Section style={styles.warningBox}>
-        <Text style={styles.warningText}>
-          This link will expire in 1 hour. If you didn&apos;t request a password reset,
-          you can safely ignore this email — your password won&apos;t change.
-        </Text>
+        <Text style={styles.warningText}>{t('disclaimer')}</Text>
       </Section>
     </EmailLayout>
   );
@@ -43,6 +43,7 @@ export function PasswordResetEmail({ userName, resetUrl }: PasswordResetEmailPro
 PasswordResetEmail.PreviewProps = {
   userName: 'Ahmed',
   resetUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=recovery&next=/reset-password',
+  locale: 'en',
 } satisfies PasswordResetEmailProps;
 
 export default PasswordResetEmail;

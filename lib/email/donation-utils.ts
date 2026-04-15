@@ -16,12 +16,12 @@ export function buildDonorFrom(mosqueName: string): string {
   const address =
     process.env.EMAIL_FROM_DONATIONS ||
     process.env.EMAIL_FROM ||
-    'donations@bayaan.ai';
+    'donations@bayaan.app';
   return `${safeName} via Bayaan <${address}>`;
 }
 
 export interface DonationContext {
-  /** null if the org has no row in org_members with role='admin'. Tenant emails are skipped in that case, but donor emails still go out. */
+  /** null if the org has no row in organization_members with role='admin'. Tenant emails are skipped in that case, but donor emails still go out. */
   admin: OrgAdminContact | null;
   organizationId: string;
   organizationName: string;
@@ -63,7 +63,7 @@ export interface StornoContext {
 
 /**
  * Look up an org's display name directly. Used as a fallback for donor-facing
- * emails when the org has no `org_members.role='admin'` row (which would make
+ * emails when the org has no `organization_members.role='admin'` row (which would make
  * `getOrgAdminContact` return null). The donor receipt should still fire even
  * if the mosque's tenant-side user setup is incomplete.
  */

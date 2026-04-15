@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
-import {
-  addClearing,
-  isAllianceEnabled,
-  PayNLAllianceNotActivatedError,
-  PayNLError,
-} from '@/lib/paynl-alliance';
+import { isAllianceEnabled } from '@/lib/paynl-alliance';
+
+// Payout (clearing) endpoint requires a v2 Alliance equivalent — pending
+// research against the docs. The route remains wired for auth + validation
+// so the UI contract doesn't break; the actual Pay.nl call returns 501.
 
 /**
  * POST /api/organizations/[id]/merchant/clearing
@@ -106,40 +105,19 @@ export async function POST(
       );
     }
 
-    const result = await addClearing(org.paynl_merchant_id, {
-      amount: body.amount,
-      currency: 'EUR',
-      description: (body.description || 'Payout to bank account').slice(0, 32),
-    });
-
-    console.log('[Alliance] Clearing requested', {
+    // TODO: v2 port — wire up the Pay.nl Alliance v2 payout endpoint once
+    // its exact path/shape is confirmed (/v2/clearings or similar).
+    console.warn('[Alliance] Clearing requested but v2 endpoint not wired', {
       organizationId: id,
-      merchantId: org.paynl_merchant_id,
-      clearingId: result.clearingId,
-      status: result.status,
+      merchantCode: org.paynl_merchant_id,
       amountCents: body.amount ?? 'full-balance',
+      description: body.description,
     });
-
-    return NextResponse.json({
-      clearingId: result.clearingId,
-      status: result.status,
-      processDate: result.processDate || null,
-    });
+    return NextResponse.json(
+      { error: 'Clearing payouts are not yet wired to the v2 API.' },
+      { status: 501 },
+    );
   } catch (error) {
-    if (error instanceof PayNLAllianceNotActivatedError) {
-      return NextResponse.json({ error: error.message }, { status: 503 });
-    }
-    if (error instanceof PayNLError) {
-      console.error('[Alliance] Clearing failed', {
-        organizationId: id,
-        status: error.status,
-        body: error.body,
-      });
-      return NextResponse.json(
-        { error: 'Payment provider rejected the payout request.' },
-        { status: 502 },
-      );
-    }
     console.error('[Alliance] Unexpected error in clearing:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

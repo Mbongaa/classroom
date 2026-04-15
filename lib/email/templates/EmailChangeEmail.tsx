@@ -1,4 +1,6 @@
 import { Link, Section, Text } from '@react-email/components';
+import { defaultLocale, type Locale } from '@/i18n/config';
+import { getEmailTranslator } from '../i18n';
 import { EmailLayout, styles } from './_layout';
 
 interface EmailChangeEmailProps {
@@ -12,6 +14,7 @@ interface EmailChangeEmailProps {
    * - 'current': sent to the old email address (security notice)
    */
   recipient: 'new' | 'current';
+  locale?: Locale;
 }
 
 export function EmailChangeEmail({
@@ -20,43 +23,38 @@ export function EmailChangeEmail({
   oldEmail,
   confirmationUrl,
   recipient,
+  locale = defaultLocale,
 }: EmailChangeEmailProps) {
+  const t = getEmailTranslator(locale, 'emails.emailChange');
+  const tCommon = getEmailTranslator(locale, 'emails.common');
   const isNewAddress = recipient === 'new';
+  const greeting = userName ? tCommon('greetingNamed', { name: userName }) : tCommon('greetingAnon');
 
   return (
     <EmailLayout
-      preview={
-        isNewAddress
-          ? 'Confirm your new Bayaan Classroom email address'
-          : 'Your Bayaan Classroom email address is being changed'
-      }
-      heading={isNewAddress ? 'Confirm your new email' : 'Email change requested'}
+      preview={isNewAddress ? t('previewNew') : t('previewCurrent')}
+      heading={isNewAddress ? t('headingNew') : t('headingCurrent')}
+      locale={locale}
     >
-      <Text style={styles.text}>{userName ? `Hi ${userName},` : 'Hi,'}</Text>
+      <Text style={styles.text}>{greeting}</Text>
 
-      <Text style={styles.text}>
-        {isNewAddress
-          ? 'We received a request to change the email on your Bayaan Classroom account. Click the button below to confirm this is your new email address.'
-          : 'A request was made to change the email address on your Bayaan Classroom account. We&apos;re notifying both the old and new addresses for security.'}
-      </Text>
+      <Text style={styles.text}>{isNewAddress ? t('bodyNew') : t('bodyCurrent')}</Text>
 
       <Section style={styles.infoBox}>
         <Text style={styles.infoText}>
-          <strong>From:</strong> {oldEmail}
+          <strong>{t('fromLabel')}</strong> {oldEmail}
           <br />
-          <strong>To:</strong> {newEmail}
+          <strong>{t('toLabel')}</strong> {newEmail}
         </Text>
       </Section>
 
       {isNewAddress && (
         <>
           <Link href={confirmationUrl} style={styles.button}>
-            Confirm new email
+            {t('cta')}
           </Link>
 
-          <Text style={styles.textMuted}>
-            Or copy and paste this URL into your browser:
-          </Text>
+          <Text style={styles.textMuted}>{tCommon('orCopyUrl')}</Text>
           <Link href={confirmationUrl} style={styles.linkText}>
             {confirmationUrl}
           </Link>
@@ -65,9 +63,7 @@ export function EmailChangeEmail({
 
       <Section style={styles.warningBox}>
         <Text style={styles.warningText}>
-          {isNewAddress
-            ? "If you didn't request this change, do not click the link and contact support immediately."
-            : "If you didn't request this change, contact support immediately — your account may be at risk."}
+          {isNewAddress ? t('warningNew') : t('warningCurrent')}
         </Text>
       </Section>
     </EmailLayout>
@@ -80,6 +76,7 @@ EmailChangeEmail.PreviewProps = {
   newEmail: 'ahmed@new-example.com',
   confirmationUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=email_change&next=/dashboard',
   recipient: 'new',
+  locale: 'en',
 } satisfies EmailChangeEmailProps;
 
 export default EmailChangeEmail;

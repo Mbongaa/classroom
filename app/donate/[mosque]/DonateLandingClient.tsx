@@ -223,9 +223,9 @@ export function DonateLandingClient({
   }, [pct, animateToPercentage]);
 
   return (
-    <main className="flex min-h-screen flex-col bg-background text-foreground">
+    <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       {/* Header */}
-      <header className="border-b border-[rgba(128,128,128,0.15)] px-6 py-5">
+      <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-6 py-5">
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold sm:text-3xl">{orgName}</h1>
@@ -248,7 +248,7 @@ export function DonateLandingClient({
       </header>
 
       {campaigns.length === 0 ? (
-        <div className="flex flex-1 items-center justify-center px-4">
+        <div className="flex min-h-0 flex-1 items-center justify-center px-4">
           <div className="text-center">
             <p className="text-lg font-medium">No active campaigns</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
@@ -257,9 +257,9 @@ export function DonateLandingClient({
           </div>
         </div>
       ) : (
-        <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col md:flex-row">
+        <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
           {/* ---- Left pane: campaign rows ---- */}
-          <div className="flex flex-1 flex-col justify-center overflow-y-auto border-r border-[rgba(128,128,128,0.15)] p-6 md:max-w-[55%]">
+          <div className="flex flex-col border-r border-[rgba(128,128,128,0.15)] p-6 md:max-w-[55%] md:flex-1 md:overflow-y-auto">
             {orgDescription && (
               <p className="mb-6 text-sm text-slate-600 dark:text-slate-300">
                 {orgDescription}
@@ -378,7 +378,7 @@ export function DonateLandingClient({
           </div>
 
           {/* ---- Right pane: payment options ---- */}
-          <div className="flex flex-1 items-center justify-center p-6 md:p-10">
+          <div className="flex flex-1 items-center justify-center p-6 md:p-10 md:overflow-y-auto">
             {selected ? (
               <div className="w-full max-w-sm">
                 {/* Selected campaign recap */}
@@ -470,7 +470,7 @@ export function DonateLandingClient({
       )}
 
       {/* ---- Bottom Lottie progress — driven by selected campaign % ---- */}
-      <div className="mt-auto w-screen overflow-hidden" style={{ height: 60 }}>
+      <div className="shrink-0 w-screen overflow-hidden" style={{ height: 60 }}>
         <DotLottieReact
           src="/lottie/donation-progress.lottie"
           autoplay={false}

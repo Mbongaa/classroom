@@ -31,6 +31,8 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { locales, localeLabels, type Locale } from '@/i18n/config';
+import { updateOrganizationLocale } from '@/lib/actions/auth';
 
 /**
  * Organization settings tabs.
@@ -52,22 +54,18 @@ interface OrganizationPerson {
   full_name: string;
   is_signee: boolean;
   is_ubo: boolean;
-  paynl_person_id: string | null;
+  paynl_license_code: string | null;
 }
 
 interface OrganizationKycDocument {
   id: string;
-  doc_type:
-    | 'kvk_extract'
-    | 'ubo_extract'
-    | 'id_front'
-    | 'id_back'
-    | 'bank_statement'
-    | 'power_of_attorney'
-    | 'other';
+  doc_type: string;
   person_id: string | null;
-  status: 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
-  uploaded_at: string;
+  paynl_document_code: string | null;
+  paynl_required: boolean;
+  translations: Record<string, { name?: string; description?: string }> | null;
+  status: 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
+  uploaded_at: string | null;
 }
 
 interface OrganizationProp {
@@ -84,6 +82,7 @@ interface OrganizationProp {
   thankyou_animation_id: string | null;
   paynl_merchant_id: string | null;
   paynl_service_id: string | null;
+  paynl_boarding_status: 'REGISTERED' | 'ONBOARDING' | 'ACCEPTED' | 'SUSPENDED' | 'OFFBOARDED' | null;
   kyc_status: 'pending' | 'submitted' | 'approved' | 'rejected';
   donations_active: boolean;
   onboarded_at: string | null;
@@ -98,6 +97,7 @@ interface OrganizationProp {
   address_street: string | null;
   address_house_number: string | null;
   address_postal_code: string | null;
+  preferred_locale: 'en' | 'ar' | 'nl' | 'fr' | 'de';
   persons: OrganizationPerson[];
   kyc_documents: OrganizationKycDocument[];
 }
@@ -124,56 +124,64 @@ const UBO_REQUIRED_FORMS = new Set([
   'cooperatie',
 ]);
 
-const DOC_TYPES: Array<{
-  value: OrganizationKycDocument['doc_type'];
-  label: string;
-  description: string;
-  perPerson: boolean;
-  required: boolean;
-}> = [
-  {
-    value: 'kvk_extract',
+/**
+ * Human labels for the document `doc_type` classifications Pay.nl emits.
+ * Only used as a fallback when Pay.nl's `translations` field is empty — the
+ * canonical label/description comes from DB (translations column, populated
+ * by /v2/merchants/{code}/info).
+ */
+const DOC_TYPE_FALLBACK_LABELS: Record<string, { label: string; description: string }> = {
+  kvk_extract: {
     label: 'KvK extract',
-    description: 'Recent (≤6 months) Chamber of Commerce extract',
-    perPerson: false,
-    required: true,
+    description: 'Recent Chamber of Commerce extract',
   },
-  {
-    value: 'ubo_extract',
+  coc_extract: {
+    label: 'Chamber of Commerce extract',
+    description: 'Recent (≤6 months) extract of business registration',
+  },
+  ubo_extract: {
     label: 'UBO register extract',
-    description: 'From KvK — required for VOF, BV, stichting, vereniging, coöperatie',
-    perPerson: false,
-    required: false,
+    description: 'From KvK — ultimate beneficial owner declaration',
   },
-  {
-    value: 'bank_statement',
+  bank_statement: {
     label: 'Bank statement',
-    description: 'Recent statement showing IBAN + company name (amounts may be redacted)',
-    perPerson: false,
-    required: true,
+    description: 'Recent statement showing IBAN + company name',
   },
-  {
-    value: 'id_front',
+  id_front: {
     label: 'ID — front',
-    description: 'Front side of a valid passport / ID card',
-    perPerson: true,
-    required: true,
+    description: 'Front of a valid passport / ID card',
   },
-  {
-    value: 'id_back',
+  id_back: {
     label: 'ID — back',
-    description: 'Back side (not required for passports)',
-    perPerson: true,
-    required: false,
+    description: 'Back of the ID (not needed for passports)',
   },
-  {
-    value: 'power_of_attorney',
+  passport: {
+    label: 'Passport',
+    description: 'Full passport page with photo',
+  },
+  power_of_attorney: {
     label: 'Power of attorney',
-    description: 'Only if a person signs on behalf of the legal representative',
-    perPerson: false,
-    required: false,
+    description: 'If signing on behalf of the legal representative',
   },
-];
+  other: {
+    label: 'Other document',
+    description: '',
+  },
+};
+
+function resolveDocLabel(
+  doc: Pick<OrganizationKycDocument, 'doc_type' | 'translations'>,
+  locale: string,
+): { label: string; description: string } {
+  const t = doc.translations?.[locale] ?? doc.translations?.en;
+  const fallback =
+    DOC_TYPE_FALLBACK_LABELS[doc.doc_type] ??
+    { label: doc.doc_type, description: '' };
+  return {
+    label: t?.name ?? fallback.label,
+    description: t?.description ?? fallback.description,
+  };
+}
 
 interface SettingsTabsProps {
   organization: OrganizationProp;
@@ -187,6 +195,7 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
         <TabsTrigger value="general">{t('tabs.general')}</TabsTrigger>
         <TabsTrigger value="payments">{t('tabs.payments')}</TabsTrigger>
         <TabsTrigger value="animation">{t('tabs.animation')}</TabsTrigger>
+        <TabsTrigger value="language">{t('tabs.language')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -199,6 +208,10 @@ export function SettingsTabs({ organization }: SettingsTabsProps) {
 
       <TabsContent value="animation">
         <AnimationPanel organization={organization} />
+      </TabsContent>
+
+      <TabsContent value="language">
+        <LanguagePanel organization={organization} />
       </TabsContent>
     </Tabs>
   );
@@ -1001,12 +1014,49 @@ function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
 
 function DocumentsPanel({ organization }: { organization: OrganizationProp }) {
   const [docs, setDocs] = useState<OrganizationKycDocument[]>(organization.kyc_documents);
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleUploaded(doc: OrganizationKycDocument) {
-    setDocs((prev) => [...prev, doc]);
+  function handleUpdated(doc: OrganizationKycDocument) {
+    setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, ...doc } : d)));
   }
 
-  const personScopedPersons = organization.persons;
+  const locale = organization.preferred_locale ?? 'en';
+
+  // Group docs: org-scoped (no person_id) vs per-person.
+  const orgDocs = docs.filter((d) => !d.person_id);
+  const personDocs = docs.filter((d) => d.person_id);
+  const docsByPerson = new Map<string, OrganizationKycDocument[]>();
+  for (const d of personDocs) {
+    if (!d.person_id) continue;
+    const list = docsByPerson.get(d.person_id) ?? [];
+    list.push(d);
+    docsByPerson.set(d.person_id, list);
+  }
+
+  const outstandingRequired = docs.filter(
+    (d) => d.paynl_required && d.status === 'requested',
+  );
+  const canSubmit =
+    docs.length > 0 &&
+    outstandingRequired.length === 0 &&
+    organization.paynl_boarding_status !== 'ACCEPTED';
+
+  async function handleSubmitForReview() {
+    setSubmitting(true);
+    try {
+      const res = await fetch(
+        `/api/organizations/${organization.id}/merchant/submit-for-review`,
+        { method: 'POST' },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Submission failed');
+      toast.success('Submitted to Pay.nl for review');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Submission failed');
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   return (
     <Card>
@@ -1025,65 +1075,92 @@ function DocumentsPanel({ organization }: { organization: OrganizationProp }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {DOC_TYPES.filter((d) => !d.perPerson).map((d) => (
+        {docs.length === 0 && (
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Pay.nl has not yet reported any required documents. This usually syncs
+            automatically after onboarding. If this persists, refresh merchant status.
+          </p>
+        )}
+
+        {orgDocs.map((d) => (
           <DocumentRow
-            key={d.value}
+            key={d.id}
             organizationId={organization.id}
-            docType={d.value}
-            label={d.label}
-            description={d.description}
-            required={d.required}
-            existingDocs={docs.filter((x) => x.doc_type === d.value)}
-            onUploaded={handleUploaded}
+            doc={d}
+            locale={locale}
+            onUpdated={handleUpdated}
           />
         ))}
 
-        {personScopedPersons.length > 0 && (
+        {organization.persons.length > 0 && personDocs.length > 0 && (
           <>
             <Separator />
             <div>
               <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                ID documents per person
+                Per-person documents
               </p>
               <div className="space-y-4">
-                {personScopedPersons.map((person) => (
-                  <div
-                    key={person.id}
-                    className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4"
-                  >
-                    <p className="mb-3 text-sm font-medium">
-                      {person.full_name}
-                      <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
-                        {[
-                          person.is_signee ? 'signee' : null,
-                          person.is_ubo ? 'UBO' : null,
-                        ]
-                          .filter(Boolean)
-                          .join(' · ')}
-                      </span>
-                    </p>
-                    {DOC_TYPES.filter((d) => d.perPerson).map((d) => (
-                      <DocumentRow
-                        key={`${person.id}-${d.value}`}
-                        organizationId={organization.id}
-                        personId={person.id}
-                        docType={d.value}
-                        label={d.label}
-                        description={d.description}
-                        required={d.required}
-                        existingDocs={docs.filter(
-                          (x) => x.doc_type === d.value && x.person_id === person.id,
-                        )}
-                        onUploaded={handleUploaded}
-                        disabled={!person.paynl_person_id}
-                        disabledReason="Waiting for Pay.nl to issue a person id before ID uploads are accepted."
-                      />
-                    ))}
-                  </div>
-                ))}
+                {organization.persons.map((person) => {
+                  const rows = docsByPerson.get(person.id) ?? [];
+                  if (rows.length === 0) return null;
+                  return (
+                    <div
+                      key={person.id}
+                      className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4"
+                    >
+                      <p className="mb-3 text-sm font-medium">
+                        {person.full_name}
+                        <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
+                          {[
+                            person.is_signee ? 'signee' : null,
+                            person.is_ubo ? 'UBO' : null,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </span>
+                      </p>
+                      {rows.map((d) => (
+                        <DocumentRow
+                          key={d.id}
+                          organizationId={organization.id}
+                          doc={d}
+                          locale={locale}
+                          onUpdated={handleUpdated}
+                          disabled={!person.paynl_license_code}
+                          disabledReason="Waiting for Pay.nl to issue a license code for this person."
+                        />
+                      ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </>
+        )}
+
+        {docs.length > 0 && (
+          <div className="border-t border-[rgba(128,128,128,0.2)] pt-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-medium">Submit for review</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {outstandingRequired.length > 0
+                    ? `${outstandingRequired.length} required document${outstandingRequired.length === 1 ? '' : 's'} still outstanding.`
+                    : organization.paynl_boarding_status === 'ACCEPTED'
+                      ? 'Pay.nl has already accepted this merchant.'
+                      : 'All required documents are uploaded. Submit to Pay.nl Compliance.'}
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleSubmitForReview}
+                disabled={!canSubmit || submitting}
+              >
+                {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Submit to Pay.nl
+              </Button>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>
@@ -1092,38 +1169,36 @@ function DocumentsPanel({ organization }: { organization: OrganizationProp }) {
 
 function DocumentRow({
   organizationId,
-  personId,
-  docType,
-  label,
-  description,
-  required,
-  existingDocs,
-  onUploaded,
+  doc,
+  locale,
+  onUpdated,
   disabled,
   disabledReason,
 }: {
   organizationId: string;
-  personId?: string;
-  docType: OrganizationKycDocument['doc_type'];
-  label: string;
-  description: string;
-  required: boolean;
-  existingDocs: OrganizationKycDocument[];
-  onUploaded: (doc: OrganizationKycDocument) => void;
+  doc: OrganizationKycDocument;
+  locale: string;
+  onUpdated: (doc: OrganizationKycDocument) => void;
   disabled?: boolean;
   disabledReason?: string;
 }) {
   const [uploading, setUploading] = useState(false);
 
+  const { label, description } = resolveDocLabel(doc, locale);
+  const documentCode = doc.paynl_document_code;
+
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!documentCode) {
+      toast.error('This document is missing its Pay.nl code — refresh merchant info.');
+      return;
+    }
 
     setUploading(true);
     try {
       const formData = new FormData();
-      formData.append('docType', docType);
-      if (personId) formData.append('personId', personId);
+      formData.append('documentCode', documentCode);
       formData.append('file', file);
 
       const res = await fetch(
@@ -1133,10 +1208,8 @@ function DocumentRow({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
 
-      onUploaded({
-        id: data.id,
-        doc_type: data.docType,
-        person_id: personId ?? null,
+      onUpdated({
+        ...doc,
         status: data.status,
         uploaded_at: data.uploadedAt,
       });
@@ -1145,13 +1218,13 @@ function DocumentRow({
       toast.error(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
-      // Reset the input so re-selecting the same file still fires onChange
       e.target.value = '';
     }
   }
 
-  const hasUpload = existingDocs.length > 0;
-  const inputId = `doc-${docType}-${personId ?? 'org'}`;
+  const hasUpload = doc.status !== 'requested';
+  const inputId = `doc-${doc.id}`;
+  const effectiveDisabled = disabled || !documentCode || doc.status === 'accepted';
 
   return (
     <div className="flex flex-col gap-2 rounded-md border border-[rgba(128,128,128,0.2)] p-3 sm:flex-row sm:items-center sm:justify-between">
@@ -1164,16 +1237,14 @@ function DocumentRow({
         <div>
           <p className="text-sm font-medium">
             {label}
-            {required && <span className="ml-1 text-red-500">*</span>}
+            {doc.paynl_required && <span className="ml-1 text-red-500">*</span>}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
-          {hasUpload && (
-            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
-              {existingDocs.length} file{existingDocs.length > 1 ? 's' : ''} uploaded
-              {' · '}
-              latest status: {existingDocs[existingDocs.length - 1].status}
-            </p>
+          {description && (
+            <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
           )}
+          <p className="mt-1 text-xs">
+            Status: <span className="font-medium">{doc.status}</span>
+          </p>
           {disabled && disabledReason && (
             <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{disabledReason}</p>
           )}
@@ -1186,17 +1257,17 @@ function DocumentRow({
           accept="image/png,image/jpeg,image/webp,application/pdf"
           className="hidden"
           onChange={handleChange}
-          disabled={uploading || disabled}
+          disabled={uploading || effectiveDisabled}
         />
         <Button
           type="button"
           variant="outline"
           size="sm"
-          disabled={uploading || disabled}
+          disabled={uploading || effectiveDisabled}
           onClick={() => document.getElementById(inputId)?.click()}
         >
           {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {hasUpload ? 'Replace' : 'Upload'}
+          {doc.status === 'accepted' ? 'Accepted' : hasUpload ? 'Replace' : 'Upload'}
         </Button>
       </div>
     </div>
@@ -1538,6 +1609,61 @@ function AnimationPanel({ organization }: { organization: OrganizationProp }) {
             </section>
           );
         })}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LanguagePanel({ organization }: { organization: OrganizationProp }) {
+  const t = useTranslations('mosqueAdmin.settings.language');
+  const [selected, setSelected] = useState<Locale>(organization.preferred_locale);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(locale: Locale) {
+    if (locale === selected) return;
+    const previous = selected;
+    setSelected(locale);
+
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.set('locale', locale);
+      const result = await updateOrganizationLocale(formData);
+      if (result.success) {
+        toast.success(t('updated'));
+      } else {
+        setSelected(previous);
+        toast.error(result.error || t('updateFailed'));
+      }
+    });
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg">{t('title')}</CardTitle>
+        <CardDescription>{t('description')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-2">
+          <Label htmlFor="preferred-locale">{t('selectLabel')}</Label>
+          <Select
+            value={selected}
+            onValueChange={(value) => handleChange(value as Locale)}
+            disabled={isPending}
+          >
+            <SelectTrigger id="preferred-locale" className="max-w-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {locales.map((locale) => (
+                <SelectItem key={locale} value={locale}>
+                  {localeLabels[locale]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">{t('hint')}</p>
+        </div>
       </CardContent>
     </Card>
   );

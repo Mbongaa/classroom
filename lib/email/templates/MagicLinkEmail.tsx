@@ -1,40 +1,40 @@
 import { Link, Section, Text } from '@react-email/components';
+import { defaultLocale, type Locale } from '@/i18n/config';
+import { getEmailTranslator } from '../i18n';
 import { EmailLayout, styles } from './_layout';
 
 interface MagicLinkEmailProps {
   userName?: string;
   magicLinkUrl: string;
+  locale?: Locale;
 }
 
-export function MagicLinkEmail({ userName, magicLinkUrl }: MagicLinkEmailProps) {
-  return (
-    <EmailLayout
-      preview="Your sign-in link for Bayaan Classroom"
-      heading="Sign in to Bayaan Classroom"
-    >
-      <Text style={styles.text}>{userName ? `Hi ${userName},` : 'Hi,'}</Text>
+export function MagicLinkEmail({
+  userName,
+  magicLinkUrl,
+  locale = defaultLocale,
+}: MagicLinkEmailProps) {
+  const t = getEmailTranslator(locale, 'emails.magicLink');
+  const tCommon = getEmailTranslator(locale, 'emails.common');
+  const greeting = userName ? tCommon('greetingNamed', { name: userName }) : tCommon('greetingAnon');
 
-      <Text style={styles.text}>
-        Click the button below to sign in to your Bayaan Classroom account. This link
-        will sign you in without a password.
-      </Text>
+  return (
+    <EmailLayout preview={t('preview')} heading={t('heading')} locale={locale}>
+      <Text style={styles.text}>{greeting}</Text>
+
+      <Text style={styles.text}>{t('body')}</Text>
 
       <Link href={magicLinkUrl} style={styles.button}>
-        Sign in
+        {t('cta')}
       </Link>
 
-      <Text style={styles.textMuted}>
-        Or copy and paste this URL into your browser:
-      </Text>
+      <Text style={styles.textMuted}>{tCommon('orCopyUrl')}</Text>
       <Link href={magicLinkUrl} style={styles.linkText}>
         {magicLinkUrl}
       </Link>
 
       <Section style={styles.warningBox}>
-        <Text style={styles.warningText}>
-          This link will expire in 1 hour and can only be used once. If you didn&apos;t
-          request a sign-in link, you can safely ignore this email.
-        </Text>
+        <Text style={styles.warningText}>{t('disclaimer')}</Text>
       </Section>
     </EmailLayout>
   );
@@ -43,6 +43,7 @@ export function MagicLinkEmail({ userName, magicLinkUrl }: MagicLinkEmailProps) 
 MagicLinkEmail.PreviewProps = {
   userName: 'Ahmed',
   magicLinkUrl: 'https://bayaan.app/api/auth/confirm?token_hash=preview&type=magiclink&next=/dashboard',
+  locale: 'en',
 } satisfies MagicLinkEmailProps;
 
 export default MagicLinkEmail;

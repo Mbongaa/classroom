@@ -3,41 +3,36 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import {
   createMerchant,
+  createLicense,
+  getMerchantInfo,
   isAllianceEnabled,
   PayNLAllianceNotActivatedError,
   PayNLError,
   type CreateMerchantPayload,
   type LegalForm,
   type MerchantPerson,
+  type MerchantInfoDocument,
 } from '@/lib/paynl-alliance';
 
 /**
  * POST /api/organizations/[id]/merchant/onboard
  *
- * Submit KYC / business details + signees + UBOs to register this
- * organization as a Pay.nl sub-merchant under the Bayaan Hub Alliance
- * account.
+ * Registers this organization as a Pay.nl sub-merchant under the Bayaan
+ * Hub Alliance account. The endpoint orchestrates four Pay.nl calls:
+ *
+ *   1. POST /v2/merchants              → create the merchant record
+ *   2. POST /v2/licenses   (× persons)  → attach each signee/UBO
+ *   3. GET  /v2/merchants/{code}/info   → read back the list of
+ *                                         required KYC documents
+ *   4. Persist all of the above locally so the admin UI can drive the
+ *      subsequent document uploads + submit-for-review step.
  *
  * Auth: org admin or platform superadmin.
- *
- * Guard: the organization must NOT already have a paynl_merchant_id. To
- * re-onboard (e.g. after rejection), the superadmin must first clear the
- * merchant fields via the donation-settings PATCH endpoint.
- *
- * On success, persists:
- *   - paynl_merchant_id  (M-XXXX-XXXX)
- *   - paynl_service_id   (SL-XXXX-XXXX)
- *   - paynl_secret        (per-org service secret)
- *   - kyc_status          (from Pay.nl response)
- *   - A row in `organization_persons` per signee/UBO submitted
- *
- * Document uploads (KvK extract, UBO extract, ID copies, bank proof) are
- * handled by the separate /merchant/documents endpoint, typically right
- * after a successful onboard while kyc_status is still 'submitted'.
+ * Guard: the organization must not already have a paynl_merchant_id.
  */
 
 // ---------------------------------------------------------------------------
-// Validation
+// Regex + enum constants
 // ---------------------------------------------------------------------------
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -59,7 +54,7 @@ const LEGAL_FORMS: readonly LegalForm[] = [
   'other',
 ];
 
-/** Legal forms where UBO declarations are legally required. */
+/** Legal forms for which UBO declarations are legally required. */
 const UBO_REQUIRED_FORMS: readonly LegalForm[] = [
   'vof',
   'maatschap',
@@ -70,7 +65,11 @@ const UBO_REQUIRED_FORMS: readonly LegalForm[] = [
   'cooperatie',
 ];
 
-interface OnboardBody extends CreateMerchantPayload {}
+type OnboardBody = CreateMerchantPayload & { persons: MerchantPerson[] };
+
+// ---------------------------------------------------------------------------
+// Validation
+// ---------------------------------------------------------------------------
 
 function validatePerson(
   raw: unknown,
@@ -95,8 +94,7 @@ function validatePerson(
   if (Number.isNaN(dob.getTime())) {
     return { ok: false, error: `${prefix}.dateOfBirth is not a real date` };
   }
-  const ageMs = Date.now() - dob.getTime();
-  const ageYears = ageMs / (365.25 * 24 * 60 * 60 * 1000);
+  const ageYears = (Date.now() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
   if (ageYears < 18 || ageYears > 120) {
     return { ok: false, error: `${prefix}.dateOfBirth implies an implausible age` };
   }
@@ -208,7 +206,6 @@ function validateBody(
     return { ok: false, error: 'ibanOwner is required' };
   }
 
-  // Business address
   if (!r.address || typeof r.address !== 'object') {
     return { ok: false, error: 'address is required and must be an object' };
   }
@@ -229,7 +226,6 @@ function validateBody(
     return { ok: false, error: 'websiteUrl must be a string if provided' };
   }
 
-  // Persons: ≥1 signee, and ≥1 UBO for legal forms that require them
   if (!Array.isArray(r.persons) || r.persons.length === 0) {
     return { ok: false, error: 'persons must be a non-empty array' };
   }
@@ -309,11 +305,9 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid organization id' }, { status: 400 });
   }
 
-  // ---- 1. Auth: org admin or superadmin -----------------------------------
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
-  // ---- 2. Check Alliance is enabled --------------------------------------
   if (!isAllianceEnabled()) {
     return NextResponse.json(
       {
@@ -325,114 +319,92 @@ export async function POST(
     );
   }
 
-  // ---- 3. Parse + validate body ------------------------------------------
   let raw: unknown;
   try {
     raw = await request.json();
   } catch {
     return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 });
   }
-
   const validation = validateBody(raw);
   if (!validation.ok) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
   const body = validation.body;
 
+  const supabaseAdmin = createAdminClient();
+
+  // Guard: org must not already be onboarded.
+  const { data: org, error: orgError } = await supabaseAdmin
+    .from('organizations')
+    .select('id, paynl_merchant_id, kyc_status, paynl_boarding_status')
+    .eq('id', id)
+    .single();
+  if (orgError || !org) {
+    return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
+  }
+  if (org.paynl_merchant_id) {
+    return NextResponse.json(
+      {
+        error:
+          `Organization already has a merchant account (${org.paynl_merchant_id}). ` +
+          `Current KYC status: ${org.kyc_status}. ` +
+          'To re-onboard, a superadmin must first clear the merchant fields.',
+      },
+      { status: 409 },
+    );
+  }
+
   try {
-    // ---- 4. Guard: org must not already be onboarded ----------------------
-    const supabaseAdmin = createAdminClient();
-    const { data: org, error: orgError } = await supabaseAdmin
-      .from('organizations')
-      .select('id, paynl_merchant_id, kyc_status')
-      .eq('id', id)
-      .single();
+    // ---- Step 1: POST /v2/merchants ---------------------------------------
+    const merchantResult = await createMerchant(body);
 
-    if (orgError || !org) {
-      return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
-    }
-
-    if (org.paynl_merchant_id) {
-      return NextResponse.json(
-        {
-          error: `Organization already has a merchant account (${org.paynl_merchant_id}). ` +
-            `Current KYC status: ${org.kyc_status}. ` +
-            'To re-onboard, a superadmin must first clear the merchant fields.',
-        },
-        { status: 409 },
-      );
-    }
-
-    // ---- 5. Call Pay.nl Alliance createMerchant ---------------------------
-    const result = await createMerchant(body);
-
-    // ---- 6. Persist merchant details to the org row -----------------------
-    const updatePayload: Record<string, unknown> = {
-      paynl_merchant_id: result.merchantId,
-      paynl_service_id: result.serviceId,
-      paynl_secret: result.serviceSecret,
-      kyc_status: result.kycStatus,
-      // Sync business fields so the org row is the source of truth
-      contact_email: body.contactEmail,
-      bank_iban: body.iban,
-      bank_account_holder: body.ibanOwner,
-      city: body.address.city,
-      country: body.address.country,
-      address_street: body.address.street,
-      address_house_number: body.address.houseNumber,
-      address_postal_code: body.address.postalCode,
-      legal_form: body.legalForm,
-      mcc: body.mcc,
-      kvk_number: body.kvkNumber,
-      vat_number: body.vatNumber ?? null,
-      business_description: body.businessDescription,
-      website_url: body.websiteUrl ?? null,
-    };
-    if (body.contactPhone) {
-      updatePayload.contact_phone = body.contactPhone;
-    }
-
-    // If Pay.nl immediately approved (rare but possible for known entities),
-    // flip donations_active and set onboarded_at.
-    if (result.kycStatus === 'approved') {
-      updatePayload.donations_active = true;
-      updatePayload.onboarded_at = new Date().toISOString();
-    }
-
+    // Persist the freshly minted merchant id so a crash in subsequent steps
+    // leaves us with something to reconcile against.
     const { error: updateError } = await supabaseAdmin
       .from('organizations')
-      .update(updatePayload)
+      .update({
+        paynl_merchant_id: merchantResult.merchantCode,
+        paynl_boarding_status: merchantResult.boardingStatus,
+        kyc_status: 'submitted',
+        contact_email: body.contactEmail,
+        contact_phone: body.contactPhone ?? null,
+        bank_iban: body.iban,
+        bank_account_holder: body.ibanOwner,
+        city: body.address.city,
+        country: body.address.country,
+        address_street: body.address.street,
+        address_house_number: body.address.houseNumber,
+        address_postal_code: body.address.postalCode,
+        legal_form: body.legalForm,
+        mcc: body.mcc,
+        kvk_number: body.kvkNumber,
+        vat_number: body.vatNumber ?? null,
+        business_description: body.businessDescription,
+        website_url: body.websiteUrl ?? null,
+      })
       .eq('id', id);
 
     if (updateError) {
-      // Pay.nl has created the merchant but we failed to persist locally.
-      // Log loudly so it can be reconciled.
-      console.error('[Alliance] Failed to persist merchant details', {
+      console.error('[Alliance] Merchant created but org update failed', {
         organizationId: id,
-        merchantId: result.merchantId,
-        serviceId: result.serviceId,
+        merchantCode: merchantResult.merchantCode,
         error: updateError.message,
       });
       return NextResponse.json(
         {
           error: 'Merchant created at Pay.nl but failed to save locally. Contact support.',
-          merchantId: result.merchantId,
+          merchantCode: merchantResult.merchantCode,
         },
         { status: 500 },
       );
     }
 
-    // ---- 7. Persist persons (signees + UBOs) ------------------------------
+    // ---- Step 2: POST /v2/licenses × persons ------------------------------
     //
-    // Match paynl_person_id back to our rows via clientRef. Any person Pay.nl
-    // didn't return an id for still gets a local row so later doc uploads
-    // can reference it (paynl_person_id stays NULL).
-    const paynlPersonByRef = new Map<string, string>();
-    for (const p of result.persons ?? []) {
-      paynlPersonByRef.set(p.clientRef, p.paynlPersonId);
-    }
-
-    const personRows = body.persons.map((p) => ({
+    // We create rows in organization_persons first (so we have stable local
+    // ids for downstream document uploads), then call Pay.nl per person and
+    // backfill paynl_license_code as we go.
+    const personInsertPayload = body.persons.map((p) => ({
       organization_id: id,
       full_name: p.fullName,
       date_of_birth: p.dateOfBirth,
@@ -447,38 +419,150 @@ export async function POST(
       is_signee: p.isSignee,
       is_ubo: p.isUbo,
       ubo_percentage: p.uboPercentage ?? null,
-      paynl_person_id: paynlPersonByRef.get(p.clientRef) ?? null,
     }));
 
     const { data: insertedPersons, error: personsError } = await supabaseAdmin
       .from('organization_persons')
-      .insert(personRows)
-      .select('id, full_name, is_signee, is_ubo, paynl_person_id');
+      .insert(personInsertPayload)
+      .select('id, full_name');
 
-    if (personsError) {
-      // Non-fatal for the API call — merchant creation succeeded at Pay.nl
-      // and was persisted. Log so we can backfill.
+    if (personsError || !insertedPersons) {
       console.error('[Alliance] Failed to persist persons locally', {
         organizationId: id,
-        merchantId: result.merchantId,
-        error: personsError.message,
+        merchantCode: merchantResult.merchantCode,
+        error: personsError?.message,
       });
+      return NextResponse.json(
+        {
+          error:
+            'Merchant created but local person records failed to save. ' +
+            'Contact support — manual reconciliation needed.',
+          merchantCode: merchantResult.merchantCode,
+        },
+        { status: 500 },
+      );
+    }
+
+    // Map input persons to inserted rows by order (insertedPersons preserves
+    // insert order when Supabase uses a single INSERT .. RETURNING).
+    const personErrors: Array<{ clientRef: string; error: string }> = [];
+    for (let i = 0; i < body.persons.length; i++) {
+      const person = body.persons[i];
+      const localId = insertedPersons[i]?.id;
+      if (!localId) {
+        personErrors.push({ clientRef: person.clientRef, error: 'no local row' });
+        continue;
+      }
+
+      try {
+        const licenseResult = await createLicense(merchantResult.merchantCode, person);
+        await supabaseAdmin
+          .from('organization_persons')
+          .update({ paynl_license_code: licenseResult.licenseCode })
+          .eq('id', localId);
+      } catch (err) {
+        const message =
+          err instanceof PayNLError
+            ? `Pay.nl ${err.status}`
+            : err instanceof Error
+              ? err.message
+              : 'unknown';
+        console.error('[Alliance] createLicense failed', {
+          organizationId: id,
+          merchantCode: merchantResult.merchantCode,
+          clientRef: person.clientRef,
+          error: message,
+        });
+        personErrors.push({ clientRef: person.clientRef, error: message });
+      }
+    }
+
+    // ---- Step 3: GET /v2/merchants/{code}/info — sync required docs -------
+    let requiredDocsRemote: MerchantInfoDocument[] = [];
+    try {
+      const info = await getMerchantInfo(merchantResult.merchantCode);
+      requiredDocsRemote = info.documents;
+
+      // Persist the latest boarding state (Pay.nl may have advanced it).
+      if (info.boardingStatus) {
+        await supabaseAdmin
+          .from('organizations')
+          .update({ paynl_boarding_status: info.boardingStatus })
+          .eq('id', id);
+      }
+    } catch (err) {
+      console.error('[Alliance] getMerchantInfo failed', {
+        organizationId: id,
+        merchantCode: merchantResult.merchantCode,
+        error: err instanceof Error ? err.message : err,
+      });
+      // Non-fatal — admin can trigger a manual refresh later.
+    }
+
+    if (requiredDocsRemote.length > 0) {
+      // Map Pay.nl's licenseCode back to our local person id so per-person
+      // uploads know which row to attach to.
+      const { data: personLicenseRows } = await supabaseAdmin
+        .from('organization_persons')
+        .select('id, paynl_license_code')
+        .eq('organization_id', id);
+
+      const localIdByLicense = new Map<string, string>();
+      for (const row of personLicenseRows ?? []) {
+        if (row.paynl_license_code) {
+          localIdByLicense.set(row.paynl_license_code, row.id);
+        }
+      }
+
+      const docRows = requiredDocsRemote.map((d) => ({
+        organization_id: id,
+        person_id: d.licenseCode ? (localIdByLicense.get(d.licenseCode) ?? null) : null,
+        doc_type: d.type,
+        paynl_document_code: d.code,
+        paynl_required: true,
+        translations: d.translations ?? null,
+        status: mapRemoteDocStatus(d.status),
+        last_synced_at: new Date().toISOString(),
+      }));
+
+      // Upsert — idempotent per (organization_id, paynl_document_code).
+      const { error: docsError } = await supabaseAdmin
+        .from('organization_kyc_documents')
+        .upsert(docRows, {
+          onConflict: 'organization_id,paynl_document_code',
+          ignoreDuplicates: false,
+        });
+
+      if (docsError) {
+        console.error('[Alliance] Failed to persist required docs locally', {
+          organizationId: id,
+          merchantCode: merchantResult.merchantCode,
+          error: docsError.message,
+        });
+        // Non-fatal — the UI can re-fetch via /info on next page load.
+      }
     }
 
     console.log('[Alliance] Merchant onboarded', {
       organizationId: id,
-      merchantId: result.merchantId,
-      serviceId: result.serviceId,
-      kycStatus: result.kycStatus,
+      merchantCode: merchantResult.merchantCode,
       personCount: body.persons.length,
+      personErrors: personErrors.length,
+      requiredDocs: requiredDocsRemote.length,
     });
 
     return NextResponse.json({
-      merchantId: result.merchantId,
-      serviceId: result.serviceId,
-      kycStatus: result.kycStatus,
-      donationsActive: result.kycStatus === 'approved',
-      persons: insertedPersons ?? [],
+      merchantCode: merchantResult.merchantCode,
+      boardingStatus: merchantResult.boardingStatus,
+      kycStatus: 'submitted',
+      persons: insertedPersons,
+      requiredDocuments: requiredDocsRemote.map((d) => ({
+        code: d.code,
+        type: d.type,
+        status: d.status,
+        licenseCode: d.licenseCode ?? null,
+      })),
+      personErrors: personErrors.length > 0 ? personErrors : undefined,
     });
   } catch (error) {
     if (error instanceof PayNLAllianceNotActivatedError) {
@@ -497,5 +581,26 @@ export async function POST(
     }
     console.error('[Alliance] Unexpected error in merchant/onboard:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function mapRemoteDocStatus(
+  remote: string,
+): 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected' {
+  switch (remote?.toUpperCase()) {
+    case 'REQUESTED':
+      return 'requested';
+    case 'UPLOADED':
+      return 'uploaded';
+    case 'ACCEPTED':
+      return 'accepted';
+    case 'REJECTED':
+      return 'rejected';
+    default:
+      return 'requested';
   }
 }

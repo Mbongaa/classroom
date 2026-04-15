@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { constructWebhookEvent, mapStripeStatus, getPlanFromPriceId, getStripe } from '@/lib/stripe';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sendEmail } from '@/lib/email/email-service';
+import { getEmailTranslator } from '@/lib/email/i18n';
 import {
   getOrgAdminContact,
   formatMoney,
@@ -180,10 +181,12 @@ async function handleCheckoutCompleted(
   const contact = await getOrgAdminContact(supabase, { organizationId });
   if (!contact) return;
 
+  const tWelcome = getEmailTranslator(contact.preferredLocale, 'emails.welcome');
+
   await safeSend('welcome', () =>
     sendEmail({
       to: contact.email,
-      subject: 'Welcome to Bayaan — your subscription is active',
+      subject: tWelcome('subject'),
       react: WelcomeEmail({
         userName: contact.fullName,
         organizationName: contact.organizationName,
@@ -191,6 +194,7 @@ async function handleCheckoutCompleted(
         billingPeriodEnd: formatBillingDate(currentPeriodEnd),
         dashboardUrl: dashboardUrl(),
         billingPortalUrl: billingPortalUrl(),
+        locale: contact.preferredLocale,
       }),
       tags: [
         { name: 'type', value: 'subscription_confirmation' },

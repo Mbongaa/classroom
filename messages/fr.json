@@ -13,6 +13,69 @@
     "saveChanges": "Enregistrer les modifications",
     "saving": "Enregistrement..."
   },
+  "emails": {
+    "layout": {
+      "footerHelp": "Besoin d'aide ? Répondez simplement à cet e-mail.",
+      "footerTag": "Traduction en temps réel pour les salles de classe modernes"
+    },
+    "common": {
+      "greetingNamed": "Bonjour {name},",
+      "greetingAnon": "Bonjour,",
+      "orCopyUrl": "Ou copiez-collez cette URL dans votre navigateur :"
+    },
+    "confirmSignup": {
+      "subject": "Confirmez votre compte Bayaan Classroom",
+      "preview": "Confirmez votre e-mail pour activer votre compte Bayaan Classroom",
+      "heading": "Confirmez votre e-mail",
+      "body": "Bienvenue sur Bayaan Classroom ! Cliquez sur le bouton ci-dessous pour confirmer votre adresse e-mail et activer votre compte.",
+      "cta": "Confirmer l'e-mail",
+      "disclaimer": "Si vous n'avez pas créé de compte Bayaan Classroom, vous pouvez ignorer cet e-mail en toute sécurité."
+    },
+    "magicLink": {
+      "subject": "Connexion à Bayaan Classroom",
+      "preview": "Votre lien de connexion à Bayaan Classroom",
+      "heading": "Connexion à Bayaan Classroom",
+      "body": "Cliquez sur le bouton ci-dessous pour vous connecter à votre compte Bayaan Classroom. Ce lien vous permet de vous connecter sans mot de passe.",
+      "cta": "Se connecter",
+      "disclaimer": "Ce lien expirera dans 1 heure et ne pourra être utilisé qu'une seule fois. Si vous n'avez pas demandé de lien de connexion, vous pouvez ignorer cet e-mail en toute sécurité."
+    },
+    "passwordReset": {
+      "subject": "Réinitialisez votre mot de passe Bayaan Classroom",
+      "preview": "Réinitialisez votre mot de passe Bayaan Classroom",
+      "heading": "Réinitialiser votre mot de passe",
+      "body": "Nous avons reçu une demande de réinitialisation du mot de passe de votre compte Bayaan Classroom. Cliquez sur le bouton ci-dessous pour choisir un nouveau mot de passe.",
+      "cta": "Réinitialiser le mot de passe",
+      "disclaimer": "Ce lien expirera dans 1 heure. Si vous n'avez pas demandé de réinitialisation, vous pouvez ignorer cet e-mail en toute sécurité — votre mot de passe ne changera pas."
+    },
+    "emailChange": {
+      "subjectNew": "Confirmez votre nouvel e-mail Bayaan Classroom",
+      "subjectCurrent": "Votre adresse e-mail Bayaan Classroom est en cours de modification",
+      "previewNew": "Confirmez votre nouvelle adresse e-mail Bayaan Classroom",
+      "previewCurrent": "Votre adresse e-mail Bayaan Classroom est en cours de modification",
+      "headingNew": "Confirmez votre nouvel e-mail",
+      "headingCurrent": "Changement d'e-mail demandé",
+      "bodyNew": "Nous avons reçu une demande de changement d'adresse e-mail sur votre compte Bayaan Classroom. Cliquez sur le bouton ci-dessous pour confirmer qu'il s'agit de votre nouvelle adresse.",
+      "bodyCurrent": "Une demande de changement d'adresse e-mail a été faite sur votre compte Bayaan Classroom. Nous notifions l'ancienne et la nouvelle adresse pour des raisons de sécurité.",
+      "fromLabel": "De :",
+      "toLabel": "À :",
+      "cta": "Confirmer le nouvel e-mail",
+      "warningNew": "Si vous n'avez pas demandé ce changement, ne cliquez pas sur le lien et contactez immédiatement le support.",
+      "warningCurrent": "Si vous n'avez pas demandé ce changement, contactez immédiatement le support — votre compte pourrait être compromis."
+    },
+    "welcome": {
+      "subject": "Bienvenue chez Bayaan — votre abonnement est actif",
+      "preview": "Bienvenue chez Bayaan — votre abonnement est actif",
+      "heading": "Bienvenue chez Bayaan 🎉",
+      "greeting": "Bonjour {name},",
+      "body": "Merci de votre abonnement. Votre plan {plan} est maintenant actif et prêt à l'emploi.",
+      "organizationLabel": "Organisation :",
+      "planLabel": "Plan :",
+      "nextBillingLabel": "Prochaine date de facturation :",
+      "cta": "Aller au tableau de bord",
+      "manageLabel": "Gérez votre abonnement à tout moment :",
+      "billingPortal": "Portail de facturation"
+    }
+  },
   "locale": {
     "switchLanguage": "Langue",
     "english": "English",
@@ -639,7 +702,8 @@
       "tabs": {
         "general": "Général",
         "payments": "Paiements",
-        "animation": "Animation de remerciement"
+        "animation": "Animation de remerciement",
+        "language": "Langue"
       },
       "general": {
         "title": "Informations générales",
@@ -737,6 +801,14 @@
         "updated": "Animation de remerciement mise à jour",
         "updateFailed": "Échec de la mise à jour de l'animation",
         "saveFailed": "Échec de l'enregistrement"
+      },
+      "language": {
+        "title": "Langue par défaut",
+        "description": "Définit la langue de l'interface pour les membres de cette organisation et la langue des e-mails transactionnels (confirmations d'inscription, réinitialisations de mot de passe, reçus de facturation).",
+        "selectLabel": "Langue",
+        "hint": "S'applique aux nouvelles sessions de tous les membres de cette organisation et à tous les e-mails automatisés envoyés en votre nom.",
+        "updated": "Langue mise à jour",
+        "updateFailed": "Échec de la mise à jour de la langue"
       }
     }
   }

@@ -13,6 +13,69 @@
     "saveChanges": "Save Changes",
     "saving": "Saving..."
   },
+  "emails": {
+    "layout": {
+      "footerHelp": "Need help? Just reply to this email.",
+      "footerTag": "Real-time translation for modern classrooms"
+    },
+    "common": {
+      "greetingNamed": "Hi {name},",
+      "greetingAnon": "Hi,",
+      "orCopyUrl": "Or copy and paste this URL into your browser:"
+    },
+    "confirmSignup": {
+      "subject": "Confirm your Bayaan Classroom account",
+      "preview": "Confirm your email to activate your Bayaan Classroom account",
+      "heading": "Confirm your email",
+      "body": "Welcome to Bayaan Classroom! Click the button below to confirm your email address and activate your account.",
+      "cta": "Confirm email",
+      "disclaimer": "If you didn't create a Bayaan Classroom account, you can safely ignore this email."
+    },
+    "magicLink": {
+      "subject": "Sign in to Bayaan Classroom",
+      "preview": "Your sign-in link for Bayaan Classroom",
+      "heading": "Sign in to Bayaan Classroom",
+      "body": "Click the button below to sign in to your Bayaan Classroom account. This link will sign you in without a password.",
+      "cta": "Sign in",
+      "disclaimer": "This link will expire in 1 hour and can only be used once. If you didn't request a sign-in link, you can safely ignore this email."
+    },
+    "passwordReset": {
+      "subject": "Reset your Bayaan Classroom password",
+      "preview": "Reset your Bayaan Classroom password",
+      "heading": "Reset your password",
+      "body": "We received a request to reset the password for your Bayaan Classroom account. Click the button below to choose a new password.",
+      "cta": "Reset password",
+      "disclaimer": "This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email — your password won't change."
+    },
+    "emailChange": {
+      "subjectNew": "Confirm your new Bayaan Classroom email",
+      "subjectCurrent": "Your Bayaan Classroom email is being changed",
+      "previewNew": "Confirm your new Bayaan Classroom email address",
+      "previewCurrent": "Your Bayaan Classroom email address is being changed",
+      "headingNew": "Confirm your new email",
+      "headingCurrent": "Email change requested",
+      "bodyNew": "We received a request to change the email on your Bayaan Classroom account. Click the button below to confirm this is your new email address.",
+      "bodyCurrent": "A request was made to change the email address on your Bayaan Classroom account. We're notifying both the old and new addresses for security.",
+      "fromLabel": "From:",
+      "toLabel": "To:",
+      "cta": "Confirm new email",
+      "warningNew": "If you didn't request this change, do not click the link and contact support immediately.",
+      "warningCurrent": "If you didn't request this change, contact support immediately — your account may be at risk."
+    },
+    "welcome": {
+      "subject": "Welcome to Bayaan — your subscription is active",
+      "preview": "Welcome to Bayaan — your subscription is active",
+      "heading": "Welcome to Bayaan 🎉",
+      "greeting": "Hi {name},",
+      "body": "Thanks for subscribing. Your {plan} plan is now active and ready to use.",
+      "organizationLabel": "Organization:",
+      "planLabel": "Plan:",
+      "nextBillingLabel": "Next billing date:",
+      "cta": "Go to dashboard",
+      "manageLabel": "Manage your subscription anytime:",
+      "billingPortal": "Billing portal"
+    }
+  },
   "locale": {
     "switchLanguage": "Language",
     "english": "English",
@@ -640,7 +703,8 @@
       "tabs": {
         "general": "General",
         "payments": "Payments",
-        "animation": "Thank-You Animation"
+        "animation": "Thank-You Animation",
+        "language": "Language"
       },
       "general": {
         "title": "General information",
@@ -738,6 +802,14 @@
         "updated": "Thank-you animation updated",
         "updateFailed": "Failed to update animation",
         "saveFailed": "Failed to save"
+      },
+      "language": {
+        "title": "Default language",
+        "description": "Sets the UI language for members of this organization and the language used for transactional emails (sign-up confirmations, password resets, billing receipts).",
+        "selectLabel": "Language",
+        "hint": "Applies to new sessions for everyone in this organization and to all automated emails we send on your behalf.",
+        "updated": "Language updated",
+        "updateFailed": "Failed to update language"
       }
     }
   }

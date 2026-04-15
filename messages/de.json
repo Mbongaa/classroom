@@ -13,6 +13,69 @@
     "saveChanges": "Änderungen speichern",
     "saving": "Speichern..."
   },
+  "emails": {
+    "layout": {
+      "footerHelp": "Brauchst du Hilfe? Antworte einfach auf diese E-Mail.",
+      "footerTag": "Echtzeit-Übersetzung für moderne Klassenzimmer"
+    },
+    "common": {
+      "greetingNamed": "Hallo {name},",
+      "greetingAnon": "Hallo,",
+      "orCopyUrl": "Oder kopiere diese URL und füge sie in deinen Browser ein:"
+    },
+    "confirmSignup": {
+      "subject": "Bestätige deinen Bayaan Classroom-Account",
+      "preview": "Bestätige deine E-Mail, um deinen Bayaan Classroom-Account zu aktivieren",
+      "heading": "Bestätige deine E-Mail",
+      "body": "Willkommen bei Bayaan Classroom! Klicke auf die Schaltfläche unten, um deine E-Mail-Adresse zu bestätigen und deinen Account zu aktivieren.",
+      "cta": "E-Mail bestätigen",
+      "disclaimer": "Falls du keinen Bayaan Classroom-Account erstellt hast, kannst du diese E-Mail gefahrlos ignorieren."
+    },
+    "magicLink": {
+      "subject": "Bei Bayaan Classroom anmelden",
+      "preview": "Dein Anmelde-Link für Bayaan Classroom",
+      "heading": "Bei Bayaan Classroom anmelden",
+      "body": "Klicke auf die Schaltfläche unten, um dich bei deinem Bayaan Classroom-Account anzumelden. Mit diesem Link meldest du dich ohne Passwort an.",
+      "cta": "Anmelden",
+      "disclaimer": "Dieser Link ist 1 Stunde gültig und kann nur einmal verwendet werden. Falls du keinen Anmeldelink angefordert hast, kannst du diese E-Mail gefahrlos ignorieren."
+    },
+    "passwordReset": {
+      "subject": "Setze dein Bayaan Classroom-Passwort zurück",
+      "preview": "Setze dein Bayaan Classroom-Passwort zurück",
+      "heading": "Passwort zurücksetzen",
+      "body": "Wir haben eine Anfrage zum Zurücksetzen des Passworts für deinen Bayaan Classroom-Account erhalten. Klicke auf die Schaltfläche unten, um ein neues Passwort zu wählen.",
+      "cta": "Passwort zurücksetzen",
+      "disclaimer": "Dieser Link ist 1 Stunde gültig. Falls du keine Passwort-Zurücksetzung angefordert hast, kannst du diese E-Mail gefahrlos ignorieren — dein Passwort ändert sich nicht."
+    },
+    "emailChange": {
+      "subjectNew": "Bestätige deine neue Bayaan Classroom-E-Mail",
+      "subjectCurrent": "Deine Bayaan Classroom-E-Mail wird geändert",
+      "previewNew": "Bestätige deine neue Bayaan Classroom-E-Mail-Adresse",
+      "previewCurrent": "Deine Bayaan Classroom-E-Mail-Adresse wird geändert",
+      "headingNew": "Bestätige deine neue E-Mail",
+      "headingCurrent": "E-Mail-Änderung angefragt",
+      "bodyNew": "Wir haben eine Anfrage zur Änderung der E-Mail-Adresse deines Bayaan Classroom-Accounts erhalten. Klicke auf die Schaltfläche unten, um zu bestätigen, dass dies deine neue E-Mail-Adresse ist.",
+      "bodyCurrent": "Für deinen Bayaan Classroom-Account wurde eine Änderung der E-Mail-Adresse beantragt. Aus Sicherheitsgründen informieren wir sowohl die alte als auch die neue Adresse.",
+      "fromLabel": "Von:",
+      "toLabel": "An:",
+      "cta": "Neue E-Mail bestätigen",
+      "warningNew": "Falls du diese Änderung nicht angefordert hast, klicke nicht auf den Link und kontaktiere sofort den Support.",
+      "warningCurrent": "Falls du diese Änderung nicht angefordert hast, kontaktiere sofort den Support — dein Account könnte gefährdet sein."
+    },
+    "welcome": {
+      "subject": "Willkommen bei Bayaan — dein Abo ist aktiv",
+      "preview": "Willkommen bei Bayaan — dein Abo ist aktiv",
+      "heading": "Willkommen bei Bayaan 🎉",
+      "greeting": "Hallo {name},",
+      "body": "Danke für dein Abo. Dein {plan}-Plan ist jetzt aktiv und einsatzbereit.",
+      "organizationLabel": "Organisation:",
+      "planLabel": "Plan:",
+      "nextBillingLabel": "Nächstes Abrechnungsdatum:",
+      "cta": "Zum Dashboard",
+      "manageLabel": "Verwalte dein Abo jederzeit:",
+      "billingPortal": "Abrechnungsportal"
+    }
+  },
   "locale": {
     "switchLanguage": "Sprache",
     "english": "English",
@@ -639,7 +702,8 @@
       "tabs": {
         "general": "Allgemein",
         "payments": "Zahlungen",
-        "animation": "Dankes-Animation"
+        "animation": "Dankes-Animation",
+        "language": "Sprache"
       },
       "general": {
         "title": "Allgemeine Informationen",
@@ -737,6 +801,14 @@
         "updated": "Dankes-Animation aktualisiert",
         "updateFailed": "Animation konnte nicht aktualisiert werden",
         "saveFailed": "Speichern fehlgeschlagen"
+      },
+      "language": {
+        "title": "Standardsprache",
+        "description": "Legt die Oberflächensprache für Mitglieder dieser Organisation und die Sprache für transaktionale E-Mails fest (Anmeldebestätigungen, Passwort-Zurücksetzungen, Rechnungsbelege).",
+        "selectLabel": "Sprache",
+        "hint": "Gilt für neue Sitzungen aller Mitglieder dieser Organisation und für alle automatisierten E-Mails, die wir in Ihrem Namen versenden.",
+        "updated": "Sprache aktualisiert",
+        "updateFailed": "Sprache konnte nicht aktualisiert werden"
       }
     }
   }

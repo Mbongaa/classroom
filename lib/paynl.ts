@@ -100,7 +100,7 @@ export class PayNLError extends Error {
 // Generic transport
 // ---------------------------------------------------------------------------
 
-type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 /**
  * Low-level Pay.nl transport. Adds Basic Auth, JSON content-type, parses JSON

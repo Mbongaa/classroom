@@ -12,11 +12,14 @@ import {
   Text,
 } from '@react-email/components';
 import { ReactNode } from 'react';
+import { defaultLocale, getDirection, type Locale } from '@/i18n/config';
+import { getEmailTranslator } from '../i18n';
 
 interface EmailLayoutProps {
   preview: string;
   heading: string;
   children: ReactNode;
+  locale?: Locale;
 }
 
 /**
@@ -26,9 +29,11 @@ interface EmailLayoutProps {
  * #2A2A2A card surface, Poppins typography, and a white primary CTA
  * to match the dashboard's `--primary` token.
  */
-export function EmailLayout({ preview, heading, children }: EmailLayoutProps) {
+export function EmailLayout({ preview, heading, children, locale = defaultLocale }: EmailLayoutProps) {
+  const t = getEmailTranslator(locale, 'emails.layout');
+  const dir = getDirection(locale);
   return (
-    <Html>
+    <Html lang={locale} dir={dir}>
       <Head>
         <Font
           fontFamily="Poppins"
@@ -74,14 +79,13 @@ export function EmailLayout({ preview, heading, children }: EmailLayoutProps) {
           </Container>
 
           <Section style={footerSection}>
-            <Text style={footerText}>
-              Need help? Just reply to this email.
-            </Text>
+            <Text style={footerText}>{t('footerHelp')}</Text>
             <Text style={footerSmall}>
               <Link href="https://bayaan.ai" style={footerLink}>
                 bayaan.ai
               </Link>
-              {' · Real-time translation for modern classrooms'}
+              {' · '}
+              {t('footerTag')}
             </Text>
           </Section>
         </Container>

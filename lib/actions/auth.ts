@@ -1,5 +1,6 @@
 'use server';
 
+import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { revalidatePath } from 'next/cache';
@@ -11,6 +12,7 @@ import {
   PlanType,
 } from '@/lib/stripe';
 import { slugify } from '@/lib/slugify';
+import { isLocale, LOCALE_COOKIE_NAME, type Locale } from '@/i18n/config';
 
 export type AuthResult = {
   success: boolean;
@@ -466,6 +468,76 @@ export async function updateOrganizationName(formData: FormData): Promise<AuthRe
 
   // Org name and slug surface in the sidebar, profile page, mosque-admin
   // header, donate landing, and URL routes — refresh everything.
+  revalidatePath('/', 'layout');
+  return { success: true };
+}
+
+const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+
+/**
+ * Update the organization's default locale.
+ *
+ * Drives two things:
+ *   1. The NEXT_LOCALE cookie fallback for members opening the app
+ *   2. The locale used for transactional emails (auth hook + Stripe welcome)
+ *
+ * Only members with `profiles.role = 'admin'` for this org — or platform
+ * superadmins — may change it. The current user's cookie is also updated
+ * so their UI switches immediately.
+ */
+export async function updateOrganizationLocale(formData: FormData): Promise<AuthResult> {
+  const raw = (formData.get('locale') as string | null) ?? '';
+
+  if (!isLocale(raw)) {
+    return { success: false, error: 'Invalid locale' };
+  }
+  const locale: Locale = raw;
+
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('organization_id, role, is_superadmin')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profile) {
+    return { success: false, error: 'Profile not found' };
+  }
+  if (!profile.organization_id) {
+    return { success: false, error: 'You do not belong to an organization' };
+  }
+  if (profile.role !== 'admin' && !profile.is_superadmin) {
+    return { success: false, error: 'Only organization admins can change the language' };
+  }
+
+  const supabaseAdmin = createAdminClient();
+  const { error } = await supabaseAdmin
+    .from('organizations')
+    .update({ preferred_locale: locale })
+    .eq('id', profile.organization_id);
+
+  if (error) {
+    console.error('[updateOrganizationLocale] update error', error);
+    return { success: false, error: error.message };
+  }
+
+  // Mirror into the current user's cookie so their UI switches immediately.
+  const cookieStore = await cookies();
+  cookieStore.set(LOCALE_COOKIE_NAME, locale, {
+    path: '/',
+    maxAge: ONE_YEAR_SECONDS,
+    sameSite: 'lax',
+  });
+
   revalidatePath('/', 'layout');
   return { success: true };
 }
