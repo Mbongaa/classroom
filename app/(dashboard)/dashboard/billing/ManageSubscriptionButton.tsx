@@ -1,9 +1,11 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { ExternalLink, Loader2 } from 'lucide-react';
 
 export function ManageSubscriptionButton() {
+  const t = useTranslations('billing.manage');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -22,13 +24,13 @@ export function ManageSubscriptionButton() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to open billing portal');
+        throw new Error(data.error || t('failedOpen'));
       }
 
       // Redirect to Stripe Customer Portal
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('error'));
       setIsLoading(false);
     }
   }
@@ -43,12 +45,12 @@ export function ManageSubscriptionButton() {
         {isLoading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" />
-            Opening Portal...
+            {t('opening')}
           </>
         ) : (
           <>
             <ExternalLink className="h-4 w-4" />
-            Manage Subscription
+            {t('button')}
           </>
         )}
       </button>

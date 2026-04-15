@@ -21,7 +21,10 @@ export function buildDonorFrom(mosqueName: string): string {
 }
 
 export interface DonationContext {
-  admin: OrgAdminContact;
+  /** null if the org has no row in org_members with role='admin'. Tenant emails are skipped in that case, but donor emails still go out. */
+  admin: OrgAdminContact | null;
+  organizationId: string;
+  organizationName: string;
   amountCents: number;
   currency: string;
   donorName: string | null;
@@ -32,7 +35,9 @@ export interface DonationContext {
 }
 
 export interface MandateContext {
-  admin: OrgAdminContact;
+  admin: OrgAdminContact | null;
+  organizationId: string;
+  organizationName: string;
   monthlyAmountCents: number | null;
   currency: string;
   donorName: string;
@@ -43,7 +48,9 @@ export interface MandateContext {
 }
 
 export interface StornoContext {
-  admin: OrgAdminContact;
+  admin: OrgAdminContact | null;
+  organizationId: string;
+  organizationName: string;
   amountCents: number;
   currency: string;
   donorName: string;
@@ -52,6 +59,31 @@ export interface StornoContext {
   mandateCode: string | null;
   directDebitId: string;
   processDate: string | null;
+}
+
+/**
+ * Look up an org's display name directly. Used as a fallback for donor-facing
+ * emails when the org has no `org_members.role='admin'` row (which would make
+ * `getOrgAdminContact` return null). The donor receipt should still fire even
+ * if the mosque's tenant-side user setup is incomplete.
+ */
+async function getOrgName(
+  supabase: AdminClient,
+  organizationId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('name')
+    .eq('id', organizationId)
+    .maybeSingle();
+  if (error || !data) {
+    console.error('[donation-utils] organization name lookup failed', {
+      organizationId,
+      error,
+    });
+    return null;
+  }
+  return data.name ?? null;
 }
 
 /**
@@ -94,12 +126,15 @@ export async function getDonationContext(
   }
 
   const admin = await getOrgAdminContact(supabase, { organizationId });
-  if (!admin) return null;
+  const organizationName = admin?.organizationName ?? (await getOrgName(supabase, organizationId));
+  if (!organizationName) return null;
 
   const campaign = Array.isArray(data.campaigns) ? data.campaigns[0] : data.campaigns;
 
   return {
     admin,
+    organizationId,
+    organizationName,
     amountCents: data.amount,
     currency: data.currency,
     donorName: data.donor_name,
@@ -149,10 +184,13 @@ export async function getMandateContext(
   }
 
   const admin = await getOrgAdminContact(supabase, { organizationId });
-  if (!admin) return null;
+  const organizationName = admin?.organizationName ?? (await getOrgName(supabase, organizationId));
+  if (!organizationName) return null;
 
   return {
     admin,
+    organizationId,
+    organizationName,
     monthlyAmountCents: data.monthly_amount,
     currency: 'EUR',
     donorName: data.donor_name,
@@ -210,10 +248,13 @@ export async function getStornoContext(
   }
 
   const admin = await getOrgAdminContact(supabase, { organizationId });
-  if (!admin) return null;
+  const organizationName = admin?.organizationName ?? (await getOrgName(supabase, organizationId));
+  if (!organizationName) return null;
 
   return {
     admin,
+    organizationId,
+    organizationName,
     amountCents: data.amount,
     currency: data.currency,
     donorName: mandate.donor_name,

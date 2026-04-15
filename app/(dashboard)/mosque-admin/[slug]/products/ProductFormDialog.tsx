@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -56,6 +57,7 @@ export function ProductFormDialog({
   product,
   onSuccess,
 }: ProductFormDialogProps) {
+  const t = useTranslations('mosqueAdmin.products.form');
   const isEdit = mode === 'edit';
 
   const [title, setTitle] = useState('');
@@ -116,23 +118,21 @@ export function ProductFormDialog({
 
     const trimmedTitle = title.trim();
     if (trimmedTitle.length < 2) {
-      setError('Title must be at least 2 characters');
+      setError(t('errors.titleMin'));
       return;
     }
     if (!isEdit && !SLUG_RE.test(slug)) {
-      setError(
-        'Slug must be 3-60 lowercase letters, numbers or hyphens (no leading/trailing hyphen)',
-      );
+      setError(t('errors.slugInvalid'));
       return;
     }
 
     if (priceEuros.trim() === '') {
-      setError('Price is required');
+      setError(t('errors.priceRequired'));
       return;
     }
     const parsedPrice = Number(priceEuros.replace(',', '.'));
     if (!Number.isFinite(parsedPrice) || parsedPrice <= 0) {
-      setError('Price must be a positive number');
+      setError(t('errors.priceInvalid'));
       return;
     }
     const priceCents = Math.round(parsedPrice * 100);
@@ -141,7 +141,7 @@ export function ProductFormDialog({
     if (stockValue.trim() !== '') {
       const parsed = Number(stockValue);
       if (!Number.isFinite(parsed) || parsed < 0) {
-        setError('Stock must be a non-negative number (or leave blank for unlimited)');
+        setError(t('errors.stockInvalid'));
         return;
       }
       stockNum = Math.floor(parsed);
@@ -174,12 +174,12 @@ export function ProductFormDialog({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || `Failed to ${isEdit ? 'update' : 'create'} product`);
+        throw new Error(data.error || (isEdit ? t('errors.updateFailed') : t('errors.createFailed')));
       }
       onSuccess(data.product);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('errors.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -190,22 +190,20 @@ export function ProductFormDialog({
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-[520px]">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>{isEdit ? 'Edit product' : 'New product'}</DialogTitle>
+            <DialogTitle>{isEdit ? t('editTitle') : t('newTitle')}</DialogTitle>
             <DialogDescription>
-              {isEdit
-                ? 'Update the details for this product.'
-                : 'Add a new product to your shop.'}
+              {isEdit ? t('editDescription') : t('newDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid min-h-0 gap-4 overflow-y-auto py-2">
             <div className="grid gap-2">
               <Label htmlFor="product-title">
-                Title <span className="text-red-500">*</span>
+                {t('titleLabel')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="product-title"
-                placeholder="e.g. Quran — Sahih International"
+                placeholder={t('titlePlaceholder')}
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 disabled={submitting}
@@ -216,11 +214,11 @@ export function ProductFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="product-slug">
-                Slug <span className="text-red-500">*</span>
+                {t('slugLabel')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="product-slug"
-                placeholder="e.g. quran-sahih-international"
+                placeholder={t('slugPlaceholder')}
                 value={slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
                 disabled={submitting || isEdit}
@@ -228,17 +226,15 @@ export function ProductFormDialog({
                 required
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {isEdit
-                  ? 'Slug cannot be changed — it would break links that have already been shared.'
-                  : 'Used in the shop URL: /shop/<org>/<slug>. Lowercase letters, numbers and hyphens.'}
+                {isEdit ? t('slugHintEdit') : t('slugHintCreate')}
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="product-description">Description</Label>
+              <Label htmlFor="product-description">{t('descriptionLabel')}</Label>
               <Textarea
                 id="product-description"
-                placeholder="Product details. Optional."
+                placeholder={t('descriptionPlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
@@ -250,7 +246,7 @@ export function ProductFormDialog({
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="product-price">
-                  Price (€) <span className="text-red-500">*</span>
+                  {t('priceLabel')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="product-price"
@@ -258,7 +254,7 @@ export function ProductFormDialog({
                   inputMode="decimal"
                   min="0.01"
                   step="0.01"
-                  placeholder="e.g. 12.50"
+                  placeholder={t('pricePlaceholder')}
                   value={priceEuros}
                   onChange={(e) => setPriceEuros(e.target.value)}
                   disabled={submitting}
@@ -266,51 +262,51 @@ export function ProductFormDialog({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="product-stock">Stock</Label>
+                <Label htmlFor="product-stock">{t('stockLabel')}</Label>
                 <Input
                   id="product-stock"
                   type="number"
                   inputMode="numeric"
                   min="0"
                   step="1"
-                  placeholder="Unlimited"
+                  placeholder={t('stockPlaceholder')}
                   value={stockValue}
                   onChange={(e) => setStockValue(e.target.value)}
                   disabled={submitting}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Leave blank for unlimited stock.
+                  {t('stockHint')}
                 </p>
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="product-category">Category</Label>
+              <Label htmlFor="product-category">{t('categoryLabel')}</Label>
               <Input
                 id="product-category"
-                placeholder="books, clothing, food…"
+                placeholder={t('categoryPlaceholder')}
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={submitting}
                 maxLength={50}
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Free-text tag for grouping products.
+                {t('categoryHint')}
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="product-image">Image URL</Label>
+              <Label htmlFor="product-image">{t('imageLabel')}</Label>
               <Input
                 id="product-image"
                 type="url"
-                placeholder="https://…"
+                placeholder={t('imagePlaceholder')}
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 disabled={submitting}
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Direct link to a product image. Optional.
+                {t('imageHint')}
               </p>
             </div>
 
@@ -324,7 +320,7 @@ export function ProductFormDialog({
                 className="h-4 w-4"
               />
               <Label htmlFor="product-active" className="cursor-pointer text-sm font-normal">
-                Active — visible in the shop and available for purchase
+                {t('activeLabel')}
               </Label>
             </div>
 
@@ -342,16 +338,16 @@ export function ProductFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={submitting}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={submitting} className="rounded-full">
               {submitting
                 ? isEdit
-                  ? 'Saving…'
-                  : 'Creating…'
+                  ? t('saving')
+                  : t('creating')
                 : isEdit
-                  ? 'Save changes'
-                  : 'Create product'}
+                  ? t('saveChanges')
+                  : t('createProduct')}
             </Button>
           </DialogFooter>
         </form>

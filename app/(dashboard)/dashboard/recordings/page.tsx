@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { useUser } from '@/lib/contexts/UserContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,8 @@ type SortOrder = 'asc' | 'desc';
 
 export default function SessionHistoryPage() {
   const { user, profile, loading: userLoading } = useUser();
+  const t = useTranslations('recordings');
+  const tCommon = useTranslations('common');
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,7 +70,7 @@ export default function SessionHistoryPage() {
         setSessions(data.sessions || []);
       } catch (err) {
         console.error('Failed to fetch sessions:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load sessions');
+        setError(err instanceof Error ? err.message : t('errors.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -139,7 +142,7 @@ export default function SessionHistoryPage() {
     if (!recording) {
       return (
         <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-slate-500/20 text-slate-400">
-          No recording
+          {t('status.noRecording')}
         </span>
       );
     }
@@ -148,25 +151,25 @@ export default function SessionHistoryPage() {
       case 'COMPLETED':
         return (
           <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-green-500/20 text-green-500">
-            Available
+            {t('status.available')}
           </span>
         );
       case 'ACTIVE':
         return (
           <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-blue-500/20 text-blue-500">
-            Recording...
+            {t('status.recording')}
           </span>
         );
       case 'FAILED':
         return (
           <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-red-500/20 text-red-500">
-            Failed
+            {t('status.failed')}
           </span>
         );
       default:
         return (
           <span className="text-xs px-2 py-1 rounded whitespace-nowrap bg-yellow-500/20 text-yellow-500">
-            Processing...
+            {t('status.processing')}
           </span>
         );
     }
@@ -181,7 +184,7 @@ export default function SessionHistoryPage() {
   }
 
   if (!user || !profile) {
-    return <div className="text-black dark:text-white">Not authenticated</div>;
+    return <div className="text-black dark:text-white">{tCommon('notAuthenticated')}</div>;
   }
 
   if (error) {
@@ -198,19 +201,15 @@ export default function SessionHistoryPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight text-black dark:text-white">
-          Session History
+          {t('title')}
         </h1>
-        <p className="text-slate-500 dark:text-slate-400">
-          View past classroom sessions and recordings
-        </p>
+        <p className="text-slate-500 dark:text-slate-400">{t('subtitle')}</p>
       </div>
 
       {sessions.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-muted-foreground">
-              No sessions yet. Sessions are created when participants join a classroom.
-            </p>
+            <p className="text-muted-foreground">{t('empty')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -226,7 +225,7 @@ export default function SessionHistoryPage() {
                       onClick={() => handleSort('room_name')}
                       className="h-8"
                     >
-                      Room Name
+                      {t('table.roomName')}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
@@ -237,13 +236,13 @@ export default function SessionHistoryPage() {
                       onClick={() => handleSort('started_at')}
                       className="h-8"
                     >
-                      Date & Time
+                      {t('table.dateTime')}
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead className="text-center">Duration</TableHead>
-                  <TableHead className="text-center">Recording</TableHead>
-                  <TableHead className="text-center">Actions</TableHead>
+                  <TableHead className="text-center">{t('table.duration')}</TableHead>
+                  <TableHead className="text-center">{t('table.recording')}</TableHead>
+                  <TableHead className="text-center">{t('table.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -267,7 +266,7 @@ export default function SessionHistoryPage() {
                           <Button asChild size="sm" variant="default">
                             <Link href={`/dashboard/recordings/${session.recording.id}`}>
                               <Play className="h-4 w-4 mr-2" />
-                              Watch
+                              {t('table.watch')}
                             </Link>
                           </Button>
                         )}
@@ -311,8 +310,11 @@ export default function SessionHistoryPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Showing {startIndex + 1} to {Math.min(endIndex, sortedSessions.length)} of{' '}
-                {sortedSessions.length} sessions
+                {t('pagination.showing', {
+                  start: startIndex + 1,
+                  end: Math.min(endIndex, sortedSessions.length),
+                  total: sortedSessions.length,
+                })}
               </p>
               <Pagination>
                 <PaginationContent>

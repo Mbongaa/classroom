@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { updateProfile } from '@/lib/actions/auth';
 import { Button } from '@/components/ui/button';
 import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const tCommon = useTranslations('common');
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? 'Saving...' : 'Save Changes'}
+      {pending ? tCommon('saving') : tCommon('saveChanges')}
     </Button>
   );
 }
@@ -23,6 +25,7 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ profile }: ProfileFormProps) {
+  const t = useTranslations('profile.personal');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -46,7 +49,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         <FloatingLabelInput
           id="fullName"
           name="fullName"
-          label="Full Name"
+          label={t('fullName')}
           defaultValue={profile.full_name || ''}
           required
         />
@@ -54,11 +57,11 @@ export function ProfileForm({ profile }: ProfileFormProps) {
           <FloatingLabelInput
             id="avatarUrl"
             name="avatarUrl"
-            label="Avatar URL"
+            label={t('avatarUrl')}
             type="url"
             defaultValue={profile.avatar_url || ''}
           />
-          <p className="text-xs text-muted-foreground">Optional: Link to your profile picture</p>
+          <p className="text-xs text-muted-foreground">{t('avatarHint')}</p>
         </div>
 
         {error && (
@@ -67,7 +70,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
 
         {success && (
           <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 p-3 rounded-md">
-            Profile updated successfully!
+            {t('updated')}
           </div>
         )}
 

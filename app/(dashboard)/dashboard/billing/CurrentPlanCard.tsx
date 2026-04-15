@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CreditCard, Calendar, DollarSign } from 'lucide-react';
@@ -10,12 +11,14 @@ interface CurrentPlanCardProps {
   subscriptionDetails: Stripe.Subscription | null;
 }
 
-export function CurrentPlanCard({
+export async function CurrentPlanCard({
   tier,
   status,
   periodEnd,
   subscriptionDetails,
 }: CurrentPlanCardProps) {
+  const t = await getTranslations('billing.currentPlan');
+
   // Status color mapping
   const getStatusBadge = (status: string) => {
     const statusConfig: Record<
@@ -23,27 +26,27 @@ export function CurrentPlanCard({
       { label: string; className: string }
     > = {
       active: {
-        label: 'Active',
+        label: t('status.active'),
         className: 'bg-green-500/10 text-green-500 border-green-500/20',
       },
       trialing: {
-        label: 'Trial',
+        label: t('status.trialing'),
         className: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
       },
       past_due: {
-        label: 'Past Due',
+        label: t('status.pastDue'),
         className: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
       },
       canceled: {
-        label: 'Canceled',
+        label: t('status.canceled'),
         className: 'bg-red-500/10 text-red-500 border-red-500/20',
       },
       unpaid: {
-        label: 'Unpaid',
+        label: t('status.unpaid'),
         className: 'bg-red-500/10 text-red-500 border-red-500/20',
       },
       incomplete: {
-        label: 'Incomplete',
+        label: t('status.incomplete'),
         className: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
       },
     };
@@ -57,11 +60,11 @@ export function CurrentPlanCard({
   };
 
   // Format tier name
-  const tierName = tier === 'pro' ? 'Pro Plan' : tier === 'beta' ? 'Beta Plan' : 'Free Plan';
+  const tierName = tier === 'pro' ? t('tierPro') : tier === 'beta' ? t('tierBeta') : t('tierFree');
 
   // Get billing interval
   const interval = subscriptionDetails?.items?.data[0]?.price?.recurring?.interval;
-  const intervalLabel = interval === 'month' ? '/month' : interval === 'year' ? '/year' : '';
+  const intervalLabel = interval === 'month' ? t('perMonth') : interval === 'year' ? t('perYear') : '';
 
   // Get price
   const amount = subscriptionDetails?.items?.data[0]?.price?.unit_amount;
@@ -92,7 +95,7 @@ export function CurrentPlanCard({
         <div className="flex items-center justify-between">
           <CardTitle className="text-white flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Current Plan
+            {t('title')}
           </CardTitle>
           {getStatusBadge(status)}
         </div>
@@ -121,10 +124,10 @@ export function CurrentPlanCard({
               <div>
                 <p className="text-sm font-medium text-white">
                   {cancelAtPeriodEnd || status === 'canceled'
-                    ? 'Access until'
+                    ? t('accessUntil')
                     : status === 'trialing'
-                      ? 'Trial ends'
-                      : 'Next billing date'}
+                      ? t('trialEnds')
+                      : t('nextBilling')}
                 </p>
                 <p className="text-sm text-gray-400">{nextBillingDate}</p>
               </div>
@@ -136,7 +139,7 @@ export function CurrentPlanCard({
             <div className="flex items-start gap-3">
               <DollarSign className="h-5 w-5 text-gray-400 mt-0.5" />
               <div>
-                <p className="text-sm font-medium text-white">Amount</p>
+                <p className="text-sm font-medium text-white">{t('amount')}</p>
                 <p className="text-sm text-gray-400">{price}</p>
               </div>
             </div>
@@ -146,8 +149,7 @@ export function CurrentPlanCard({
           {cancelAtPeriodEnd && status !== 'canceled' && (
             <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
               <p className="text-sm text-yellow-400">
-                Your subscription is set to cancel at the end of the billing period.
-                You can reactivate it anytime before {nextBillingDate}.
+                {t('cancellingNotice', { date: nextBillingDate ?? '' })}
               </p>
             </div>
           )}

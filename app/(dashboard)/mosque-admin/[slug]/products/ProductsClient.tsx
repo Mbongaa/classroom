@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,6 +58,7 @@ export function ProductsClient({
   canManage,
   canDelete,
 }: ProductsClientProps) {
+  const t = useTranslations('mosqueAdmin.products');
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [editing, setEditing] = useState<Product | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -89,11 +91,11 @@ export function ProductsClient({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to reorder');
+        throw new Error(data.error || t('toast.reorderFailed'));
       }
-      toast.success('Order updated');
+      toast.success(t('toast.orderUpdated'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to reorder');
+      toast.error(err instanceof Error ? err.message : t('toast.reorderFailed'));
     } finally {
       setReordering(false);
     }
@@ -123,7 +125,7 @@ export function ProductsClient({
       {canManage && (
         <div className="flex justify-end">
           <Button onClick={() => setCreateOpen(true)} className="rounded-full">
-            New product
+            {t('list.newProduct')}
           </Button>
           <ProductFormDialog
             mode="create"
@@ -138,9 +140,9 @@ export function ProductsClient({
       {products.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <p className="text-base font-medium">No products yet</p>
+            <p className="text-base font-medium">{t('list.emptyTitle')}</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Add your first product to start selling on your shop page.
+              {t('list.emptyDescription')}
             </p>
             {canManage && (
               <Button
@@ -148,7 +150,7 @@ export function ProductsClient({
                 className="mt-6 rounded-full"
                 variant="default"
               >
-                Add your first product
+                {t('list.addFirst')}
               </Button>
             )}
           </CardContent>
@@ -160,13 +162,13 @@ export function ProductsClient({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[rgba(128,128,128,0.3)] text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    {canManage && <th className="px-4 py-3">Order</th>}
-                    <th className="px-4 py-3">Product</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">Price</th>
-                    <th className="px-4 py-3">Stock</th>
-                    <th className="px-4 py-3">Active</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                    {canManage && <th className="px-4 py-3">{t('table.order')}</th>}
+                    <th className="px-4 py-3">{t('table.product')}</th>
+                    <th className="px-4 py-3">{t('table.category')}</th>
+                    <th className="px-4 py-3">{t('table.price')}</th>
+                    <th className="px-4 py-3">{t('table.stock')}</th>
+                    <th className="px-4 py-3">{t('table.active')}</th>
+                    <th className="px-4 py-3 text-right">{t('table.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -248,6 +250,7 @@ function ProductRow({
   onUpdated,
   onDeleted,
 }: ProductRowProps) {
+  const t = useTranslations('mosqueAdmin.products');
   const [pending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState(false);
 
@@ -265,21 +268,19 @@ function ProductRow({
         );
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(data.error || 'Failed to update product');
+          throw new Error(data.error || t('form.errors.updateFailed'));
         }
         onUpdated(data.product);
-        toast.success(next ? 'Product activated' : 'Product deactivated');
+        toast.success(next ? t('toast.activated') : t('toast.deactivated'));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to update');
+        toast.error(err instanceof Error ? err.message : t('toast.updateFailed'));
       }
     });
   }
 
   async function handleDelete() {
     if (!canDelete) return;
-    const confirmed = window.confirm(
-      `Delete the product "${product.title}"? This cannot be undone.`,
-    );
+    const confirmed = window.confirm(t('confirmDelete', { title: product.title }));
     if (!confirmed) return;
 
     setDeleting(true);
@@ -290,12 +291,12 @@ function ProductRow({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete product');
+        throw new Error(data.error || t('toast.deleteFailed'));
       }
       onDeleted(product.id);
-      toast.success('Product deleted');
+      toast.success(t('toast.deleted'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete');
+      toast.error(err instanceof Error ? err.message : t('toast.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -311,7 +312,7 @@ function ProductRow({
               onClick={() => onMove(product.id, 'up')}
               disabled={isFirst || reordering || pending}
               className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
-              aria-label="Move up"
+              aria-label={t('table.moveUp')}
             >
               <IconArrowUp className="h-4 w-4" />
             </button>
@@ -320,7 +321,7 @@ function ProductRow({
               onClick={() => onMove(product.id, 'down')}
               disabled={isLast || reordering || pending}
               className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
-              aria-label="Move down"
+              aria-label={t('table.moveDown')}
             >
               <IconArrowDown className="h-4 w-4" />
             </button>
@@ -347,9 +348,9 @@ function ProductRow({
       <td className="px-4 py-3 font-medium">{formatEuro(product.price)}</td>
       <td className="px-4 py-3">
         {product.stock === null ? (
-          <span className="text-xs text-slate-400">Unlimited</span>
+          <span className="text-xs text-slate-400">{t('table.unlimited')}</span>
         ) : product.stock === 0 ? (
-          <Badge variant="destructive" className="text-xs">Sold out</Badge>
+          <Badge variant="destructive" className="text-xs">{t('table.soldOut')}</Badge>
         ) : (
           <span className="font-medium">{product.stock}</span>
         )}
@@ -360,10 +361,10 @@ function ProductRow({
             checked={product.is_active}
             disabled={!canManage || pending}
             onCheckedChange={handleToggleActive}
-            aria-label={`Toggle ${product.title} active`}
+            aria-label={t('table.toggleActiveAria', { title: product.title })}
           />
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            {product.is_active ? 'Live' : 'Hidden'}
+            {product.is_active ? t('table.live') : t('table.hidden')}
           </span>
         </div>
       </td>
@@ -376,7 +377,7 @@ function ProductRow({
               onClick={onEdit}
               disabled={deleting || pending}
             >
-              Edit
+              {t('table.edit')}
             </Button>
           )}
           {canDelete && (
@@ -386,8 +387,8 @@ function ProductRow({
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
               onClick={handleDelete}
               disabled={deleting || pending}
-              title={deleting ? 'Deleting…' : 'Delete product'}
-              aria-label="Delete product"
+              title={deleting ? t('table.deleting') : t('table.deleteProduct')}
+              aria-label={t('table.deleteProduct')}
             >
               <TrashIcon size={16} />
             </Button>

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import {
   IconArrowLeft,
+  IconCalendar,
   IconCreditCard,
   IconHeartHandshake,
   IconHome,
@@ -84,6 +85,11 @@ export function AppSidebar() {
             label: t('finance.products'),
             href: `/mosque-admin/${financeSlug}/products`,
             icon: IconPackage,
+          },
+          {
+            label: t('finance.appointments'),
+            href: `/mosque-admin/${financeSlug}/appointments`,
+            icon: IconCalendar,
           },
           {
             label: t('finance.members'),

@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useCallback, useEffect } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,8 +18,19 @@ import {
   type ThankYouAnimation,
 } from '@/lib/thankyou-animations';
 import { IconExternalLink } from '@tabler/icons-react';
-import { Loader2, CheckCircle2, Clock, XCircle, Building2 } from 'lucide-react';
+import {
+  Loader2,
+  CheckCircle2,
+  Clock,
+  XCircle,
+  Building2,
+  Plus,
+  Trash2,
+  Upload,
+  FileCheck2,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 /**
  * Organization settings tabs.
@@ -34,6 +46,29 @@ import { cn } from '@/lib/utils';
  *   - rejected                  → rejection notice + re-submit info
  *   - approved                  → merchant status card with finance links
  */
+
+interface OrganizationPerson {
+  id: string;
+  full_name: string;
+  is_signee: boolean;
+  is_ubo: boolean;
+  paynl_person_id: string | null;
+}
+
+interface OrganizationKycDocument {
+  id: string;
+  doc_type:
+    | 'kvk_extract'
+    | 'ubo_extract'
+    | 'id_front'
+    | 'id_back'
+    | 'bank_statement'
+    | 'power_of_attorney'
+    | 'other';
+  person_id: string | null;
+  status: 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
+  uploaded_at: string;
+}
 
 interface OrganizationProp {
   id: string;
@@ -53,25 +88,105 @@ interface OrganizationProp {
   donations_active: boolean;
   onboarded_at: string | null;
   platform_fee_bps: number;
+  // KYC-related (populated after _03 + _415 migrations)
+  legal_form: string | null;
+  mcc: string | null;
+  kvk_number: string | null;
+  vat_number: string | null;
+  website_url: string | null;
+  business_description: string | null;
+  address_street: string | null;
+  address_house_number: string | null;
+  address_postal_code: string | null;
+  persons: OrganizationPerson[];
+  kyc_documents: OrganizationKycDocument[];
 }
+
+const LEGAL_FORM_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'eenmanszaak', label: 'Eenmanszaak' },
+  { value: 'vof', label: 'VOF' },
+  { value: 'maatschap', label: 'Maatschap' },
+  { value: 'bv', label: 'Besloten Vennootschap (BV)' },
+  { value: 'nv', label: 'Naamloze Vennootschap (NV)' },
+  { value: 'stichting', label: 'Stichting' },
+  { value: 'vereniging', label: 'Vereniging' },
+  { value: 'cooperatie', label: 'Coöperatie' },
+  { value: 'other', label: 'Other' },
+];
+
+const UBO_REQUIRED_FORMS = new Set([
+  'vof',
+  'maatschap',
+  'bv',
+  'nv',
+  'stichting',
+  'vereniging',
+  'cooperatie',
+]);
+
+const DOC_TYPES: Array<{
+  value: OrganizationKycDocument['doc_type'];
+  label: string;
+  description: string;
+  perPerson: boolean;
+  required: boolean;
+}> = [
+  {
+    value: 'kvk_extract',
+    label: 'KvK extract',
+    description: 'Recent (≤6 months) Chamber of Commerce extract',
+    perPerson: false,
+    required: true,
+  },
+  {
+    value: 'ubo_extract',
+    label: 'UBO register extract',
+    description: 'From KvK — required for VOF, BV, stichting, vereniging, coöperatie',
+    perPerson: false,
+    required: false,
+  },
+  {
+    value: 'bank_statement',
+    label: 'Bank statement',
+    description: 'Recent statement showing IBAN + company name (amounts may be redacted)',
+    perPerson: false,
+    required: true,
+  },
+  {
+    value: 'id_front',
+    label: 'ID — front',
+    description: 'Front side of a valid passport / ID card',
+    perPerson: true,
+    required: true,
+  },
+  {
+    value: 'id_back',
+    label: 'ID — back',
+    description: 'Back side (not required for passports)',
+    perPerson: true,
+    required: false,
+  },
+  {
+    value: 'power_of_attorney',
+    label: 'Power of attorney',
+    description: 'Only if a person signs on behalf of the legal representative',
+    perPerson: false,
+    required: false,
+  },
+];
 
 interface SettingsTabsProps {
   organization: OrganizationProp;
 }
 
-const CATEGORY_LABELS: Record<ThankYouAnimation['category'], string> = {
-  celebration: 'Celebration',
-  islamic: 'Islamic',
-  charity: 'Charity',
-};
-
 export function SettingsTabs({ organization }: SettingsTabsProps) {
+  const t = useTranslations('mosqueAdmin.settings');
   return (
     <Tabs defaultValue="payments" className="w-full">
       <TabsList className="mb-6">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="payments">Payments</TabsTrigger>
-        <TabsTrigger value="animation">Thank-You Animation</TabsTrigger>
+        <TabsTrigger value="general">{t('tabs.general')}</TabsTrigger>
+        <TabsTrigger value="payments">{t('tabs.payments')}</TabsTrigger>
+        <TabsTrigger value="animation">{t('tabs.animation')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -150,11 +265,14 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
     );
   }
 
-  // Default (submitted OR pending-with-merchant) → waiting screen.
-  // Covers the edge case where Pay.nl's createMerchant response returns
-  // kycStatus='pending' rather than 'submitted' — we still have a merchantId,
-  // so the application is in review, not un-submitted.
-  return <KycPendingCard onRefresh={handleStatusRefresh} />;
+  // Default (submitted OR pending-with-merchant) → waiting screen +
+  // documents panel so the admin can finish uploading KYC files.
+  return (
+    <div className="space-y-4">
+      <KycPendingCard onRefresh={handleStatusRefresh} />
+      <DocumentsPanel organization={organization} />
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +284,44 @@ interface OnboardingFormProps {
   onSuccess: (result: { merchantId: string; serviceId: string; kycStatus: string }) => void;
 }
 
+interface PersonFormState {
+  clientRef: string;
+  fullName: string;
+  dateOfBirth: string;
+  nationality: string;
+  email: string;
+  phone: string;
+  street: string;
+  houseNumber: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  isSignee: boolean;
+  isUbo: boolean;
+  uboPercentage: string;
+}
+
+function emptyPerson(country: string): PersonFormState {
+  return {
+    clientRef: crypto.randomUUID(),
+    fullName: '',
+    dateOfBirth: '',
+    nationality: country,
+    email: '',
+    phone: '',
+    street: '',
+    houseNumber: '',
+    postalCode: '',
+    city: '',
+    country,
+    isSignee: true,
+    isUbo: false,
+    uboPercentage: '',
+  };
+}
+
 function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
+  const t = useTranslations('mosqueAdmin.settings.onboarding');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -174,23 +329,41 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
   const [form, setForm] = useState({
     legalName: organization.name,
     tradingName: organization.name,
-    kvkNumber: '',
-    vatNumber: '',
+    legalForm: organization.legal_form || 'stichting',
+    mcc: organization.mcc || '8398', // 8398 = Charitable/Social Service Organizations
+    kvkNumber: organization.kvk_number || '',
+    vatNumber: organization.vat_number || '',
     contactEmail: organization.contact_email || '',
     contactPhone: organization.contact_phone || '',
     iban: organization.bank_iban || '',
     ibanOwner: organization.bank_account_holder || '',
-    street: '',
-    houseNumber: '',
-    postalCode: '',
+    street: organization.address_street || '',
+    houseNumber: organization.address_house_number || '',
+    postalCode: organization.address_postal_code || '',
     city: organization.city || '',
     country: organization.country || 'NL',
-    businessDescription: organization.description || '',
-    websiteUrl: '',
+    businessDescription: organization.business_description || organization.description || '',
+    websiteUrl: organization.website_url || '',
   });
+
+  const [persons, setPersons] = useState<PersonFormState[]>([
+    emptyPerson(organization.country || 'NL'),
+  ]);
 
   function updateField(field: string, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
+  }
+
+  function updatePerson(index: number, patch: Partial<PersonFormState>) {
+    setPersons((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+  }
+
+  function addPerson() {
+    setPersons((prev) => [...prev, emptyPerson(form.country || 'NL')]);
+  }
+
+  function removePerson(index: number) {
+    setPersons((prev) => (prev.length <= 1 ? prev : prev.filter((_, i) => i !== index)));
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -199,9 +372,26 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
     setError(null);
 
     try {
+      // Client-side UBO + signee checks — server re-validates but the
+      // message is friendlier here.
+      const hasSignee = persons.some((p) => p.isSignee);
+      if (!hasSignee) {
+        throw new Error('At least one person must be marked as a signee.');
+      }
+      if (UBO_REQUIRED_FORMS.has(form.legalForm)) {
+        const hasUbo = persons.some((p) => p.isUbo);
+        if (!hasUbo) {
+          throw new Error(
+            `Legal form "${form.legalForm}" requires at least one UBO (≥25% ownership).`,
+          );
+        }
+      }
+
       const payload = {
         legalName: form.legalName,
         tradingName: form.tradingName,
+        legalForm: form.legalForm,
+        mcc: form.mcc,
         kvkNumber: form.kvkNumber,
         vatNumber: form.vatNumber || undefined,
         contactEmail: form.contactEmail,
@@ -217,6 +407,24 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
         },
         businessDescription: form.businessDescription,
         websiteUrl: form.websiteUrl || undefined,
+        persons: persons.map((p) => ({
+          clientRef: p.clientRef,
+          fullName: p.fullName,
+          dateOfBirth: p.dateOfBirth,
+          nationality: p.nationality,
+          email: p.email || undefined,
+          phone: p.phone || undefined,
+          address: {
+            street: p.street,
+            houseNumber: p.houseNumber,
+            postalCode: p.postalCode,
+            city: p.city,
+            country: p.country,
+          },
+          isSignee: p.isSignee,
+          isUbo: p.isUbo,
+          uboPercentage: p.isUbo ? Number(p.uboPercentage) : undefined,
+        })),
       };
 
       const res = await fetch(`/api/organizations/${organization.id}/merchant/onboard`, {
@@ -228,13 +436,13 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit application');
+        throw new Error(data.error || t('errors.submitFailed'));
       }
 
-      toast.success('Merchant application submitted successfully');
+      toast.success(t('toastSuccess'));
       onSuccess(data);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Something went wrong';
+      const message = err instanceof Error ? err.message : t('errors.somethingWrong');
       setError(message);
       toast.error(message);
     } finally {
@@ -250,9 +458,9 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
             <Building2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <CardTitle className="text-lg">Set up payment processing</CardTitle>
+            <CardTitle className="text-lg">{t('title')}</CardTitle>
             <CardDescription>
-              Register as a merchant to receive donations directly into your bank account
+              {t('description')}
             </CardDescription>
           </div>
         </div>
@@ -262,11 +470,11 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
           {/* Business details */}
           <section>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Business details
+              {t('businessDetails')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="legalName">Legal name (as registered with KvK) *</Label>
+                <Label htmlFor="legalName">{t('legalName')}</Label>
                 <Input
                   id="legalName"
                   value={form.legalName}
@@ -275,7 +483,7 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tradingName">Trading name (shown to donors) *</Label>
+                <Label htmlFor="tradingName">{t('tradingName')}</Label>
                 <Input
                   id="tradingName"
                   value={form.tradingName}
@@ -284,47 +492,76 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="kvkNumber">KvK number (8 digits) *</Label>
+                <Label htmlFor="kvkNumber">{t('kvkNumber')}</Label>
                 <Input
                   id="kvkNumber"
                   value={form.kvkNumber}
                   onChange={(e) => updateField('kvkNumber', e.target.value)}
-                  placeholder="12345678"
+                  placeholder={t('kvkPlaceholder')}
                   maxLength={8}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="vatNumber">VAT number (optional)</Label>
+                <Label htmlFor="vatNumber">{t('vatNumber')}</Label>
                 <Input
                   id="vatNumber"
                   value={form.vatNumber}
                   onChange={(e) => updateField('vatNumber', e.target.value)}
-                  placeholder="NL123456789B01"
+                  placeholder={t('vatPlaceholder')}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="legalForm">Legal form</Label>
+                <Select
+                  value={form.legalForm}
+                  onValueChange={(value) => updateField('legalForm', value)}
+                >
+                  <SelectTrigger id="legalForm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LEGAL_FORM_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mcc">MCC (merchant category code)</Label>
+                <Input
+                  id="mcc"
+                  value={form.mcc}
+                  onChange={(e) => updateField('mcc', e.target.value.replace(/\D/g, '').slice(0, 4))}
+                  placeholder="8398"
+                  maxLength={4}
+                  required
                 />
               </div>
             </div>
             <div className="mt-4 space-y-2">
               <Label htmlFor="businessDescription">
-                Business description *
+                {t('businessDescription')}
               </Label>
               <Textarea
                 id="businessDescription"
                 value={form.businessDescription}
                 onChange={(e) => updateField('businessDescription', e.target.value)}
-                placeholder="Describe what your organization does and what donations are used for..."
+                placeholder={t('businessDescriptionPlaceholder')}
                 rows={3}
                 required
               />
             </div>
             <div className="mt-4 space-y-2">
-              <Label htmlFor="websiteUrl">Website (optional)</Label>
+              <Label htmlFor="websiteUrl">{t('website')}</Label>
               <Input
                 id="websiteUrl"
                 type="url"
                 value={form.websiteUrl}
                 onChange={(e) => updateField('websiteUrl', e.target.value)}
-                placeholder="https://www.example.nl"
+                placeholder={t('websitePlaceholder')}
               />
             </div>
           </section>
@@ -334,11 +571,11 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
           {/* Contact information */}
           <section>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Contact information
+              {t('contactInformation')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="contactEmail">Contact email *</Label>
+                <Label htmlFor="contactEmail">{t('contactEmail')}</Label>
                 <Input
                   id="contactEmail"
                   type="email"
@@ -348,13 +585,13 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="contactPhone">Phone number</Label>
+                <Label htmlFor="contactPhone">{t('contactPhone')}</Label>
                 <Input
                   id="contactPhone"
                   type="tel"
                   value={form.contactPhone}
                   onChange={(e) => updateField('contactPhone', e.target.value)}
-                  placeholder="+31 6 12345678"
+                  placeholder={t('contactPhonePlaceholder')}
                 />
               </div>
             </div>
@@ -365,11 +602,11 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
           {/* Address */}
           <section>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Registered address
+              {t('registeredAddress')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="street">Street *</Label>
+                <Label htmlFor="street">{t('street')}</Label>
                 <Input
                   id="street"
                   value={form.street}
@@ -378,7 +615,7 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="houseNumber">House number *</Label>
+                <Label htmlFor="houseNumber">{t('houseNumber')}</Label>
                 <Input
                   id="houseNumber"
                   value={form.houseNumber}
@@ -387,17 +624,17 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="postalCode">Postal code *</Label>
+                <Label htmlFor="postalCode">{t('postalCode')}</Label>
                 <Input
                   id="postalCode"
                   value={form.postalCode}
                   onChange={(e) => updateField('postalCode', e.target.value)}
-                  placeholder="1234 AB"
+                  placeholder={t('postalPlaceholder')}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="city">City *</Label>
+                <Label htmlFor="city">{t('city')}</Label>
                 <Input
                   id="city"
                   value={form.city}
@@ -406,12 +643,12 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="country">Country code *</Label>
+                <Label htmlFor="country">{t('country')}</Label>
                 <Input
                   id="country"
                   value={form.country}
                   onChange={(e) => updateField('country', e.target.value)}
-                  placeholder="NL"
+                  placeholder={t('countryPlaceholder')}
                   maxLength={2}
                   required
                 />
@@ -424,21 +661,21 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
           {/* Bank account */}
           <section>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Bank account (for settlements)
+              {t('bankAccount')}
             </h3>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="iban">IBAN *</Label>
+                <Label htmlFor="iban">{t('iban')}</Label>
                 <Input
                   id="iban"
                   value={form.iban}
                   onChange={(e) => updateField('iban', e.target.value)}
-                  placeholder="NL91 ABNA 0417 1643 00"
+                  placeholder={t('ibanPlaceholder')}
                   required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ibanOwner">Account holder name *</Label>
+                <Label htmlFor="ibanOwner">{t('ibanOwner')}</Label>
                 <Input
                   id="ibanOwner"
                   value={form.ibanOwner}
@@ -446,6 +683,206 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
                   required
                 />
               </div>
+            </div>
+          </section>
+
+          <Separator />
+
+          {/* Signees + UBOs */}
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Signees &amp; UBOs
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  At least one signee is required. For VOF, BV, stichting, vereniging or
+                  coöperatie, every Ultimate Beneficial Owner (≥25% ownership) must also be
+                  listed.
+                </p>
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={addPerson}>
+                <Plus className="mr-1 h-4 w-4" /> Add person
+              </Button>
+            </div>
+            <div className="space-y-6">
+              {persons.map((p, index) => (
+                <div
+                  key={p.clientRef}
+                  className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4"
+                >
+                  <div className="mb-3 flex items-center justify-between">
+                    <p className="text-sm font-medium">Person {index + 1}</p>
+                    {persons.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removePerson(index)}
+                        aria-label={`Remove person ${index + 1}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="space-y-2 sm:col-span-2">
+                      <Label htmlFor={`p-name-${index}`}>Full name</Label>
+                      <Input
+                        id={`p-name-${index}`}
+                        value={p.fullName}
+                        onChange={(e) => updatePerson(index, { fullName: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-dob-${index}`}>Date of birth</Label>
+                      <Input
+                        id={`p-dob-${index}`}
+                        type="date"
+                        value={p.dateOfBirth}
+                        onChange={(e) => updatePerson(index, { dateOfBirth: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-nat-${index}`}>Nationality (ISO)</Label>
+                      <Input
+                        id={`p-nat-${index}`}
+                        value={p.nationality}
+                        onChange={(e) =>
+                          updatePerson(index, {
+                            nationality: e.target.value.toUpperCase().slice(0, 2),
+                          })
+                        }
+                        maxLength={2}
+                        placeholder="NL"
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-email-${index}`}>Email</Label>
+                      <Input
+                        id={`p-email-${index}`}
+                        type="email"
+                        value={p.email}
+                        onChange={(e) => updatePerson(index, { email: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-phone-${index}`}>Phone</Label>
+                      <Input
+                        id={`p-phone-${index}`}
+                        type="tel"
+                        value={p.phone}
+                        onChange={(e) => updatePerson(index, { phone: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2 sm:col-span-2">
+                      <p className="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Home address
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-street-${index}`}>Street</Label>
+                      <Input
+                        id={`p-street-${index}`}
+                        value={p.street}
+                        onChange={(e) => updatePerson(index, { street: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-hnum-${index}`}>House number</Label>
+                      <Input
+                        id={`p-hnum-${index}`}
+                        value={p.houseNumber}
+                        onChange={(e) => updatePerson(index, { houseNumber: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-postal-${index}`}>Postal code</Label>
+                      <Input
+                        id={`p-postal-${index}`}
+                        value={p.postalCode}
+                        onChange={(e) => updatePerson(index, { postalCode: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-city-${index}`}>City</Label>
+                      <Input
+                        id={`p-city-${index}`}
+                        value={p.city}
+                        onChange={(e) => updatePerson(index, { city: e.target.value })}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`p-country-${index}`}>Country (ISO)</Label>
+                      <Input
+                        id={`p-country-${index}`}
+                        value={p.country}
+                        onChange={(e) =>
+                          updatePerson(index, {
+                            country: e.target.value.toUpperCase().slice(0, 2),
+                          })
+                        }
+                        maxLength={2}
+                        required
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2 grid grid-cols-1 gap-3 sm:grid-cols-3 pt-2">
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-300"
+                          checked={p.isSignee}
+                          onChange={(e) => updatePerson(index, { isSignee: e.target.checked })}
+                        />
+                        Signee (authorised to sign)
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-slate-300"
+                          checked={p.isUbo}
+                          onChange={(e) =>
+                            updatePerson(index, {
+                              isUbo: e.target.checked,
+                              uboPercentage: e.target.checked ? p.uboPercentage : '',
+                            })
+                          }
+                        />
+                        UBO (≥25% ownership/control)
+                      </label>
+                      {p.isUbo && (
+                        <div className="space-y-1">
+                          <Label htmlFor={`p-ubo-pct-${index}`} className="text-xs">
+                            UBO percentage
+                          </Label>
+                          <Input
+                            id={`p-ubo-pct-${index}`}
+                            type="number"
+                            min={1}
+                            max={100}
+                            step="0.01"
+                            value={p.uboPercentage}
+                            onChange={(e) =>
+                              updatePerson(index, { uboPercentage: e.target.value })
+                            }
+                            required
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -458,7 +895,7 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
           <div className="flex justify-end">
             <Button type="submit" disabled={submitting} className="min-w-[180px]">
               {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {submitting ? 'Submitting...' : 'Submit application'}
+              {submitting ? t('submitting') : t('submit')}
             </Button>
           </div>
         </form>
@@ -472,15 +909,16 @@ function OnboardingForm({ organization, onSuccess }: OnboardingFormProps) {
 // ---------------------------------------------------------------------------
 
 function KycPendingCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
+  const t = useTranslations('mosqueAdmin.settings.kycPending');
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefresh() {
     setRefreshing(true);
     try {
       await onRefresh();
-      toast.success('Status refreshed');
+      toast.success(t('refreshed'));
     } catch {
-      toast.error('Could not refresh status');
+      toast.error(t('refreshError'));
     } finally {
       setRefreshing(false);
     }
@@ -492,11 +930,9 @@ function KycPendingCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
           <Clock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold">Application under review</h3>
+        <h3 className="mt-4 text-lg font-semibold">{t('title')}</h3>
         <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-300">
-          Your merchant application has been submitted and is being reviewed by
-          Pay.nl. This typically takes 1-3 business days. Once approved, you&apos;ll
-          be able to receive donations directly.
+          {t('description')}
         </p>
         <Button
           variant="outline"
@@ -505,7 +941,7 @@ function KycPendingCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
           disabled={refreshing}
         >
           {refreshing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {refreshing ? 'Checking...' : 'Check status'}
+          {refreshing ? t('checking') : t('checkStatus')}
         </Button>
       </CardContent>
     </Card>
@@ -517,6 +953,7 @@ function KycPendingCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
 // ---------------------------------------------------------------------------
 
 function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
+  const t = useTranslations('mosqueAdmin.settings.kycRejected');
   const [refreshing, setRefreshing] = useState(false);
 
   async function handleRefresh() {
@@ -534,11 +971,9 @@ function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
           <XCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
         </div>
-        <h3 className="mt-4 text-lg font-semibold">Application rejected</h3>
+        <h3 className="mt-4 text-lg font-semibold">{t('title')}</h3>
         <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-300">
-          Your merchant application was not approved by Pay.nl. This may be due
-          to incomplete or incorrect information. Please contact our support team
-          to resolve the issue and re-submit your application.
+          {t('description')}
         </p>
         <div className="mt-6 flex gap-3">
           <Button
@@ -547,11 +982,224 @@ function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
             disabled={refreshing}
           >
             {refreshing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Re-check status
+            {t('recheck')}
           </Button>
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Documents panel — post-onboard KYC document uploads
+//
+// Shown while the merchant exists but KYC isn't approved yet. Each document
+// type gets a row; required types are flagged. Uploads POST to
+// /api/organizations/[id]/merchant/documents and optimistically append to
+// the local list.
+// ---------------------------------------------------------------------------
+
+function DocumentsPanel({ organization }: { organization: OrganizationProp }) {
+  const [docs, setDocs] = useState<OrganizationKycDocument[]>(organization.kyc_documents);
+
+  function handleUploaded(doc: OrganizationKycDocument) {
+    setDocs((prev) => [...prev, doc]);
+  }
+
+  const personScopedPersons = organization.persons;
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <CardTitle className="text-lg">KYC documents</CardTitle>
+            <CardDescription>
+              Pay.nl needs these before donations can go live. All files are private and
+              forwarded directly to Pay.nl.
+            </CardDescription>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {DOC_TYPES.filter((d) => !d.perPerson).map((d) => (
+          <DocumentRow
+            key={d.value}
+            organizationId={organization.id}
+            docType={d.value}
+            label={d.label}
+            description={d.description}
+            required={d.required}
+            existingDocs={docs.filter((x) => x.doc_type === d.value)}
+            onUploaded={handleUploaded}
+          />
+        ))}
+
+        {personScopedPersons.length > 0 && (
+          <>
+            <Separator />
+            <div>
+              <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                ID documents per person
+              </p>
+              <div className="space-y-4">
+                {personScopedPersons.map((person) => (
+                  <div
+                    key={person.id}
+                    className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4"
+                  >
+                    <p className="mb-3 text-sm font-medium">
+                      {person.full_name}
+                      <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
+                        {[
+                          person.is_signee ? 'signee' : null,
+                          person.is_ubo ? 'UBO' : null,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </span>
+                    </p>
+                    {DOC_TYPES.filter((d) => d.perPerson).map((d) => (
+                      <DocumentRow
+                        key={`${person.id}-${d.value}`}
+                        organizationId={organization.id}
+                        personId={person.id}
+                        docType={d.value}
+                        label={d.label}
+                        description={d.description}
+                        required={d.required}
+                        existingDocs={docs.filter(
+                          (x) => x.doc_type === d.value && x.person_id === person.id,
+                        )}
+                        onUploaded={handleUploaded}
+                        disabled={!person.paynl_person_id}
+                        disabledReason="Waiting for Pay.nl to issue a person id before ID uploads are accepted."
+                      />
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function DocumentRow({
+  organizationId,
+  personId,
+  docType,
+  label,
+  description,
+  required,
+  existingDocs,
+  onUploaded,
+  disabled,
+  disabledReason,
+}: {
+  organizationId: string;
+  personId?: string;
+  docType: OrganizationKycDocument['doc_type'];
+  label: string;
+  description: string;
+  required: boolean;
+  existingDocs: OrganizationKycDocument[];
+  onUploaded: (doc: OrganizationKycDocument) => void;
+  disabled?: boolean;
+  disabledReason?: string;
+}) {
+  const [uploading, setUploading] = useState(false);
+
+  async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('docType', docType);
+      if (personId) formData.append('personId', personId);
+      formData.append('file', file);
+
+      const res = await fetch(
+        `/api/organizations/${organizationId}/merchant/documents`,
+        { method: 'POST', body: formData },
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Upload failed');
+
+      onUploaded({
+        id: data.id,
+        doc_type: data.docType,
+        person_id: personId ?? null,
+        status: data.status,
+        uploaded_at: data.uploadedAt,
+      });
+      toast.success(`${label} uploaded`);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+      // Reset the input so re-selecting the same file still fires onChange
+      e.target.value = '';
+    }
+  }
+
+  const hasUpload = existingDocs.length > 0;
+  const inputId = `doc-${docType}-${personId ?? 'org'}`;
+
+  return (
+    <div className="flex flex-col gap-2 rounded-md border border-[rgba(128,128,128,0.2)] p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex items-start gap-3">
+        {hasUpload ? (
+          <FileCheck2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+        ) : (
+          <Upload className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400" />
+        )}
+        <div>
+          <p className="text-sm font-medium">
+            {label}
+            {required && <span className="ml-1 text-red-500">*</span>}
+          </p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+          {hasUpload && (
+            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">
+              {existingDocs.length} file{existingDocs.length > 1 ? 's' : ''} uploaded
+              {' · '}
+              latest status: {existingDocs[existingDocs.length - 1].status}
+            </p>
+          )}
+          {disabled && disabledReason && (
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{disabledReason}</p>
+          )}
+        </div>
+      </div>
+      <div>
+        <input
+          id={inputId}
+          type="file"
+          accept="image/png,image/jpeg,image/webp,application/pdf"
+          className="hidden"
+          onChange={handleChange}
+          disabled={uploading || disabled}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={uploading || disabled}
+          onClick={() => document.getElementById(inputId)?.click()}
+        >
+          {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {hasUpload ? 'Replace' : 'Upload'}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -572,6 +1220,7 @@ function MerchantStatusCard({
   donationsActive: boolean;
   onRefresh: () => Promise<void>;
 }) {
+  const t = useTranslations('mosqueAdmin.settings.merchantStatus');
   const [refreshing, setRefreshing] = useState(false);
 
   // Auto-refresh on mount to sync latest state
@@ -584,9 +1233,9 @@ function MerchantStatusCard({
     setRefreshing(true);
     try {
       await onRefresh();
-      toast.success('Status refreshed');
+      toast.success(t('refreshed'));
     } catch {
-      toast.error('Could not refresh status');
+      toast.error(t('refreshError'));
     } finally {
       setRefreshing(false);
     }
@@ -602,9 +1251,9 @@ function MerchantStatusCard({
                 <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
-                <CardTitle className="text-lg">Merchant verified</CardTitle>
+                <CardTitle className="text-lg">{t('title')}</CardTitle>
                 <CardDescription>
-                  Your organization is set up to receive donations
+                  {t('description')}
                 </CardDescription>
               </div>
             </div>
@@ -615,7 +1264,7 @@ function MerchantStatusCard({
               disabled={refreshing}
             >
               {refreshing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Refresh
+              {t('refresh')}
             </Button>
           </div>
         </CardHeader>
@@ -623,18 +1272,18 @@ function MerchantStatusCard({
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Status
+                {t('statusLabel')}
               </p>
               <div className="mt-1 flex items-center gap-2">
                 <Badge variant={donationsActive ? 'default' : 'outline'}>
-                  {donationsActive ? 'Donations active' : 'Donations inactive'}
+                  {donationsActive ? t('donationsActive') : t('donationsInactive')}
                 </Badge>
               </div>
             </div>
             {merchantId && (
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Merchant ID
+                  {t('merchantId')}
                 </p>
                 <p className="mt-1 font-mono text-sm">{merchantId}</p>
               </div>
@@ -642,14 +1291,14 @@ function MerchantStatusCard({
             {serviceId && (
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Service ID
+                  {t('serviceId')}
                 </p>
                 <p className="mt-1 font-mono text-sm">{serviceId}</p>
               </div>
             )}
             <div>
               <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Platform fee
+                {t('platformFee')}
               </p>
               <p className="mt-1 text-sm">
                 {(organization.platform_fee_bps / 100).toFixed(2)}%
@@ -658,7 +1307,7 @@ function MerchantStatusCard({
             {organization.onboarded_at && (
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Verified since
+                  {t('verifiedSince')}
                 </p>
                 <p className="mt-1 text-sm">
                   {new Date(organization.onboarded_at).toLocaleDateString('nl-NL', {
@@ -676,8 +1325,8 @@ function MerchantStatusCard({
       {/* Quick links to finance pages */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Finance</CardTitle>
-          <CardDescription>Manage your donations and campaigns</CardDescription>
+          <CardTitle className="text-lg">{t('financeTitle')}</CardTitle>
+          <CardDescription>{t('financeDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -685,18 +1334,18 @@ function MerchantStatusCard({
               href={`/mosque-admin/${organization.slug}/transactions`}
               className="flex flex-col items-center rounded-lg border border-[rgba(128,128,128,0.3)] p-4 text-center transition-colors hover:bg-slate-50 dark:hover:bg-slate-900"
             >
-              <p className="text-sm font-medium">Transactions</p>
+              <p className="text-sm font-medium">{t('transactionsTitle')}</p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                View all donations
+                {t('transactionsDescription')}
               </p>
             </a>
             <a
               href={`/mosque-admin/${organization.slug}/campaigns`}
               className="flex flex-col items-center rounded-lg border border-[rgba(128,128,128,0.3)] p-4 text-center transition-colors hover:bg-slate-50 dark:hover:bg-slate-900"
             >
-              <p className="text-sm font-medium">Campaigns</p>
+              <p className="text-sm font-medium">{t('campaignsTitle')}</p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Manage donation causes
+                {t('campaignsDescription')}
               </p>
             </a>
             <a
@@ -705,9 +1354,9 @@ function MerchantStatusCard({
               rel="noopener noreferrer"
               className="flex flex-col items-center rounded-lg border border-[rgba(128,128,128,0.3)] p-4 text-center transition-colors hover:bg-slate-50 dark:hover:bg-slate-900"
             >
-              <p className="text-sm font-medium">Donate page</p>
+              <p className="text-sm font-medium">{t('donatePageTitle')}</p>
               <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Preview public page
+                {t('donatePageDescription')}
               </p>
             </a>
           </div>
@@ -722,22 +1371,23 @@ function MerchantStatusCard({
 // ---------------------------------------------------------------------------
 
 function GeneralPanel({ organization }: { organization: OrganizationProp }) {
+  const t = useTranslations('mosqueAdmin.settings.general');
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">General information</CardTitle>
+        <CardTitle className="text-lg">{t('title')}</CardTitle>
         <CardDescription>
-          Basic details about your organization. Editing will be available in a future update.
+          {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
-        <Field label="Name" value={organization.name} />
-        <Field label="Slug" value={organization.slug} mono />
-        <Field label="City" value={organization.city || '—'} />
-        <Field label="Country" value={organization.country} />
-        <Field label="Contact email" value={organization.contact_email || '—'} />
+        <Field label={t('name')} value={organization.name} />
+        <Field label={t('slug')} value={organization.slug} mono />
+        <Field label={t('city')} value={organization.city || '—'} />
+        <Field label={t('country')} value={organization.country} />
+        <Field label={t('contactEmail')} value={organization.contact_email || '—'} />
         {organization.description && (
-          <Field label="Description" value={organization.description} multiline />
+          <Field label={t('descriptionField')} value={organization.description} multiline />
         )}
 
         <div className="pt-2">
@@ -748,7 +1398,7 @@ function GeneralPanel({ organization }: { organization: OrganizationProp }) {
             className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-600 underline-offset-4 hover:underline dark:text-emerald-400"
           >
             <IconExternalLink className="h-4 w-4" />
-            View donate landing page
+            {t('viewDonateLanding')}
           </a>
         </div>
       </CardContent>
@@ -788,11 +1438,25 @@ function Field({
 // ---------------------------------------------------------------------------
 
 function AnimationPanel({ organization }: { organization: OrganizationProp }) {
+  const t = useTranslations('mosqueAdmin.settings.animation');
   const [selectedId, setSelectedId] = useState<string>(
     organization.thankyou_animation_id || DEFAULT_THANK_YOU_ANIMATION_ID,
   );
   const [, startTransition] = useTransition();
   const groups = groupAnimationsByCategory();
+
+  const categoryLabel = (category: ThankYouAnimation['category']) => {
+    switch (category) {
+      case 'celebration':
+        return t('categories.celebration');
+      case 'islamic':
+        return t('categories.islamic');
+      case 'charity':
+        return t('categories.charity');
+      default:
+        return category;
+    }
+  };
 
   function handleSelect(animationId: string) {
     if (animationId === selectedId) return;
@@ -809,12 +1473,12 @@ function AnimationPanel({ organization }: { organization: OrganizationProp }) {
         });
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || 'Failed to update animation');
+          throw new Error(data.error || t('updateFailed'));
         }
-        toast.success('Thank-you animation updated');
+        toast.success(t('updated'));
       } catch (err) {
         setSelectedId(previous); // rollback
-        toast.error(err instanceof Error ? err.message : 'Failed to save');
+        toast.error(err instanceof Error ? err.message : t('saveFailed'));
       }
     });
   }
@@ -822,10 +1486,9 @@ function AnimationPanel({ organization }: { organization: OrganizationProp }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">Thank-you animation</CardTitle>
+        <CardTitle className="text-lg">{t('title')}</CardTitle>
         <CardDescription>
-          Choose the animation donors will see after completing a successful donation. The
-          cancelled-donation page is the same for everyone and is not configurable.
+          {t('description')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-8">
@@ -835,7 +1498,7 @@ function AnimationPanel({ organization }: { organization: OrganizationProp }) {
           return (
             <section key={category}>
               <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {CATEGORY_LABELS[category]}
+                {categoryLabel(category)}
               </h3>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {items.map((anim) => {
@@ -855,7 +1518,7 @@ function AnimationPanel({ organization }: { organization: OrganizationProp }) {
                     >
                       {isSelected && (
                         <span className="absolute right-2 top-2 rounded-full bg-black px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-white dark:bg-white dark:text-black">
-                          Selected
+                          {t('selected')}
                         </span>
                       )}
                       <ThankYouAnimationPlayer

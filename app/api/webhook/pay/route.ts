@@ -28,6 +28,8 @@ import { RecurringDonationFailedEmail } from '@/lib/email/templates/RecurringDon
 import { DonorReceiptEmail } from '@/lib/email/templates/DonorReceiptEmail';
 import { DonorRecurringActivatedEmail } from '@/lib/email/templates/DonorRecurringActivatedEmail';
 import { DonorRecurringReversedEmail } from '@/lib/email/templates/DonorRecurringReversedEmail';
+import { AppointmentBookedSheikhEmail } from '@/lib/email/templates/AppointmentBookedSheikhEmail';
+import { AppointmentBookedCustomerEmail } from '@/lib/email/templates/AppointmentBookedCustomerEmail';
 
 /**
  * /api/webhook/pay — Pay.nl exchange webhook handler
@@ -265,7 +267,7 @@ async function handleOrderPaid(
     .update({ status: 'PAID', paid_at: new Date().toISOString() }, { count: 'exact' })
     .eq('paynl_order_id', orderId)
     .eq('status', 'PENDING')
-    .select('id, amount, stats_extra3');
+    .select('id, amount, stats_extra1, stats_extra2, stats_extra3');
 
   if (error) {
     console.error('[PayNL Webhook] order.paid update failed', {
@@ -281,6 +283,23 @@ async function handleOrderPaid(
   }
 
   console.log('[PayNL Webhook] Transaction PAID', { orderId });
+
+  // ------------------------------------------------------------------
+  // Appointment branch — `stats_extra2='appointment'` identifies paid
+  // appointment bookings. They use a different confirmation flow and
+  // email templates than donations. Handled first so donation logic
+  // below can assume a campaign-style transaction.
+  // ------------------------------------------------------------------
+  if (updatedRows && updatedRows.length > 0 && updatedRows[0].stats_extra2 === 'appointment') {
+    const tx = updatedRows[0];
+    await handleAppointmentPaid(supabase, {
+      orderId,
+      appointmentId: tx.stats_extra1,
+      organizationId: tx.stats_extra3,
+      amountCents: tx.amount,
+    });
+    return;
+  }
 
   // ------------------------------------------------------------------
   // Platform fee deduction via Alliance addInvoice.
@@ -302,29 +321,38 @@ async function handleOrderPaid(
 
   const amount = formatMoney(ctx.amountCents, ctx.currency);
   const donor = ctx.donorName?.trim() || 'Anonymous';
+  const admin = ctx.admin;
 
-  await safeSend('new_donation_received', () =>
-    sendEmail({
-      to: ctx.admin.email,
-      subject: `${ctx.admin.organizationName} received ${amount} from ${donor}`,
-      react: NewDonationReceivedEmail({
-        userName: ctx.admin.fullName,
-        organizationName: ctx.admin.organizationName,
-        amount,
-        donorName: donor,
-        campaignTitle: ctx.campaignTitle ?? 'General donations',
-        paidDate: formatBillingDate(ctx.paidAt),
-        dashboardUrl: donationsDashboardUrl(),
+  if (admin) {
+    await safeSend('new_donation_received', () =>
+      sendEmail({
+        to: admin.email,
+        subject: `${ctx.organizationName} received ${amount} from ${donor}`,
+        react: NewDonationReceivedEmail({
+          userName: admin.fullName,
+          organizationName: ctx.organizationName,
+          amount,
+          donorName: donor,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          paidDate: formatBillingDate(ctx.paidAt),
+          dashboardUrl: donationsDashboardUrl(),
+        }),
+        tags: [
+          { name: 'type', value: 'new_donation_received' },
+          { name: 'organization_id', value: ctx.organizationId },
+        ],
       }),
-      tags: [
-        { name: 'type', value: 'new_donation_received' },
-        { name: 'organization_id', value: ctx.admin.organizationId },
-      ],
-    }),
-  );
+    );
+  } else {
+    console.warn('[PayNL Webhook] No admin contact for org — skipping tenant email', {
+      orderId,
+      organizationId: ctx.organizationId,
+    });
+  }
 
-  // Donor-facing receipt. Only sent if donor left an email at checkout —
-  // iDEAL / bank transfer donors can choose to donate anonymously.
+  // Donor-facing receipt. Fires independently of admin lookup — a mosque
+  // with no configured admin shouldn't block the donor's receipt. Only
+  // skipped if the donor checked out without providing an email.
   const { data: tx } = await supabase
     .from('transactions')
     .select('payment_method')
@@ -335,12 +363,12 @@ async function handleOrderPaid(
     await safeSend('donor_receipt', () =>
       sendEmail({
         to: ctx.donorEmail!,
-        from: buildDonorFrom(ctx.admin.organizationName),
-        replyTo: ctx.admin.email,
-        subject: `Thank you for your ${amount} donation to ${ctx.admin.organizationName}`,
+        from: buildDonorFrom(ctx.organizationName),
+        replyTo: admin?.email,
+        subject: `Thank you for your ${amount} donation to ${ctx.organizationName}`,
         react: DonorReceiptEmail({
           donorName: donor,
-          mosqueName: ctx.admin.organizationName,
+          mosqueName: ctx.organizationName,
           amount,
           campaignTitle: ctx.campaignTitle ?? 'General donations',
           paidDate: formatBillingDate(ctx.paidAt),
@@ -349,11 +377,172 @@ async function handleOrderPaid(
         }),
         tags: [
           { name: 'type', value: 'donor_receipt' },
-          { name: 'organization_id', value: ctx.admin.organizationId },
+          { name: 'organization_id', value: ctx.organizationId },
         ],
       }),
     );
   }
+}
+
+// ---------------------------------------------------------------------------
+// Appointment confirmation
+// ---------------------------------------------------------------------------
+
+/**
+ * Flip a paid appointment from `pending` → `confirmed`, then email the sheikh
+ * (operational) and the customer (receipt). Idempotent on the status guard.
+ * All email sends are wrapped in `safeSend` so a Resend outage can't break the
+ * webhook contract.
+ */
+async function handleAppointmentPaid(
+  supabase: AdminClient,
+  opts: {
+    orderId: string;
+    appointmentId: string | null;
+    organizationId: string | null;
+    amountCents: number;
+  },
+) {
+  const { orderId, appointmentId, organizationId, amountCents } = opts;
+
+  if (!appointmentId) {
+    console.error('[PayNL Webhook] appointment paid but stats_extra1 missing', { orderId });
+    return;
+  }
+
+  // Idempotent: only pending → confirmed. Replays are no-ops.
+  const { data: confirmed, error: updateError, count } = await supabase
+    .from('appointments')
+    .update(
+      { status: 'confirmed', confirmed_at: new Date().toISOString() },
+      { count: 'exact' },
+    )
+    .eq('id', appointmentId)
+    .eq('status', 'pending')
+    .select(
+      'id, offering_id, organization_id, scheduled_at, duration_minutes, customer_name, customer_email, customer_phone, notes',
+    );
+
+  if (updateError) {
+    console.error('[PayNL Webhook] appointment confirm failed', {
+      appointmentId,
+      error: updateError.message,
+    });
+    return;
+  }
+
+  if (count === 0 || !confirmed || confirmed.length === 0) {
+    console.log('[PayNL Webhook] appointment confirm no-op (already confirmed)', {
+      appointmentId,
+    });
+    return;
+  }
+
+  const appt = confirmed[0];
+  console.log('[PayNL Webhook] Appointment CONFIRMED', { appointmentId, orderId });
+
+  // Load offering (for sheikh contact + timezone + location) and organization
+  // (for slug + admin contact).
+  const { data: offering } = await supabase
+    .from('appointment_offerings')
+    .select(
+      'id, sheikh_name, sheikh_email, price, duration_minutes, location, timezone',
+    )
+    .eq('id', appt.offering_id)
+    .single();
+
+  if (!offering) {
+    console.error('[PayNL Webhook] offering missing for confirmed appointment', {
+      appointmentId,
+      offeringId: appt.offering_id,
+    });
+    return;
+  }
+
+  const orgId = organizationId ?? appt.organization_id;
+  const { data: organization } = await supabase
+    .from('organizations')
+    .select('id, name, slug')
+    .eq('id', orgId)
+    .single();
+
+  if (!organization) {
+    console.error('[PayNL Webhook] organization missing for confirmed appointment', {
+      appointmentId,
+      orgId,
+    });
+    return;
+  }
+
+  const scheduledDate = formatAppointmentDateTime(appt.scheduled_at, offering.timezone);
+  const amount = formatMoney(amountCents, 'EUR');
+  const siteBase = siteUrl();
+  const sheikhDashboardUrl = `${siteBase}/mosque-admin/${organization.slug}/appointments`;
+
+  await safeSend('appointment_booked_sheikh', () =>
+    sendEmail({
+      to: offering.sheikh_email,
+      subject: `New booking: ${appt.customer_name} on ${scheduledDate}`,
+      react: AppointmentBookedSheikhEmail({
+        sheikhName: offering.sheikh_name,
+        organizationName: organization.name,
+        customerName: appt.customer_name,
+        customerEmail: appt.customer_email,
+        customerPhone: appt.customer_phone,
+        scheduledDate,
+        durationMinutes: appt.duration_minutes,
+        amount,
+        location: offering.location,
+        notes: appt.notes,
+        dashboardUrl: sheikhDashboardUrl,
+      }),
+      tags: [
+        { name: 'type', value: 'appointment_booked_sheikh' },
+        { name: 'organization_id', value: organization.id },
+      ],
+    }),
+  );
+
+  await safeSend('appointment_booked_customer', () =>
+    sendEmail({
+      to: appt.customer_email,
+      from: buildDonorFrom(organization.name),
+      replyTo: offering.sheikh_email,
+      subject: `Your appointment with ${offering.sheikh_name} is confirmed`,
+      react: AppointmentBookedCustomerEmail({
+        customerName: appt.customer_name,
+        organizationName: organization.name,
+        sheikhName: offering.sheikh_name,
+        scheduledDate,
+        durationMinutes: appt.duration_minutes,
+        amount,
+        location: offering.location,
+        orderReference: orderId,
+      }),
+      tags: [
+        { name: 'type', value: 'appointment_booked_customer' },
+        { name: 'organization_id', value: organization.id },
+      ],
+    }),
+  );
+}
+
+/** "Monday, April 20 · 10:00 (Europe/Amsterdam)" — tz-aware for emails. */
+function formatAppointmentDateTime(isoUtc: string, timeZone: string): string {
+  const d = new Date(isoUtc);
+  const date = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(d);
+  const time = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+  return `${date} · ${time} (${timeZone})`;
 }
 
 /** Pay.nl returns lowercase slugs like "ideal"; donor receipts want a label. */
@@ -507,25 +696,33 @@ async function handleDirectDebitPending(
   // display-only monthly_amount column.
   const amount = formatMoney(amountCents, ctx.currency);
 
-  await safeSend('new_mandate_created', () =>
-    sendEmail({
-      to: ctx.admin.email,
-      subject: `${ctx.donorName} set up ${amount}/month for ${ctx.admin.organizationName}`,
-      react: NewMandateCreatedEmail({
-        userName: ctx.admin.fullName,
-        organizationName: ctx.admin.organizationName,
-        donorName: ctx.donorName,
-        monthlyAmount: amount,
-        campaignTitle: ctx.campaignTitle ?? 'General donations',
-        firstDebitDate: formatBillingDate(processDate),
-        dashboardUrl: recurringDashboardUrl(),
+  if (ctx.admin) {
+    const admin = ctx.admin;
+    await safeSend('new_mandate_created', () =>
+      sendEmail({
+        to: admin.email,
+        subject: `${ctx.donorName} set up ${amount}/month for ${ctx.organizationName}`,
+        react: NewMandateCreatedEmail({
+          userName: admin.fullName,
+          organizationName: ctx.organizationName,
+          donorName: ctx.donorName,
+          monthlyAmount: amount,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          firstDebitDate: formatBillingDate(processDate),
+          dashboardUrl: recurringDashboardUrl(),
+        }),
+        tags: [
+          { name: 'type', value: 'new_mandate_created' },
+          { name: 'organization_id', value: ctx.organizationId },
+        ],
       }),
-      tags: [
-        { name: 'type', value: 'new_mandate_created' },
-        { name: 'organization_id', value: ctx.admin.organizationId },
-      ],
-    }),
-  );
+    );
+  } else {
+    console.warn('[PayNL Webhook] No admin contact for org — skipping new_mandate_created', {
+      mandateCode,
+      organizationId: ctx.organizationId,
+    });
+  }
 }
 
 async function handleDirectDebitCollected(
@@ -610,12 +807,12 @@ async function handleDirectDebitCollected(
   await safeSend('donor_recurring_activated', () =>
     sendEmail({
       to: ctx.donorEmail!,
-      from: buildDonorFrom(ctx.admin.organizationName),
-      replyTo: ctx.admin.email,
-      subject: `Your ${amount}/month to ${ctx.admin.organizationName} is active`,
+      from: buildDonorFrom(ctx.organizationName),
+      replyTo: ctx.admin?.email,
+      subject: `Your ${amount}/month to ${ctx.organizationName} is active`,
       react: DonorRecurringActivatedEmail({
         donorName: ctx.donorName,
-        mosqueName: ctx.admin.organizationName,
+        mosqueName: ctx.organizationName,
         monthlyAmount: amount,
         campaignTitle: ctx.campaignTitle ?? 'General donations',
         firstDebitDate: formatBillingDate(new Date().toISOString()),
@@ -623,7 +820,7 @@ async function handleDirectDebitCollected(
       }),
       tags: [
         { name: 'type', value: 'donor_recurring_activated' },
-        { name: 'organization_id', value: ctx.admin.organizationId },
+        { name: 'organization_id', value: ctx.organizationId },
       ],
     }),
   );
@@ -655,26 +852,34 @@ async function handleDirectDebitStorno(
   if (!ctx) return;
 
   const amount = formatMoney(ctx.amountCents, ctx.currency);
+  const admin = ctx.admin;
 
-  await safeSend('recurring_donation_failed', () =>
-    sendEmail({
-      to: ctx.admin.email,
-      subject: `A ${amount} recurring donation from ${ctx.donorName} was reversed`,
-      react: RecurringDonationFailedEmail({
-        userName: ctx.admin.fullName,
-        organizationName: ctx.admin.organizationName,
-        donorName: ctx.donorName,
-        amount,
-        campaignTitle: ctx.campaignTitle ?? 'General donations',
-        processDate: formatBillingDate(ctx.processDate),
-        dashboardUrl: recurringDashboardUrl(),
+  if (admin) {
+    await safeSend('recurring_donation_failed', () =>
+      sendEmail({
+        to: admin.email,
+        subject: `A ${amount} recurring donation from ${ctx.donorName} was reversed`,
+        react: RecurringDonationFailedEmail({
+          userName: admin.fullName,
+          organizationName: ctx.organizationName,
+          donorName: ctx.donorName,
+          amount,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          processDate: formatBillingDate(ctx.processDate),
+          dashboardUrl: recurringDashboardUrl(),
+        }),
+        tags: [
+          { name: 'type', value: 'recurring_donation_failed' },
+          { name: 'organization_id', value: ctx.organizationId },
+        ],
       }),
-      tags: [
-        { name: 'type', value: 'recurring_donation_failed' },
-        { name: 'organization_id', value: ctx.admin.organizationId },
-      ],
-    }),
-  );
+    );
+  } else {
+    console.warn('[PayNL Webhook] No admin contact for org — skipping recurring_donation_failed', {
+      directDebitId,
+      organizationId: ctx.organizationId,
+    });
+  }
 
   // Donor-facing reversal email. Helpful if their bank reversed because of
   // insufficient funds — they may not have noticed.
@@ -683,19 +888,19 @@ async function handleDirectDebitStorno(
     await safeSend('donor_recurring_reversed', () =>
       sendEmail({
         to: donorEmail,
-        from: buildDonorFrom(ctx.admin.organizationName),
-        replyTo: ctx.admin.email,
-        subject: `Your ${amount} donation to ${ctx.admin.organizationName} was reversed`,
+        from: buildDonorFrom(ctx.organizationName),
+        replyTo: admin?.email,
+        subject: `Your ${amount} donation to ${ctx.organizationName} was reversed`,
         react: DonorRecurringReversedEmail({
           donorName: ctx.donorName,
-          mosqueName: ctx.admin.organizationName,
+          mosqueName: ctx.organizationName,
           amount,
           campaignTitle: ctx.campaignTitle ?? 'General donations',
           processDate: formatBillingDate(ctx.processDate),
         }),
         tags: [
           { name: 'type', value: 'donor_recurring_reversed' },
-          { name: 'organization_id', value: ctx.admin.organizationId },
+          { name: 'organization_id', value: ctx.organizationId },
         ],
       }),
     );

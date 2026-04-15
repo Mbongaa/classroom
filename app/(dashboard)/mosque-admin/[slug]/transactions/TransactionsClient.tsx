@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -86,6 +87,7 @@ function statusBadgeVariant(
 }
 
 export function TransactionsClient({ transactions }: TransactionsClientProps) {
+  const t = useTranslations('mosqueAdmin.transactions');
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState<KindFilter>('all');
   const [statusBucket, setStatusBucket] = useState<StatusBucket>('all');
@@ -138,6 +140,51 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
     setPage(1);
   }
 
+  const kindLabel = (k: KindFilter) => {
+    switch (k) {
+      case 'all':
+        return t('filters.all');
+      case 'one-time':
+        return t('filters.oneTime');
+      case 'recurring':
+        return t('filters.recurring');
+    }
+  };
+
+  const bucketLabel = (s: StatusBucket) => {
+    switch (s) {
+      case 'all':
+        return t('filters.all');
+      case 'success':
+        return t('filters.success');
+      case 'pending':
+        return t('filters.pending');
+      case 'failed':
+        return t('filters.failed');
+    }
+  };
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'PAID':
+        return t('txStatus.PAID');
+      case 'PENDING':
+        return t('txStatus.PENDING');
+      case 'CANCEL':
+        return t('txStatus.CANCEL');
+      case 'EXPIRED':
+        return t('txStatus.EXPIRED');
+      case 'COLLECTED':
+        return t('txStatus.COLLECTED');
+      case 'STORNO':
+        return t('txStatus.STORNO');
+      case 'DECLINED':
+        return t('txStatus.DECLINED');
+      default:
+        return status;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Summary cards */}
@@ -145,7 +192,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Matching
+              {t('summary.matching')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{totals.count}</p>
           </CardContent>
@@ -153,7 +200,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Collected
+              {t('summary.collected')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{formatEuro(totals.collected)}</p>
           </CardContent>
@@ -161,7 +208,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Pending
+              {t('summary.pending')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{totals.pendingCount}</p>
           </CardContent>
@@ -169,7 +216,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Failed
+              {t('summary.failed')}
             </p>
             <p className="mt-1 text-2xl font-semibold text-red-600 dark:text-red-400">
               {totals.failedCount}
@@ -181,7 +228,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Search by donor, email, reference…"
+          placeholder={t('filters.searchPlaceholder')}
           value={search}
           onChange={(e) => changeFilter(() => setSearch(e.target.value))}
           className="max-w-sm"
@@ -193,9 +240,9 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
               size="sm"
               variant={kindFilter === k ? 'default' : 'outline'}
               onClick={() => changeFilter(() => setKindFilter(k))}
-              className="capitalize rounded-full"
+              className="rounded-full"
             >
-              {k}
+              {kindLabel(k)}
             </Button>
           ))}
         </div>
@@ -206,9 +253,9 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
               size="sm"
               variant={statusBucket === s ? 'default' : 'outline'}
               onClick={() => changeFilter(() => setStatusBucket(s))}
-              className="capitalize rounded-full"
+              className="rounded-full"
             >
-              {s}
+              {bucketLabel(s)}
             </Button>
           ))}
         </div>
@@ -218,11 +265,9 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <p className="text-base font-medium">No transactions match your filters</p>
+            <p className="text-base font-medium">{t('empty.title')}</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              {transactions.length === 0
-                ? 'No donations have been recorded for this organization yet.'
-                : 'Try clearing the search or status filter.'}
+              {transactions.length === 0 ? t('empty.none') : t('empty.clear')}
             </p>
           </CardContent>
         </Card>
@@ -233,53 +278,53 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[rgba(128,128,128,0.3)] text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Donor</th>
-                    <th className="px-4 py-3">Campaign</th>
-                    <th className="px-4 py-3">Type</th>
-                    <th className="px-4 py-3">Amount</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Reference</th>
+                    <th className="px-4 py-3">{t('table.date')}</th>
+                    <th className="px-4 py-3">{t('table.donor')}</th>
+                    <th className="px-4 py-3">{t('table.campaign')}</th>
+                    <th className="px-4 py-3">{t('table.type')}</th>
+                    <th className="px-4 py-3">{t('table.amount')}</th>
+                    <th className="px-4 py-3">{t('table.status')}</th>
+                    <th className="px-4 py-3">{t('table.reference')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {visible.map((t) => (
+                  {visible.map((tx) => (
                     <tr
-                      key={t.id}
+                      key={tx.id}
                       className="border-b border-[rgba(128,128,128,0.15)] last:border-b-0"
                     >
                       <td className="px-4 py-3 text-xs text-slate-500 dark:text-slate-400">
-                        {formatDate(t.sort_date)}
+                        {formatDate(tx.sort_date)}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col gap-0.5">
-                          <span className="font-medium">{t.donor_name || '—'}</span>
-                          {t.donor_email && (
+                          <span className="font-medium">{tx.donor_name || '—'}</span>
+                          {tx.donor_email && (
                             <span className="text-xs text-slate-500 dark:text-slate-400">
-                              {t.donor_email}
+                              {tx.donor_email}
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-300">
-                        {t.campaign_title ?? '—'}
+                        {tx.campaign_title ?? '—'}
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant={t.kind === 'recurring' ? 'secondary' : 'outline'}>
-                          {t.kind === 'recurring' ? 'SEPA' : (t.payment_method || 'one-time')}
+                        <Badge variant={tx.kind === 'recurring' ? 'secondary' : 'outline'}>
+                          {tx.kind === 'recurring' ? t('table.sepa') : (tx.payment_method || t('table.oneTime'))}
                         </Badge>
-                        {t.is_test && (
+                        {tx.is_test && (
                           <Badge variant="outline" className="ml-1 text-[10px]">
-                            test
+                            {t('table.test')}
                           </Badge>
                         )}
                       </td>
-                      <td className="px-4 py-3 font-medium">{formatEuro(t.amount)}</td>
+                      <td className="px-4 py-3 font-medium">{formatEuro(tx.amount)}</td>
                       <td className="px-4 py-3">
-                        <Badge variant={statusBadgeVariant(t.status)}>{t.status}</Badge>
+                        <Badge variant={statusBadgeVariant(tx.status)}>{statusLabel(tx.status)}</Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <code className="text-[10px] text-slate-500">{t.reference}</code>
+                        <code className="text-[10px] text-slate-500">{tx.reference}</code>
                       </td>
                     </tr>
                   ))}
@@ -294,7 +339,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400">
           <p>
-            Page {safePage} of {totalPages} · {filtered.length} results
+            {t('pagination.info', { page: safePage, total: totalPages, count: filtered.length })}
           </p>
           <div className="flex gap-2">
             <Button
@@ -303,7 +348,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={safePage === 1}
             >
-              Previous
+              {t('pagination.previous')}
             </Button>
             <Button
               size="sm"
@@ -311,7 +356,7 @@ export function TransactionsClient({ transactions }: TransactionsClientProps) {
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={safePage === totalPages}
             >
-              Next
+              {t('pagination.next')}
             </Button>
           </div>
         </div>

@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreditCard } from 'lucide-react';
 
@@ -6,7 +7,9 @@ interface PaymentMethodCardProps {
   paymentMethod: Stripe.PaymentMethod | null;
 }
 
-export function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
+export async function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
+  const t = await getTranslations('billing.paymentMethod');
+
   // Empty state if no payment method
   if (!paymentMethod || paymentMethod.type !== 'card') {
     return (
@@ -14,7 +17,7 @@ export function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Payment Method
+            {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -22,9 +25,9 @@ export function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
             <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
               <CreditCard className="h-6 w-6 text-gray-600" />
             </div>
-            <p className="text-gray-400 text-sm">No payment method on file</p>
+            <p className="text-gray-400 text-sm">{t('empty')}</p>
             <p className="text-gray-500 text-xs mt-1">
-              Add one via the customer portal below
+              {t('emptyHint')}
             </p>
           </div>
         </CardContent>
@@ -58,7 +61,7 @@ export function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <CreditCard className="h-5 w-5" />
-          Payment Method
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -72,16 +75,16 @@ export function PaymentMethodCard({ paymentMethod }: PaymentMethodCardProps) {
                 {getBrandDisplay(card.brand)} •••• {card.last4}
               </p>
               <p className="text-sm text-gray-400">
-                Expires {String(card.exp_month).padStart(2, '0')}/{card.exp_year}
+                {t('expires', { exp: `${String(card.exp_month).padStart(2, '0')}/${card.exp_year}` })}
               </p>
             </div>
           </div>
           <div className="mt-3 pt-3 border-t border-gray-700">
-            <p className="text-xs text-gray-500">Default payment method</p>
+            <p className="text-xs text-gray-500">{t('default')}</p>
           </div>
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          Update your payment method via the customer portal below
+          {t('updateHint')}
         </p>
       </CardContent>
     </Card>

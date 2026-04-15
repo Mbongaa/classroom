@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { Classroom } from '@/lib/types';
 import { CreateRoomDialog } from '@/components/rooms/CreateRoomDialog';
 import { RoomFormDialog } from '@/components/rooms/RoomFormDialog';
@@ -15,6 +16,9 @@ import { TrashIcon } from '@/components/ui/trash';
 
 export default function DashboardRoomsPage() {
   const router = useRouter();
+  const t = useTranslations('rooms');
+  const tLang = useTranslations('languages');
+  const tCommon = useTranslations('common');
   const [rooms, setRooms] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,18 +36,18 @@ export default function DashboardRoomsPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Failed to fetch classrooms');
+        setError(data.error || t('errors.fetchFailed'));
         setLoading(false);
         return;
       }
 
       setRooms(data.classrooms || []);
     } catch {
-      setError('Failed to fetch rooms. Please try again.');
+      setError(t('errors.fetchRetry'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchRooms();
@@ -88,31 +92,25 @@ export default function DashboardRoomsPage() {
   };
 
   const handleDeleteRoom = async (room: Classroom) => {
-    if (!confirm(`Are you sure you want to delete "${room.room_code}"?`)) return;
+    if (!confirm(t('errors.deleteConfirm', { code: room.room_code }))) return;
     try {
       const response = await fetch(`/api/classrooms/${room.room_code}`, { method: 'DELETE' });
       if (response.ok) {
         setRooms((prev) => prev.filter((r) => r.id !== room.id));
       } else {
         const data = await response.json();
-        alert(data.error || 'Failed to delete room');
+        alert(data.error || t('errors.deleteFailed'));
       }
     } catch {
-      alert('Failed to delete room');
+      alert(t('errors.deleteFailed'));
     }
   };
 
   const getLanguageLabel = (code: string) => {
-    const map: Record<string, string> = {
-      ar: 'Arabic', en: 'English', fr: 'French', de: 'German',
-      es: 'Spanish', nl: 'Dutch', tr: 'Turkish', ur: 'Urdu',
-      hi: 'Hindi', 'ar-mixed': 'Arabic Mixed', 'ar-darija': 'Darija',
-    };
-    return map[code] || code;
+    const knownKeys = ['ar', 'en', 'fr', 'de', 'es', 'nl', 'tr', 'ur', 'hi', 'ar-mixed', 'ar-darija'];
+    return knownKeys.includes(code) ? tLang(code) : code;
   };
 
-  // Map each room type to its branded badge variant so types are visually
-  // distinct in the list (meeting=blue, classroom=green, speech=purple).
   const getRoomTypeBadgeVariant = (
     type: string,
   ): 'meeting' | 'classroom' | 'speech' | 'secondary' => {
@@ -122,17 +120,20 @@ export default function DashboardRoomsPage() {
     return 'secondary';
   };
 
+  const getRoomTypeLabel = (type: string) => {
+    if (type === 'meeting' || type === 'classroom' || type === 'speech') {
+      return t(`types.${type}`);
+    }
+    return type;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Manage Classrooms
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Create and manage persistent room codes for recurring classes
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           <Button onClick={fetchRooms} variant="ghost" size="icon" className="h-9 w-9">
@@ -153,10 +154,10 @@ export default function DashboardRoomsPage() {
       {error && !loading && (
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-12 text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-lg p-6">
-            <p className="font-medium mb-2">Error loading rooms</p>
+            <p className="font-medium mb-2">{t('errors.loadTitle')}</p>
             <p className="text-sm">{error}</p>
             <Button onClick={fetchRooms} variant="outline" className="mt-4">
-              Try Again
+              {tCommon('tryAgain')}
             </Button>
           </div>
         </div>
@@ -166,10 +167,8 @@ export default function DashboardRoomsPage() {
       {!loading && !error && rooms.length === 0 && (
         <div className="max-w-2xl mx-auto">
           <div className="text-center py-12 border border-white/20 rounded-lg px-4">
-            <h2 className="text-xl font-semibold mb-2">No rooms yet</h2>
-            <p className="text-muted-foreground mb-6">
-              Create your first persistent room to get started. Rooms can be reused for recurring sessions.
-            </p>
+            <h2 className="text-xl font-semibold mb-2">{t('empty.title')}</h2>
+            <p className="text-muted-foreground mb-6">{t('empty.subtitle')}</p>
             <CreateRoomDialog onRoomCreated={handleRoomCreated} />
           </div>
         </div>
@@ -192,7 +191,7 @@ export default function DashboardRoomsPage() {
                       variant={getRoomTypeBadgeVariant(room.room_type)}
                       className="text-[11px] px-1.5 py-0"
                     >
-                      {room.room_type}
+                      {getRoomTypeLabel(room.room_type)}
                     </Badge>
                     <Badge
                       variant="outline"
@@ -250,10 +249,10 @@ export default function DashboardRoomsPage() {
                     {joiningRoomId === room.id ? (
                       <>
                         <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                        Joining…
+                        {t('actions.joining')}
                       </>
                     ) : (
-                      'Join Room'
+                      t('actions.joinRoom')
                     )}
                   </Button>
                 </div>
@@ -268,7 +267,7 @@ export default function DashboardRoomsPage() {
                       variant={getRoomTypeBadgeVariant(room.room_type)}
                       className="text-[10px] px-1.5 py-0"
                     >
-                      {room.room_type}
+                      {getRoomTypeLabel(room.room_type)}
                     </Badge>
                     <Badge
                       variant="outline"
@@ -310,7 +309,7 @@ export default function DashboardRoomsPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      title="Copy student link"
+                      title={t('actions.copyStudentLink')}
                       onClick={() => handleCopyStudentLink(room)}
                     >
                       {copiedRoomId === room.id ? (
@@ -329,10 +328,10 @@ export default function DashboardRoomsPage() {
                       {joiningRoomId === room.id ? (
                         <>
                           <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
-                          Joining…
+                          {t('actions.joining')}
                         </>
                       ) : (
-                        'Join Room'
+                        t('actions.joinRoom')
                       )}
                     </Button>
                   </div>

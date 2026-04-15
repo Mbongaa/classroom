@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -92,6 +93,7 @@ function statusBadgeVariant(
 }
 
 export function MembersClient({ organizationId, members, canCancel }: MembersClientProps) {
+  const t = useTranslations('mosqueAdmin.members');
   const [rows, setRows] = useState<MemberRow[]>(members);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -148,20 +150,50 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to cancel mandate');
+        throw new Error(data.error || t('toast.cancelFailed'));
       }
       // Optimistic update — Pay.nl confirmed the cancellation.
       setRows((prev) =>
         prev.map((r) => (r.id === cancelling.id ? { ...r, status: 'CANCELLED' } : r)),
       );
-      toast.success('Mandate cancelled');
+      toast.success(t('toast.cancelled'));
       setCancelling(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to cancel');
+      toast.error(err instanceof Error ? err.message : t('toast.cancelFailed'));
     } finally {
       setPending(false);
     }
   }
+
+  const filterLabel = (s: StatusFilter) => {
+    switch (s) {
+      case 'all':
+        return t('filters.all');
+      case 'active':
+        return t('filters.active');
+      case 'pending':
+        return t('filters.pending');
+      case 'cancelled':
+        return t('filters.cancelled');
+      case 'expired':
+        return t('filters.expired');
+    }
+  };
+
+  const statusLabel = (status: string) => {
+    switch (status) {
+      case 'ACTIVE':
+        return t('status.ACTIVE');
+      case 'PENDING':
+        return t('status.PENDING');
+      case 'CANCELLED':
+        return t('status.CANCELLED');
+      case 'EXPIRED':
+        return t('status.EXPIRED');
+      default:
+        return status;
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -170,7 +202,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Active
+              {t('summary.active')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{counts.active}</p>
           </CardContent>
@@ -178,7 +210,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Pending
+              {t('summary.pending')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{counts.pendingCount}</p>
           </CardContent>
@@ -186,7 +218,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              At risk
+              {t('summary.atRisk')}
             </p>
             <p className="mt-1 text-2xl font-semibold text-amber-600 dark:text-amber-400">
               {counts.atRisk}
@@ -196,7 +228,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
         <Card>
           <CardContent className="py-4">
             <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Collected
+              {t('summary.collected')}
             </p>
             <p className="mt-1 text-2xl font-semibold">{formatEuro(counts.totalCollected)}</p>
           </CardContent>
@@ -206,7 +238,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Search by donor, email, IBAN owner…"
+          placeholder={t('filters.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="max-w-sm"
@@ -218,9 +250,9 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
               size="sm"
               variant={statusFilter === s ? 'default' : 'outline'}
               onClick={() => setStatusFilter(s)}
-              className="capitalize rounded-full"
+              className="rounded-full"
             >
-              {s}
+              {filterLabel(s)}
             </Button>
           ))}
         </div>
@@ -230,7 +262,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
           onClick={() => setAtRiskOnly((v) => !v)}
           className="rounded-full"
         >
-          {atRiskOnly ? '⚠ At risk only' : 'Show at risk only'}
+          {atRiskOnly ? t('filters.atRiskOnly') : t('filters.showAtRiskOnly')}
         </Button>
       </div>
 
@@ -238,11 +270,9 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
       {filtered.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <p className="text-base font-medium">No members match your filters</p>
+            <p className="text-base font-medium">{t('empty.title')}</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              {rows.length === 0
-                ? 'No SEPA mandates have been created for this organization yet.'
-                : 'Try clearing the search or status filter.'}
+              {rows.length === 0 ? t('empty.none') : t('empty.clear')}
             </p>
           </CardContent>
         </Card>
@@ -253,14 +283,14 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[rgba(128,128,128,0.3)] text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    <th className="px-4 py-3">Donor</th>
-                    <th className="px-4 py-3">Campaign</th>
-                    <th className="px-4 py-3">Monthly</th>
-                    <th className="px-4 py-3">Collected</th>
-                    <th className="px-4 py-3">Last debit</th>
-                    <th className="px-4 py-3">Stornos</th>
-                    <th className="px-4 py-3">Status</th>
-                    {canCancel && <th className="px-4 py-3 text-right">Actions</th>}
+                    <th className="px-4 py-3">{t('table.donor')}</th>
+                    <th className="px-4 py-3">{t('table.campaign')}</th>
+                    <th className="px-4 py-3">{t('table.monthly')}</th>
+                    <th className="px-4 py-3">{t('table.collected')}</th>
+                    <th className="px-4 py-3">{t('table.lastDebit')}</th>
+                    <th className="px-4 py-3">{t('table.stornos')}</th>
+                    <th className="px-4 py-3">{t('table.status')}</th>
+                    {canCancel && <th className="px-4 py-3 text-right">{t('table.actions')}</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -302,9 +332,9 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
                           {m.recent_storno_flag ? (
                             <Badge
                               variant="destructive"
-                              title="2+ stornos in the last 3 debits — likely insufficient funds"
+                              title={t('table.recentStornoTooltip')}
                             >
-                              ⚠ {m.storno_count} recent
+                              {t('table.recentStorno', { count: m.storno_count })}
                             </Badge>
                           ) : m.storno_count > 0 ? (
                             <Badge variant="outline">{m.storno_count}</Badge>
@@ -313,7 +343,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <Badge variant={statusBadgeVariant(m.status)}>{m.status}</Badge>
+                          <Badge variant={statusBadgeVariant(m.status)}>{statusLabel(m.status)}</Badge>
                         </td>
                         {canCancel && (
                           <td className="px-4 py-3">
@@ -325,7 +355,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
                                   className="text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
                                   onClick={() => setCancelling(m)}
                                 >
-                                  Cancel
+                                  {t('table.cancel')}
                                 </Button>
                               ) : (
                                 <span className="text-xs text-slate-400">—</span>
@@ -352,36 +382,33 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
       >
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
-            <DialogTitle>Cancel SEPA mandate?</DialogTitle>
+            <DialogTitle>{t('cancelDialog.title')}</DialogTitle>
             <DialogDescription>
-              This permanently cancels the donor&apos;s recurring direct debit at
-              Pay.nl. No future debits will be triggered. The donor would have to
-              re-sign a new mandate to start donating again.
+              {t('cancelDialog.description')}
             </DialogDescription>
           </DialogHeader>
           {cancelling && (
             <div className="rounded-lg border border-[rgba(128,128,128,0.3)] bg-slate-50 p-3 text-sm dark:bg-slate-900/40">
               <p>
-                <span className="text-slate-500">Donor:</span>{' '}
+                <span className="text-slate-500">{t('cancelDialog.donorLabel')}</span>{' '}
                 <span className="font-medium">{cancelling.donor_name}</span>
               </p>
               {cancelling.donor_email && (
                 <p>
-                  <span className="text-slate-500">Email:</span> {cancelling.donor_email}
+                  <span className="text-slate-500">{t('cancelDialog.emailLabel')}</span> {cancelling.donor_email}
                 </p>
               )}
               <p>
-                <span className="text-slate-500">Mandate:</span>{' '}
+                <span className="text-slate-500">{t('cancelDialog.mandateLabel')}</span>{' '}
                 <code className="text-xs">{cancelling.paynl_mandate_id}</code>
               </p>
               <p>
-                <span className="text-slate-500">Total collected:</span>{' '}
-                {formatEuro(cancelling.total_collected_cents)} ({cancelling.total_debits} debits)
+                <span className="text-slate-500">{t('cancelDialog.totalCollectedLabel')}</span>{' '}
+                {formatEuro(cancelling.total_collected_cents)} {t('cancelDialog.debitsCount', { count: cancelling.total_debits })}
               </p>
               {cancelling.recent_storno_flag && (
                 <p className="mt-2 text-amber-700 dark:text-amber-400">
-                  ⚠ This mandate has {cancelling.storno_count} stornos with 2+ in the most
-                  recent attempts.
+                  {t('cancelDialog.stornoWarning', { count: cancelling.storno_count })}
                 </p>
               )}
             </div>
@@ -392,7 +419,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
               onClick={() => setCancelling(null)}
               disabled={pending}
             >
-              Keep mandate
+              {t('cancelDialog.keep')}
             </Button>
             <Button
               variant="default"
@@ -400,7 +427,7 @@ export function MembersClient({ organizationId, members, canCancel }: MembersCli
               onClick={handleConfirmCancel}
               disabled={pending}
             >
-              {pending ? 'Cancelling…' : 'Cancel mandate'}
+              {pending ? t('cancelDialog.cancelling') : t('cancelDialog.confirm')}
             </Button>
           </DialogFooter>
         </DialogContent>

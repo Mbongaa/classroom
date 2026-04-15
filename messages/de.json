@@ -1,0 +1,743 @@
+{
+  "common": {
+    "appName": "Bayaan.ai",
+    "loading": "Wird geladen...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "confirm": "Bestätigen",
+    "viewAll": "Alle anzeigen",
+    "back": "Zurück",
+    "tryAgain": "Erneut versuchen",
+    "notAuthenticated": "Nicht authentifiziert",
+    "saveChanges": "Änderungen speichern",
+    "saving": "Speichern..."
+  },
+  "locale": {
+    "switchLanguage": "Sprache",
+    "english": "English",
+    "arabic": "العربية",
+    "dutch": "Nederlands",
+    "french": "Français",
+    "german": "Deutsch"
+  },
+  "languages": {
+    "ar": "Arabisch",
+    "en": "Englisch",
+    "fr": "Französisch",
+    "de": "Deutsch",
+    "es": "Spanisch",
+    "nl": "Niederländisch",
+    "tr": "Türkisch",
+    "ur": "Urdu",
+    "hi": "Hindi",
+    "ar-mixed": "Arabisch gemischt",
+    "ar-darija": "Darija"
+  },
+  "sidebar": {
+    "translation": {
+      "dashboard": "Dashboard",
+      "classrooms": "Klassenzimmer",
+      "sessionHistory": "Sitzungsverlauf"
+    },
+    "finance": {
+      "dashboard": "Dashboard",
+      "campaigns": "Kampagnen",
+      "products": "Produkte",
+      "members": "Mitglieder",
+      "transactions": "Transaktionen",
+      "settings": "Einstellungen"
+    },
+    "footer": {
+      "billing": "Abrechnung",
+      "profile": "Profil",
+      "signOut": "Abmelden"
+    }
+  },
+  "header": {
+    "mode": {
+      "label": "Dashboard-Modus",
+      "translation": "Übersetzungs-Dashboard",
+      "finance": "Finanz-Dashboard",
+      "financeDisabled": "Finanz-Dashboard (keine Organisation)",
+      "financeDisabledTitle": "Finanz-Dashboard — erfordert eine Organisation"
+    }
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück, {name}!",
+    "subtitle": "Das passiert heute in Ihren Klassenzimmern.",
+    "stats": {
+      "activeClassrooms": "Aktive Klassenzimmer",
+      "activeClassroomsDescription": "Live- und geplante Kurse",
+      "recordings": "Aufzeichnungen",
+      "recordingsDescription": "Gespeicherte Sitzungsaufzeichnungen",
+      "organization": "Organisation",
+      "organizationDescription": "Ihre Organisation",
+      "organizationFallback": "N/V"
+    },
+    "quickActions": {
+      "title": "Schnellaktionen",
+      "description": "Sofort eine Sitzung starten oder beitreten",
+      "intro": "Starten Sie eine Videokonferenz oder treten Sie ihr bei.",
+      "startClassroom": "Klassenzimmer starten",
+      "startSpeechSession": "Sprachsitzung starten",
+      "managePersistentRooms": "Dauerhafte Räume verwalten"
+    },
+    "recentRooms": {
+      "title": "Aktuelle Räume",
+      "description": "Ihre zuletzt erstellten Klassenzimmer",
+      "empty": "Noch keine Räume erstellt",
+      "createFirst": "Erstellen Sie Ihren ersten Raum",
+      "types": {
+        "classroom": "Klassenzimmer",
+        "speech": "Sprache",
+        "meeting": "Besprechung"
+      }
+    }
+  },
+  "rooms": {
+    "title": "Klassenzimmer verwalten",
+    "subtitle": "Erstellen und verwalten Sie dauerhafte Raumcodes für wiederkehrende Kurse",
+    "errors": {
+      "loadTitle": "Fehler beim Laden der Räume",
+      "fetchFailed": "Klassenzimmer konnten nicht geladen werden",
+      "fetchRetry": "Räume konnten nicht geladen werden. Bitte erneut versuchen.",
+      "deleteFailed": "Raum konnte nicht gelöscht werden",
+      "deleteConfirm": "Sind Sie sicher, dass Sie „{code}\" löschen möchten?"
+    },
+    "empty": {
+      "title": "Noch keine Räume",
+      "subtitle": "Erstellen Sie Ihren ersten dauerhaften Raum, um zu beginnen. Räume können für wiederkehrende Sitzungen wiederverwendet werden."
+    },
+    "types": {
+      "meeting": "Besprechung",
+      "classroom": "Klassenzimmer",
+      "speech": "Sprache"
+    },
+    "actions": {
+      "copyStudentLink": "Schülerlink kopieren",
+      "joinRoom": "Raum beitreten",
+      "joining": "Beitreten…"
+    }
+  },
+  "recordings": {
+    "title": "Sitzungsverlauf",
+    "subtitle": "Frühere Klassenzimmersitzungen und Aufzeichnungen anzeigen",
+    "empty": "Noch keine Sitzungen. Sitzungen werden erstellt, wenn Teilnehmer einem Klassenzimmer beitreten.",
+    "errors": {
+      "loadFailed": "Sitzungen konnten nicht geladen werden"
+    },
+    "table": {
+      "roomName": "Raumname",
+      "dateTime": "Datum & Uhrzeit",
+      "duration": "Dauer",
+      "recording": "Aufzeichnung",
+      "actions": "Aktionen",
+      "watch": "Ansehen"
+    },
+    "status": {
+      "noRecording": "Keine Aufzeichnung",
+      "available": "Verfügbar",
+      "recording": "Aufzeichnung...",
+      "failed": "Fehlgeschlagen",
+      "processing": "Verarbeitung..."
+    },
+    "pagination": {
+      "showing": "{start} bis {end} von {total} Sitzungen angezeigt"
+    }
+  },
+  "prompts": {
+    "title": "Übersetzungsprompt-Vorlagen",
+    "subtitleStart": "Erstellen und verwalten Sie wiederverwendbare Übersetzungsprompts für Ihre Klassenzimmer. Verwenden Sie ",
+    "subtitleMiddle": " und ",
+    "subtitleEnd": " als Platzhalter, um sprachunabhängige Vorlagen zu erstellen.",
+    "createNew": "Neue Vorlage erstellen",
+    "refresh": "Vorlagen aktualisieren",
+    "loading": "Vorlagen werden geladen...",
+    "errors": {
+      "fetchFailed": "Vorlagen konnten nicht geladen werden",
+      "loadFailed": "Prompt-Vorlagen konnten nicht geladen werden",
+      "deleteFailed": "Vorlage konnte nicht gelöscht werden"
+    },
+    "info": {
+      "title": "So verwenden Sie Prompt-Vorlagen",
+      "createBold": "Erstellen Sie Vorlagen",
+      "createRest": " mit {source}- und {target}-Platzhaltern",
+      "selectBold": "Wählen Sie eine Vorlage",
+      "selectRest": " beim Erstellen eines Klassenzimmers",
+      "placeholderBold": "Platzhalter werden automatisch ersetzt",
+      "placeholderRest": " mit den tatsächlichen Sprachnamen während der Übersetzung",
+      "oneBold": "Eine Vorlage funktioniert für alle Sprachen",
+      "oneRest": " - Schüler können jede Sprache anfordern und denselben benutzerdefinierten Prompt verwenden",
+      "publicBold": "Öffentliche Vorlagen",
+      "publicRest": " werden standardmäßig bereitgestellt und können nicht geändert werden"
+    }
+  },
+  "profile": {
+    "title": "Profileinstellungen",
+    "subtitle": "Verwalten Sie Ihre Kontoeinstellungen und Präferenzen.",
+    "personal": {
+      "title": "Persönliche Informationen",
+      "description": "Aktualisieren Sie Ihre persönlichen Daten und Ihr Profilbild",
+      "fullName": "Vollständiger Name",
+      "avatarUrl": "Avatar-URL",
+      "avatarHint": "Optional: Link zu Ihrem Profilbild",
+      "updated": "Profil erfolgreich aktualisiert!"
+    },
+    "account": {
+      "title": "Kontoinformationen",
+      "description": "Ihre Kontodaten",
+      "email": "E-Mail",
+      "role": "Rolle",
+      "organization": "Organisation",
+      "memberSince": "Mitglied seit",
+      "organizationFallback": "N/V"
+    },
+    "organization": {
+      "title": "Organisation",
+      "description": "Aktualisieren Sie den Anzeigenamen Ihrer Organisation",
+      "name": "Name der Organisation",
+      "updated": "Organisationsname erfolgreich aktualisiert!"
+    }
+  },
+  "billing": {
+    "pageTitle": "Abrechnung",
+    "pageSubtitle": "Verwalten Sie Ihr Abonnement und Ihre Zahlungsmethoden",
+    "warnings": {
+      "pastDueTitle": "Zahlung überfällig",
+      "pastDueMessage": "Ihre letzte Zahlung ist fehlgeschlagen. Bitte aktualisieren Sie Ihre Zahlungsmethode, um eine Unterbrechung des Dienstes zu vermeiden.",
+      "incompleteTitle": "Abonnement unvollständig",
+      "incompleteMessage": "Die Einrichtung Ihres Abonnements wurde nicht abgeschlossen. Bitte schließen Sie die Zahlung ab, um Ihr Konto zu aktivieren."
+    },
+    "currentPlan": {
+      "title": "Aktueller Plan",
+      "tierFree": "Kostenloser Plan",
+      "tierPro": "Pro-Plan",
+      "tierBeta": "Beta-Plan",
+      "perMonth": "/Monat",
+      "perYear": "/Jahr",
+      "accessUntil": "Zugriff bis",
+      "trialEnds": "Testzeitraum endet",
+      "nextBilling": "Nächstes Abrechnungsdatum",
+      "amount": "Betrag",
+      "cancellingNotice": "Ihr Abonnement wird am Ende des Abrechnungszeitraums gekündigt. Sie können es jederzeit vor dem {date} reaktivieren.",
+      "status": {
+        "active": "Aktiv",
+        "trialing": "Test",
+        "pastDue": "Überfällig",
+        "canceled": "Gekündigt",
+        "unpaid": "Unbezahlt",
+        "incomplete": "Unvollständig"
+      }
+    },
+    "paymentMethod": {
+      "title": "Zahlungsmethode",
+      "empty": "Keine Zahlungsmethode hinterlegt",
+      "emptyHint": "Fügen Sie eine über das Kundenportal unten hinzu",
+      "expires": "Läuft ab am {exp}",
+      "default": "Standard-Zahlungsmethode",
+      "updateHint": "Aktualisieren Sie Ihre Zahlungsmethode über das Kundenportal unten"
+    },
+    "invoices": {
+      "title": "Rechnungsverlauf",
+      "empty": "Noch keine Rechnungen",
+      "emptyHint": "Rechnungen erscheinen hier nach Ihrer ersten Zahlung",
+      "columns": {
+        "date": "Datum",
+        "amount": "Betrag",
+        "status": "Status",
+        "invoice": "Rechnung",
+        "download": "Herunterladen"
+      },
+      "status": {
+        "paid": "Bezahlt",
+        "open": "Offen",
+        "draft": "Entwurf",
+        "uncollectible": "Uneinbringlich",
+        "void": "Storniert"
+      },
+      "showingOne": "{count} Rechnung angezeigt",
+      "showingMany": "{count} Rechnungen angezeigt"
+    },
+    "plans": {
+      "title": "Plan upgraden",
+      "current": "Aktuell",
+      "currentPlan": "Aktueller Plan",
+      "upgradePro": "Auf Pro upgraden",
+      "contactSales": "Vertrieb kontaktieren",
+      "perMonth": "/Monat",
+      "free": {
+        "name": "Kostenlos",
+        "features": {
+          "classrooms": "3 Klassenzimmer",
+          "recordings": "1 Stunde Aufzeichnungen",
+          "support": "Basis-Support",
+          "features": "Standardfunktionen"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "classrooms": "Unbegrenzte Klassenzimmer",
+          "recordings": "Unbegrenzte Aufzeichnungen",
+          "support": "E-Mail-Support",
+          "features": "Erweiterte Funktionen",
+          "priority": "Prioritätszugriff"
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Individuell",
+        "features": {
+          "everything": "Alles in Pro",
+          "branding": "Individuelles Branding",
+          "support": "Dedizierter Support",
+          "sla": "SLA-Garantie",
+          "integrations": "Benutzerdefinierte Integrationen"
+        }
+      },
+      "helpTitle": "Hilfe bei der Auswahl?",
+      "helpText": " Unser Pro-Plan ist perfekt für wachsende Teams, während Enterprise individuelle Lösungen für größere Organisationen bietet."
+    },
+    "manage": {
+      "title": "Abonnement verwalten",
+      "description": "Aktualisieren Sie Ihre Zahlungsmethode, sehen Sie sich Rechnungen an oder ändern Sie Ihr Abonnement über das Stripe-Kundenportal.",
+      "button": "Abonnement verwalten",
+      "opening": "Portal wird geöffnet...",
+      "error": "Etwas ist schiefgelaufen",
+      "failedOpen": "Abrechnungsportal konnte nicht geöffnet werden"
+    }
+  },
+  "mosqueAdmin": {
+    "prefix": "Moscheeverwaltung",
+    "backToDashboard": "← Zurück zum Dashboard",
+    "dashboard": {
+      "title": "Moscheeverwaltung",
+      "subtitle": "Verwalten Sie Spenden, Kampagnen und Mitglieder Ihrer Moschee",
+      "kycBadge": "KYC: {status}",
+      "kycStatus": {
+        "pending": "ausstehend",
+        "submitted": "eingereicht",
+        "approved": "genehmigt",
+        "rejected": "abgelehnt"
+      },
+      "txStatus": {
+        "PAID": "Bezahlt",
+        "PENDING": "Ausstehend",
+        "CANCEL": "Storniert",
+        "EXPIRED": "Abgelaufen"
+      },
+      "donationsActive": "Spenden aktiv",
+      "donationsInactive": "Spenden inaktiv",
+      "settingsLink": "Einstellungen →",
+      "onboardingTitle": "Zahlungsabwicklung nicht eingerichtet",
+      "onboardingDescription": "Schließen Sie Ihren Händler-Onboarding-Prozess ab, um Spenden direkt auf Ihr Bankkonto zu erhalten.",
+      "onboardingCta": "Zahlungen einrichten",
+      "totalRaised": "Gesamt gesammelt",
+      "totalRaisedCaption": "{count} bezahlte Spenden",
+      "thisMonth": "Dieser Monat",
+      "thisMonthCaption": "{count} Spenden diesen Monat",
+      "activeCampaigns": "Aktive Kampagnen",
+      "activeCampaignsCaption": "Sichtbar auf der Spendenseite",
+      "manageCampaigns": "Kampagnen verwalten →",
+      "activeProducts": "Aktive Produkte",
+      "activeProductsCaption": "Im Shop verfügbar",
+      "manageProducts": "Produkte verwalten →",
+      "activeAppointmentOfferings": "Aktive Terminangebote",
+      "activeAppointmentOfferingsCaption": "Auf der Terminseite buchbar",
+      "manageAppointments": "Termine verwalten →",
+      "paynlRoutingTitle": "Pay.nl-Routing",
+      "paynlRoutingDescription": "Wohin Spenden für diese Organisation derzeit fließen",
+      "serviceIdLabel": "Service-ID:",
+      "merchantIdLabel": "Händler-ID:",
+      "platformFeeLabel": "Plattformgebühr:",
+      "paynlFallbackMessage": "Nutzt plattformweites Pay.nl-Fallback. Das Alliance-Submerchant-Onboarding weist hier einen eigenen Verkaufsstandort zu.",
+      "recentDonationsTitle": "Letzte Spenden",
+      "recentDonationsDescription": "Letzte 10 Transaktionen für diese Organisation",
+      "viewAll": "Alle anzeigen →",
+      "noDonationsYet": "Noch keine Spenden.",
+      "tableOrder": "Bestellung",
+      "tableDonor": "Spender",
+      "tableAmount": "Betrag",
+      "tableStatus": "Status",
+      "tableDate": "Datum"
+    },
+    "campaigns": {
+      "title": "Kampagnen",
+      "subtitle": "Verwalten Sie Ihre Spendenkampagnen",
+      "pageSubtitle": "{name} — verwalten Sie die Spendenzwecke auf Ihrer Spendenseite",
+      "list": {
+        "newCampaign": "Neue Kampagne",
+        "createFirst": "Erstellen Sie Ihre erste Kampagne",
+        "emptyTitle": "Noch keine Kampagnen",
+        "emptyDescriptionBefore": "Erstellen Sie Ihre erste Kampagne, um Spenden auf ",
+        "emptyDescriptionAfter": " zu akzeptieren."
+      },
+      "table": {
+        "order": "Reihenfolge",
+        "campaign": "Kampagne",
+        "cause": "Zweck",
+        "raised": "Gesammelt",
+        "goal": "Ziel",
+        "active": "Aktiv",
+        "actions": "Aktionen",
+        "live": "Live",
+        "hidden": "Ausgeblendet",
+        "moveUp": "Nach oben",
+        "moveDown": "Nach unten",
+        "edit": "Bearbeiten",
+        "deleteCampaign": "Kampagne löschen",
+        "deleting": "Wird gelöscht…",
+        "toggleActiveAria": "{title} aktiv umschalten"
+      },
+      "form": {
+        "editTitle": "Kampagne bearbeiten",
+        "newTitle": "Neue Kampagne",
+        "editDescription": "Aktualisieren Sie die Details für diesen Spendenzweck.",
+        "newDescription": "Erstellen Sie einen neuen Spendenzweck, der auf Ihrer Spendenseite angezeigt wird.",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "z. B. Ramadan-Iftar-Fonds",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "z. B. ramadan-iftar",
+        "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
+        "slugHintCreate": "Wird in der Spenden-URL verwendet: /donate/<org>/<slug>. Kleinbuchstaben, Zahlen und Bindestriche.",
+        "descriptionLabel": "Beschreibung",
+        "descriptionPlaceholder": "Was unterstützt diese Kampagne? Optional.",
+        "causeLabel": "Zweckart",
+        "causePlaceholder": "zakat, sadaqah…",
+        "causeHint": "Frei wählbares Tag für Berichte.",
+        "goalLabel": "Ziel (€)",
+        "goalPlaceholder": "Optional",
+        "goalHint": "Leer lassen, wenn kein festes Ziel.",
+        "iconLabel": "Symbol",
+        "iconNone": "Keines",
+        "iconHint": "Wird auf der Spendenseite angezeigt, wenn diese Kampagne ausgewählt ist.",
+        "activeLabel": "Aktiv — sichtbar auf der Spendenseite und nimmt Spenden an",
+        "cancel": "Abbrechen",
+        "saving": "Wird gespeichert…",
+        "creating": "Wird erstellt…",
+        "saveChanges": "Änderungen speichern",
+        "createCampaign": "Kampagne erstellen",
+        "errors": {
+          "titleMin": "Titel muss mindestens 2 Zeichen lang sein",
+          "slugInvalid": "Slug muss 3-60 Kleinbuchstaben, Zahlen oder Bindestriche enthalten (ohne führende/nachgestellte Bindestriche)",
+          "goalInvalid": "Zielbetrag muss eine nicht-negative Zahl sein",
+          "updateFailed": "Kampagne konnte nicht aktualisiert werden",
+          "createFailed": "Kampagne konnte nicht erstellt werden",
+          "somethingWrong": "Etwas ist schiefgelaufen"
+        }
+      },
+      "confirmDelete": "Kampagne „{title}\" löschen? Dies kann nicht rückgängig gemacht werden. Kampagnen mit vorhandenen Spenden können nicht gelöscht werden — deaktivieren Sie sie stattdessen.",
+      "toast": {
+        "orderUpdated": "Reihenfolge aktualisiert",
+        "reorderFailed": "Neuordnung fehlgeschlagen",
+        "activated": "Kampagne aktiviert",
+        "deactivated": "Kampagne deaktiviert",
+        "updateFailed": "Aktualisierung fehlgeschlagen",
+        "deleted": "Kampagne gelöscht",
+        "deleteFailed": "Löschen fehlgeschlagen"
+      }
+    },
+    "products": {
+      "title": "Produkte",
+      "subtitle": "Verwalten Sie Ihre Spendenprodukte",
+      "pageSubtitle": "{name} — verwalten Sie die im Shop verfügbaren Artikel",
+      "list": {
+        "newProduct": "Neues Produkt",
+        "addFirst": "Fügen Sie Ihr erstes Produkt hinzu",
+        "emptyTitle": "Noch keine Produkte",
+        "emptyDescription": "Fügen Sie Ihr erstes Produkt hinzu, um den Verkauf auf Ihrer Shop-Seite zu starten."
+      },
+      "table": {
+        "order": "Reihenfolge",
+        "product": "Produkt",
+        "category": "Kategorie",
+        "price": "Preis",
+        "stock": "Bestand",
+        "active": "Aktiv",
+        "actions": "Aktionen",
+        "unlimited": "Unbegrenzt",
+        "soldOut": "Ausverkauft",
+        "live": "Live",
+        "hidden": "Ausgeblendet",
+        "moveUp": "Nach oben",
+        "moveDown": "Nach unten",
+        "edit": "Bearbeiten",
+        "deleteProduct": "Produkt löschen",
+        "deleting": "Wird gelöscht…",
+        "toggleActiveAria": "{title} aktiv umschalten"
+      },
+      "form": {
+        "editTitle": "Produkt bearbeiten",
+        "newTitle": "Neues Produkt",
+        "editDescription": "Aktualisieren Sie die Details für dieses Produkt.",
+        "newDescription": "Fügen Sie Ihrem Shop ein neues Produkt hinzu.",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "z. B. Koran — Sahih International",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "z. B. quran-sahih-international",
+        "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
+        "slugHintCreate": "Wird in der Shop-URL verwendet: /shop/<org>/<slug>. Kleinbuchstaben, Zahlen und Bindestriche.",
+        "descriptionLabel": "Beschreibung",
+        "descriptionPlaceholder": "Produktdetails. Optional.",
+        "priceLabel": "Preis (€)",
+        "pricePlaceholder": "z. B. 12,50",
+        "stockLabel": "Bestand",
+        "stockPlaceholder": "Unbegrenzt",
+        "stockHint": "Für unbegrenzten Bestand leer lassen.",
+        "categoryLabel": "Kategorie",
+        "categoryPlaceholder": "Bücher, Kleidung, Lebensmittel…",
+        "categoryHint": "Frei wählbares Tag zur Gruppierung von Produkten.",
+        "imageLabel": "Bild-URL",
+        "imagePlaceholder": "https://…",
+        "imageHint": "Direktlink zu einem Produktbild. Optional.",
+        "activeLabel": "Aktiv — im Shop sichtbar und zum Kauf verfügbar",
+        "cancel": "Abbrechen",
+        "saving": "Wird gespeichert…",
+        "creating": "Wird erstellt…",
+        "saveChanges": "Änderungen speichern",
+        "createProduct": "Produkt erstellen",
+        "errors": {
+          "titleMin": "Titel muss mindestens 2 Zeichen lang sein",
+          "slugInvalid": "Slug muss 3-60 Kleinbuchstaben, Zahlen oder Bindestriche enthalten (ohne führende/nachgestellte Bindestriche)",
+          "priceRequired": "Preis ist erforderlich",
+          "priceInvalid": "Preis muss eine positive Zahl sein",
+          "stockInvalid": "Bestand muss eine nicht-negative Zahl sein (oder für unbegrenzt leer lassen)",
+          "updateFailed": "Produkt konnte nicht aktualisiert werden",
+          "createFailed": "Produkt konnte nicht erstellt werden",
+          "somethingWrong": "Etwas ist schiefgelaufen"
+        }
+      },
+      "confirmDelete": "Produkt „{title}\" löschen? Dies kann nicht rückgängig gemacht werden.",
+      "toast": {
+        "orderUpdated": "Reihenfolge aktualisiert",
+        "reorderFailed": "Neuordnung fehlgeschlagen",
+        "activated": "Produkt aktiviert",
+        "deactivated": "Produkt deaktiviert",
+        "updateFailed": "Aktualisierung fehlgeschlagen",
+        "deleted": "Produkt gelöscht",
+        "deleteFailed": "Löschen fehlgeschlagen"
+      }
+    },
+    "members": {
+      "title": "Mitglieder",
+      "subtitle": "Verwalten Sie die Mitglieder Ihrer Moschee",
+      "pageSubtitle": "{name} — wiederkehrende Spender mit aktiven SEPA-Mandaten",
+      "summary": {
+        "active": "Aktiv",
+        "pending": "Ausstehend",
+        "atRisk": "Gefährdet",
+        "collected": "Eingezogen"
+      },
+      "filters": {
+        "searchPlaceholder": "Suche nach Spender, E-Mail, IBAN-Inhaber…",
+        "all": "Alle",
+        "active": "Aktiv",
+        "pending": "Ausstehend",
+        "cancelled": "Storniert",
+        "expired": "Abgelaufen",
+        "atRiskOnly": "⚠ Nur gefährdete",
+        "showAtRiskOnly": "Nur gefährdete anzeigen"
+      },
+      "empty": {
+        "title": "Keine Mitglieder entsprechen Ihren Filtern",
+        "none": "Für diese Organisation wurden noch keine SEPA-Mandate erstellt.",
+        "clear": "Versuchen Sie, die Suche oder den Statusfilter zu löschen."
+      },
+      "table": {
+        "donor": "Spender",
+        "campaign": "Kampagne",
+        "monthly": "Monatlich",
+        "collected": "Eingezogen",
+        "lastDebit": "Letzte Abbuchung",
+        "stornos": "Stornos",
+        "status": "Status",
+        "actions": "Aktionen",
+        "recentStorno": "⚠ {count} kürzlich",
+        "recentStornoTooltip": "2+ Stornos in den letzten 3 Abbuchungen — wahrscheinlich unzureichende Deckung",
+        "cancel": "Stornieren"
+      },
+      "status": {
+        "ACTIVE": "Aktiv",
+        "PENDING": "Ausstehend",
+        "CANCELLED": "Storniert",
+        "EXPIRED": "Abgelaufen"
+      },
+      "cancelDialog": {
+        "title": "SEPA-Mandat stornieren?",
+        "description": "Dies storniert die wiederkehrende Lastschrift des Spenders dauerhaft bei Pay.nl. Es werden keine zukünftigen Abbuchungen ausgelöst. Der Spender müsste ein neues Mandat unterzeichnen, um wieder zu spenden.",
+        "donorLabel": "Spender:",
+        "emailLabel": "E-Mail:",
+        "mandateLabel": "Mandat:",
+        "totalCollectedLabel": "Insgesamt eingezogen:",
+        "debitsCount": "({count} Abbuchungen)",
+        "stornoWarning": "⚠ Dieses Mandat hat {count} Stornos mit 2+ bei den letzten Versuchen.",
+        "keep": "Mandat behalten",
+        "cancelling": "Wird storniert…",
+        "confirm": "Mandat stornieren"
+      },
+      "toast": {
+        "cancelled": "Mandat storniert",
+        "cancelFailed": "Stornierung fehlgeschlagen"
+      }
+    },
+    "transactions": {
+      "title": "Transaktionen",
+      "subtitle": "Transaktionsverlauf anzeigen",
+      "pageSubtitle": "{name} — jede Spende, einmalig und wiederkehrend, in einem Buch",
+      "summary": {
+        "matching": "Übereinstimmend",
+        "collected": "Eingezogen",
+        "pending": "Ausstehend",
+        "failed": "Fehlgeschlagen"
+      },
+      "filters": {
+        "searchPlaceholder": "Suche nach Spender, E-Mail, Referenz…",
+        "all": "Alle",
+        "oneTime": "Einmalig",
+        "recurring": "Wiederkehrend",
+        "success": "Erfolgreich",
+        "pending": "Ausstehend",
+        "failed": "Fehlgeschlagen"
+      },
+      "empty": {
+        "title": "Keine Transaktionen entsprechen Ihren Filtern",
+        "none": "Für diese Organisation wurden noch keine Spenden erfasst.",
+        "clear": "Versuchen Sie, die Suche oder den Statusfilter zu löschen."
+      },
+      "table": {
+        "date": "Datum",
+        "donor": "Spender",
+        "campaign": "Kampagne",
+        "type": "Typ",
+        "amount": "Betrag",
+        "status": "Status",
+        "reference": "Referenz",
+        "sepa": "SEPA",
+        "oneTime": "einmalig",
+        "test": "Test"
+      },
+      "txStatus": {
+        "PAID": "Bezahlt",
+        "PENDING": "Ausstehend",
+        "CANCEL": "Storniert",
+        "EXPIRED": "Abgelaufen",
+        "COLLECTED": "Eingezogen",
+        "STORNO": "Storno",
+        "DECLINED": "Abgelehnt"
+      },
+      "pagination": {
+        "info": "Seite {page} von {total} · {count} Ergebnisse",
+        "previous": "Zurück",
+        "next": "Weiter"
+      }
+    },
+    "settings": {
+      "title": "Einstellungen",
+      "subtitle": "Verwalten Sie die Einstellungen Ihrer Organisation",
+      "prefix": "Moschee-Einstellungen",
+      "tabs": {
+        "general": "Allgemein",
+        "payments": "Zahlungen",
+        "animation": "Dankes-Animation"
+      },
+      "general": {
+        "title": "Allgemeine Informationen",
+        "description": "Grundlegende Details zu Ihrer Organisation. Bearbeitung wird in einem zukünftigen Update verfügbar sein.",
+        "name": "Name",
+        "slug": "Slug",
+        "city": "Stadt",
+        "country": "Land",
+        "contactEmail": "Kontakt-E-Mail",
+        "descriptionField": "Beschreibung",
+        "viewDonateLanding": "Spenden-Landingpage anzeigen"
+      },
+      "onboarding": {
+        "title": "Zahlungsabwicklung einrichten",
+        "description": "Registrieren Sie sich als Händler, um Spenden direkt auf Ihr Bankkonto zu erhalten",
+        "businessDetails": "Geschäftsdaten",
+        "legalName": "Offizieller Name (wie beim KvK registriert) *",
+        "tradingName": "Handelsname (wird Spendern angezeigt) *",
+        "kvkNumber": "KvK-Nummer (8 Ziffern) *",
+        "kvkPlaceholder": "12345678",
+        "vatNumber": "USt-IdNr. (optional)",
+        "vatPlaceholder": "NL123456789B01",
+        "businessDescription": "Geschäftsbeschreibung *",
+        "businessDescriptionPlaceholder": "Beschreiben Sie, was Ihre Organisation tut und wofür Spenden verwendet werden...",
+        "website": "Website (optional)",
+        "websitePlaceholder": "https://www.example.nl",
+        "contactInformation": "Kontaktinformationen",
+        "contactEmail": "Kontakt-E-Mail *",
+        "contactPhone": "Telefonnummer",
+        "contactPhonePlaceholder": "+31 6 12345678",
+        "registeredAddress": "Eingetragene Adresse",
+        "street": "Straße *",
+        "houseNumber": "Hausnummer *",
+        "postalCode": "Postleitzahl *",
+        "postalPlaceholder": "1234 AB",
+        "city": "Stadt *",
+        "country": "Ländercode *",
+        "countryPlaceholder": "NL",
+        "bankAccount": "Bankkonto (für Auszahlungen)",
+        "iban": "IBAN *",
+        "ibanPlaceholder": "NL91 ABNA 0417 1643 00",
+        "ibanOwner": "Name des Kontoinhabers *",
+        "submitting": "Wird eingereicht...",
+        "submit": "Antrag einreichen",
+        "errors": {
+          "submitFailed": "Antrag konnte nicht eingereicht werden",
+          "somethingWrong": "Etwas ist schiefgelaufen"
+        },
+        "toastSuccess": "Händlerantrag erfolgreich eingereicht"
+      },
+      "kycPending": {
+        "title": "Antrag in Prüfung",
+        "description": "Ihr Händlerantrag wurde eingereicht und wird von Pay.nl geprüft. Dies dauert normalerweise 1-3 Werktage. Nach Genehmigung können Sie Spenden direkt empfangen.",
+        "checking": "Wird geprüft...",
+        "checkStatus": "Status prüfen",
+        "refreshed": "Status aktualisiert",
+        "refreshError": "Status konnte nicht aktualisiert werden"
+      },
+      "kycRejected": {
+        "title": "Antrag abgelehnt",
+        "description": "Ihr Händlerantrag wurde von Pay.nl nicht genehmigt. Dies kann auf unvollständige oder falsche Angaben zurückzuführen sein. Bitte wenden Sie sich an unser Support-Team, um das Problem zu beheben und Ihren Antrag erneut einzureichen.",
+        "recheck": "Status erneut prüfen"
+      },
+      "merchantStatus": {
+        "title": "Händler verifiziert",
+        "description": "Ihre Organisation ist für den Empfang von Spenden eingerichtet",
+        "refresh": "Aktualisieren",
+        "refreshed": "Status aktualisiert",
+        "refreshError": "Status konnte nicht aktualisiert werden",
+        "statusLabel": "Status",
+        "donationsActive": "Spenden aktiv",
+        "donationsInactive": "Spenden inaktiv",
+        "merchantId": "Händler-ID",
+        "serviceId": "Service-ID",
+        "platformFee": "Plattformgebühr",
+        "verifiedSince": "Verifiziert seit",
+        "financeTitle": "Finanzen",
+        "financeDescription": "Verwalten Sie Ihre Spenden und Kampagnen",
+        "transactionsTitle": "Transaktionen",
+        "transactionsDescription": "Alle Spenden anzeigen",
+        "campaignsTitle": "Kampagnen",
+        "campaignsDescription": "Spendenzwecke verwalten",
+        "donatePageTitle": "Spendenseite",
+        "donatePageDescription": "Öffentliche Seite anzeigen"
+      },
+      "animation": {
+        "title": "Dankes-Animation",
+        "description": "Wählen Sie die Animation, die Spender nach einer erfolgreichen Spende sehen. Die Seite für abgebrochene Spenden ist für alle gleich und nicht konfigurierbar.",
+        "categories": {
+          "celebration": "Feier",
+          "islamic": "Islamisch",
+          "charity": "Wohltätigkeit"
+        },
+        "selected": "Ausgewählt",
+        "updated": "Dankes-Animation aktualisiert",
+        "updateFailed": "Animation konnte nicht aktualisiert werden",
+        "saveFailed": "Speichern fehlgeschlagen"
+      }
+    }
+  }
+}

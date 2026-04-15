@@ -1,0 +1,743 @@
+{
+  "common": {
+    "appName": "Bayaan.ai",
+    "loading": "Laden...",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "confirm": "Bevestigen",
+    "viewAll": "Alles bekijken",
+    "back": "Terug",
+    "tryAgain": "Opnieuw proberen",
+    "notAuthenticated": "Niet geauthenticeerd",
+    "saveChanges": "Wijzigingen opslaan",
+    "saving": "Opslaan..."
+  },
+  "locale": {
+    "switchLanguage": "Taal",
+    "english": "English",
+    "arabic": "العربية",
+    "dutch": "Nederlands",
+    "french": "Français",
+    "german": "Deutsch"
+  },
+  "languages": {
+    "ar": "Arabisch",
+    "en": "Engels",
+    "fr": "Frans",
+    "de": "Duits",
+    "es": "Spaans",
+    "nl": "Nederlands",
+    "tr": "Turks",
+    "ur": "Urdu",
+    "hi": "Hindi",
+    "ar-mixed": "Arabisch gemengd",
+    "ar-darija": "Darija"
+  },
+  "sidebar": {
+    "translation": {
+      "dashboard": "Dashboard",
+      "classrooms": "Klaslokalen",
+      "sessionHistory": "Sessiegeschiedenis"
+    },
+    "finance": {
+      "dashboard": "Dashboard",
+      "campaigns": "Campagnes",
+      "products": "Producten",
+      "members": "Leden",
+      "transactions": "Transacties",
+      "settings": "Instellingen"
+    },
+    "footer": {
+      "billing": "Facturatie",
+      "profile": "Profiel",
+      "signOut": "Afmelden"
+    }
+  },
+  "header": {
+    "mode": {
+      "label": "Dashboardmodus",
+      "translation": "Vertaaldashboard",
+      "finance": "Financieel dashboard",
+      "financeDisabled": "Financieel dashboard (geen organisatie)",
+      "financeDisabledTitle": "Financieel dashboard — vereist een organisatie"
+    }
+  },
+  "dashboard": {
+    "welcome": "Welkom terug, {name}!",
+    "subtitle": "Dit is wat er vandaag gebeurt in je klaslokalen.",
+    "stats": {
+      "activeClassrooms": "Actieve klaslokalen",
+      "activeClassroomsDescription": "Live en geplande lessen",
+      "recordings": "Opnames",
+      "recordingsDescription": "Opgeslagen sessieopnames",
+      "organization": "Organisatie",
+      "organizationDescription": "Jouw organisatie",
+      "organizationFallback": "N.v.t."
+    },
+    "quickActions": {
+      "title": "Snelle acties",
+      "description": "Start of neem direct deel aan een sessie",
+      "intro": "Start of neem deel aan een videoconferentie.",
+      "startClassroom": "Klaslokaal starten",
+      "startSpeechSession": "Spraaksessie starten",
+      "managePersistentRooms": "Permanente kamers beheren"
+    },
+    "recentRooms": {
+      "title": "Recente kamers",
+      "description": "Je meest recent aangemaakte klaslokalen",
+      "empty": "Nog geen kamers aangemaakt",
+      "createFirst": "Maak je eerste kamer aan",
+      "types": {
+        "classroom": "Klaslokaal",
+        "speech": "Spraak",
+        "meeting": "Vergadering"
+      }
+    }
+  },
+  "rooms": {
+    "title": "Klaslokalen beheren",
+    "subtitle": "Maak en beheer permanente kamercodes voor terugkerende lessen",
+    "errors": {
+      "loadTitle": "Fout bij laden kamers",
+      "fetchFailed": "Klaslokalen ophalen mislukt",
+      "fetchRetry": "Kamers ophalen mislukt. Probeer het opnieuw.",
+      "deleteFailed": "Kamer verwijderen mislukt",
+      "deleteConfirm": "Weet je zeker dat je \"{code}\" wilt verwijderen?"
+    },
+    "empty": {
+      "title": "Nog geen kamers",
+      "subtitle": "Maak je eerste permanente kamer aan om te beginnen. Kamers kunnen hergebruikt worden voor terugkerende sessies."
+    },
+    "types": {
+      "meeting": "vergadering",
+      "classroom": "klaslokaal",
+      "speech": "spraak"
+    },
+    "actions": {
+      "copyStudentLink": "Leerlingenlink kopiëren",
+      "joinRoom": "Deelnemen",
+      "joining": "Bezig met deelnemen…"
+    }
+  },
+  "recordings": {
+    "title": "Sessiegeschiedenis",
+    "subtitle": "Bekijk eerdere klaslokaalsessies en opnames",
+    "empty": "Nog geen sessies. Sessies worden aangemaakt wanneer deelnemers aan een klaslokaal deelnemen.",
+    "errors": {
+      "loadFailed": "Laden van sessies mislukt"
+    },
+    "table": {
+      "roomName": "Kamernaam",
+      "dateTime": "Datum en tijd",
+      "duration": "Duur",
+      "recording": "Opname",
+      "actions": "Acties",
+      "watch": "Bekijken"
+    },
+    "status": {
+      "noRecording": "Geen opname",
+      "available": "Beschikbaar",
+      "recording": "Bezig met opnemen...",
+      "failed": "Mislukt",
+      "processing": "Verwerken..."
+    },
+    "pagination": {
+      "showing": "{start} tot {end} van {total} sessies weergegeven"
+    }
+  },
+  "prompts": {
+    "title": "Vertaalprompt-sjablonen",
+    "subtitleStart": "Maak en beheer herbruikbare vertaalprompts voor je klaslokalen. Gebruik ",
+    "subtitleMiddle": " en ",
+    "subtitleEnd": " als plaatshouders om taal-onafhankelijke sjablonen te maken.",
+    "createNew": "Nieuw sjabloon maken",
+    "refresh": "Sjablonen vernieuwen",
+    "loading": "Sjablonen laden...",
+    "errors": {
+      "fetchFailed": "Sjablonen ophalen mislukt",
+      "loadFailed": "Promptsjablonen laden mislukt",
+      "deleteFailed": "Sjabloon verwijderen mislukt"
+    },
+    "info": {
+      "title": "Zo gebruik je promptsjablonen",
+      "createBold": "Maak sjablonen",
+      "createRest": " met {source} en {target} plaatshouders",
+      "selectBold": "Selecteer een sjabloon",
+      "selectRest": " bij het aanmaken van een klaslokaal",
+      "placeholderBold": "Plaatshouders worden automatisch vervangen",
+      "placeholderRest": " door de werkelijke taalnamen tijdens de vertaling",
+      "oneBold": "Eén sjabloon werkt voor alle talen",
+      "oneRest": " - leerlingen kunnen elke taal aanvragen en dezelfde aangepaste prompt gebruiken",
+      "publicBold": "Openbare sjablonen",
+      "publicRest": " worden standaard meegeleverd en kunnen niet worden gewijzigd"
+    }
+  },
+  "profile": {
+    "title": "Profielinstellingen",
+    "subtitle": "Beheer je accountinstellingen en voorkeuren.",
+    "personal": {
+      "title": "Persoonlijke gegevens",
+      "description": "Werk je persoonlijke gegevens en profielfoto bij",
+      "fullName": "Volledige naam",
+      "avatarUrl": "Avatar-URL",
+      "avatarHint": "Optioneel: link naar je profielfoto",
+      "updated": "Profiel succesvol bijgewerkt!"
+    },
+    "account": {
+      "title": "Accountgegevens",
+      "description": "Je accountgegevens",
+      "email": "E-mail",
+      "role": "Rol",
+      "organization": "Organisatie",
+      "memberSince": "Lid sinds",
+      "organizationFallback": "N.v.t."
+    },
+    "organization": {
+      "title": "Organisatie",
+      "description": "Werk de weergavenaam van je organisatie bij",
+      "name": "Naam organisatie",
+      "updated": "Naam van organisatie succesvol bijgewerkt!"
+    }
+  },
+  "billing": {
+    "pageTitle": "Facturatie",
+    "pageSubtitle": "Beheer je abonnement en betaalmethoden",
+    "warnings": {
+      "pastDueTitle": "Betaling achterstallig",
+      "pastDueMessage": "Je laatste betaling is mislukt. Werk je betaalmethode bij om onderbreking van de service te voorkomen.",
+      "incompleteTitle": "Abonnement onvolledig",
+      "incompleteMessage": "Je abonnement is niet volledig ingesteld. Voltooi de betaling om je account te activeren."
+    },
+    "currentPlan": {
+      "title": "Huidig abonnement",
+      "tierFree": "Gratis abonnement",
+      "tierPro": "Pro-abonnement",
+      "tierBeta": "Beta-abonnement",
+      "perMonth": "/maand",
+      "perYear": "/jaar",
+      "accessUntil": "Toegang tot",
+      "trialEnds": "Proefperiode eindigt",
+      "nextBilling": "Volgende factuurdatum",
+      "amount": "Bedrag",
+      "cancellingNotice": "Je abonnement wordt aan het einde van de factuurperiode beëindigd. Je kunt het op elk moment vóór {date} opnieuw activeren.",
+      "status": {
+        "active": "Actief",
+        "trialing": "Proefperiode",
+        "pastDue": "Achterstallig",
+        "canceled": "Geannuleerd",
+        "unpaid": "Onbetaald",
+        "incomplete": "Onvolledig"
+      }
+    },
+    "paymentMethod": {
+      "title": "Betaalmethode",
+      "empty": "Geen betaalmethode opgeslagen",
+      "emptyHint": "Voeg er een toe via het klantenportaal hieronder",
+      "expires": "Verloopt {exp}",
+      "default": "Standaard betaalmethode",
+      "updateHint": "Werk je betaalmethode bij via het klantenportaal hieronder"
+    },
+    "invoices": {
+      "title": "Factuurgeschiedenis",
+      "empty": "Nog geen facturen",
+      "emptyHint": "Facturen verschijnen hier na je eerste betaling",
+      "columns": {
+        "date": "Datum",
+        "amount": "Bedrag",
+        "status": "Status",
+        "invoice": "Factuur",
+        "download": "Downloaden"
+      },
+      "status": {
+        "paid": "Betaald",
+        "open": "Open",
+        "draft": "Concept",
+        "uncollectible": "Oninbaar",
+        "void": "Geannuleerd"
+      },
+      "showingOne": "{count} factuur weergegeven",
+      "showingMany": "{count} facturen weergegeven"
+    },
+    "plans": {
+      "title": "Upgrade je abonnement",
+      "current": "Huidig",
+      "currentPlan": "Huidig abonnement",
+      "upgradePro": "Upgrade naar Pro",
+      "contactSales": "Neem contact op met verkoop",
+      "perMonth": "/maand",
+      "free": {
+        "name": "Gratis",
+        "features": {
+          "classrooms": "3 klaslokalen",
+          "recordings": "1 uur opnames",
+          "support": "Basisondersteuning",
+          "features": "Standaardfuncties"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "classrooms": "Onbeperkt klaslokalen",
+          "recordings": "Onbeperkt opnames",
+          "support": "E-mailondersteuning",
+          "features": "Geavanceerde functies",
+          "priority": "Prioriteittoegang"
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Op maat",
+        "features": {
+          "everything": "Alles uit Pro",
+          "branding": "Eigen huisstijl",
+          "support": "Toegewijde ondersteuning",
+          "sla": "SLA-garantie",
+          "integrations": "Aangepaste integraties"
+        }
+      },
+      "helpTitle": "Hulp nodig bij het kiezen?",
+      "helpText": " Ons Pro-abonnement is perfect voor groeiende teams, terwijl Enterprise maatwerkoplossingen biedt voor grotere organisaties."
+    },
+    "manage": {
+      "title": "Abonnement beheren",
+      "description": "Werk je betaalmethode bij, bekijk facturen of wijzig je abonnement via het Stripe-klantenportaal.",
+      "button": "Abonnement beheren",
+      "opening": "Portaal openen...",
+      "error": "Er is iets misgegaan",
+      "failedOpen": "Factureringsportaal openen mislukt"
+    }
+  },
+  "mosqueAdmin": {
+    "prefix": "Moskeebeheer",
+    "backToDashboard": "← Terug naar dashboard",
+    "dashboard": {
+      "title": "Moskeebeheer",
+      "subtitle": "Beheer de donaties, campagnes en leden van je moskee",
+      "kycBadge": "KYC: {status}",
+      "kycStatus": {
+        "pending": "in afwachting",
+        "submitted": "ingediend",
+        "approved": "goedgekeurd",
+        "rejected": "afgewezen"
+      },
+      "txStatus": {
+        "PAID": "Betaald",
+        "PENDING": "In afwachting",
+        "CANCEL": "Geannuleerd",
+        "EXPIRED": "Verlopen"
+      },
+      "donationsActive": "Donaties actief",
+      "donationsInactive": "Donaties inactief",
+      "settingsLink": "Instellingen →",
+      "onboardingTitle": "Betalingsverwerking niet ingesteld",
+      "onboardingDescription": "Voltooi je handelaarsregistratie om donaties direct op je bankrekening te ontvangen.",
+      "onboardingCta": "Betalingen instellen",
+      "totalRaised": "Totaal opgehaald",
+      "totalRaisedCaption": "{count} betaalde donaties",
+      "thisMonth": "Deze maand",
+      "thisMonthCaption": "{count} donaties deze maand",
+      "activeCampaigns": "Actieve campagnes",
+      "activeCampaignsCaption": "Zichtbaar op de donatiepagina",
+      "manageCampaigns": "Campagnes beheren →",
+      "activeProducts": "Actieve producten",
+      "activeProductsCaption": "Beschikbaar in de winkel",
+      "manageProducts": "Producten beheren →",
+      "activeAppointmentOfferings": "Actieve afspraakaanbiedingen",
+      "activeAppointmentOfferingsCaption": "Te boeken op de afsprakenpagina",
+      "manageAppointments": "Afspraken beheren →",
+      "paynlRoutingTitle": "Pay.nl routing",
+      "paynlRoutingDescription": "Waar donaties momenteel naartoe stromen voor deze organisatie",
+      "serviceIdLabel": "Service-ID:",
+      "merchantIdLabel": "Handelaars-ID:",
+      "platformFeeLabel": "Platformkosten:",
+      "paynlFallbackMessage": "Gebruikt de platformbrede Pay.nl-fallback. Bij Alliance sub-merchant onboarding wordt hier een eigen verkooplocatie toegewezen.",
+      "recentDonationsTitle": "Recente donaties",
+      "recentDonationsDescription": "Laatste 10 transacties voor deze organisatie",
+      "viewAll": "Alles bekijken →",
+      "noDonationsYet": "Nog geen donaties.",
+      "tableOrder": "Bestelling",
+      "tableDonor": "Donateur",
+      "tableAmount": "Bedrag",
+      "tableStatus": "Status",
+      "tableDate": "Datum"
+    },
+    "campaigns": {
+      "title": "Campagnes",
+      "subtitle": "Beheer je donatiecampagnes",
+      "pageSubtitle": "{name} — beheer donatiedoelen die op je donatiepagina worden getoond",
+      "list": {
+        "newCampaign": "Nieuwe campagne",
+        "createFirst": "Maak je eerste campagne",
+        "emptyTitle": "Nog geen campagnes",
+        "emptyDescriptionBefore": "Maak je eerste campagne om donaties te accepteren op ",
+        "emptyDescriptionAfter": "."
+      },
+      "table": {
+        "order": "Volgorde",
+        "campaign": "Campagne",
+        "cause": "Doel",
+        "raised": "Opgehaald",
+        "goal": "Doelbedrag",
+        "active": "Actief",
+        "actions": "Acties",
+        "live": "Live",
+        "hidden": "Verborgen",
+        "moveUp": "Omhoog",
+        "moveDown": "Omlaag",
+        "edit": "Bewerken",
+        "deleteCampaign": "Campagne verwijderen",
+        "deleting": "Verwijderen…",
+        "toggleActiveAria": "Schakel {title} actief"
+      },
+      "form": {
+        "editTitle": "Campagne bewerken",
+        "newTitle": "Nieuwe campagne",
+        "editDescription": "Werk de details van dit donatiedoel bij.",
+        "newDescription": "Maak een nieuw donatiedoel dat op je donatiepagina verschijnt.",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "bijv. Ramadan iftar fonds",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "bijv. ramadan-iftar",
+        "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
+        "slugHintCreate": "Wordt gebruikt in de donatie-URL: /donate/<org>/<slug>. Kleine letters, cijfers en streepjes.",
+        "descriptionLabel": "Beschrijving",
+        "descriptionPlaceholder": "Wat ondersteunt deze campagne? Optioneel.",
+        "causeLabel": "Type doel",
+        "causePlaceholder": "zakat, sadaqah…",
+        "causeHint": "Vrije tekst tag voor rapportage.",
+        "goalLabel": "Doelbedrag (€)",
+        "goalPlaceholder": "Optioneel",
+        "goalHint": "Laat leeg als er geen vast doel is.",
+        "iconLabel": "Pictogram",
+        "iconNone": "Geen",
+        "iconHint": "Getoond op de donatiepagina wanneer deze campagne is geselecteerd.",
+        "activeLabel": "Actief — zichtbaar op de donatiepagina en accepteert donaties",
+        "cancel": "Annuleren",
+        "saving": "Opslaan…",
+        "creating": "Aanmaken…",
+        "saveChanges": "Wijzigingen opslaan",
+        "createCampaign": "Campagne aanmaken",
+        "errors": {
+          "titleMin": "Titel moet minstens 2 tekens bevatten",
+          "slugInvalid": "Slug moet 3-60 kleine letters, cijfers of streepjes zijn (zonder streepje aan begin/einde)",
+          "goalInvalid": "Doelbedrag moet een niet-negatief getal zijn",
+          "updateFailed": "Campagne bijwerken mislukt",
+          "createFailed": "Campagne aanmaken mislukt",
+          "somethingWrong": "Er is iets misgegaan"
+        }
+      },
+      "confirmDelete": "Campagne \"{title}\" verwijderen? Dit kan niet ongedaan gemaakt worden. Campagnes met bestaande donaties kunnen niet verwijderd worden — deactiveer ze in plaats daarvan.",
+      "toast": {
+        "orderUpdated": "Volgorde bijgewerkt",
+        "reorderFailed": "Herordenen mislukt",
+        "activated": "Campagne geactiveerd",
+        "deactivated": "Campagne gedeactiveerd",
+        "updateFailed": "Bijwerken mislukt",
+        "deleted": "Campagne verwijderd",
+        "deleteFailed": "Verwijderen mislukt"
+      }
+    },
+    "products": {
+      "title": "Producten",
+      "subtitle": "Beheer je donatieproducten",
+      "pageSubtitle": "{name} — beheer items die beschikbaar zijn in je winkel",
+      "list": {
+        "newProduct": "Nieuw product",
+        "addFirst": "Voeg je eerste product toe",
+        "emptyTitle": "Nog geen producten",
+        "emptyDescription": "Voeg je eerste product toe om te beginnen met verkopen op je winkelpagina."
+      },
+      "table": {
+        "order": "Volgorde",
+        "product": "Product",
+        "category": "Categorie",
+        "price": "Prijs",
+        "stock": "Voorraad",
+        "active": "Actief",
+        "actions": "Acties",
+        "unlimited": "Onbeperkt",
+        "soldOut": "Uitverkocht",
+        "live": "Live",
+        "hidden": "Verborgen",
+        "moveUp": "Omhoog",
+        "moveDown": "Omlaag",
+        "edit": "Bewerken",
+        "deleteProduct": "Product verwijderen",
+        "deleting": "Verwijderen…",
+        "toggleActiveAria": "Schakel {title} actief"
+      },
+      "form": {
+        "editTitle": "Product bewerken",
+        "newTitle": "Nieuw product",
+        "editDescription": "Werk de details van dit product bij.",
+        "newDescription": "Voeg een nieuw product toe aan je winkel.",
+        "titleLabel": "Titel",
+        "titlePlaceholder": "bijv. Koran — Sahih International",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "bijv. quran-sahih-international",
+        "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
+        "slugHintCreate": "Wordt gebruikt in de winkel-URL: /shop/<org>/<slug>. Kleine letters, cijfers en streepjes.",
+        "descriptionLabel": "Beschrijving",
+        "descriptionPlaceholder": "Productdetails. Optioneel.",
+        "priceLabel": "Prijs (€)",
+        "pricePlaceholder": "bijv. 12,50",
+        "stockLabel": "Voorraad",
+        "stockPlaceholder": "Onbeperkt",
+        "stockHint": "Laat leeg voor onbeperkte voorraad.",
+        "categoryLabel": "Categorie",
+        "categoryPlaceholder": "boeken, kleding, voedsel…",
+        "categoryHint": "Vrije tekst tag om producten te groeperen.",
+        "imageLabel": "Afbeeldings-URL",
+        "imagePlaceholder": "https://…",
+        "imageHint": "Directe link naar een productafbeelding. Optioneel.",
+        "activeLabel": "Actief — zichtbaar in de winkel en beschikbaar om te kopen",
+        "cancel": "Annuleren",
+        "saving": "Opslaan…",
+        "creating": "Aanmaken…",
+        "saveChanges": "Wijzigingen opslaan",
+        "createProduct": "Product aanmaken",
+        "errors": {
+          "titleMin": "Titel moet minstens 2 tekens bevatten",
+          "slugInvalid": "Slug moet 3-60 kleine letters, cijfers of streepjes zijn (zonder streepje aan begin/einde)",
+          "priceRequired": "Prijs is verplicht",
+          "priceInvalid": "Prijs moet een positief getal zijn",
+          "stockInvalid": "Voorraad moet een niet-negatief getal zijn (of laat leeg voor onbeperkt)",
+          "updateFailed": "Product bijwerken mislukt",
+          "createFailed": "Product aanmaken mislukt",
+          "somethingWrong": "Er is iets misgegaan"
+        }
+      },
+      "confirmDelete": "Product \"{title}\" verwijderen? Dit kan niet ongedaan gemaakt worden.",
+      "toast": {
+        "orderUpdated": "Volgorde bijgewerkt",
+        "reorderFailed": "Herordenen mislukt",
+        "activated": "Product geactiveerd",
+        "deactivated": "Product gedeactiveerd",
+        "updateFailed": "Bijwerken mislukt",
+        "deleted": "Product verwijderd",
+        "deleteFailed": "Verwijderen mislukt"
+      }
+    },
+    "members": {
+      "title": "Leden",
+      "subtitle": "Beheer de leden van je moskee",
+      "pageSubtitle": "{name} — terugkerende donateurs met actieve SEPA-machtigingen",
+      "summary": {
+        "active": "Actief",
+        "pending": "In afwachting",
+        "atRisk": "Risico",
+        "collected": "Geïncasseerd"
+      },
+      "filters": {
+        "searchPlaceholder": "Zoek op donateur, e-mail, IBAN-houder…",
+        "all": "Alle",
+        "active": "Actief",
+        "pending": "In afwachting",
+        "cancelled": "Geannuleerd",
+        "expired": "Verlopen",
+        "atRiskOnly": "⚠ Alleen risico",
+        "showAtRiskOnly": "Alleen risico tonen"
+      },
+      "empty": {
+        "title": "Geen leden komen overeen met je filters",
+        "none": "Er zijn nog geen SEPA-machtigingen aangemaakt voor deze organisatie.",
+        "clear": "Probeer de zoekopdracht of statusfilter te wissen."
+      },
+      "table": {
+        "donor": "Donateur",
+        "campaign": "Campagne",
+        "monthly": "Maandelijks",
+        "collected": "Geïncasseerd",
+        "lastDebit": "Laatste incasso",
+        "stornos": "Storneringen",
+        "status": "Status",
+        "actions": "Acties",
+        "recentStorno": "⚠ {count} recent",
+        "recentStornoTooltip": "2+ storneringen in de laatste 3 incasso's — waarschijnlijk onvoldoende saldo",
+        "cancel": "Annuleren"
+      },
+      "status": {
+        "ACTIVE": "Actief",
+        "PENDING": "In afwachting",
+        "CANCELLED": "Geannuleerd",
+        "EXPIRED": "Verlopen"
+      },
+      "cancelDialog": {
+        "title": "SEPA-machtiging annuleren?",
+        "description": "Dit annuleert de terugkerende automatische incasso van de donateur permanent bij Pay.nl. Er worden geen toekomstige incasso's meer uitgevoerd. De donateur moet een nieuwe machtiging ondertekenen om weer te doneren.",
+        "donorLabel": "Donateur:",
+        "emailLabel": "E-mail:",
+        "mandateLabel": "Machtiging:",
+        "totalCollectedLabel": "Totaal geïncasseerd:",
+        "debitsCount": "({count} incasso's)",
+        "stornoWarning": "⚠ Deze machtiging heeft {count} storneringen met 2+ bij de laatste pogingen.",
+        "keep": "Machtiging behouden",
+        "cancelling": "Annuleren…",
+        "confirm": "Machtiging annuleren"
+      },
+      "toast": {
+        "cancelled": "Machtiging geannuleerd",
+        "cancelFailed": "Annuleren mislukt"
+      }
+    },
+    "transactions": {
+      "title": "Transacties",
+      "subtitle": "Bekijk je transactiegeschiedenis",
+      "pageSubtitle": "{name} — elke donatie, eenmalig en terugkerend, in één grootboek",
+      "summary": {
+        "matching": "Overeenkomend",
+        "collected": "Geïncasseerd",
+        "pending": "In afwachting",
+        "failed": "Mislukt"
+      },
+      "filters": {
+        "searchPlaceholder": "Zoek op donateur, e-mail, referentie…",
+        "all": "Alle",
+        "oneTime": "Eenmalig",
+        "recurring": "Terugkerend",
+        "success": "Geslaagd",
+        "pending": "In afwachting",
+        "failed": "Mislukt"
+      },
+      "empty": {
+        "title": "Geen transacties komen overeen met je filters",
+        "none": "Er zijn nog geen donaties geregistreerd voor deze organisatie.",
+        "clear": "Probeer de zoekopdracht of statusfilter te wissen."
+      },
+      "table": {
+        "date": "Datum",
+        "donor": "Donateur",
+        "campaign": "Campagne",
+        "type": "Type",
+        "amount": "Bedrag",
+        "status": "Status",
+        "reference": "Referentie",
+        "sepa": "SEPA",
+        "oneTime": "eenmalig",
+        "test": "test"
+      },
+      "txStatus": {
+        "PAID": "Betaald",
+        "PENDING": "In afwachting",
+        "CANCEL": "Geannuleerd",
+        "EXPIRED": "Verlopen",
+        "COLLECTED": "Geïncasseerd",
+        "STORNO": "Storno",
+        "DECLINED": "Geweigerd"
+      },
+      "pagination": {
+        "info": "Pagina {page} van {total} · {count} resultaten",
+        "previous": "Vorige",
+        "next": "Volgende"
+      }
+    },
+    "settings": {
+      "title": "Instellingen",
+      "subtitle": "Beheer de instellingen van je organisatie",
+      "prefix": "Moskee-instellingen",
+      "tabs": {
+        "general": "Algemeen",
+        "payments": "Betalingen",
+        "animation": "Bedank-animatie"
+      },
+      "general": {
+        "title": "Algemene informatie",
+        "description": "Basisgegevens over je organisatie. Bewerken komt beschikbaar in een toekomstige update.",
+        "name": "Naam",
+        "slug": "Slug",
+        "city": "Stad",
+        "country": "Land",
+        "contactEmail": "Contact-e-mail",
+        "descriptionField": "Beschrijving",
+        "viewDonateLanding": "Bekijk donatie-landingspagina"
+      },
+      "onboarding": {
+        "title": "Betalingsverwerking instellen",
+        "description": "Registreer je als handelaar om donaties direct op je bankrekening te ontvangen",
+        "businessDetails": "Bedrijfsgegevens",
+        "legalName": "Juridische naam (zoals geregistreerd bij KvK) *",
+        "tradingName": "Handelsnaam (getoond aan donateurs) *",
+        "kvkNumber": "KvK-nummer (8 cijfers) *",
+        "kvkPlaceholder": "12345678",
+        "vatNumber": "BTW-nummer (optioneel)",
+        "vatPlaceholder": "NL123456789B01",
+        "businessDescription": "Bedrijfsbeschrijving *",
+        "businessDescriptionPlaceholder": "Beschrijf wat je organisatie doet en waar donaties voor worden gebruikt...",
+        "website": "Website (optioneel)",
+        "websitePlaceholder": "https://www.example.nl",
+        "contactInformation": "Contactgegevens",
+        "contactEmail": "Contact-e-mail *",
+        "contactPhone": "Telefoonnummer",
+        "contactPhonePlaceholder": "+31 6 12345678",
+        "registeredAddress": "Geregistreerd adres",
+        "street": "Straat *",
+        "houseNumber": "Huisnummer *",
+        "postalCode": "Postcode *",
+        "postalPlaceholder": "1234 AB",
+        "city": "Stad *",
+        "country": "Landcode *",
+        "countryPlaceholder": "NL",
+        "bankAccount": "Bankrekening (voor uitbetalingen)",
+        "iban": "IBAN *",
+        "ibanPlaceholder": "NL91 ABNA 0417 1643 00",
+        "ibanOwner": "Naam rekeninghouder *",
+        "submitting": "Versturen...",
+        "submit": "Aanvraag indienen",
+        "errors": {
+          "submitFailed": "Aanvraag indienen mislukt",
+          "somethingWrong": "Er is iets misgegaan"
+        },
+        "toastSuccess": "Handelaarsaanvraag succesvol ingediend"
+      },
+      "kycPending": {
+        "title": "Aanvraag in beoordeling",
+        "description": "Je handelaarsaanvraag is ingediend en wordt beoordeeld door Pay.nl. Dit duurt meestal 1-3 werkdagen. Zodra het is goedgekeurd, kun je donaties direct ontvangen.",
+        "checking": "Controleren...",
+        "checkStatus": "Status controleren",
+        "refreshed": "Status vernieuwd",
+        "refreshError": "Kon status niet vernieuwen"
+      },
+      "kycRejected": {
+        "title": "Aanvraag afgewezen",
+        "description": "Je handelaarsaanvraag is niet goedgekeurd door Pay.nl. Dit kan komen door onvolledige of onjuiste informatie. Neem contact op met ons supportteam om het probleem op te lossen en je aanvraag opnieuw in te dienen.",
+        "recheck": "Status opnieuw controleren"
+      },
+      "merchantStatus": {
+        "title": "Handelaar geverifieerd",
+        "description": "Je organisatie is ingesteld om donaties te ontvangen",
+        "refresh": "Vernieuwen",
+        "refreshed": "Status vernieuwd",
+        "refreshError": "Kon status niet vernieuwen",
+        "statusLabel": "Status",
+        "donationsActive": "Donaties actief",
+        "donationsInactive": "Donaties inactief",
+        "merchantId": "Handelaars-ID",
+        "serviceId": "Service-ID",
+        "platformFee": "Platformkosten",
+        "verifiedSince": "Geverifieerd sinds",
+        "financeTitle": "Financiën",
+        "financeDescription": "Beheer je donaties en campagnes",
+        "transactionsTitle": "Transacties",
+        "transactionsDescription": "Bekijk alle donaties",
+        "campaignsTitle": "Campagnes",
+        "campaignsDescription": "Beheer donatiedoelen",
+        "donatePageTitle": "Donatiepagina",
+        "donatePageDescription": "Voorbeeld van openbare pagina"
+      },
+      "animation": {
+        "title": "Bedank-animatie",
+        "description": "Kies de animatie die donateurs zien na een succesvolle donatie. De pagina voor geannuleerde donaties is voor iedereen hetzelfde en niet aanpasbaar.",
+        "categories": {
+          "celebration": "Viering",
+          "islamic": "Islamitisch",
+          "charity": "Liefdadigheid"
+        },
+        "selected": "Geselecteerd",
+        "updated": "Bedank-animatie bijgewerkt",
+        "updateFailed": "Bijwerken van animatie mislukt",
+        "saveFailed": "Opslaan mislukt"
+      }
+    }
+  }
+}

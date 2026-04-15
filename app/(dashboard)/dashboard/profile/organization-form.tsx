@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
+import { useTranslations } from 'next-intl';
 import { updateOrganizationName } from '@/lib/actions/auth';
 import { useUser } from '@/lib/contexts/UserContext';
 import { Button } from '@/components/ui/button';
@@ -9,9 +10,10 @@ import { FloatingLabelInput } from '@/components/ui/floating-label-input';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
+  const tCommon = useTranslations('common');
   return (
     <Button type="submit" disabled={pending}>
-      {pending ? 'Saving...' : 'Save Changes'}
+      {pending ? tCommon('saving') : tCommon('saveChanges')}
     </Button>
   );
 }
@@ -22,6 +24,7 @@ interface OrganizationFormProps {
 
 export function OrganizationForm({ currentName }: OrganizationFormProps) {
   const { refetch } = useUser();
+  const t = useTranslations('profile.organization');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -33,8 +36,6 @@ export function OrganizationForm({ currentName }: OrganizationFormProps) {
 
     if (result.success) {
       setSuccess(true);
-      // Refresh the in-memory profile so the sidebar / header pick up the
-      // new name without a full page reload.
       await refetch();
       setTimeout(() => setSuccess(false), 3000);
     } else if (result.error) {
@@ -46,12 +47,10 @@ export function OrganizationForm({ currentName }: OrganizationFormProps) {
     <form action={handleSubmit}>
       <div className="grid gap-4">
         <FloatingLabelInput
-          // Re-key on currentName so the uncontrolled input re-reads its
-          // defaultValue after a successful save → refetch() round-trip.
           key={currentName}
           id="orgName"
           name="orgName"
-          label="Organization Name"
+          label={t('name')}
           defaultValue={currentName}
           maxLength={100}
           required
@@ -63,7 +62,7 @@ export function OrganizationForm({ currentName }: OrganizationFormProps) {
 
         {success && (
           <div className="text-sm text-green-600 bg-green-50 dark:bg-green-950 p-3 rounded-md">
-            Organization name updated successfully!
+            {t('updated')}
           </div>
         )}
 

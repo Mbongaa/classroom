@@ -1,5 +1,6 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { TransactionsClient, type UnifiedTransaction } from './TransactionsClient';
@@ -81,6 +82,8 @@ function pickRelation<T>(value: T | T[] | null | undefined): T | null {
 export default async function TransactionsPage({ params }: PageProps) {
   const { slug } = await params;
   const supabase = await createClient();
+  const t = await getTranslations('mosqueAdmin.transactions');
+  const tRoot = await getTranslations('mosqueAdmin');
 
   const {
     data: { user },
@@ -224,18 +227,18 @@ export default async function TransactionsPage({ params }: PageProps) {
       <div className="mb-8 flex items-start justify-between">
         <div>
           <p className="text-sm uppercase tracking-wider text-slate-500 dark:text-slate-400">
-            Mosque admin
+            {tRoot('prefix')}
           </p>
-          <h1 className="mt-1 text-3xl font-semibold leading-tight">Transactions</h1>
+          <h1 className="mt-1 text-3xl font-semibold leading-tight">{t('title')}</h1>
           <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
-            {organization.name} — every donation, one-time and recurring, in one ledger
+            {t('pageSubtitle', { name: organization.name })}
           </p>
         </div>
         <Link
           href={`/mosque-admin/${organization.slug}`}
           className="text-sm text-slate-500 underline-offset-4 hover:underline dark:text-slate-400"
         >
-          ← Back to dashboard
+          {tRoot('backToDashboard')}
         </Link>
       </div>
 

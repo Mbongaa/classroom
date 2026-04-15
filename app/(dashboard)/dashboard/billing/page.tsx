@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
+import { getTranslations } from 'next-intl/server';
 import {
   getDefaultPaymentMethod,
   listCustomerInvoices,
@@ -19,6 +20,7 @@ export const metadata = {
 };
 
 export default async function BillingPage() {
+  const t = await getTranslations('billing');
   const supabase = await createClient();
 
   // Get authenticated user
@@ -96,8 +98,8 @@ export default async function BillingPage() {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-white">Billing</h1>
-        <p className="text-gray-400 mt-1">Manage your subscription and payment methods</p>
+        <h1 className="text-2xl font-bold text-white">{t('pageTitle')}</h1>
+        <p className="text-gray-400 mt-1">{t('pageSubtitle')}</p>
       </div>
 
       {/* Warning Banners */}
@@ -105,10 +107,9 @@ export default async function BillingPage() {
         <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-medium text-yellow-500">Payment Past Due</h3>
+            <h3 className="font-medium text-yellow-500">{t('warnings.pastDueTitle')}</h3>
             <p className="text-sm text-yellow-400/80 mt-1">
-              Your last payment failed. Please update your payment method to avoid service
-              interruption.
+              {t('warnings.pastDueMessage')}
             </p>
           </div>
         </div>
@@ -118,10 +119,9 @@ export default async function BillingPage() {
         <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
           <div>
-            <h3 className="font-medium text-red-500">Subscription Incomplete</h3>
+            <h3 className="font-medium text-red-500">{t('warnings.incompleteTitle')}</h3>
             <p className="text-sm text-red-400/80 mt-1">
-              Your subscription setup was not completed. Please complete payment to activate your
-              account.
+              {t('warnings.incompleteMessage')}
             </p>
           </div>
         </div>
@@ -151,10 +151,9 @@ export default async function BillingPage() {
       {/* Manage Subscription (only for paying customers) */}
       {organization.stripe_customer_id && (
         <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Manage Subscription</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">{t('manage.title')}</h2>
           <p className="text-gray-400 text-sm mb-6">
-            Update your payment method, view invoices, or change your subscription plan through
-            the Stripe Customer Portal.
+            {t('manage.description')}
           </p>
           <ManageSubscriptionButton />
         </div>

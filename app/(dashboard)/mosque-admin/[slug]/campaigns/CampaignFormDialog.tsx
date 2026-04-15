@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -62,6 +63,7 @@ export function CampaignFormDialog({
   campaign,
   onSuccess,
 }: CampaignFormDialogProps) {
+  const t = useTranslations('mosqueAdmin.campaigns.form');
   const isEdit = mode === 'edit';
 
   const [title, setTitle] = useState('');
@@ -121,13 +123,11 @@ export function CampaignFormDialog({
 
     const trimmedTitle = title.trim();
     if (trimmedTitle.length < 2) {
-      setError('Title must be at least 2 characters');
+      setError(t('errors.titleMin'));
       return;
     }
     if (!isEdit && !SLUG_RE.test(slug)) {
-      setError(
-        'Slug must be 3-60 lowercase letters, numbers or hyphens (no leading/trailing hyphen)',
-      );
+      setError(t('errors.slugInvalid'));
       return;
     }
 
@@ -135,7 +135,7 @@ export function CampaignFormDialog({
     if (goalEuros.trim() !== '') {
       const parsed = Number(goalEuros.replace(',', '.'));
       if (!Number.isFinite(parsed) || parsed < 0) {
-        setError('Goal amount must be a non-negative number');
+        setError(t('errors.goalInvalid'));
         return;
       }
       goalAmountCents = Math.round(parsed * 100);
@@ -168,12 +168,12 @@ export function CampaignFormDialog({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || `Failed to ${isEdit ? 'update' : 'create'} campaign`);
+        throw new Error(data.error || (isEdit ? t('errors.updateFailed') : t('errors.createFailed')));
       }
       onSuccess(data.campaign);
       onOpenChange(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
+      setError(err instanceof Error ? err.message : t('errors.somethingWrong'));
     } finally {
       setSubmitting(false);
     }
@@ -184,22 +184,20 @@ export function CampaignFormDialog({
       <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-[520px]">
         <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <DialogHeader className="flex-shrink-0">
-            <DialogTitle>{isEdit ? 'Edit campaign' : 'New campaign'}</DialogTitle>
+            <DialogTitle>{isEdit ? t('editTitle') : t('newTitle')}</DialogTitle>
             <DialogDescription>
-              {isEdit
-                ? 'Update the details for this donation cause.'
-                : 'Create a new donation cause that will appear on your donate page.'}
+              {isEdit ? t('editDescription') : t('newDescription')}
             </DialogDescription>
           </DialogHeader>
 
           <div className="grid min-h-0 gap-4 overflow-y-auto py-2">
             <div className="grid gap-2">
               <Label htmlFor="campaign-title">
-                Title <span className="text-red-500">*</span>
+                {t('titleLabel')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="campaign-title"
-                placeholder="e.g. Ramadan iftar fund"
+                placeholder={t('titlePlaceholder')}
                 value={title}
                 onChange={(e) => handleTitleChange(e.target.value)}
                 disabled={submitting}
@@ -210,11 +208,11 @@ export function CampaignFormDialog({
 
             <div className="grid gap-2">
               <Label htmlFor="campaign-slug">
-                Slug <span className="text-red-500">*</span>
+                {t('slugLabel')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="campaign-slug"
-                placeholder="e.g. ramadan-iftar"
+                placeholder={t('slugPlaceholder')}
                 value={slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
                 disabled={submitting || isEdit}
@@ -222,17 +220,15 @@ export function CampaignFormDialog({
                 required
               />
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                {isEdit
-                  ? 'Slug cannot be changed — it would break links that have already been shared.'
-                  : 'Used in the donate URL: /donate/<org>/<slug>. Lowercase letters, numbers and hyphens.'}
+                {isEdit ? t('slugHintEdit') : t('slugHintCreate')}
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="campaign-description">Description</Label>
+              <Label htmlFor="campaign-description">{t('descriptionLabel')}</Label>
               <Textarea
                 id="campaign-description"
-                placeholder="What does this campaign support? Optional."
+                placeholder={t('descriptionPlaceholder')}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={submitting}
@@ -243,40 +239,40 @@ export function CampaignFormDialog({
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="campaign-cause">Cause type</Label>
+                <Label htmlFor="campaign-cause">{t('causeLabel')}</Label>
                 <Input
                   id="campaign-cause"
-                  placeholder="zakat, sadaqah…"
+                  placeholder={t('causePlaceholder')}
                   value={causeType}
                   onChange={(e) => setCauseType(e.target.value)}
                   disabled={submitting}
                   maxLength={50}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Free-text tag used for reporting.
+                  {t('causeHint')}
                 </p>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="campaign-goal">Goal (€)</Label>
+                <Label htmlFor="campaign-goal">{t('goalLabel')}</Label>
                 <Input
                   id="campaign-goal"
                   type="number"
                   inputMode="decimal"
                   min="0"
                   step="1"
-                  placeholder="Optional"
+                  placeholder={t('goalPlaceholder')}
                   value={goalEuros}
                   onChange={(e) => setGoalEuros(e.target.value)}
                   disabled={submitting}
                 />
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Leave blank if no fixed goal.
+                  {t('goalHint')}
                 </p>
               </div>
             </div>
 
             <div className="grid gap-2">
-              <Label>Icon</Label>
+              <Label>{t('iconLabel')}</Label>
               <div className="grid grid-cols-5 gap-2">
                 {/* No-icon option */}
                 <button
@@ -293,7 +289,7 @@ export function CampaignFormDialog({
                   <div className="flex h-[50px] w-[50px] items-center justify-center text-slate-400">
                     <span className="text-lg">—</span>
                   </div>
-                  <span className="mt-1 text-[10px] text-slate-500">None</span>
+                  <span className="mt-1 text-[10px] text-slate-500">{t('iconNone')}</span>
                 </button>
                 {CAMPAIGN_ICONS.map((entry) => (
                   <button
@@ -314,7 +310,7 @@ export function CampaignFormDialog({
                 ))}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Shown on the donate page when this campaign is selected.
+                {t('iconHint')}
               </p>
             </div>
 
@@ -328,7 +324,7 @@ export function CampaignFormDialog({
                 className="h-4 w-4"
               />
               <Label htmlFor="campaign-active" className="cursor-pointer text-sm font-normal">
-                Active — visible on the donate page and accepting donations
+                {t('activeLabel')}
               </Label>
             </div>
 
@@ -346,16 +342,16 @@ export function CampaignFormDialog({
               onClick={() => onOpenChange(false)}
               disabled={submitting}
             >
-              Cancel
+              {t('cancel')}
             </Button>
             <Button type="submit" disabled={submitting} className="rounded-full">
               {submitting
                 ? isEdit
-                  ? 'Saving…'
-                  : 'Creating…'
+                  ? t('saving')
+                  : t('creating')
                 : isEdit
-                  ? 'Save changes'
-                  : 'Create campaign'}
+                  ? t('saveChanges')
+                  : t('createCampaign')}
             </Button>
           </DialogFooter>
         </form>

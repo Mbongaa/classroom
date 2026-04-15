@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { PromptTemplateList } from '@/app/components/PromptTemplateList';
@@ -8,6 +9,7 @@ import { PromptTemplateEditor } from '@/app/components/PromptTemplateEditor';
 import type { PromptTemplate } from '@/lib/prompt-utils';
 
 export default function PromptsPage() {
+  const t = useTranslations('prompts');
   const [templates, setTemplates] = useState<PromptTemplate[]>([]);
   const [loading, setLoading] = useState(true);
   const [editorOpen, setEditorOpen] = useState(false);
@@ -23,13 +25,13 @@ export default function PromptsPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to fetch templates');
+        throw new Error(data.error || t('errors.fetchFailed'));
       }
 
       const data = await response.json();
       setTemplates(data.templates || []);
     } catch (err: any) {
-      setError(err.message || 'Failed to load prompt templates');
+      setError(err.message || t('errors.loadFailed'));
       console.error('Error fetching templates:', err);
     } finally {
       setLoading(false);
@@ -58,13 +60,13 @@ export default function PromptsPage() {
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error || 'Failed to delete template');
+        throw new Error(data.error || t('errors.deleteFailed'));
       }
 
       // Refresh the list
       await fetchTemplates();
     } catch (err: any) {
-      setError(err.message || 'Failed to delete template');
+      setError(err.message || t('errors.deleteFailed'));
       console.error('Error deleting template:', err);
     }
   };
@@ -78,12 +80,13 @@ export default function PromptsPage() {
     <div className="container max-w-6xl py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">
-          Translation Prompt Templates
-        </h1>
+        <h1 className="text-3xl font-bold mb-2 text-black dark:text-white">{t('title')}</h1>
         <p className="text-slate-500 dark:text-slate-400">
-          Create and manage reusable translation prompts for your classrooms. Use {'{source_lang}'}{' '}
-          and {'{target_lang}'} placeholders to create language-agnostic templates.
+          {t('subtitleStart')}
+          <code>{'{source_lang}'}</code>
+          {t('subtitleMiddle')}
+          <code>{'{target_lang}'}</code>
+          {t('subtitleEnd')}
         </p>
       </div>
 
@@ -92,15 +95,10 @@ export default function PromptsPage() {
         <div className="flex gap-2">
           <Button onClick={handleCreateNew}>
             <Plus className="h-4 w-4 mr-2 text-black dark:text-white" />
-            Create New Template
+            {t('createNew')}
           </Button>
         </div>
-        <Button
-          variant="outline"
-          onClick={fetchTemplates}
-          disabled={loading}
-          title="Refresh templates"
-        >
+        <Button variant="outline" onClick={fetchTemplates} disabled={loading} title={t('refresh')}>
           <RefreshCw
             className={`h-4 w-4 text-black dark:text-white ${loading ? 'animate-spin' : ''}`}
           />
@@ -116,7 +114,7 @@ export default function PromptsPage() {
       {loading && (
         <div className="text-center py-12">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          <p className="mt-2 text-muted-foreground">Loading templates...</p>
+          <p className="mt-2 text-muted-foreground">{t('loading')}</p>
         </div>
       )}
 
@@ -135,35 +133,27 @@ export default function PromptsPage() {
 
       {/* Info Box */}
       <div className="mt-8 p-6 bg-muted rounded-lg">
-        <h3 className="font-semibold mb-2 text-black dark:text-white">
-          How to Use Prompt Templates
-        </h3>
+        <h3 className="font-semibold mb-2 text-black dark:text-white">{t('info.title')}</h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
           <li>
-            • <strong className="text-black dark:text-white">Create templates</strong> with{' '}
-            {'{source_lang}'} and {'{target_lang}'} placeholders
+            • <strong className="text-black dark:text-white">{t('info.createBold')}</strong>
+            {t('info.createRest', { source: '{source_lang}', target: '{target_lang}' })}
           </li>
           <li>
-            • <strong className="text-black dark:text-white">Select a template</strong> when
-            creating a classroom
+            • <strong className="text-black dark:text-white">{t('info.selectBold')}</strong>
+            {t('info.selectRest')}
           </li>
           <li>
-            •{' '}
-            <strong className="text-black dark:text-white">
-              Placeholders are automatically replaced
-            </strong>{' '}
-            with actual language names during translation
+            • <strong className="text-black dark:text-white">{t('info.placeholderBold')}</strong>
+            {t('info.placeholderRest')}
           </li>
           <li>
-            •{' '}
-            <strong className="text-black dark:text-white">
-              One template works for all languages
-            </strong>{' '}
-            - students can request any language and use the same custom prompt
+            • <strong className="text-black dark:text-white">{t('info.oneBold')}</strong>
+            {t('info.oneRest')}
           </li>
           <li>
-            • <strong className="text-black dark:text-white">Public templates</strong> are provided
-            by default and cannot be modified
+            • <strong className="text-black dark:text-white">{t('info.publicBold')}</strong>
+            {t('info.publicRest')}
           </li>
         </ul>
       </div>

@@ -1,4 +1,5 @@
 import Stripe from 'stripe';
+import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -16,7 +17,9 @@ interface InvoiceHistoryCardProps {
   invoices: Stripe.Invoice[];
 }
 
-export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
+export async function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
+  const t = await getTranslations('billing.invoices');
+
   // Empty state if no invoices
   if (!invoices || invoices.length === 0) {
     return (
@@ -24,7 +27,7 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
         <CardHeader>
           <CardTitle className="text-white flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Invoice History
+            {t('title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -32,9 +35,9 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
             <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center mb-3">
               <FileText className="h-6 w-6 text-gray-600" />
             </div>
-            <p className="text-gray-400 text-sm">No invoices yet</p>
+            <p className="text-gray-400 text-sm">{t('empty')}</p>
             <p className="text-gray-500 text-xs mt-1">
-              Invoices will appear here after your first payment
+              {t('emptyHint')}
             </p>
           </div>
         </CardContent>
@@ -46,23 +49,23 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
   const getStatusBadge = (status: string | null) => {
     const statusConfig: Record<string, { label: string; className: string }> = {
       paid: {
-        label: 'Paid',
+        label: t('status.paid'),
         className: 'bg-green-500/10 text-green-500 border-green-500/20',
       },
       open: {
-        label: 'Open',
+        label: t('status.open'),
         className: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
       },
       draft: {
-        label: 'Draft',
+        label: t('status.draft'),
         className: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
       },
       uncollectible: {
-        label: 'Uncollectible',
+        label: t('status.uncollectible'),
         className: 'bg-red-500/10 text-red-500 border-red-500/20',
       },
       void: {
-        label: 'Void',
+        label: t('status.void'),
         className: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
       },
     };
@@ -99,7 +102,7 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          Invoice History
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -107,11 +110,11 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-gray-800 hover:bg-gray-800/50">
-                <TableHead className="text-gray-400">Date</TableHead>
-                <TableHead className="text-gray-400">Amount</TableHead>
-                <TableHead className="text-gray-400">Status</TableHead>
-                <TableHead className="text-gray-400">Invoice</TableHead>
-                <TableHead className="text-gray-400 text-right">Download</TableHead>
+                <TableHead className="text-gray-400">{t('columns.date')}</TableHead>
+                <TableHead className="text-gray-400">{t('columns.amount')}</TableHead>
+                <TableHead className="text-gray-400">{t('columns.status')}</TableHead>
+                <TableHead className="text-gray-400">{t('columns.invoice')}</TableHead>
+                <TableHead className="text-gray-400 text-right">{t('columns.download')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -155,7 +158,9 @@ export function InvoiceHistoryCard({ invoices }: InvoiceHistoryCardProps) {
           </Table>
         </div>
         <p className="text-xs text-gray-500 mt-3">
-          Showing {invoices.length} {invoices.length === 1 ? 'invoice' : 'invoices'}
+          {invoices.length === 1
+            ? t('showingOne', { count: invoices.length })
+            : t('showingMany', { count: invoices.length })}
         </p>
       </CardContent>
     </Card>

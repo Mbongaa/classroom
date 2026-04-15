@@ -271,18 +271,18 @@ export function DonateLandingClient({
               type="button"
               onClick={() => openQrOverlay(campaigns[0].slug, 'recurring')}
               disabled={creatingSession}
-              className="mb-6 flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
+              className="mb-6 flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
             >
               <div className="shrink-0">
-                <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={48} />
+                <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={72} />
               </div>
               <div className="flex-1">
-                <p className="text-lg font-semibold">Become a monthly supporter</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-xl font-semibold sm:text-2xl">Become a monthly supporter</p>
+                <p className="text-base text-slate-500 dark:text-slate-400">
                   Recurring SEPA direct debit — cancel anytime
                 </p>
               </div>
-              <IconChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
+              <IconChevronRight className="h-6 w-6 shrink-0 text-slate-400" />
             </button>
 
             <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
@@ -420,21 +420,21 @@ export function DonateLandingClient({
                     type="button"
                     onClick={() => openQrOverlay(selected!.slug, 'one-time')}
                     disabled={creatingSession}
-                    className="flex w-full items-center gap-4 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-5 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
+                    className="flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
                   >
                     <div className="shrink-0">
-                      <LottieIcon src="/lottie/qr-code.json" size={64} className="dark:hidden" />
-                      <LottieIcon src="/lottie/qr-code-white.json" size={64} className="hidden dark:block" />
+                      <LottieIcon src="/lottie/qr-code.json" size={88} className="dark:hidden" />
+                      <LottieIcon src="/lottie/qr-code-white.json" size={88} className="hidden dark:block" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-lg font-semibold">
+                      <p className="text-xl font-semibold sm:text-2xl">
                         {creatingSession ? 'Preparing…' : 'One-time donation'}
                       </p>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
+                      <p className="text-base text-slate-500 dark:text-slate-400">
                         Scan the QR code with your phone to donate
                       </p>
                     </div>
-                    <IconChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
+                    <IconChevronRight className="h-6 w-6 shrink-0 text-slate-400" />
                   </button>
                 </div>
 

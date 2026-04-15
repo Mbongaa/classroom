@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { useTranslations } from 'next-intl';
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -80,6 +81,7 @@ export function CampaignsClient({
   canManage,
   canDelete,
 }: CampaignsClientProps) {
+  const t = useTranslations('mosqueAdmin.campaigns');
   const [campaigns, setCampaigns] = useState<CampaignWithRaised[]>(initialCampaigns);
   const [editing, setEditing] = useState<CampaignWithRaised | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -114,11 +116,11 @@ export function CampaignsClient({
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || 'Failed to reorder');
+        throw new Error(data.error || t('toast.reorderFailed'));
       }
-      toast.success('Order updated');
+      toast.success(t('toast.orderUpdated'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to reorder');
+      toast.error(err instanceof Error ? err.message : t('toast.reorderFailed'));
     } finally {
       setReordering(false);
     }
@@ -152,7 +154,7 @@ export function CampaignsClient({
       {canManage && (
         <div className="flex justify-end">
           <Button onClick={() => setCreateOpen(true)} className="rounded-full">
-            New campaign
+            {t('list.newCampaign')}
           </Button>
           <CampaignFormDialog
             mode="create"
@@ -167,13 +169,13 @@ export function CampaignsClient({
       {campaigns.length === 0 ? (
         <Card>
           <CardContent className="py-16 text-center">
-            <p className="text-base font-medium">No campaigns yet</p>
+            <p className="text-base font-medium">{t('list.emptyTitle')}</p>
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Create your first campaign to start accepting donations on{' '}
+              {t('list.emptyDescriptionBefore')}
               <code className="rounded bg-slate-100 px-1 py-0.5 text-xs dark:bg-slate-800">
                 /donate/{organizationSlug}/&lt;slug&gt;
               </code>
-              .
+              {t('list.emptyDescriptionAfter')}
             </p>
             {canManage && (
               <Button
@@ -181,7 +183,7 @@ export function CampaignsClient({
                 className="mt-6 rounded-full"
                 variant="default"
               >
-                Create your first campaign
+                {t('list.createFirst')}
               </Button>
             )}
           </CardContent>
@@ -193,13 +195,13 @@ export function CampaignsClient({
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[rgba(128,128,128,0.3)] text-left text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    {canManage && <th className="px-4 py-3">Order</th>}
-                    <th className="px-4 py-3">Campaign</th>
-                    <th className="px-4 py-3">Cause</th>
-                    <th className="px-4 py-3">Raised</th>
-                    <th className="px-4 py-3">Goal</th>
-                    <th className="px-4 py-3">Active</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                    {canManage && <th className="px-4 py-3">{t('table.order')}</th>}
+                    <th className="px-4 py-3">{t('table.campaign')}</th>
+                    <th className="px-4 py-3">{t('table.cause')}</th>
+                    <th className="px-4 py-3">{t('table.raised')}</th>
+                    <th className="px-4 py-3">{t('table.goal')}</th>
+                    <th className="px-4 py-3">{t('table.active')}</th>
+                    <th className="px-4 py-3 text-right">{t('table.actions')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -282,6 +284,7 @@ function CampaignRow({
   onUpdated,
   onDeleted,
 }: CampaignRowProps) {
+  const t = useTranslations('mosqueAdmin.campaigns');
   const [pending, startTransition] = useTransition();
   const [deleting, setDeleting] = useState(false);
 
@@ -299,21 +302,19 @@ function CampaignRow({
         );
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          throw new Error(data.error || 'Failed to update campaign');
+          throw new Error(data.error || t('form.errors.updateFailed'));
         }
         onUpdated(data.campaign);
-        toast.success(next ? 'Campaign activated' : 'Campaign deactivated');
+        toast.success(next ? t('toast.activated') : t('toast.deactivated'));
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : 'Failed to update');
+        toast.error(err instanceof Error ? err.message : t('toast.updateFailed'));
       }
     });
   }
 
   async function handleDelete() {
     if (!canDelete) return;
-    const confirmed = window.confirm(
-      `Delete the campaign "${campaign.title}"? This cannot be undone. Campaigns with existing donations cannot be deleted — deactivate them instead.`,
-    );
+    const confirmed = window.confirm(t('confirmDelete', { title: campaign.title }));
     if (!confirmed) return;
 
     setDeleting(true);
@@ -324,12 +325,12 @@ function CampaignRow({
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to delete campaign');
+        throw new Error(data.error || t('toast.deleteFailed'));
       }
       onDeleted(campaign.id);
-      toast.success('Campaign deleted');
+      toast.success(t('toast.deleted'));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete');
+      toast.error(err instanceof Error ? err.message : t('toast.deleteFailed'));
     } finally {
       setDeleting(false);
     }
@@ -347,7 +348,7 @@ function CampaignRow({
               onClick={() => onMove(campaign.id, 'up')}
               disabled={isFirst || reordering || pending}
               className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
-              aria-label="Move up"
+              aria-label={t('table.moveUp')}
             >
               <IconArrowUp className="h-4 w-4" />
             </button>
@@ -356,7 +357,7 @@ function CampaignRow({
               onClick={() => onMove(campaign.id, 'down')}
               disabled={isLast || reordering || pending}
               className="rounded p-0.5 text-slate-400 hover:text-slate-700 disabled:opacity-30 dark:hover:text-slate-200"
-              aria-label="Move down"
+              aria-label={t('table.moveDown')}
             >
               <IconArrowDown className="h-4 w-4" />
             </button>
@@ -413,10 +414,10 @@ function CampaignRow({
             checked={campaign.is_active}
             disabled={!canManage || pending}
             onCheckedChange={handleToggleActive}
-            aria-label={`Toggle ${campaign.title} active`}
+            aria-label={t('table.toggleActiveAria', { title: campaign.title })}
           />
           <span className="text-xs text-slate-500 dark:text-slate-400">
-            {campaign.is_active ? 'Live' : 'Hidden'}
+            {campaign.is_active ? t('table.live') : t('table.hidden')}
           </span>
         </div>
       </td>
@@ -429,7 +430,7 @@ function CampaignRow({
               onClick={onEdit}
               disabled={deleting || pending}
             >
-              Edit
+              {t('table.edit')}
             </Button>
           )}
           {canDelete && (
@@ -439,8 +440,8 @@ function CampaignRow({
               className="h-8 w-8 text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
               onClick={handleDelete}
               disabled={deleting || pending}
-              title={deleting ? 'Deleting…' : 'Delete campaign'}
-              aria-label="Delete campaign"
+              title={deleting ? t('table.deleting') : t('table.deleteCampaign')}
+              aria-label={t('table.deleteCampaign')}
             >
               <TrashIcon size={16} />
             </Button>

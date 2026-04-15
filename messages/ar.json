@@ -1,25 +1,744 @@
 {
   "common": {
-    "appName": "بيان",
+    "appName": "Bayaan.ai",
     "loading": "جارٍ التحميل...",
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
-    "confirm": "تأكيد"
+    "confirm": "تأكيد",
+    "viewAll": "عرض الكل",
+    "back": "رجوع",
+    "tryAgain": "حاول مرة أخرى",
+    "notAuthenticated": "لم يتم المصادقة",
+    "saveChanges": "حفظ التغييرات",
+    "saving": "جارٍ الحفظ..."
   },
   "locale": {
     "switchLanguage": "اللغة",
     "english": "English",
-    "arabic": "العربية"
+    "arabic": "العربية",
+    "dutch": "Nederlands",
+    "french": "Français",
+    "german": "Deutsch"
+  },
+  "languages": {
+    "ar": "العربية",
+    "en": "الإنجليزية",
+    "fr": "الفرنسية",
+    "de": "الألمانية",
+    "es": "الإسبانية",
+    "nl": "الهولندية",
+    "tr": "التركية",
+    "ur": "الأردية",
+    "hi": "الهندية",
+    "ar-mixed": "عربية مختلطة",
+    "ar-darija": "الدارجة"
+  },
+  "sidebar": {
+    "translation": {
+      "dashboard": "لوحة التحكم",
+      "classrooms": "الفصول الدراسية",
+      "sessionHistory": "سجل الجلسات"
+    },
+    "finance": {
+      "dashboard": "لوحة التحكم",
+      "campaigns": "الحملات",
+      "products": "المنتجات",
+      "appointments": "المواعيد",
+      "members": "الأعضاء",
+      "transactions": "المعاملات",
+      "settings": "الإعدادات"
+    },
+    "footer": {
+      "billing": "الفوترة",
+      "profile": "الملف الشخصي",
+      "signOut": "تسجيل الخروج"
+    }
+  },
+  "header": {
+    "mode": {
+      "label": "وضع لوحة التحكم",
+      "translation": "لوحة الترجمة",
+      "finance": "لوحة المالية",
+      "financeDisabled": "لوحة المالية (لا توجد منظمة)",
+      "financeDisabledTitle": "لوحة المالية — تتطلب منظمة"
+    }
   },
   "dashboard": {
-    "nav": {
-      "home": "الرئيسية",
-      "rooms": "الغرف",
-      "prompts": "التعليمات",
+    "welcome": "مرحبًا بعودتك، {name}!",
+    "subtitle": "إليك ما يحدث في فصولك الدراسية اليوم.",
+    "stats": {
+      "activeClassrooms": "الفصول النشطة",
+      "activeClassroomsDescription": "الدروس المباشرة والمجدولة",
       "recordings": "التسجيلات",
-      "profile": "الملف الشخصي",
-      "billing": "الفوترة"
+      "recordingsDescription": "تسجيلات الجلسات المحفوظة",
+      "organization": "المنظمة",
+      "organizationDescription": "منظمتك",
+      "organizationFallback": "غير متاح"
+    },
+    "quickActions": {
+      "title": "إجراءات سريعة",
+      "description": "ابدأ أو انضم إلى جلسة فورًا",
+      "intro": "ابدأ أو انضم إلى جلسة مؤتمر مرئي.",
+      "startClassroom": "بدء فصل دراسي",
+      "startSpeechSession": "بدء جلسة خطاب",
+      "managePersistentRooms": "إدارة الغرف الدائمة"
+    },
+    "recentRooms": {
+      "title": "الغرف الأخيرة",
+      "description": "الفصول التي أنشأتها مؤخرًا",
+      "empty": "لم يتم إنشاء أي غرف بعد",
+      "createFirst": "أنشئ غرفتك الأولى",
+      "types": {
+        "classroom": "فصل دراسي",
+        "speech": "خطاب",
+        "meeting": "اجتماع"
+      }
+    }
+  },
+  "rooms": {
+    "title": "إدارة الفصول",
+    "subtitle": "أنشئ وأدر رموز الغرف الدائمة للدروس المتكررة",
+    "errors": {
+      "loadTitle": "خطأ في تحميل الغرف",
+      "fetchFailed": "فشل تحميل الفصول",
+      "fetchRetry": "فشل تحميل الغرف. الرجاء المحاولة مرة أخرى.",
+      "deleteFailed": "فشل حذف الغرفة",
+      "deleteConfirm": "هل أنت متأكد من أنك تريد حذف \"{code}\"؟"
+    },
+    "empty": {
+      "title": "لا توجد غرف بعد",
+      "subtitle": "أنشئ غرفتك الدائمة الأولى للبدء. يمكن إعادة استخدام الغرف للجلسات المتكررة."
+    },
+    "types": {
+      "meeting": "اجتماع",
+      "classroom": "فصل دراسي",
+      "speech": "خطاب"
+    },
+    "actions": {
+      "copyStudentLink": "نسخ رابط الطالب",
+      "joinRoom": "انضمام إلى الغرفة",
+      "joining": "جارٍ الانضمام…"
+    }
+  },
+  "recordings": {
+    "title": "سجل الجلسات",
+    "subtitle": "عرض جلسات الفصول السابقة والتسجيلات",
+    "empty": "لا توجد جلسات بعد. يتم إنشاء الجلسات عند انضمام المشاركين إلى فصل دراسي.",
+    "errors": {
+      "loadFailed": "فشل تحميل الجلسات"
+    },
+    "table": {
+      "roomName": "اسم الغرفة",
+      "dateTime": "التاريخ والوقت",
+      "duration": "المدة",
+      "recording": "التسجيل",
+      "actions": "الإجراءات",
+      "watch": "مشاهدة"
+    },
+    "status": {
+      "noRecording": "لا يوجد تسجيل",
+      "available": "متاح",
+      "recording": "جارٍ التسجيل...",
+      "failed": "فشل",
+      "processing": "جارٍ المعالجة..."
+    },
+    "pagination": {
+      "showing": "عرض {start} إلى {end} من أصل {total} جلسة"
+    }
+  },
+  "prompts": {
+    "title": "قوالب مطالبات الترجمة",
+    "subtitleStart": "أنشئ وأدر مطالبات ترجمة قابلة لإعادة الاستخدام لفصولك. استخدم ",
+    "subtitleMiddle": " و ",
+    "subtitleEnd": " كعناصر نائبة لإنشاء قوالب مستقلة عن اللغة.",
+    "createNew": "إنشاء قالب جديد",
+    "refresh": "تحديث القوالب",
+    "loading": "جارٍ تحميل القوالب...",
+    "errors": {
+      "fetchFailed": "فشل تحميل القوالب",
+      "loadFailed": "فشل تحميل قوالب المطالبات",
+      "deleteFailed": "فشل حذف القالب"
+    },
+    "info": {
+      "title": "كيفية استخدام قوالب المطالبات",
+      "createBold": "أنشئ قوالب",
+      "createRest": " باستخدام العناصر النائبة {source} و {target}",
+      "selectBold": "اختر قالبًا",
+      "selectRest": " عند إنشاء فصل دراسي",
+      "placeholderBold": "يتم استبدال العناصر النائبة تلقائيًا",
+      "placeholderRest": " بأسماء اللغات الفعلية أثناء الترجمة",
+      "oneBold": "قالب واحد يعمل مع جميع اللغات",
+      "oneRest": " - يمكن للطلاب طلب أي لغة واستخدام نفس المطالبة المخصصة",
+      "publicBold": "القوالب العامة",
+      "publicRest": " يتم توفيرها افتراضيًا ولا يمكن تعديلها"
+    }
+  },
+  "profile": {
+    "title": "إعدادات الملف الشخصي",
+    "subtitle": "أدر إعدادات حسابك وتفضيلاتك.",
+    "personal": {
+      "title": "المعلومات الشخصية",
+      "description": "حدّث معلوماتك الشخصية وصورة ملفك",
+      "fullName": "الاسم الكامل",
+      "avatarUrl": "رابط الصورة الرمزية",
+      "avatarHint": "اختياري: رابط إلى صورة ملفك الشخصي",
+      "updated": "تم تحديث الملف الشخصي بنجاح!"
+    },
+    "account": {
+      "title": "معلومات الحساب",
+      "description": "تفاصيل حسابك",
+      "email": "البريد الإلكتروني",
+      "role": "الدور",
+      "organization": "المنظمة",
+      "memberSince": "عضو منذ",
+      "organizationFallback": "غير متاح"
+    },
+    "organization": {
+      "title": "المنظمة",
+      "description": "حدّث اسم العرض لمنظمتك",
+      "name": "اسم المنظمة",
+      "updated": "تم تحديث اسم المنظمة بنجاح!"
+    }
+  },
+  "billing": {
+    "pageTitle": "الفوترة",
+    "pageSubtitle": "أدر اشتراكك وطرق الدفع",
+    "warnings": {
+      "pastDueTitle": "الدفع متأخر",
+      "pastDueMessage": "فشل دفعك الأخير. يرجى تحديث طريقة الدفع لتجنب انقطاع الخدمة.",
+      "incompleteTitle": "الاشتراك غير مكتمل",
+      "incompleteMessage": "لم يكتمل إعداد اشتراكك. يرجى إكمال الدفع لتفعيل حسابك."
+    },
+    "currentPlan": {
+      "title": "الخطة الحالية",
+      "tierFree": "الخطة المجانية",
+      "tierPro": "خطة Pro",
+      "tierBeta": "خطة Beta",
+      "perMonth": "/شهر",
+      "perYear": "/سنة",
+      "accessUntil": "الوصول حتى",
+      "trialEnds": "انتهاء الفترة التجريبية",
+      "nextBilling": "تاريخ الفوترة التالي",
+      "amount": "المبلغ",
+      "cancellingNotice": "تم تعيين اشتراكك لإلغائه في نهاية فترة الفوترة. يمكنك إعادة تفعيله في أي وقت قبل {date}.",
+      "status": {
+        "active": "نشط",
+        "trialing": "تجريبي",
+        "pastDue": "متأخر",
+        "canceled": "ملغى",
+        "unpaid": "غير مدفوع",
+        "incomplete": "غير مكتمل"
+      }
+    },
+    "paymentMethod": {
+      "title": "طريقة الدفع",
+      "empty": "لا توجد طريقة دفع مسجلة",
+      "emptyHint": "أضف واحدة عبر بوابة العملاء أدناه",
+      "expires": "تنتهي في {exp}",
+      "default": "طريقة الدفع الافتراضية",
+      "updateHint": "حدّث طريقة الدفع عبر بوابة العملاء أدناه"
+    },
+    "invoices": {
+      "title": "سجل الفواتير",
+      "empty": "لا توجد فواتير بعد",
+      "emptyHint": "ستظهر الفواتير هنا بعد أول دفعة",
+      "columns": {
+        "date": "التاريخ",
+        "amount": "المبلغ",
+        "status": "الحالة",
+        "invoice": "الفاتورة",
+        "download": "تنزيل"
+      },
+      "status": {
+        "paid": "مدفوعة",
+        "open": "مفتوحة",
+        "draft": "مسودة",
+        "uncollectible": "غير قابلة للتحصيل",
+        "void": "ملغاة"
+      },
+      "showingOne": "عرض {count} فاتورة",
+      "showingMany": "عرض {count} فواتير"
+    },
+    "plans": {
+      "title": "ترقية الخطة",
+      "current": "الحالية",
+      "currentPlan": "الخطة الحالية",
+      "upgradePro": "الترقية إلى Pro",
+      "contactSales": "تواصل مع المبيعات",
+      "perMonth": "/شهر",
+      "free": {
+        "name": "مجاني",
+        "features": {
+          "classrooms": "3 فصول دراسية",
+          "recordings": "ساعة واحدة من التسجيلات",
+          "support": "دعم أساسي",
+          "features": "الميزات القياسية"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "classrooms": "فصول دراسية غير محدودة",
+          "recordings": "تسجيلات غير محدودة",
+          "support": "دعم عبر البريد الإلكتروني",
+          "features": "ميزات متقدمة",
+          "priority": "وصول ذو أولوية"
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "مخصص",
+        "features": {
+          "everything": "كل شيء في Pro",
+          "branding": "علامة تجارية مخصصة",
+          "support": "دعم مخصص",
+          "sla": "ضمان اتفاقية مستوى الخدمة",
+          "integrations": "تكاملات مخصصة"
+        }
+      },
+      "helpTitle": "هل تحتاج مساعدة في الاختيار؟",
+      "helpText": " خطة Pro مثالية للفرق المتنامية، بينما تقدم Enterprise حلولاً مخصصة للمنظمات الكبيرة."
+    },
+    "manage": {
+      "title": "إدارة الاشتراك",
+      "description": "حدّث طريقة الدفع، أو اعرض الفواتير، أو غيّر خطة اشتراكك عبر بوابة عملاء Stripe.",
+      "button": "إدارة الاشتراك",
+      "opening": "جارٍ فتح البوابة...",
+      "error": "حدث خطأ ما",
+      "failedOpen": "فشل فتح بوابة الفوترة"
+    }
+  },
+  "mosqueAdmin": {
+    "prefix": "إدارة المسجد",
+    "backToDashboard": "← العودة إلى لوحة التحكم",
+    "dashboard": {
+      "title": "إدارة المسجد",
+      "subtitle": "أدر تبرعات وحملات وأعضاء مسجدك",
+      "kycBadge": "KYC: {status}",
+      "kycStatus": {
+        "pending": "قيد الانتظار",
+        "submitted": "مُقدَّم",
+        "approved": "مُعتمَد",
+        "rejected": "مرفوض"
+      },
+      "txStatus": {
+        "PAID": "مدفوع",
+        "PENDING": "قيد الانتظار",
+        "CANCEL": "ملغى",
+        "EXPIRED": "منتهي الصلاحية"
+      },
+      "donationsActive": "التبرعات نشطة",
+      "donationsInactive": "التبرعات غير نشطة",
+      "settingsLink": "الإعدادات →",
+      "onboardingTitle": "لم يتم إعداد معالجة المدفوعات",
+      "onboardingDescription": "أكمل إعداد حساب التاجر لبدء استلام التبرعات مباشرة في حسابك المصرفي.",
+      "onboardingCta": "إعداد المدفوعات",
+      "totalRaised": "إجمالي ما تم جمعه",
+      "totalRaisedCaption": "{count} تبرعات مدفوعة",
+      "thisMonth": "هذا الشهر",
+      "thisMonthCaption": "{count} تبرعات هذا الشهر",
+      "activeCampaigns": "الحملات النشطة",
+      "activeCampaignsCaption": "ظاهرة على صفحة التبرع",
+      "manageCampaigns": "إدارة الحملات →",
+      "activeProducts": "المنتجات النشطة",
+      "activeProductsCaption": "متاحة في المتجر",
+      "manageProducts": "إدارة المنتجات →",
+      "activeAppointmentOfferings": "المواعيد النشطة",
+      "activeAppointmentOfferingsCaption": "متاحة للحجز في صفحة المواعيد",
+      "manageAppointments": "إدارة المواعيد →",
+      "paynlRoutingTitle": "توجيه Pay.nl",
+      "paynlRoutingDescription": "المكان الذي تتدفق إليه التبرعات حاليًا لهذه المنظمة",
+      "serviceIdLabel": "معرف الخدمة:",
+      "merchantIdLabel": "معرف التاجر:",
+      "platformFeeLabel": "رسوم المنصة:",
+      "paynlFallbackMessage": "يتم استخدام احتياطي Pay.nl على مستوى المنصة. سيؤدي إعداد تاجر فرعي لـ Alliance إلى تعيين موقع بيع مخصص هنا.",
+      "recentDonationsTitle": "التبرعات الأخيرة",
+      "recentDonationsDescription": "آخر 10 معاملات لهذه المنظمة",
+      "viewAll": "عرض الكل →",
+      "noDonationsYet": "لا توجد تبرعات بعد.",
+      "tableOrder": "الطلب",
+      "tableDonor": "المتبرع",
+      "tableAmount": "المبلغ",
+      "tableStatus": "الحالة",
+      "tableDate": "التاريخ"
+    },
+    "campaigns": {
+      "title": "الحملات",
+      "subtitle": "أدر حملات التبرعات الخاصة بك",
+      "pageSubtitle": "{name} — أدر قضايا التبرع المعروضة على صفحة التبرع الخاصة بك",
+      "list": {
+        "newCampaign": "حملة جديدة",
+        "createFirst": "أنشئ حملتك الأولى",
+        "emptyTitle": "لا توجد حملات بعد",
+        "emptyDescriptionBefore": "أنشئ حملتك الأولى لبدء قبول التبرعات على ",
+        "emptyDescriptionAfter": "."
+      },
+      "table": {
+        "order": "الترتيب",
+        "campaign": "الحملة",
+        "cause": "الهدف",
+        "raised": "تم جمعه",
+        "goal": "الهدف",
+        "active": "نشط",
+        "actions": "إجراءات",
+        "live": "مباشر",
+        "hidden": "مخفي",
+        "moveUp": "تحريك لأعلى",
+        "moveDown": "تحريك لأسفل",
+        "edit": "تعديل",
+        "deleteCampaign": "حذف الحملة",
+        "deleting": "جاري الحذف…",
+        "toggleActiveAria": "تبديل نشاط {title}"
+      },
+      "form": {
+        "editTitle": "تعديل الحملة",
+        "newTitle": "حملة جديدة",
+        "editDescription": "حدّث تفاصيل هذه القضية.",
+        "newDescription": "أنشئ قضية تبرع جديدة ستظهر على صفحة التبرع الخاصة بك.",
+        "titleLabel": "العنوان",
+        "titlePlaceholder": "مثل: صندوق إفطار رمضان",
+        "slugLabel": "المعرّف",
+        "slugPlaceholder": "مثل: ramadan-iftar",
+        "slugHintEdit": "لا يمكن تغيير المعرّف — فسيكسر ذلك الروابط التي تمت مشاركتها بالفعل.",
+        "slugHintCreate": "يُستخدم في رابط التبرع: /donate/<org>/<slug>. أحرف إنجليزية صغيرة وأرقام وشرطات.",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "ما الذي تدعمه هذه الحملة؟ اختياري.",
+        "causeLabel": "نوع القضية",
+        "causePlaceholder": "زكاة، صدقة…",
+        "causeHint": "علامة نصية حرة تُستخدم للتقارير.",
+        "goalLabel": "الهدف (€)",
+        "goalPlaceholder": "اختياري",
+        "goalHint": "اتركه فارغًا إذا لم يكن هناك هدف محدد.",
+        "iconLabel": "الأيقونة",
+        "iconNone": "لا شيء",
+        "iconHint": "تظهر على صفحة التبرع عند اختيار هذه الحملة.",
+        "activeLabel": "نشط — ظاهر على صفحة التبرع ويقبل التبرعات",
+        "cancel": "إلغاء",
+        "saving": "جاري الحفظ…",
+        "creating": "جاري الإنشاء…",
+        "saveChanges": "حفظ التغييرات",
+        "createCampaign": "إنشاء الحملة",
+        "errors": {
+          "titleMin": "يجب أن يكون العنوان حرفين على الأقل",
+          "slugInvalid": "يجب أن يتكون المعرّف من 3 إلى 60 حرفًا إنجليزيًا صغيرًا أو رقمًا أو شرطة (بدون شرطة في البداية/النهاية)",
+          "goalInvalid": "يجب أن يكون مبلغ الهدف رقمًا غير سالب",
+          "updateFailed": "فشل تحديث الحملة",
+          "createFailed": "فشل إنشاء الحملة",
+          "somethingWrong": "حدث خطأ ما"
+        }
+      },
+      "confirmDelete": "هل تريد حذف الحملة \"{title}\"؟ لا يمكن التراجع عن هذا. لا يمكن حذف الحملات التي بها تبرعات موجودة — قم بإلغاء تنشيطها بدلاً من ذلك.",
+      "toast": {
+        "orderUpdated": "تم تحديث الترتيب",
+        "reorderFailed": "فشل إعادة الترتيب",
+        "activated": "تم تنشيط الحملة",
+        "deactivated": "تم إلغاء تنشيط الحملة",
+        "updateFailed": "فشل التحديث",
+        "deleted": "تم حذف الحملة",
+        "deleteFailed": "فشل الحذف"
+      }
+    },
+    "products": {
+      "title": "المنتجات",
+      "subtitle": "أدر منتجات التبرعات الخاصة بك",
+      "pageSubtitle": "{name} — أدر العناصر المتاحة في متجرك",
+      "list": {
+        "newProduct": "منتج جديد",
+        "addFirst": "أضف منتجك الأول",
+        "emptyTitle": "لا توجد منتجات بعد",
+        "emptyDescription": "أضف منتجك الأول لبدء البيع على صفحة متجرك."
+      },
+      "table": {
+        "order": "الترتيب",
+        "product": "المنتج",
+        "category": "الفئة",
+        "price": "السعر",
+        "stock": "المخزون",
+        "active": "نشط",
+        "actions": "إجراءات",
+        "unlimited": "غير محدود",
+        "soldOut": "نفد المخزون",
+        "live": "مباشر",
+        "hidden": "مخفي",
+        "moveUp": "تحريك لأعلى",
+        "moveDown": "تحريك لأسفل",
+        "edit": "تعديل",
+        "deleteProduct": "حذف المنتج",
+        "deleting": "جاري الحذف…",
+        "toggleActiveAria": "تبديل نشاط {title}"
+      },
+      "form": {
+        "editTitle": "تعديل المنتج",
+        "newTitle": "منتج جديد",
+        "editDescription": "حدّث تفاصيل هذا المنتج.",
+        "newDescription": "أضف منتجًا جديدًا إلى متجرك.",
+        "titleLabel": "العنوان",
+        "titlePlaceholder": "مثل: القرآن — Sahih International",
+        "slugLabel": "المعرّف",
+        "slugPlaceholder": "مثل: quran-sahih-international",
+        "slugHintEdit": "لا يمكن تغيير المعرّف — فسيكسر ذلك الروابط التي تمت مشاركتها بالفعل.",
+        "slugHintCreate": "يُستخدم في رابط المتجر: /shop/<org>/<slug>. أحرف إنجليزية صغيرة وأرقام وشرطات.",
+        "descriptionLabel": "الوصف",
+        "descriptionPlaceholder": "تفاصيل المنتج. اختياري.",
+        "priceLabel": "السعر (€)",
+        "pricePlaceholder": "مثل: 12.50",
+        "stockLabel": "المخزون",
+        "stockPlaceholder": "غير محدود",
+        "stockHint": "اتركه فارغًا للمخزون غير المحدود.",
+        "categoryLabel": "الفئة",
+        "categoryPlaceholder": "كتب، ملابس، طعام…",
+        "categoryHint": "علامة نصية حرة لتجميع المنتجات.",
+        "imageLabel": "رابط الصورة",
+        "imagePlaceholder": "https://…",
+        "imageHint": "رابط مباشر لصورة المنتج. اختياري.",
+        "activeLabel": "نشط — ظاهر في المتجر ومتاح للشراء",
+        "cancel": "إلغاء",
+        "saving": "جاري الحفظ…",
+        "creating": "جاري الإنشاء…",
+        "saveChanges": "حفظ التغييرات",
+        "createProduct": "إنشاء المنتج",
+        "errors": {
+          "titleMin": "يجب أن يكون العنوان حرفين على الأقل",
+          "slugInvalid": "يجب أن يتكون المعرّف من 3 إلى 60 حرفًا إنجليزيًا صغيرًا أو رقمًا أو شرطة (بدون شرطة في البداية/النهاية)",
+          "priceRequired": "السعر مطلوب",
+          "priceInvalid": "يجب أن يكون السعر رقمًا موجبًا",
+          "stockInvalid": "يجب أن يكون المخزون رقمًا غير سالب (أو اتركه فارغًا للمخزون غير المحدود)",
+          "updateFailed": "فشل تحديث المنتج",
+          "createFailed": "فشل إنشاء المنتج",
+          "somethingWrong": "حدث خطأ ما"
+        }
+      },
+      "confirmDelete": "هل تريد حذف المنتج \"{title}\"؟ لا يمكن التراجع عن هذا.",
+      "toast": {
+        "orderUpdated": "تم تحديث الترتيب",
+        "reorderFailed": "فشل إعادة الترتيب",
+        "activated": "تم تنشيط المنتج",
+        "deactivated": "تم إلغاء تنشيط المنتج",
+        "updateFailed": "فشل التحديث",
+        "deleted": "تم حذف المنتج",
+        "deleteFailed": "فشل الحذف"
+      }
+    },
+    "members": {
+      "title": "الأعضاء",
+      "subtitle": "أدر أعضاء مسجدك",
+      "pageSubtitle": "{name} — المتبرعون المتكررون مع تفويضات SEPA النشطة",
+      "summary": {
+        "active": "نشط",
+        "pending": "قيد الانتظار",
+        "atRisk": "معرض للخطر",
+        "collected": "تم تحصيله"
+      },
+      "filters": {
+        "searchPlaceholder": "ابحث عن متبرع، بريد إلكتروني، مالك IBAN…",
+        "all": "الكل",
+        "active": "نشط",
+        "pending": "قيد الانتظار",
+        "cancelled": "ملغى",
+        "expired": "منتهي الصلاحية",
+        "atRiskOnly": "⚠ المعرضون للخطر فقط",
+        "showAtRiskOnly": "عرض المعرضين للخطر فقط"
+      },
+      "empty": {
+        "title": "لا يوجد أعضاء يطابقون الفلاتر",
+        "none": "لم يتم إنشاء تفويضات SEPA لهذه المنظمة بعد.",
+        "clear": "حاول مسح البحث أو فلتر الحالة."
+      },
+      "table": {
+        "donor": "المتبرع",
+        "campaign": "الحملة",
+        "monthly": "شهري",
+        "collected": "تم تحصيله",
+        "lastDebit": "آخر خصم",
+        "stornos": "الاستردادات",
+        "status": "الحالة",
+        "actions": "إجراءات",
+        "recentStorno": "⚠ {count} حديث",
+        "recentStornoTooltip": "2+ استردادات في آخر 3 خصومات — رصيد غير كافٍ على الأرجح",
+        "cancel": "إلغاء"
+      },
+      "status": {
+        "ACTIVE": "نشط",
+        "PENDING": "قيد الانتظار",
+        "CANCELLED": "ملغى",
+        "EXPIRED": "منتهي الصلاحية"
+      },
+      "cancelDialog": {
+        "title": "إلغاء تفويض SEPA؟",
+        "description": "يؤدي هذا إلى إلغاء الخصم التلقائي المتكرر للمتبرع بشكل دائم لدى Pay.nl. لن يتم تشغيل أي خصومات مستقبلية. سيتعين على المتبرع توقيع تفويض جديد لمعاودة التبرع.",
+        "donorLabel": "المتبرع:",
+        "emailLabel": "البريد الإلكتروني:",
+        "mandateLabel": "التفويض:",
+        "totalCollectedLabel": "إجمالي ما تم تحصيله:",
+        "debitsCount": "({count} خصومات)",
+        "stornoWarning": "⚠ يحتوي هذا التفويض على {count} استردادات منها 2+ في أحدث المحاولات.",
+        "keep": "الاحتفاظ بالتفويض",
+        "cancelling": "جاري الإلغاء…",
+        "confirm": "إلغاء التفويض"
+      },
+      "toast": {
+        "cancelled": "تم إلغاء التفويض",
+        "cancelFailed": "فشل الإلغاء"
+      }
+    },
+    "transactions": {
+      "title": "المعاملات",
+      "subtitle": "عرض سجل المعاملات",
+      "pageSubtitle": "{name} — كل تبرع، لمرة واحدة ومتكرر، في سجل واحد",
+      "summary": {
+        "matching": "مطابق",
+        "collected": "تم تحصيله",
+        "pending": "قيد الانتظار",
+        "failed": "فشل"
+      },
+      "filters": {
+        "searchPlaceholder": "ابحث عن متبرع، بريد إلكتروني، مرجع…",
+        "all": "الكل",
+        "oneTime": "مرة واحدة",
+        "recurring": "متكرر",
+        "success": "ناجح",
+        "pending": "قيد الانتظار",
+        "failed": "فشل"
+      },
+      "empty": {
+        "title": "لا توجد معاملات تطابق الفلاتر",
+        "none": "لم يتم تسجيل أي تبرعات لهذه المنظمة بعد.",
+        "clear": "حاول مسح البحث أو فلتر الحالة."
+      },
+      "table": {
+        "date": "التاريخ",
+        "donor": "المتبرع",
+        "campaign": "الحملة",
+        "type": "النوع",
+        "amount": "المبلغ",
+        "status": "الحالة",
+        "reference": "المرجع",
+        "sepa": "SEPA",
+        "oneTime": "مرة واحدة",
+        "test": "اختبار"
+      },
+      "txStatus": {
+        "PAID": "مدفوع",
+        "PENDING": "قيد الانتظار",
+        "CANCEL": "ملغى",
+        "EXPIRED": "منتهي الصلاحية",
+        "COLLECTED": "تم تحصيله",
+        "STORNO": "استرداد",
+        "DECLINED": "مرفوض"
+      },
+      "pagination": {
+        "info": "صفحة {page} من {total} · {count} نتائج",
+        "previous": "السابق",
+        "next": "التالي"
+      }
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "subtitle": "أدر إعدادات منظمتك",
+      "prefix": "إعدادات المسجد",
+      "tabs": {
+        "general": "عام",
+        "payments": "المدفوعات",
+        "animation": "رسوم شكر متحركة"
+      },
+      "general": {
+        "title": "معلومات عامة",
+        "description": "تفاصيل أساسية عن منظمتك. سيتوفر التحرير في تحديث قادم.",
+        "name": "الاسم",
+        "slug": "المعرّف",
+        "city": "المدينة",
+        "country": "البلد",
+        "contactEmail": "بريد التواصل",
+        "descriptionField": "الوصف",
+        "viewDonateLanding": "عرض صفحة التبرع"
+      },
+      "onboarding": {
+        "title": "إعداد معالجة المدفوعات",
+        "description": "سجّل كتاجر لاستلام التبرعات مباشرة في حسابك المصرفي",
+        "businessDetails": "تفاصيل النشاط التجاري",
+        "legalName": "الاسم القانوني (كما هو مسجل لدى KvK) *",
+        "tradingName": "الاسم التجاري (يُعرض للمتبرعين) *",
+        "kvkNumber": "رقم KvK (8 أرقام) *",
+        "kvkPlaceholder": "12345678",
+        "vatNumber": "رقم ضريبة القيمة المضافة (اختياري)",
+        "vatPlaceholder": "NL123456789B01",
+        "businessDescription": "وصف النشاط التجاري *",
+        "businessDescriptionPlaceholder": "صف ما تفعله منظمتك وفيم تُستخدم التبرعات...",
+        "website": "الموقع الإلكتروني (اختياري)",
+        "websitePlaceholder": "https://www.example.nl",
+        "contactInformation": "معلومات الاتصال",
+        "contactEmail": "بريد التواصل *",
+        "contactPhone": "رقم الهاتف",
+        "contactPhonePlaceholder": "+31 6 12345678",
+        "registeredAddress": "العنوان المسجل",
+        "street": "الشارع *",
+        "houseNumber": "رقم المنزل *",
+        "postalCode": "الرمز البريدي *",
+        "postalPlaceholder": "1234 AB",
+        "city": "المدينة *",
+        "country": "رمز البلد *",
+        "countryPlaceholder": "NL",
+        "bankAccount": "الحساب المصرفي (للتسويات)",
+        "iban": "IBAN *",
+        "ibanPlaceholder": "NL91 ABNA 0417 1643 00",
+        "ibanOwner": "اسم صاحب الحساب *",
+        "submitting": "جاري الإرسال...",
+        "submit": "إرسال الطلب",
+        "errors": {
+          "submitFailed": "فشل إرسال الطلب",
+          "somethingWrong": "حدث خطأ ما"
+        },
+        "toastSuccess": "تم إرسال طلب التاجر بنجاح"
+      },
+      "kycPending": {
+        "title": "الطلب قيد المراجعة",
+        "description": "تم إرسال طلب التاجر الخاص بك ويقوم Pay.nl بمراجعته. يستغرق هذا عادةً من 1 إلى 3 أيام عمل. بعد الموافقة، ستتمكن من استلام التبرعات مباشرة.",
+        "checking": "جاري التحقق...",
+        "checkStatus": "التحقق من الحالة",
+        "refreshed": "تم تحديث الحالة",
+        "refreshError": "تعذر تحديث الحالة"
+      },
+      "kycRejected": {
+        "title": "تم رفض الطلب",
+        "description": "لم يتم الموافقة على طلب التاجر الخاص بك من قِبَل Pay.nl. قد يكون ذلك بسبب معلومات ناقصة أو غير صحيحة. يرجى التواصل مع فريق الدعم لحل المشكلة وإعادة إرسال الطلب.",
+        "recheck": "إعادة التحقق من الحالة"
+      },
+      "merchantStatus": {
+        "title": "التاجر موثّق",
+        "description": "منظمتك مُعدَّة لاستلام التبرعات",
+        "refresh": "تحديث",
+        "refreshed": "تم تحديث الحالة",
+        "refreshError": "تعذر تحديث الحالة",
+        "statusLabel": "الحالة",
+        "donationsActive": "التبرعات نشطة",
+        "donationsInactive": "التبرعات غير نشطة",
+        "merchantId": "معرف التاجر",
+        "serviceId": "معرف الخدمة",
+        "platformFee": "رسوم المنصة",
+        "verifiedSince": "موثّق منذ",
+        "financeTitle": "المالية",
+        "financeDescription": "أدر تبرعاتك وحملاتك",
+        "transactionsTitle": "المعاملات",
+        "transactionsDescription": "عرض جميع التبرعات",
+        "campaignsTitle": "الحملات",
+        "campaignsDescription": "إدارة قضايا التبرع",
+        "donatePageTitle": "صفحة التبرع",
+        "donatePageDescription": "معاينة الصفحة العامة"
+      },
+      "animation": {
+        "title": "رسوم شكر متحركة",
+        "description": "اختر الرسوم المتحركة التي سيراها المتبرعون بعد إتمام تبرع ناجح. صفحة التبرع الملغى واحدة للجميع وغير قابلة للتعديل.",
+        "categories": {
+          "celebration": "احتفال",
+          "islamic": "إسلامي",
+          "charity": "خيري"
+        },
+        "selected": "مختار",
+        "updated": "تم تحديث رسوم الشكر المتحركة",
+        "updateFailed": "فشل تحديث الرسوم المتحركة",
+        "saveFailed": "فشل الحفظ"
+      }
     }
   }
 }

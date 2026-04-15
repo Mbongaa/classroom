@@ -7,7 +7,11 @@
     "delete": "Delete",
     "confirm": "Confirm",
     "viewAll": "View all",
-    "back": "Back"
+    "back": "Back",
+    "tryAgain": "Try Again",
+    "notAuthenticated": "Not authenticated",
+    "saveChanges": "Save Changes",
+    "saving": "Saving..."
   },
   "locale": {
     "switchLanguage": "Language",
@@ -16,6 +20,19 @@
     "dutch": "Nederlands",
     "french": "Français",
     "german": "Deutsch"
+  },
+  "languages": {
+    "ar": "Arabic",
+    "en": "English",
+    "fr": "French",
+    "de": "German",
+    "es": "Spanish",
+    "nl": "Dutch",
+    "tr": "Turkish",
+    "ur": "Urdu",
+    "hi": "Hindi",
+    "ar-mixed": "Arabic Mixed",
+    "ar-darija": "Darija"
   },
   "sidebar": {
     "translation": {
@@ -27,6 +44,7 @@
       "dashboard": "Dashboard",
       "campaigns": "Campaigns",
       "products": "Products",
+      "appointments": "Appointments",
       "members": "Members",
       "transactions": "Transactions",
       "settings": "Settings"
@@ -75,6 +93,651 @@
         "classroom": "Classroom",
         "speech": "Speech",
         "meeting": "Meeting"
+      }
+    }
+  },
+  "rooms": {
+    "title": "Manage Classrooms",
+    "subtitle": "Create and manage persistent room codes for recurring classes",
+    "errors": {
+      "loadTitle": "Error loading rooms",
+      "fetchFailed": "Failed to fetch classrooms",
+      "fetchRetry": "Failed to fetch rooms. Please try again.",
+      "deleteFailed": "Failed to delete room",
+      "deleteConfirm": "Are you sure you want to delete \"{code}\"?"
+    },
+    "empty": {
+      "title": "No rooms yet",
+      "subtitle": "Create your first persistent room to get started. Rooms can be reused for recurring sessions."
+    },
+    "types": {
+      "meeting": "meeting",
+      "classroom": "classroom",
+      "speech": "speech"
+    },
+    "actions": {
+      "copyStudentLink": "Copy student link",
+      "joinRoom": "Join Room",
+      "joining": "Joining…"
+    }
+  },
+  "recordings": {
+    "title": "Session History",
+    "subtitle": "View past classroom sessions and recordings",
+    "empty": "No sessions yet. Sessions are created when participants join a classroom.",
+    "errors": {
+      "loadFailed": "Failed to load sessions"
+    },
+    "table": {
+      "roomName": "Room Name",
+      "dateTime": "Date & Time",
+      "duration": "Duration",
+      "recording": "Recording",
+      "actions": "Actions",
+      "watch": "Watch"
+    },
+    "status": {
+      "noRecording": "No recording",
+      "available": "Available",
+      "recording": "Recording...",
+      "failed": "Failed",
+      "processing": "Processing..."
+    },
+    "pagination": {
+      "showing": "Showing {start} to {end} of {total} sessions"
+    }
+  },
+  "prompts": {
+    "title": "Translation Prompt Templates",
+    "subtitleStart": "Create and manage reusable translation prompts for your classrooms. Use ",
+    "subtitleMiddle": " and ",
+    "subtitleEnd": " placeholders to create language-agnostic templates.",
+    "createNew": "Create New Template",
+    "refresh": "Refresh templates",
+    "loading": "Loading templates...",
+    "errors": {
+      "fetchFailed": "Failed to fetch templates",
+      "loadFailed": "Failed to load prompt templates",
+      "deleteFailed": "Failed to delete template"
+    },
+    "info": {
+      "title": "How to Use Prompt Templates",
+      "createBold": "Create templates",
+      "createRest": " with {source} and {target} placeholders",
+      "selectBold": "Select a template",
+      "selectRest": " when creating a classroom",
+      "placeholderBold": "Placeholders are automatically replaced",
+      "placeholderRest": " with actual language names during translation",
+      "oneBold": "One template works for all languages",
+      "oneRest": " - students can request any language and use the same custom prompt",
+      "publicBold": "Public templates",
+      "publicRest": " are provided by default and cannot be modified"
+    }
+  },
+  "profile": {
+    "title": "Profile Settings",
+    "subtitle": "Manage your account settings and preferences.",
+    "personal": {
+      "title": "Personal Information",
+      "description": "Update your personal details and profile picture",
+      "fullName": "Full Name",
+      "avatarUrl": "Avatar URL",
+      "avatarHint": "Optional: Link to your profile picture",
+      "updated": "Profile updated successfully!"
+    },
+    "account": {
+      "title": "Account Information",
+      "description": "Your account details",
+      "email": "Email",
+      "role": "Role",
+      "organization": "Organization",
+      "memberSince": "Member Since",
+      "organizationFallback": "N/A"
+    },
+    "organization": {
+      "title": "Organization",
+      "description": "Update your organization's display name",
+      "name": "Organization Name",
+      "updated": "Organization name updated successfully!"
+    }
+  },
+  "billing": {
+    "pageTitle": "Billing",
+    "pageSubtitle": "Manage your subscription and payment methods",
+    "warnings": {
+      "pastDueTitle": "Payment Past Due",
+      "pastDueMessage": "Your last payment failed. Please update your payment method to avoid service interruption.",
+      "incompleteTitle": "Subscription Incomplete",
+      "incompleteMessage": "Your subscription setup was not completed. Please complete payment to activate your account."
+    },
+    "currentPlan": {
+      "title": "Current Plan",
+      "tierFree": "Free Plan",
+      "tierPro": "Pro Plan",
+      "tierBeta": "Beta Plan",
+      "perMonth": "/month",
+      "perYear": "/year",
+      "accessUntil": "Access until",
+      "trialEnds": "Trial ends",
+      "nextBilling": "Next billing date",
+      "amount": "Amount",
+      "cancellingNotice": "Your subscription is set to cancel at the end of the billing period. You can reactivate it anytime before {date}.",
+      "status": {
+        "active": "Active",
+        "trialing": "Trial",
+        "pastDue": "Past Due",
+        "canceled": "Canceled",
+        "unpaid": "Unpaid",
+        "incomplete": "Incomplete"
+      }
+    },
+    "paymentMethod": {
+      "title": "Payment Method",
+      "empty": "No payment method on file",
+      "emptyHint": "Add one via the customer portal below",
+      "expires": "Expires {exp}",
+      "default": "Default payment method",
+      "updateHint": "Update your payment method via the customer portal below"
+    },
+    "invoices": {
+      "title": "Invoice History",
+      "empty": "No invoices yet",
+      "emptyHint": "Invoices will appear here after your first payment",
+      "columns": {
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status",
+        "invoice": "Invoice",
+        "download": "Download"
+      },
+      "status": {
+        "paid": "Paid",
+        "open": "Open",
+        "draft": "Draft",
+        "uncollectible": "Uncollectible",
+        "void": "Void"
+      },
+      "showingOne": "Showing {count} invoice",
+      "showingMany": "Showing {count} invoices"
+    },
+    "plans": {
+      "title": "Upgrade Your Plan",
+      "current": "Current",
+      "currentPlan": "Current Plan",
+      "upgradePro": "Upgrade to Pro",
+      "contactSales": "Contact Sales",
+      "perMonth": "/month",
+      "free": {
+        "name": "Free",
+        "features": {
+          "classrooms": "3 classrooms",
+          "recordings": "1 hour recordings",
+          "support": "Basic support",
+          "features": "Standard features"
+        }
+      },
+      "pro": {
+        "name": "Pro",
+        "features": {
+          "classrooms": "Unlimited classrooms",
+          "recordings": "Unlimited recordings",
+          "support": "Email support",
+          "features": "Advanced features",
+          "priority": "Priority access"
+        }
+      },
+      "enterprise": {
+        "name": "Enterprise",
+        "price": "Custom",
+        "features": {
+          "everything": "Everything in Pro",
+          "branding": "Custom branding",
+          "support": "Dedicated support",
+          "sla": "SLA guarantee",
+          "integrations": "Custom integrations"
+        }
+      },
+      "helpTitle": "Need help choosing?",
+      "helpText": " Our Pro plan is perfect for growing teams, while Enterprise offers custom solutions for larger organizations."
+    },
+    "manage": {
+      "title": "Manage Subscription",
+      "description": "Update your payment method, view invoices, or change your subscription plan through the Stripe Customer Portal.",
+      "button": "Manage Subscription",
+      "opening": "Opening Portal...",
+      "error": "Something went wrong",
+      "failedOpen": "Failed to open billing portal"
+    }
+  },
+  "mosqueAdmin": {
+    "prefix": "Mosque admin",
+    "backToDashboard": "← Back to dashboard",
+    "dashboard": {
+      "title": "Mosque admin",
+      "subtitle": "Manage your mosque's donations, campaigns, and members",
+      "kycBadge": "KYC: {status}",
+      "kycStatus": {
+        "pending": "pending",
+        "submitted": "submitted",
+        "approved": "approved",
+        "rejected": "rejected"
+      },
+      "txStatus": {
+        "PAID": "Paid",
+        "PENDING": "Pending",
+        "CANCEL": "Cancelled",
+        "EXPIRED": "Expired"
+      },
+      "donationsActive": "Donations active",
+      "donationsInactive": "Donations inactive",
+      "settingsLink": "Settings →",
+      "onboardingTitle": "Payment processing not set up",
+      "onboardingDescription": "Complete your merchant onboarding to start receiving donations directly into your bank account.",
+      "onboardingCta": "Set up payments",
+      "totalRaised": "Total raised",
+      "totalRaisedCaption": "{count} paid donations",
+      "thisMonth": "This month",
+      "thisMonthCaption": "{count} donations this month",
+      "activeCampaigns": "Active campaigns",
+      "activeCampaignsCaption": "Visible on the donation page",
+      "manageCampaigns": "Manage campaigns →",
+      "activeProducts": "Active products",
+      "activeProductsCaption": "Available in the shop",
+      "manageProducts": "Manage products →",
+      "activeAppointmentOfferings": "Active appointment offerings",
+      "activeAppointmentOfferingsCaption": "Bookable on the appointment page",
+      "manageAppointments": "Manage appointments →",
+      "paynlRoutingTitle": "Pay.nl routing",
+      "paynlRoutingDescription": "Where donations currently flow for this organization",
+      "serviceIdLabel": "Service ID:",
+      "merchantIdLabel": "Merchant ID:",
+      "platformFeeLabel": "Platform fee:",
+      "paynlFallbackMessage": "Using platform-wide Pay.nl fallback. Alliance sub-merchant onboarding will assign a dedicated sales location here.",
+      "recentDonationsTitle": "Recent donations",
+      "recentDonationsDescription": "Last 10 transactions for this organization",
+      "viewAll": "View all →",
+      "noDonationsYet": "No donations yet.",
+      "tableOrder": "Order",
+      "tableDonor": "Donor",
+      "tableAmount": "Amount",
+      "tableStatus": "Status",
+      "tableDate": "Date"
+    },
+    "campaigns": {
+      "title": "Campaigns",
+      "subtitle": "Manage your donation campaigns",
+      "pageSubtitle": "{name} — manage donation causes shown on your donate page",
+      "list": {
+        "newCampaign": "New campaign",
+        "createFirst": "Create your first campaign",
+        "emptyTitle": "No campaigns yet",
+        "emptyDescriptionBefore": "Create your first campaign to start accepting donations on ",
+        "emptyDescriptionAfter": "."
+      },
+      "table": {
+        "order": "Order",
+        "campaign": "Campaign",
+        "cause": "Cause",
+        "raised": "Raised",
+        "goal": "Goal",
+        "active": "Active",
+        "actions": "Actions",
+        "live": "Live",
+        "hidden": "Hidden",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "edit": "Edit",
+        "deleteCampaign": "Delete campaign",
+        "deleting": "Deleting…",
+        "toggleActiveAria": "Toggle {title} active"
+      },
+      "form": {
+        "editTitle": "Edit campaign",
+        "newTitle": "New campaign",
+        "editDescription": "Update the details for this donation cause.",
+        "newDescription": "Create a new donation cause that will appear on your donate page.",
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Ramadan iftar fund",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "e.g. ramadan-iftar",
+        "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
+        "slugHintCreate": "Used in the donate URL: /donate/<org>/<slug>. Lowercase letters, numbers and hyphens.",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "What does this campaign support? Optional.",
+        "causeLabel": "Cause type",
+        "causePlaceholder": "zakat, sadaqah…",
+        "causeHint": "Free-text tag used for reporting.",
+        "goalLabel": "Goal (€)",
+        "goalPlaceholder": "Optional",
+        "goalHint": "Leave blank if no fixed goal.",
+        "iconLabel": "Icon",
+        "iconNone": "None",
+        "iconHint": "Shown on the donate page when this campaign is selected.",
+        "activeLabel": "Active — visible on the donate page and accepting donations",
+        "cancel": "Cancel",
+        "saving": "Saving…",
+        "creating": "Creating…",
+        "saveChanges": "Save changes",
+        "createCampaign": "Create campaign",
+        "errors": {
+          "titleMin": "Title must be at least 2 characters",
+          "slugInvalid": "Slug must be 3-60 lowercase letters, numbers or hyphens (no leading/trailing hyphen)",
+          "goalInvalid": "Goal amount must be a non-negative number",
+          "updateFailed": "Failed to update campaign",
+          "createFailed": "Failed to create campaign",
+          "somethingWrong": "Something went wrong"
+        }
+      },
+      "confirmDelete": "Delete the campaign \"{title}\"? This cannot be undone. Campaigns with existing donations cannot be deleted — deactivate them instead.",
+      "toast": {
+        "orderUpdated": "Order updated",
+        "reorderFailed": "Failed to reorder",
+        "activated": "Campaign activated",
+        "deactivated": "Campaign deactivated",
+        "updateFailed": "Failed to update",
+        "deleted": "Campaign deleted",
+        "deleteFailed": "Failed to delete"
+      }
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Manage your donation products",
+      "pageSubtitle": "{name} — manage items available in your shop",
+      "list": {
+        "newProduct": "New product",
+        "addFirst": "Add your first product",
+        "emptyTitle": "No products yet",
+        "emptyDescription": "Add your first product to start selling on your shop page."
+      },
+      "table": {
+        "order": "Order",
+        "product": "Product",
+        "category": "Category",
+        "price": "Price",
+        "stock": "Stock",
+        "active": "Active",
+        "actions": "Actions",
+        "unlimited": "Unlimited",
+        "soldOut": "Sold out",
+        "live": "Live",
+        "hidden": "Hidden",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "edit": "Edit",
+        "deleteProduct": "Delete product",
+        "deleting": "Deleting…",
+        "toggleActiveAria": "Toggle {title} active"
+      },
+      "form": {
+        "editTitle": "Edit product",
+        "newTitle": "New product",
+        "editDescription": "Update the details for this product.",
+        "newDescription": "Add a new product to your shop.",
+        "titleLabel": "Title",
+        "titlePlaceholder": "e.g. Quran — Sahih International",
+        "slugLabel": "Slug",
+        "slugPlaceholder": "e.g. quran-sahih-international",
+        "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
+        "slugHintCreate": "Used in the shop URL: /shop/<org>/<slug>. Lowercase letters, numbers and hyphens.",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Product details. Optional.",
+        "priceLabel": "Price (€)",
+        "pricePlaceholder": "e.g. 12.50",
+        "stockLabel": "Stock",
+        "stockPlaceholder": "Unlimited",
+        "stockHint": "Leave blank for unlimited stock.",
+        "categoryLabel": "Category",
+        "categoryPlaceholder": "books, clothing, food…",
+        "categoryHint": "Free-text tag for grouping products.",
+        "imageLabel": "Image URL",
+        "imagePlaceholder": "https://…",
+        "imageHint": "Direct link to a product image. Optional.",
+        "activeLabel": "Active — visible in the shop and available for purchase",
+        "cancel": "Cancel",
+        "saving": "Saving…",
+        "creating": "Creating…",
+        "saveChanges": "Save changes",
+        "createProduct": "Create product",
+        "errors": {
+          "titleMin": "Title must be at least 2 characters",
+          "slugInvalid": "Slug must be 3-60 lowercase letters, numbers or hyphens (no leading/trailing hyphen)",
+          "priceRequired": "Price is required",
+          "priceInvalid": "Price must be a positive number",
+          "stockInvalid": "Stock must be a non-negative number (or leave blank for unlimited)",
+          "updateFailed": "Failed to update product",
+          "createFailed": "Failed to create product",
+          "somethingWrong": "Something went wrong"
+        }
+      },
+      "confirmDelete": "Delete the product \"{title}\"? This cannot be undone.",
+      "toast": {
+        "orderUpdated": "Order updated",
+        "reorderFailed": "Failed to reorder",
+        "activated": "Product activated",
+        "deactivated": "Product deactivated",
+        "updateFailed": "Failed to update",
+        "deleted": "Product deleted",
+        "deleteFailed": "Failed to delete"
+      }
+    },
+    "members": {
+      "title": "Members",
+      "subtitle": "Manage your mosque's members",
+      "pageSubtitle": "{name} — recurring donors with active SEPA mandates",
+      "summary": {
+        "active": "Active",
+        "pending": "Pending",
+        "atRisk": "At risk",
+        "collected": "Collected"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by donor, email, IBAN owner…",
+        "all": "All",
+        "active": "Active",
+        "pending": "Pending",
+        "cancelled": "Cancelled",
+        "expired": "Expired",
+        "atRiskOnly": "⚠ At risk only",
+        "showAtRiskOnly": "Show at risk only"
+      },
+      "empty": {
+        "title": "No members match your filters",
+        "none": "No SEPA mandates have been created for this organization yet.",
+        "clear": "Try clearing the search or status filter."
+      },
+      "table": {
+        "donor": "Donor",
+        "campaign": "Campaign",
+        "monthly": "Monthly",
+        "collected": "Collected",
+        "lastDebit": "Last debit",
+        "stornos": "Stornos",
+        "status": "Status",
+        "actions": "Actions",
+        "recentStorno": "⚠ {count} recent",
+        "recentStornoTooltip": "2+ stornos in the last 3 debits — likely insufficient funds",
+        "cancel": "Cancel"
+      },
+      "status": {
+        "ACTIVE": "Active",
+        "PENDING": "Pending",
+        "CANCELLED": "Cancelled",
+        "EXPIRED": "Expired"
+      },
+      "cancelDialog": {
+        "title": "Cancel SEPA mandate?",
+        "description": "This permanently cancels the donor's recurring direct debit at Pay.nl. No future debits will be triggered. The donor would have to re-sign a new mandate to start donating again.",
+        "donorLabel": "Donor:",
+        "emailLabel": "Email:",
+        "mandateLabel": "Mandate:",
+        "totalCollectedLabel": "Total collected:",
+        "debitsCount": "({count} debits)",
+        "stornoWarning": "⚠ This mandate has {count} stornos with 2+ in the most recent attempts.",
+        "keep": "Keep mandate",
+        "cancelling": "Cancelling…",
+        "confirm": "Cancel mandate"
+      },
+      "toast": {
+        "cancelled": "Mandate cancelled",
+        "cancelFailed": "Failed to cancel"
+      }
+    },
+    "transactions": {
+      "title": "Transactions",
+      "subtitle": "View your transaction history",
+      "pageSubtitle": "{name} — every donation, one-time and recurring, in one ledger",
+      "summary": {
+        "matching": "Matching",
+        "collected": "Collected",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "filters": {
+        "searchPlaceholder": "Search by donor, email, reference…",
+        "all": "All",
+        "oneTime": "One-time",
+        "recurring": "Recurring",
+        "success": "Success",
+        "pending": "Pending",
+        "failed": "Failed"
+      },
+      "empty": {
+        "title": "No transactions match your filters",
+        "none": "No donations have been recorded for this organization yet.",
+        "clear": "Try clearing the search or status filter."
+      },
+      "table": {
+        "date": "Date",
+        "donor": "Donor",
+        "campaign": "Campaign",
+        "type": "Type",
+        "amount": "Amount",
+        "status": "Status",
+        "reference": "Reference",
+        "sepa": "SEPA",
+        "oneTime": "one-time",
+        "test": "test"
+      },
+      "txStatus": {
+        "PAID": "Paid",
+        "PENDING": "Pending",
+        "CANCEL": "Cancelled",
+        "EXPIRED": "Expired",
+        "COLLECTED": "Collected",
+        "STORNO": "Storno",
+        "DECLINED": "Declined"
+      },
+      "pagination": {
+        "info": "Page {page} of {total} · {count} results",
+        "previous": "Previous",
+        "next": "Next"
+      }
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Manage your organization's settings",
+      "prefix": "Mosque settings",
+      "tabs": {
+        "general": "General",
+        "payments": "Payments",
+        "animation": "Thank-You Animation"
+      },
+      "general": {
+        "title": "General information",
+        "description": "Basic details about your organization. Editing will be available in a future update.",
+        "name": "Name",
+        "slug": "Slug",
+        "city": "City",
+        "country": "Country",
+        "contactEmail": "Contact email",
+        "descriptionField": "Description",
+        "viewDonateLanding": "View donate landing page"
+      },
+      "onboarding": {
+        "title": "Set up payment processing",
+        "description": "Register as a merchant to receive donations directly into your bank account",
+        "businessDetails": "Business details",
+        "legalName": "Legal name (as registered with KvK) *",
+        "tradingName": "Trading name (shown to donors) *",
+        "kvkNumber": "KvK number (8 digits) *",
+        "kvkPlaceholder": "12345678",
+        "vatNumber": "VAT number (optional)",
+        "vatPlaceholder": "NL123456789B01",
+        "businessDescription": "Business description *",
+        "businessDescriptionPlaceholder": "Describe what your organization does and what donations are used for...",
+        "website": "Website (optional)",
+        "websitePlaceholder": "https://www.example.nl",
+        "contactInformation": "Contact information",
+        "contactEmail": "Contact email *",
+        "contactPhone": "Phone number",
+        "contactPhonePlaceholder": "+31 6 12345678",
+        "registeredAddress": "Registered address",
+        "street": "Street *",
+        "houseNumber": "House number *",
+        "postalCode": "Postal code *",
+        "postalPlaceholder": "1234 AB",
+        "city": "City *",
+        "country": "Country code *",
+        "countryPlaceholder": "NL",
+        "bankAccount": "Bank account (for settlements)",
+        "iban": "IBAN *",
+        "ibanPlaceholder": "NL91 ABNA 0417 1643 00",
+        "ibanOwner": "Account holder name *",
+        "submitting": "Submitting...",
+        "submit": "Submit application",
+        "errors": {
+          "submitFailed": "Failed to submit application",
+          "somethingWrong": "Something went wrong"
+        },
+        "toastSuccess": "Merchant application submitted successfully"
+      },
+      "kycPending": {
+        "title": "Application under review",
+        "description": "Your merchant application has been submitted and is being reviewed by Pay.nl. This typically takes 1-3 business days. Once approved, you'll be able to receive donations directly.",
+        "checking": "Checking...",
+        "checkStatus": "Check status",
+        "refreshed": "Status refreshed",
+        "refreshError": "Could not refresh status"
+      },
+      "kycRejected": {
+        "title": "Application rejected",
+        "description": "Your merchant application was not approved by Pay.nl. This may be due to incomplete or incorrect information. Please contact our support team to resolve the issue and re-submit your application.",
+        "recheck": "Re-check status"
+      },
+      "merchantStatus": {
+        "title": "Merchant verified",
+        "description": "Your organization is set up to receive donations",
+        "refresh": "Refresh",
+        "refreshed": "Status refreshed",
+        "refreshError": "Could not refresh status",
+        "statusLabel": "Status",
+        "donationsActive": "Donations active",
+        "donationsInactive": "Donations inactive",
+        "merchantId": "Merchant ID",
+        "serviceId": "Service ID",
+        "platformFee": "Platform fee",
+        "verifiedSince": "Verified since",
+        "financeTitle": "Finance",
+        "financeDescription": "Manage your donations and campaigns",
+        "transactionsTitle": "Transactions",
+        "transactionsDescription": "View all donations",
+        "campaignsTitle": "Campaigns",
+        "campaignsDescription": "Manage donation causes",
+        "donatePageTitle": "Donate page",
+        "donatePageDescription": "Preview public page"
+      },
+      "animation": {
+        "title": "Thank-you animation",
+        "description": "Choose the animation donors will see after completing a successful donation. The cancelled-donation page is the same for everyone and is not configurable.",
+        "categories": {
+          "celebration": "Celebration",
+          "islamic": "Islamic",
+          "charity": "Charity"
+        },
+        "selected": "Selected",
+        "updated": "Thank-you animation updated",
+        "updateFailed": "Failed to update animation",
+        "saveFailed": "Failed to save"
       }
     }
   }

@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,53 +9,55 @@ interface PlanComparisonCardProps {
   currentTier: string;
 }
 
-export function PlanComparisonCard({ currentTier }: PlanComparisonCardProps) {
+export async function PlanComparisonCard({ currentTier }: PlanComparisonCardProps) {
+  const t = await getTranslations('billing.plans');
+
   const plans = [
     {
-      name: 'Free',
+      name: t('free.name'),
       price: '$0',
-      interval: '/month',
+      interval: t('perMonth'),
       tier: 'free',
       features: [
-        '3 classrooms',
-        '1 hour recordings',
-        'Basic support',
-        'Standard features',
+        t('free.features.classrooms'),
+        t('free.features.recordings'),
+        t('free.features.support'),
+        t('free.features.features'),
       ],
-      cta: 'Current Plan',
+      cta: t('currentPlan'),
       ctaVariant: 'outline' as const,
       disabled: true,
     },
     {
-      name: 'Pro',
+      name: t('pro.name'),
       price: '€199.99',
-      interval: '/month',
+      interval: t('perMonth'),
       tier: 'pro',
       features: [
-        'Unlimited classrooms',
-        'Unlimited recordings',
-        'Email support',
-        'Advanced features',
-        'Priority access',
+        t('pro.features.classrooms'),
+        t('pro.features.recordings'),
+        t('pro.features.support'),
+        t('pro.features.features'),
+        t('pro.features.priority'),
       ],
-      cta: 'Upgrade to Pro',
+      cta: t('upgradePro'),
       ctaVariant: 'default' as const,
       disabled: false,
       highlighted: true,
     },
     {
-      name: 'Enterprise',
-      price: 'Custom',
+      name: t('enterprise.name'),
+      price: t('enterprise.price'),
       interval: '',
       tier: 'enterprise',
       features: [
-        'Everything in Pro',
-        'Custom branding',
-        'Dedicated support',
-        'SLA guarantee',
-        'Custom integrations',
+        t('enterprise.features.everything'),
+        t('enterprise.features.branding'),
+        t('enterprise.features.support'),
+        t('enterprise.features.sla'),
+        t('enterprise.features.integrations'),
       ],
-      cta: 'Contact Sales',
+      cta: t('contactSales'),
       ctaVariant: 'outline' as const,
       disabled: false,
     },
@@ -65,7 +68,7 @@ export function PlanComparisonCard({ currentTier }: PlanComparisonCardProps) {
       <CardHeader>
         <CardTitle className="text-white flex items-center gap-2">
           <Sparkles className="h-5 w-5" />
-          Upgrade Your Plan
+          {t('title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -90,7 +93,7 @@ export function PlanComparisonCard({ currentTier }: PlanComparisonCardProps) {
                         variant="outline"
                         className="bg-green-500/10 text-green-500 border-green-500/20"
                       >
-                        Current
+                        {t('current')}
                       </Badge>
                     )}
                   </div>
@@ -144,8 +147,7 @@ export function PlanComparisonCard({ currentTier }: PlanComparisonCardProps) {
 
         <div className="mt-6 p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
           <p className="text-sm text-blue-400">
-            <strong>Need help choosing?</strong> Our Pro plan is perfect for growing
-            teams, while Enterprise offers custom solutions for larger organizations.
+            <strong>{t('helpTitle')}</strong>{t('helpText')}
           </p>
         </div>
       </CardContent>
