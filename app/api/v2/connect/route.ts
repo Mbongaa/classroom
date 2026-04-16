@@ -157,7 +157,9 @@ export async function POST(request: NextRequest) {
         let hasAgent = false;
         try {
           const participants = await listRoomParticipants(livekitRoomName, language);
-          hasAgent = participants.some((p: any) => p.kind === 1); // kind=1 = AGENT
+          hasAgent = participants.some((p: any) =>
+            p.kind === 4 || p.kind === 'AGENT'
+          );
         } catch {
           // listParticipants failed (room in transition) — assume no agent
         }

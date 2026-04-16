@@ -53,6 +53,11 @@ interface TransactionRow {
   paid_at: string | null;
 }
 
+interface KycDocStatusRow {
+  status: 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected';
+  paynl_required: boolean;
+}
+
 function formatEuro(cents: number): string {
   return new Intl.NumberFormat('nl-NL', {
     style: 'currency',
@@ -136,7 +141,16 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
 
-  const [totalResult, monthResult, campaignsResult, productsResult, offeringsResult, recentResult] = await Promise.all([
+  // KYC docs are only meaningful after a merchant has been created and Pay.nl
+  // has populated requested documents. Skip the query otherwise.
+  const kycDocsPromise = organization.paynl_merchant_id
+    ? supabaseAdmin
+        .from('organization_kyc_documents')
+        .select<string, KycDocStatusRow>('status, paynl_required')
+        .eq('organization_id', organization.id)
+    : Promise.resolve({ data: [] as KycDocStatusRow[] });
+
+  const [totalResult, monthResult, campaignsResult, productsResult, offeringsResult, recentResult, kycDocsResult] = await Promise.all([
     donationsActive
       ? supabaseAdmin
           .from('transactions')
@@ -177,7 +191,19 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
           .order('created_at', { ascending: false })
           .limit(10)
       : Promise.resolve({ data: [] }),
+    kycDocsPromise,
   ]);
+
+  const kycDocs = (kycDocsResult.data as KycDocStatusRow[]) || [];
+  const kycDocTotal = kycDocs.length;
+  const kycDocsUploaded = kycDocs.filter((d) =>
+    ['uploaded', 'forwarded', 'accepted'].includes(d.status),
+  ).length;
+  const kycDocsRejected = kycDocs.filter((d) => d.status === 'rejected').length;
+  const kycDocsOutstanding = kycDocs.filter(
+    (d) => d.status === 'requested' || d.status === 'rejected',
+  ).length;
+  const showKycCard = kycDocTotal > 0 && kycDocsOutstanding > 0;
 
   const totalPaidCents = ((totalResult.data as Array<{ amount: number }>) || []).reduce(
     (sum, row) => sum + (row.amount || 0),
@@ -241,10 +267,50 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
                 </p>
               </div>
               <Link
-                href={`/mosque-admin/${organization.slug}/settings`}
+                href={`/onboarding/${organization.slug}`}
                 className="shrink-0 rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
               >
                 {t('onboardingCta')}
+              </Link>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* KYC documents — surfaces outstanding Pay.nl document requests */}
+        {showKycCard && (
+          <Card className="mb-8">
+            <CardContent className="flex items-center gap-4 py-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                <svg
+                  className="h-6 w-6 text-slate-700 dark:text-slate-200"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className="font-medium">
+                  Pay.nl needs {kycDocsOutstanding} document
+                  {kycDocsOutstanding === 1 ? '' : 's'}
+                </p>
+                <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                  {kycDocsUploaded} of {kycDocTotal} uploaded
+                  {kycDocsRejected > 0 && ` · ${kycDocsRejected} rejected — please re-upload`}
+                  . Donations stay paused until the review is complete.
+                </p>
+              </div>
+              <Link
+                href={`/mosque-admin/${organization.slug}/settings`}
+                className="shrink-0 rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+              >
+                Upload documents
               </Link>
             </CardContent>
           </Card>

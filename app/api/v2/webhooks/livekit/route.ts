@@ -68,10 +68,10 @@ async function findV2SessionByRoomName(roomName: string) {
 
 /**
  * Determine if a participant is human or agent based on ParticipantInfo.
- * kind=0 → STANDARD (human), kind=1 → AGENT
+ * Protocol enum: STANDARD=0, INGRESS=1, EGRESS=2, SIP=3, AGENT=4
  */
 function isAgent(participant: any): boolean {
-  return participant?.kind === 1 || participant?.kind === 'AGENT';
+  return participant?.kind === 4 || participant?.kind === 'AGENT';
 }
 
 /**

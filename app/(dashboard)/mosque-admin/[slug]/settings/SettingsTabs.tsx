@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition, useCallback, useEffect } from 'react';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -227,19 +228,6 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
   const [serviceId, setServiceId] = useState(organization.paynl_service_id);
   const [donationsActive, setDonationsActive] = useState(organization.donations_active);
 
-  // After successful onboard submission, switch to the submitted view
-  const handleOnboardSuccess = useCallback(
-    (result: { merchantId: string; serviceId: string; kycStatus: string }) => {
-      setMerchantId(result.merchantId);
-      setServiceId(result.serviceId);
-      setKycStatus(result.kycStatus as OrganizationProp['kyc_status']);
-      if (result.kycStatus === 'approved') {
-        setDonationsActive(true);
-      }
-    },
-    [],
-  );
-
   // Refresh status from Pay.nl
   const handleStatusRefresh = useCallback(async () => {
     try {
@@ -255,9 +243,11 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
     }
   }, [organization.id]);
 
-  // No merchant yet → show onboarding form
+  // No merchant yet → direct to the isolated onboarding wizard.
+  // The inline form remains below for superadmin / fallback use but the CTA
+  // is the primary path so admins land in a distraction-free flow.
   if (!merchantId) {
-    return <OnboardingForm organization={organization} onSuccess={handleOnboardSuccess} />;
+    return <OnboardingCta slug={organization.slug} />;
   }
 
   // Rejected → rejection notice
@@ -289,7 +279,35 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
 }
 
 // ---------------------------------------------------------------------------
-// Onboarding form — collects KYC data and submits to the onboard endpoint
+// Onboarding CTA — links to the distraction-free wizard at /onboarding/[slug]
+// ---------------------------------------------------------------------------
+
+function OnboardingCta({ slug }: { slug: string }) {
+  return (
+    <Card>
+      <CardContent className="flex flex-col items-center py-12 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30">
+          <Building2 className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+        </div>
+        <h3 className="mt-4 text-lg font-semibold">Set up payments</h3>
+        <p className="mt-2 max-w-md text-sm text-slate-600 dark:text-slate-300">
+          Complete a short KYC flow — mosque details, signees &amp; UBOs, review.
+          It takes a few minutes and opens in a focused setup screen.
+        </p>
+        <Link
+          href={`/onboarding/${slug}`}
+          className="mt-6 inline-flex items-center rounded-md bg-black px-5 py-2 text-sm font-medium text-white hover:bg-black/80 dark:bg-white dark:text-black dark:hover:bg-white/80"
+        >
+          Start payment setup
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Onboarding form — legacy inline form, superseded by /onboarding/[slug].
+// Kept here for superadmin access until fully retired.
 // ---------------------------------------------------------------------------
 
 interface OnboardingFormProps {
