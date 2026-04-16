@@ -56,10 +56,6 @@ describe('parseWebhookEvent — TGU order events', () => {
     ['EXPIRED'],
     ['DENIED'],
     ['FAILURE'],
-    ['REFUND'],
-    ['PARTIAL_REFUND'],
-    ['PARTIAL REFUND'],
-    ['CHARGEBACK'],
   ])('parses a %s order as cancelled', (status) => {
     const event = parseWebhookEvent(tguOrderPayload({ 'object[status][action]': status }));
     expect(event).toEqual({
@@ -67,6 +63,28 @@ describe('parseWebhookEvent — TGU order events', () => {
       orderId: '44117730080X11bb',
     });
   });
+
+  it('parses CHARGEBACK as order.chargeback', () => {
+    const event = parseWebhookEvent(tguOrderPayload({ 'object[status][action]': 'CHARGEBACK' }));
+    expect(event).toEqual({
+      kind: 'order.chargeback',
+      orderId: '44117730080X11bb',
+    });
+  });
+
+  it.each([['REFUND'], ['PARTIAL_REFUND'], ['PARTIAL REFUND']])(
+    'parses %s as refund.completed',
+    (status) => {
+      const event = parseWebhookEvent(
+        tguOrderPayload({ 'object[status][action]': status, 'object[amount][value]': '500' }),
+      );
+      expect(event).toEqual({
+        kind: 'refund.completed',
+        orderId: '44117730080X11bb',
+        amountCents: 500,
+      });
+    },
+  );
 
   it.each([['PENDING'], ['AUTHORIZED'], ['PROCESSING']])(
     'ignores intermediate order status %s',
@@ -328,6 +346,92 @@ describe('parseWebhookEvent — GMS legacy directdebit events', () => {
 });
 
 // ---------------------------------------------------------------------------
+// GMS — refund events
+// ---------------------------------------------------------------------------
+
+describe('parseWebhookEvent — GMS legacy refund events', () => {
+  it('parses refund:add as refund.created', () => {
+    const event = parseWebhookEvent({
+      action: 'refund:add',
+      order_id: '12345X6789',
+      amount: '10.50',
+    });
+    expect(event).toEqual({
+      kind: 'refund.created',
+      orderId: '12345X6789',
+      amountCents: 1050,
+    });
+  });
+
+  it('parses refund:add with no amount as 0 cents', () => {
+    const event = parseWebhookEvent({
+      action: 'refund:add',
+      order_id: '12345X6789',
+    });
+    expect(event).toEqual({
+      kind: 'refund.created',
+      orderId: '12345X6789',
+      amountCents: 0,
+    });
+  });
+
+  it('returns unknown for refund:add with bad amount', () => {
+    const event = parseWebhookEvent({
+      action: 'refund:add',
+      order_id: '12345X6789',
+      amount: 'abc',
+    });
+    expect(event.kind).toBe('unknown');
+  });
+
+  it.each([['refund:received'], ['refund:send']])(
+    'parses %s as refund.completed',
+    (action) => {
+      const event = parseWebhookEvent({
+        action,
+        order_id: '12345X6789',
+        amount: '25.00',
+      });
+      expect(event).toEqual({
+        kind: 'refund.completed',
+        orderId: '12345X6789',
+        amountCents: 2500,
+      });
+    },
+  );
+
+  it('parses refund:storno as refund.failed', () => {
+    const event = parseWebhookEvent({
+      action: 'refund:storno',
+      order_id: '12345X6789',
+      reason: 'Insufficient funds',
+    });
+    expect(event).toEqual({
+      kind: 'refund.failed',
+      orderId: '12345X6789',
+      reason: 'Insufficient funds',
+    });
+  });
+
+  it('parses refund:storno with no reason as null', () => {
+    const event = parseWebhookEvent({
+      action: 'refund:storno',
+      order_id: '12345X6789',
+    });
+    expect(event).toEqual({
+      kind: 'refund.failed',
+      orderId: '12345X6789',
+      reason: null,
+    });
+  });
+
+  it('returns unknown for refund:add without order_id', () => {
+    const event = parseWebhookEvent({ action: 'refund:add', amount: '10.00' });
+    expect(event.kind).toBe('unknown');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Empty / validation pings
 // ---------------------------------------------------------------------------
 
@@ -363,6 +467,32 @@ describe('auditFieldsFor', () => {
       directDebitId: null,
       mandateCode: null,
     });
+  });
+
+  it('extracts order id for order.chargeback', () => {
+    expect(auditFieldsFor({ kind: 'order.chargeback', orderId: 'X1' })).toEqual({
+      orderId: 'X1',
+      directDebitId: null,
+      mandateCode: null,
+    });
+  });
+
+  it('extracts order id for refund.created', () => {
+    expect(
+      auditFieldsFor({ kind: 'refund.created', orderId: 'X1', amountCents: 500 }),
+    ).toEqual({ orderId: 'X1', directDebitId: null, mandateCode: null });
+  });
+
+  it('extracts order id for refund.completed', () => {
+    expect(
+      auditFieldsFor({ kind: 'refund.completed', orderId: 'X1', amountCents: 500 }),
+    ).toEqual({ orderId: 'X1', directDebitId: null, mandateCode: null });
+  });
+
+  it('extracts order id for refund.failed', () => {
+    expect(
+      auditFieldsFor({ kind: 'refund.failed', orderId: 'X1', reason: 'test' }),
+    ).toEqual({ orderId: 'X1', directDebitId: null, mandateCode: null });
   });
 
   it('extracts mandate + debit ids for directdebit.pending', () => {

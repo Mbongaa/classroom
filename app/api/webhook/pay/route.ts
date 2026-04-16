@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { createAdminClient } from '@/lib/supabase/admin';
 import {
   fetchMandateStatus,
+  fetchOrderStatus,
   parseExchangeBody,
   PayNLError,
   redactPII,
@@ -30,6 +31,8 @@ import { DonorRecurringActivatedEmail } from '@/lib/email/templates/DonorRecurri
 import { DonorRecurringReversedEmail } from '@/lib/email/templates/DonorRecurringReversedEmail';
 import { AppointmentBookedSheikhEmail } from '@/lib/email/templates/AppointmentBookedSheikhEmail';
 import { AppointmentBookedCustomerEmail } from '@/lib/email/templates/AppointmentBookedCustomerEmail';
+import { ChargebackAlertEmail } from '@/lib/email/templates/ChargebackAlertEmail';
+import { DonationRefundedEmail } from '@/lib/email/templates/DonationRefundedEmail';
 
 /**
  * /api/webhook/pay — Pay.nl exchange webhook handler
@@ -216,6 +219,24 @@ async function processExchange(opts: {
       case 'order.cancelled':
         await handleOrderCancelled(supabaseAdmin, event);
         break;
+      case 'order.chargeback':
+        await handleOrderChargeback(supabaseAdmin, event);
+        break;
+      case 'refund.created':
+        console.log('[PayNL Webhook] refund.created (awaiting settlement)', {
+          orderId: event.orderId,
+          amountCents: event.amountCents,
+        });
+        break;
+      case 'refund.completed':
+        await handleRefundCompleted(supabaseAdmin, event);
+        break;
+      case 'refund.failed':
+        console.warn('[PayNL Webhook] refund.failed', {
+          orderId: event.orderId,
+          reason: event.reason,
+        });
+        break;
       case 'directdebit.pending':
         await handleDirectDebitPending(supabaseAdmin, event);
         break;
@@ -263,13 +284,25 @@ async function handleOrderPaid(
 ) {
   const { orderId } = event;
 
-  // Note: we previously called fetchOrderStatus(orderId) here as a defense-
-  // in-depth re-verification step. That was removed because Pay.nl's
-  // /v1/orders/{id} endpoint expects the internal UUID, not the public
-  // short orderId (e.g. "52028325014X23cb"), and the webhook only carries
-  // the short form. The timing-safe token check on the exchange URL is
-  // sufficient to authenticate the webhook. Phase 2 can re-enable this
-  // once we persist the UUID alongside the orderId in the transactions row.
+  // Defense in depth: re-verify order status with Pay.nl before marking PAID.
+  // Soft fail — the timing-safe token check already authenticates the webhook,
+  // so a transient API mismatch shouldn't block a valid payment.
+  try {
+    const verified = await fetchOrderStatus(orderId);
+    const action = verified.status?.action?.toUpperCase();
+    if (action && action !== 'PAID') {
+      console.warn('[PayNL Webhook] order.paid re-verification mismatch', {
+        orderId,
+        expectedAction: 'PAID',
+        actualAction: action,
+      });
+    }
+  } catch (err) {
+    console.error('[PayNL Webhook] order.paid re-verification failed (continuing)', {
+      orderId,
+      error: err instanceof Error ? err.message : err,
+    });
+  }
 
   // Idempotent: only PENDING → PAID. Replays become no-ops.
   const { data: updatedRows, error, count } = await supabase
@@ -905,6 +938,137 @@ async function handleDirectDebitStorno(
         }),
         tags: [
           { name: 'type', value: 'donor_recurring_reversed' },
+          { name: 'organization_id', value: ctx.organizationId },
+        ],
+      }),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Chargeback
+// ---------------------------------------------------------------------------
+
+async function handleOrderChargeback(
+  supabase: AdminClient,
+  event: Extract<WebhookEvent, { kind: 'order.chargeback' }>,
+) {
+  const { orderId } = event;
+
+  const { error, count } = await supabase
+    .from('transactions')
+    .update({ status: 'CHARGEBACK' }, { count: 'exact' })
+    .eq('paynl_order_id', orderId)
+    .eq('status', 'PAID');
+
+  if (error) {
+    console.error('[PayNL Webhook] order.chargeback update failed', { orderId, error: error.message });
+    return;
+  }
+
+  if (count === 0) {
+    console.log('[PayNL Webhook] order.chargeback no-op (not PAID or missing)', { orderId });
+    return;
+  }
+
+  console.log('[PayNL Webhook] Transaction CHARGEBACK', { orderId });
+
+  const ctx = await getDonationContext(supabase, orderId);
+  if (!ctx) return;
+
+  const amount = formatMoney(ctx.amountCents, ctx.currency);
+  const donor = ctx.donorName?.trim() || 'Anonymous';
+  const admin = ctx.admin;
+
+  if (admin) {
+    await safeSend('chargeback_alert', () =>
+      sendEmail({
+        to: admin.email,
+        subject: `⚠️ Chargeback: ${amount} donation from ${donor} was disputed`,
+        react: ChargebackAlertEmail({
+          userName: admin.fullName,
+          organizationName: ctx.organizationName,
+          amount,
+          donorName: donor,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          paidDate: formatBillingDate(ctx.paidAt),
+          dashboardUrl: donationsDashboardUrl(),
+        }),
+        tags: [
+          { name: 'type', value: 'chargeback_alert' },
+          { name: 'organization_id', value: ctx.organizationId },
+        ],
+      }),
+    );
+  } else {
+    console.warn('[PayNL Webhook] No admin contact for org — skipping chargeback_alert', {
+      orderId,
+      organizationId: ctx.organizationId,
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Refund completed
+// ---------------------------------------------------------------------------
+
+async function handleRefundCompleted(
+  supabase: AdminClient,
+  event: Extract<WebhookEvent, { kind: 'refund.completed' }>,
+) {
+  const { orderId, amountCents } = event;
+
+  const { data: updatedRows, error, count } = await supabase
+    .from('transactions')
+    .update(
+      {
+        status: 'REFUNDED',
+        refunded_at: new Date().toISOString(),
+        refund_amount: amountCents || null,
+      },
+      { count: 'exact' },
+    )
+    .eq('paynl_order_id', orderId)
+    .eq('status', 'PAID')
+    .select('id, amount');
+
+  if (error) {
+    console.error('[PayNL Webhook] refund.completed update failed', { orderId, error: error.message });
+    return;
+  }
+
+  if (count === 0) {
+    console.log('[PayNL Webhook] refund.completed no-op (not PAID or missing)', { orderId });
+    return;
+  }
+
+  console.log('[PayNL Webhook] Transaction REFUNDED', { orderId, amountCents });
+
+  const ctx = await getDonationContext(supabase, orderId);
+  if (!ctx) return;
+
+  const refundAmount = amountCents > 0 ? amountCents : ctx.amountCents;
+  const amount = formatMoney(refundAmount, ctx.currency);
+
+  const donorEmail = ctx.donorEmail;
+  if (donorEmail) {
+    const admin = ctx.admin;
+    await safeSend('donor_refund_receipt', () =>
+      sendEmail({
+        to: donorEmail,
+        from: buildDonorFrom(ctx.organizationName),
+        replyTo: admin?.email,
+        subject: `Your ${amount} donation to ${ctx.organizationName} has been refunded`,
+        react: DonationRefundedEmail({
+          donorName: ctx.donorName?.trim() || 'Donor',
+          mosqueName: ctx.organizationName,
+          amount,
+          campaignTitle: ctx.campaignTitle ?? 'General donations',
+          refundDate: formatBillingDate(new Date().toISOString()),
+          orderReference: orderId,
+        }),
+        tags: [
+          { name: 'type', value: 'donor_refund_receipt' },
           { name: 'organization_id', value: ctx.organizationId },
         ],
       }),

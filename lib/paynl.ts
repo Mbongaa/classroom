@@ -332,12 +332,15 @@ export async function triggerDirectDebit(
 }
 
 /**
- * GET /v1/orders/{orderId} — used for webhook re-verification (defense in depth).
+ * GET /v1/orders/{orderId}/status — used for webhook re-verification (defense in depth).
+ *
+ * Note: the /status sub-path accepts the public orderId (e.g. 52028325014X23cb),
+ * not the internal UUID. This matches what Pay.nl sends in webhook payloads.
  */
 export async function fetchOrderStatus(orderId: string): Promise<OrderResponse> {
   return paynlRequest<OrderResponse>(
     getConnectBase(),
-    `/v1/orders/${encodeURIComponent(orderId)}`,
+    `/v1/orders/${encodeURIComponent(orderId)}/status`,
     'GET',
   );
 }
@@ -370,6 +373,50 @@ export async function cancelMandate(mandateCode: string): Promise<void> {
     getRestBase(),
     `/v2/directdebits/mandates/${encodeURIComponent(mandateCode)}`,
     'DELETE',
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Refund (rest.pay.nl)
+// ---------------------------------------------------------------------------
+
+export interface RefundOptions {
+  /** Cents to refund. Omit for a full refund of the original amount. */
+  amount?: number;
+  currency?: string;
+  description?: string;
+}
+
+export interface RefundResponse {
+  refundId?: string;
+  orderId?: string;
+  amountRefunded?: number;
+  status?: string;
+}
+
+/**
+ * PATCH /v1/transactions/{transactionId}/refund on rest.pay.nl.
+ *
+ * `transactionId` is the Pay.nl order/transaction id that appears in the
+ * webhook and is stored in `transactions.paynl_order_id`.
+ * Omit `opts.amount` for a full refund; pass it (in cents) for partial.
+ */
+export async function refundTransaction(
+  transactionId: string,
+  opts?: RefundOptions,
+): Promise<RefundResponse> {
+  const body: Record<string, unknown> = {};
+  if (opts?.amount != null) {
+    body.amount = { value: opts.amount, currency: opts.currency ?? 'EUR' };
+  }
+  if (opts?.description) {
+    body.description = opts.description.slice(0, 32);
+  }
+  return paynlRequest<RefundResponse>(
+    getRestBase(),
+    `/v1/transactions/${encodeURIComponent(transactionId)}/refund`,
+    'PATCH',
+    Object.keys(body).length > 0 ? body : undefined,
   );
 }
 

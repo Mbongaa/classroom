@@ -26,6 +26,10 @@ import { parseAmountToCents } from './paynl';
 export type WebhookEvent =
   | { kind: 'order.paid'; orderId: string; amountCents: number }
   | { kind: 'order.cancelled'; orderId: string }
+  | { kind: 'order.chargeback'; orderId: string }
+  | { kind: 'refund.created'; orderId: string; amountCents: number }
+  | { kind: 'refund.completed'; orderId: string; amountCents: number }
+  | { kind: 'refund.failed'; orderId: string; reason: string | null }
   | {
       kind: 'directdebit.pending';
       mandateCode: string;
@@ -60,6 +64,10 @@ export function auditFieldsFor(event: WebhookEvent): WebhookAuditFields {
   switch (event.kind) {
     case 'order.paid':
     case 'order.cancelled':
+    case 'order.chargeback':
+    case 'refund.created':
+    case 'refund.completed':
+    case 'refund.failed':
       return { orderId: event.orderId, directDebitId: null, mandateCode: null };
     case 'directdebit.pending':
       return {
@@ -100,22 +108,19 @@ function parseTguEvent(p: Record<string, string>): WebhookEvent {
     switch (statusAction) {
       case 'PAID':
         return { kind: 'order.paid', orderId, amountCents };
-      // Final negative states per Pay.nl docs:
-      //   -90 / -61 CANCEL, -80 EXPIRED, -64 / -63 DENIED, -60 FAILURE,
-      //   -71 CHARGEBACK, -81 REFUND, -82 PARTIAL REFUND.
-      // All collapse to a single "this donation will not complete" state
-      // for Phase 1. Phase 2 may split CHARGEBACK into its own event so
-      // mosque admins get a distinct alert.
+      case 'CHARGEBACK':
+        return { kind: 'order.chargeback', orderId };
+      case 'REFUND':
+      case 'PARTIAL_REFUND':
+      case 'PARTIAL REFUND':
+        return { kind: 'refund.completed', orderId, amountCents };
+      // Final negative states: -90/-61 CANCEL, -80 EXPIRED, -64/-63 DENIED, -60 FAILURE.
       case 'CANCEL':
       case 'CANCELLED':
       case 'CANCELED':
       case 'EXPIRED':
       case 'DENIED':
       case 'FAILURE':
-      case 'REFUND':
-      case 'PARTIAL_REFUND':
-      case 'PARTIAL REFUND':
-      case 'CHARGEBACK':
         return { kind: 'order.cancelled', orderId };
       default:
         // Intermediate states like INIT/PENDING/AUTHORIZE/VERIFY/PARTLY_CAPTURED
@@ -210,6 +215,31 @@ function parseGmsEvent(p: Record<string, string>): WebhookEvent {
     case 'incassostorno': {
       if (!directDebitId) return { kind: 'unknown', reason: 'GMS incassostorno missing id' };
       return { kind: 'directdebit.storno', directDebitId };
+    }
+    case 'refund:add': {
+      if (!orderId) return { kind: 'unknown', reason: 'GMS refund:add without order_id' };
+      let refundCents = 0;
+      if (p.amount) {
+        try { refundCents = parseAmountToCents(p.amount); } catch {
+          return { kind: 'unknown', reason: `GMS refund:add bad amount "${p.amount}"` };
+        }
+      }
+      return { kind: 'refund.created', orderId, amountCents: refundCents };
+    }
+    case 'refund:received':
+    case 'refund:send': {
+      if (!orderId) return { kind: 'unknown', reason: `GMS ${action} without order_id` };
+      let refundCents = 0;
+      if (p.amount) {
+        try { refundCents = parseAmountToCents(p.amount); } catch {
+          return { kind: 'unknown', reason: `GMS ${action} bad amount "${p.amount}"` };
+        }
+      }
+      return { kind: 'refund.completed', orderId, amountCents: refundCents };
+    }
+    case 'refund:storno': {
+      if (!orderId) return { kind: 'unknown', reason: 'GMS refund:storno without order_id' };
+      return { kind: 'refund.failed', orderId, reason: p.reason || null };
     }
     default:
       return { kind: 'unknown', reason: `GMS unknown action=${action}` };
