@@ -574,8 +574,15 @@ export async function POST(
         status: error.status,
         body: error.body,
       });
+      const detail = extractPayNLErrorDetail(error.body);
       return NextResponse.json(
-        { error: 'Pay.nl rejected the merchant application. Please verify your details.' },
+        {
+          error:
+            `Pay.nl rejected the merchant application (HTTP ${error.status})` +
+            (detail ? `: ${detail}` : '. Please verify your details.'),
+          paynlStatus: error.status,
+          paynlBody: error.body,
+        },
         { status: 502 },
       );
     }
@@ -587,6 +594,50 @@ export async function POST(
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+/**
+ * Extract a human-readable message from Pay.nl's error body. Pay.nl v2
+ * uses several shapes, so try the common ones and fall back to JSON.
+ */
+function extractPayNLErrorDetail(body: unknown): string | null {
+  if (!body) return null;
+  if (typeof body === 'string') return body.slice(0, 500);
+  if (typeof body !== 'object') return null;
+  const b = body as Record<string, unknown>;
+
+  const errorsArr = b.errors ?? b.violations;
+  if (Array.isArray(errorsArr) && errorsArr.length > 0) {
+    const parts = errorsArr
+      .map((e) => {
+        if (typeof e === 'string') return e;
+        if (e && typeof e === 'object') {
+          const r = e as Record<string, unknown>;
+          const field = r.field ?? r.path ?? r.property;
+          const msg = r.message ?? r.detail ?? r.description;
+          if (field && msg) return `${field}: ${msg}`;
+          return (msg as string) ?? JSON.stringify(e);
+        }
+        return String(e);
+      })
+      .filter(Boolean);
+    if (parts.length > 0) return parts.join('; ').slice(0, 500);
+  }
+
+  if (typeof b.error === 'string') return b.error;
+  if (b.error && typeof b.error === 'object') {
+    const e = b.error as Record<string, unknown>;
+    const msg = e.message ?? e.detail;
+    if (typeof msg === 'string') return msg;
+  }
+  if (typeof b.message === 'string') return b.message;
+  if (typeof b.detail === 'string') return b.detail;
+
+  try {
+    return JSON.stringify(body).slice(0, 500);
+  } catch {
+    return null;
+  }
+}
 
 function mapRemoteDocStatus(
   remote: string,

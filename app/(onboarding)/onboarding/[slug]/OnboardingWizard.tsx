@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import toast from 'react-hot-toast';
@@ -116,11 +116,78 @@ const STEPS = [
   { key: 'review', label: 'Review & submit', icon: FileCheck2 },
 ] as const;
 
+const DRAFT_SCHEMA_VERSION = 1;
+const draftStorageKey = (orgId: string) => `bayaan:onboarding-draft:${orgId}`;
+
+interface OnboardingDraft {
+  version: number;
+  savedAt: string;
+  step: number;
+  form: {
+    legalName: string;
+    tradingName: string;
+    legalForm: string;
+    mcc: string;
+    kvkNumber: string;
+    vatNumber: string;
+    contactEmail: string;
+    contactPhone: string;
+    iban: string;
+    ibanOwner: string;
+    street: string;
+    houseNumber: string;
+    postalCode: string;
+    city: string;
+    country: string;
+    businessDescription: string;
+    websiteUrl: string;
+  };
+  persons: PersonFormState[];
+}
+
+function loadDraft(orgId: string): OnboardingDraft | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(draftStorageKey(orgId));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as OnboardingDraft;
+    if (parsed?.version !== DRAFT_SCHEMA_VERSION) return null;
+    if (!parsed.form || !Array.isArray(parsed.persons)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(orgId: string, draft: Omit<OnboardingDraft, 'version' | 'savedAt'>) {
+  if (typeof window === 'undefined') return;
+  try {
+    const payload: OnboardingDraft = {
+      version: DRAFT_SCHEMA_VERSION,
+      savedAt: new Date().toISOString(),
+      ...draft,
+    };
+    window.localStorage.setItem(draftStorageKey(orgId), JSON.stringify(payload));
+  } catch {
+    // localStorage can throw (quota, private mode). Best-effort only.
+  }
+}
+
+function clearDraft(orgId: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(draftStorageKey(orgId));
+  } catch {
+    // Best-effort only.
+  }
+}
+
 export function OnboardingWizard({ organization }: { organization: OrganizationProp }) {
   const router = useRouter();
   const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [draftRestored, setDraftRestored] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     legalName: organization.name,
@@ -145,6 +212,27 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
   const [persons, setPersons] = useState<PersonFormState[]>([
     emptyPerson(organization.country || 'NL'),
   ]);
+
+  // Restore draft once on mount. Runs after initial render to avoid SSR mismatch.
+  useEffect(() => {
+    const draft = loadDraft(organization.id);
+    if (!draft) return;
+    setForm(draft.form);
+    setPersons(draft.persons);
+    setStep(Math.max(0, Math.min(draft.step, STEPS.length - 1)));
+    setDraftRestored(draft.savedAt);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organization.id]);
+
+  // Persist on any change.
+  useEffect(() => {
+    saveDraft(organization.id, { step, form, persons });
+  }, [organization.id, step, form, persons]);
+
+  function discardDraft() {
+    clearDraft(organization.id);
+    if (typeof window !== 'undefined') window.location.reload();
+  }
 
   function updateField(field: keyof typeof form, value: string) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -306,6 +394,7 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
         throw new Error(data.error || 'Submission failed');
       }
 
+      clearDraft(organization.id);
       toast.success('Application submitted to Pay.nl');
       router.push(`/mosque-admin/${organization.slug}/settings`);
       router.refresh();
@@ -341,6 +430,16 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
       </header>
 
       <div className="mx-auto max-w-3xl px-4 py-8 sm:px-8 sm:py-12">
+        {draftRestored && (
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+            <span>
+              Restored your saved draft from {new Date(draftRestored).toLocaleString()}.
+            </span>
+            <Button type="button" size="sm" variant="outline" onClick={discardDraft}>
+              Start fresh
+            </Button>
+          </div>
+        )}
         <Stepper currentStep={step} />
 
         <div className="mt-10 rounded-xl border border-[rgba(128,128,128,0.3)] bg-white p-6 dark:bg-black sm:p-8">
