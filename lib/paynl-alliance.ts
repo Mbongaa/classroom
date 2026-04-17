@@ -4,27 +4,27 @@
  * Bayaan Hub acts as an Alliance partner: we programmatically register
  * every mosque as a sub-merchant, collect KYC (persons + documents) and
  * submit the boarding for Pay.nl's review. Everything here targets the
- * v2 REST API at https://rest.pay.nl/v2.
+ * v2 REST API at https://rest.pay.nl/v2. Schema source of truth:
+ * https://rest.pay.nl/swagger/rest-v2.json.
  *
- * Flow (called in this order by /api/organizations/{id}/merchant/*):
+ * Flow (called by /api/organizations/{id}/merchant/*):
  *
  *   1. createMerchant(payload)                 → POST   /v2/merchants
- *      Returns merchantCode (M-XXXX-XXXX).
+ *      Persons are embedded in the merchant body (NOT a separate
+ *      /v2/licenses call — that endpoint is for sales locations, not
+ *      people). Returns merchantCode (M-XXXX-XXXX) and an embedded
+ *      persons[] array with per-person codes assigned by Pay.nl.
  *
- *   2. createLicense(merchantCode, person)     → POST   /v2/licenses
- *      Register each signee / UBO. Returns licenseCode per person.
- *
- *   3. getMerchantInfo(merchantCode)           → GET    /v2/merchants/{code}/info
+ *   2. getMerchantInfo(merchantCode)           → GET    /v2/merchants/{code}/info
  *      Tells us which documents Pay.nl now requires. We persist that
- *      list as "requested" rows in organization_kyc_documents so the
- *      admin UI can show what's outstanding.
+ *      list as "requested" rows in organization_kyc_documents.
  *
- *   4. addDocument({code, fileName, base64})   → POST   /v2/documents
- *      Upload each requested document, keyed by the code from step 3.
+ *   3. addDocument({code, fileName, base64})   → POST   /v2/documents
+ *      Upload each requested document, keyed by the code from step 2.
  *
- *   5. submitForReview(merchantCode)           → PATCH  /v2/boarding/{code}/ready
+ *   4. submitForReview(merchantCode)           → PATCH  /v2/boarding/{code}/ready
  *      Pay.nl Compliance review begins. Final status arrives async via
- *      boardingStatus / kycStatus on the merchant (poll /info).
+ *      boardingStatus / kycStatus (poll /info).
  *
  * Auth: Basic auth using PAYNL_TOKEN_CODE (AT-code) as username and
  * PAYNL_API_TOKEN as password — same credentials we already use for
@@ -33,6 +33,14 @@
  * Activation gate: every function throws PayNLAllianceNotActivatedError
  * unless PAYNL_ALLIANCE_ENABLED=true. This lets us ship the code before
  * Pay.nl formally flips the alliance flag on our account.
+ *
+ * Env vars:
+ *   PAYNL_ALLIANCE_ENABLED        Must be "true" to reach Pay.nl at all.
+ *   PAYNL_REFERRAL_PROFILE_CODE   Package code (CP-xxxx-xxxx). Required
+ *                                 for alliance partner calls — discover
+ *                                 yours via GET /v2/packages.
+ *   PAYNL_CONNECTION_TYPE         Defaults to "ALLIANCE". Other values
+ *                                 per spec: BP, ISO, FI, SP, CPSP.
  */
 
 import { paynlRequest, PayNLError } from './paynl';
@@ -108,30 +116,143 @@ export type MerchantStatus = 'ACTIVE' | 'INACTIVE';
 export type PayoutStatus = 'ENABLED' | 'DISABLED';
 
 // ---------------------------------------------------------------------------
-// 1. createMerchant — POST /v2/merchants
+// 1a. getCompanyTypes — GET /v2/companytypes
+//
+// Pay.nl's /v2/merchants endpoint takes a numeric companyTypeId, not a
+// string like "stichting". We fetch the list once per lambda lifetime
+// and resolve by matching our internal LegalForm enum against Pay.nl's
+// translated names (Dutch primary, English fallback).
 // ---------------------------------------------------------------------------
 
+interface PayNLCompanyType {
+  id: number;
+  name: string;
+  countryCode?: string;
+  translations?: { name?: Record<string, string> };
+}
+
+let cachedCompanyTypes: PayNLCompanyType[] | null = null;
+
+export async function getCompanyTypes(
+  countryCode = 'NL',
+): Promise<PayNLCompanyType[]> {
+  assertAllianceEnabled('getCompanyTypes');
+  if (cachedCompanyTypes) {
+    return cachedCompanyTypes.filter(
+      (t) => !t.countryCode || t.countryCode === countryCode,
+    );
+  }
+  const raw = await paynlRequest<unknown>(getRestBase(), '/v2/companytypes', 'GET');
+  const root = raw as Record<string, unknown> | null;
+  const arr =
+    (root?.companyTypes as PayNLCompanyType[] | undefined) ??
+    (root?.data as PayNLCompanyType[] | undefined) ??
+    (Array.isArray(raw) ? (raw as PayNLCompanyType[]) : []);
+  cachedCompanyTypes = arr;
+  return arr.filter((t) => !t.countryCode || t.countryCode === countryCode);
+}
+
 /**
- * Body for POST /v2/merchants.
- *
- * The top-level envelope is `{ merchant: {...}, partner?: {...} }`. We
- * represent the merchant sub-object with a flat TypeScript interface and
- * build the envelope inside createMerchant() — callers don't have to know
- * about the envelope.
+ * Match our internal LegalForm enum to Pay.nl's companyTypeId. Pay.nl's
+ * translation keys vary (`nl_NL`, `en_GB`), so we compare normalised names.
  */
+export async function resolveCompanyTypeId(form: LegalForm): Promise<string> {
+  const types = await getCompanyTypes('NL');
+  const needles = LEGAL_FORM_MATCHERS[form] ?? [form];
+  const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const needlesNorm = needles.map(norm);
+
+  const found = types.find((t) => {
+    const candidates = [
+      t.name,
+      t.translations?.name?.nl_NL,
+      t.translations?.name?.en_GB,
+      t.translations?.name?.en_US,
+    ].filter((s): s is string => typeof s === 'string');
+    return candidates.some((c) =>
+      needlesNorm.some((n) => norm(c).includes(n) || n.includes(norm(c))),
+    );
+  });
+
+  if (!found) {
+    throw new PayNLError(
+      502,
+      { availableTypes: types.map((t) => ({ id: t.id, name: t.name })) },
+      `No Pay.nl companyTypeId matched legalForm="${form}". Check /v2/companytypes.`,
+    );
+  }
+  return String(found.id);
+}
+
+/**
+ * Needle words to look for in Pay.nl's company-type names when resolving
+ * a LegalForm. Order matters: first match wins.
+ */
+const LEGAL_FORM_MATCHERS: Record<LegalForm, string[]> = {
+  eenmanszaak: ['eenmanszaak', 'soleproprietor', 'soletrader'],
+  vof: ['vof', 'vennootschaponderfirma', 'generalpartnership'],
+  maatschap: ['maatschap', 'partnership'],
+  bv: ['beslotenvennootschap', 'privatelimited', ' bv'],
+  nv: ['naamlozevennootschap', 'publiclimited', ' nv'],
+  stichting: ['stichting', 'foundation'],
+  vereniging: ['vereniging', 'association'],
+  cooperatie: ['cooperatie', 'coöperatie', 'cooperative'],
+  other: ['other', 'overig'],
+};
+
+// ---------------------------------------------------------------------------
+// 1b. createMerchant — POST /v2/merchants
+//
+// Persons are embedded in this single call — there's no separate /v2/licenses
+// endpoint for people. Pay.nl returns the merchant record with an embedded
+// persons[] that carries per-person codes we store locally.
+// ---------------------------------------------------------------------------
+
+/** Pay.nl's signatory enum. "alone" = may sign individually; "shared" = needs
+ * co-signer; "no" = not authorised. */
+export type AuthorizedToSign = 'alone' | 'shared' | 'no';
+
+/** Pay.nl's UBO enum. "pseudo" is what you use for stichting/foundation board
+ * members when no natural person owns >25%. */
+export type UboType = 'no' | 'direct' | 'indirect' | 'pseudo';
+
+export interface MerchantPerson {
+  /** Stable client-side id; echoed so we can map Pay.nl's personCode back. */
+  clientRef: string;
+  firstName: string;
+  lastName: string;
+  /** Optional gender. Pay.nl accepts "M" | "F". */
+  gender?: 'M' | 'F';
+  /** ISO date "YYYY-MM-DD". */
+  dateOfBirth: string;
+  /** ISO 3166-1 alpha-2, e.g. "NL". */
+  nationality: string;
+  email?: string;
+  phone?: string;
+  /** Locale for person-facing comms, e.g. "nl_NL". */
+  language?: string;
+  address: PayNLAddress;
+  authorizedToSign: AuthorizedToSign;
+  ubo: UboType;
+  /** Required when ubo !== "no". For pseudo-UBOs, use 100/N equal split. */
+  uboPercentage?: number;
+  /** Short free-text description of the person's relationship to the merchant. */
+  relationshipDescription?: string;
+  /** Politically exposed person flag. Defaults to false. */
+  pep?: boolean;
+}
+
 export interface CreateMerchantPayload {
   /** Legal business name as registered with KvK. */
   legalName: string;
   /** Trading name shown on checkout screens. */
-  tradingName: string;
-  /** Legal form — drives which documents / UBO rules apply server-side. */
+  publicName: string;
+  /** Internal LegalForm — resolved to companyTypeId at request time. */
   legalForm: LegalForm;
-  /** Merchant Category Code (ISO 18245). Donations typically 8398. */
-  mcc: string;
   /** KvK (Dutch Chamber of Commerce) number. 8 digits. */
-  kvkNumber: string;
+  coc: string;
   /** Optional VAT id. */
-  vatNumber?: string;
+  vat?: string;
   /** Primary contact email for the merchant. */
   contactEmail: string;
   /** Phone with international prefix (+31...). */
@@ -141,13 +262,27 @@ export interface CreateMerchantPayload {
   /** Account holder name (must match IBAN). */
   ibanOwner: string;
   /** Address of the merchant's registered office. */
-  address: PayNLAddress;
+  visitAddress: PayNLAddress;
   /** Brief description of what the merchant sells/accepts donations for. */
   businessDescription: string;
   /** URL of the merchant's public website. */
-  websiteUrl?: string;
-  /** ISO 4217 currency code. Defaults to "EUR" when omitted. */
-  currency?: string;
+  website?: string;
+  /** Merchant-level ISO country code (in addition to visitAddress.country). */
+  countryCode: string;
+  /** Pay.nl locale code for contracts and comms, e.g. "nl_NL". */
+  contractLanguage: string;
+  /** Embedded persons (signees + UBOs). Required by Pay.nl. */
+  persons: MerchantPerson[];
+}
+
+export interface CreatedPerson {
+  /** Pay.nl's per-person code. Stored on organization_persons.paynl_license_code
+   * (column name kept for back-compat; semantically it's the personCode now). */
+  personCode: string;
+  firstName?: string;
+  lastName?: string;
+  /** Raw echo so the route handler can cross-reference in logs. */
+  raw: Record<string, unknown>;
 }
 
 export interface CreateMerchantResponse {
@@ -158,60 +293,106 @@ export interface CreateMerchantResponse {
   /** Usually INACTIVE until KYC completes. */
   status?: MerchantStatus;
   payoutStatus?: PayoutStatus;
+  /** Persons as echoed back by Pay.nl (with assigned personCodes). */
+  persons: CreatedPerson[];
+  /** Raw response for logging. */
+  raw: unknown;
+}
+
+/** Build the `partner` block from env. Pay.nl requires this for alliance calls. */
+function buildPartnerBlock(): Record<string, unknown> | null {
+  const referralProfileCode = process.env.PAYNL_REFERRAL_PROFILE_CODE;
+  if (!referralProfileCode) return null;
+  const connectionType = process.env.PAYNL_CONNECTION_TYPE || 'ALLIANCE';
+  return { connectionType, referralProfileCode };
 }
 
 /**
- * Register a new sub-merchant under the Alliance account.
- *
- * On success Pay.nl returns a merchantCode (M-XXXX-XXXX). Subsequent
- * license + document operations are keyed by this code.
+ * Register a new sub-merchant (with persons embedded) under the Alliance
+ * account. Returns the Pay.nl merchantCode plus per-person codes.
  */
 export async function createMerchant(
   payload: CreateMerchantPayload,
 ): Promise<CreateMerchantResponse> {
   assertAllianceEnabled('createMerchant');
 
+  const partner = buildPartnerBlock();
+  if (!partner) {
+    throw new PayNLError(
+      500,
+      null,
+      'PAYNL_REFERRAL_PROFILE_CODE env var is required for Alliance merchant creation.',
+    );
+  }
+
+  const companyTypeId = await resolveCompanyTypeId(payload.legalForm);
+
+  const personObjects = payload.persons.map((p) => ({
+    firstName: p.firstName,
+    lastName: p.lastName,
+    ...(p.gender ? { gender: p.gender } : {}),
+    ...(p.email ? { email: p.email } : {}),
+    ...(p.phone ? { phone: p.phone } : {}),
+    language: p.language ?? payload.contractLanguage,
+    visitAddress: {
+      streetName: p.address.street,
+      streetNumber: p.address.houseNumber,
+      zipCode: p.address.postalCode,
+      city: p.address.city,
+      countryCode: p.address.country,
+    },
+    platform: { authorisation: 'all', authorisationGroups: [] },
+    complianceData: {
+      dateOfBirth: p.dateOfBirth,
+      nationality: p.nationality,
+      authorizedToSign: p.authorizedToSign,
+      pep: p.pep ?? false,
+      ubo: p.ubo,
+      ...(p.ubo !== 'no' && typeof p.uboPercentage === 'number'
+        ? { uboPercentage: Math.round(p.uboPercentage) }
+        : {}),
+      ...(p.relationshipDescription
+        ? { relationshipDescription: p.relationshipDescription }
+        : {}),
+    },
+  }));
+
   const merchantObject = {
     name: payload.legalName,
-    tradingName: payload.tradingName,
-    companyType: payload.legalForm,
-    mcc: payload.mcc,
-    kvkNumber: payload.kvkNumber,
-    ...(payload.vatNumber ? { vatNumber: payload.vatNumber } : {}),
+    publicName: payload.publicName,
+    coc: payload.coc,
+    ...(payload.vat ? { vat: payload.vat } : {}),
+    companyTypeId,
+    countryCode: payload.countryCode,
+    contractLanguage: payload.contractLanguage,
     contactEmail: payload.contactEmail,
     ...(payload.contactPhone ? { contactPhone: payload.contactPhone } : {}),
-    bankAccount: {
-      iban: payload.iban,
-      owner: payload.ibanOwner,
+    ...(payload.website ? { website: payload.website } : {}),
+    clearingAccounts: [
+      { method: 'iban', iban: { iban: payload.iban, owner: payload.ibanOwner } },
+    ],
+    visitAddress: {
+      streetName: payload.visitAddress.street,
+      streetNumber: payload.visitAddress.houseNumber,
+      zipCode: payload.visitAddress.postalCode,
+      city: payload.visitAddress.city,
+      countryCode: payload.visitAddress.country,
     },
-    address: {
-      street: payload.address.street,
-      houseNumber: payload.address.houseNumber,
-      ...(payload.address.houseNumberSuffix
-        ? { houseNumberSuffix: payload.address.houseNumberSuffix }
-        : {}),
-      postalCode: payload.address.postalCode,
-      city: payload.address.city,
-      country: payload.address.country,
-    },
-    description: payload.businessDescription,
-    ...(payload.websiteUrl ? { website: payload.websiteUrl } : {}),
-    currency: payload.currency ?? 'EUR',
+    persons: personObjects,
+    service: { description: payload.businessDescription },
   };
 
   const raw = await paynlRequest<unknown>(
     getRestBase(),
     '/v2/merchants',
     'POST',
-    { merchant: merchantObject },
+    { partner, merchant: merchantObject },
   );
 
   return normaliseMerchantCreateResponse(raw);
 }
 
 function normaliseMerchantCreateResponse(raw: unknown): CreateMerchantResponse {
-  // Pay.nl responses nest the record under different keys across endpoints.
-  // Tolerate { merchant: {...} }, { data: {...} }, or a flat record.
   const root = raw as Record<string, unknown> | null;
   const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
 
@@ -224,106 +405,25 @@ function normaliseMerchantCreateResponse(raw: unknown): CreateMerchantResponse {
     throw new PayNLError(502, raw, 'Pay.nl did not return a merchantCode');
   }
 
+  const personsArr = (m.persons as unknown[] | undefined) ?? [];
+  const persons: CreatedPerson[] = personsArr.map((p) => {
+    const po = (p ?? {}) as Record<string, unknown>;
+    return {
+      personCode: String(po.code ?? po.personCode ?? po.id ?? ''),
+      firstName: po.firstName as string | undefined,
+      lastName: po.lastName as string | undefined,
+      raw: po,
+    };
+  });
+
   return {
     merchantCode,
     boardingStatus: (m.boardingStatus as BoardingStatus) ?? 'REGISTERED',
     status: m.status as MerchantStatus | undefined,
     payoutStatus: m.payoutStatus as PayoutStatus | undefined,
+    persons,
+    raw,
   };
-}
-
-// ---------------------------------------------------------------------------
-// 2. createLicense — POST /v2/licenses
-//
-// One call per natural person associated with the merchant (signees, UBOs,
-// directors). Pay.nl returns a licenseCode that we store on our person row.
-// ---------------------------------------------------------------------------
-
-export interface MerchantPerson {
-  /** Stable client-side id; echoed so we can map Pay.nl's licenseCode back. */
-  clientRef: string;
-  fullName: string;
-  /** Optional split for Pay.nl variants that want first/last separately. */
-  firstName?: string;
-  lastName?: string;
-  /** ISO date "YYYY-MM-DD". */
-  dateOfBirth: string;
-  /** ISO 3166-1 alpha-2, e.g. "NL". */
-  nationality: string;
-  email?: string;
-  phone?: string;
-  address: PayNLAddress;
-  isSignee: boolean;
-  isUbo: boolean;
-  /** Required when isUbo=true. 0 < pct ≤ 100. */
-  uboPercentage?: number;
-}
-
-export interface CreateLicenseResponse {
-  /** The licenseCode Pay.nl assigned (stored on organization_persons.paynl_license_code). */
-  licenseCode: string;
-  /** If present, same as licenseCode on some responses. */
-  code?: string;
-}
-
-/**
- * Register one person (signee / UBO) against the merchant. Returns the
- * license code, which becomes the target for any person-scoped document
- * upload (id_front, id_back).
- */
-export async function createLicense(
-  merchantCode: string,
-  person: MerchantPerson,
-): Promise<CreateLicenseResponse> {
-  assertAllianceEnabled('createLicense');
-
-  const personObject = {
-    name: person.fullName,
-    ...(person.firstName ? { firstName: person.firstName } : {}),
-    ...(person.lastName ? { lastName: person.lastName } : {}),
-    dateOfBirth: person.dateOfBirth,
-    nationality: person.nationality,
-    ...(person.email ? { email: person.email } : {}),
-    ...(person.phone ? { phone: person.phone } : {}),
-    address: {
-      street: person.address.street,
-      houseNumber: person.address.houseNumber,
-      ...(person.address.houseNumberSuffix
-        ? { houseNumberSuffix: person.address.houseNumberSuffix }
-        : {}),
-      postalCode: person.address.postalCode,
-      city: person.address.city,
-      country: person.address.country,
-    },
-    isSignee: person.isSignee,
-    isUbo: person.isUbo,
-    ...(person.uboPercentage !== undefined
-      ? { uboPercentage: person.uboPercentage }
-      : {}),
-  };
-
-  const raw = await paynlRequest<unknown>(getRestBase(), '/v2/licenses', 'POST', {
-    merchantCode,
-    person: personObject,
-  });
-
-  return normaliseLicenseResponse(raw);
-}
-
-function normaliseLicenseResponse(raw: unknown): CreateLicenseResponse {
-  const root = raw as Record<string, unknown> | null;
-  const l = (root?.license ?? root?.data ?? root ?? {}) as Record<string, unknown>;
-
-  const code =
-    (l.code as string | undefined) ??
-    (l.licenseCode as string | undefined) ??
-    (l.id as string | undefined);
-
-  if (!code) {
-    throw new PayNLError(502, raw, 'Pay.nl did not return a licenseCode');
-  }
-
-  return { licenseCode: code, code };
 }
 
 // ---------------------------------------------------------------------------

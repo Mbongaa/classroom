@@ -3,7 +3,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import {
   createMerchant,
-  createLicense,
   getMerchantInfo,
   isAllianceEnabled,
   PayNLAllianceNotActivatedError,
@@ -65,16 +64,48 @@ const UBO_REQUIRED_FORMS: readonly LegalForm[] = [
   'cooperatie',
 ];
 
-type OnboardBody = CreateMerchantPayload & { persons: MerchantPerson[] };
+/** Wire shape received from the onboarding wizard. Stays UI-friendly — we
+ * translate to Pay.nl's v2 field names inside the handler. */
+interface OnboardBody {
+  legalName: string;
+  tradingName: string;
+  legalForm: LegalForm;
+  mcc: string;
+  kvkNumber: string;
+  vatNumber?: string;
+  contactEmail: string;
+  contactPhone?: string;
+  iban: string;
+  ibanOwner: string;
+  address: {
+    street: string;
+    houseNumber: string;
+    postalCode: string;
+    city: string;
+    country: string;
+  };
+  businessDescription: string;
+  websiteUrl?: string;
+  persons: ValidatedPerson[];
+}
 
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
 
+interface ValidatedPerson extends MerchantPerson {
+  /** Kept alongside the Pay.nl-shaped person so the DB insert can use it. */
+  isSignee: boolean;
+  isUbo: boolean;
+  /** Original full name for the local organization_persons row. */
+  fullName: string;
+}
+
 function validatePerson(
   raw: unknown,
   index: number,
-): { ok: true; person: MerchantPerson } | { ok: false; error: string } {
+  legalForm: LegalForm,
+): { ok: true; person: ValidatedPerson } | { ok: false; error: string } {
   const prefix = `persons[${index}]`;
   if (!raw || typeof raw !== 'object') {
     return { ok: false, error: `${prefix} must be an object` };
@@ -84,8 +115,11 @@ function validatePerson(
   if (typeof p.clientRef !== 'string' || p.clientRef.trim().length === 0) {
     return { ok: false, error: `${prefix}.clientRef is required` };
   }
-  if (typeof p.fullName !== 'string' || p.fullName.trim().length === 0) {
-    return { ok: false, error: `${prefix}.fullName is required` };
+  if (typeof p.firstName !== 'string' || p.firstName.trim().length === 0) {
+    return { ok: false, error: `${prefix}.firstName is required` };
+  }
+  if (typeof p.lastName !== 'string' || p.lastName.trim().length === 0) {
+    return { ok: false, error: `${prefix}.lastName is required` };
   }
   if (typeof p.dateOfBirth !== 'string' || !DATE_RE.test(p.dateOfBirth)) {
     return { ok: false, error: `${prefix}.dateOfBirth must be YYYY-MM-DD` };
@@ -139,11 +173,31 @@ function validatePerson(
     uboPct = p.uboPercentage;
   }
 
+  const firstName = (p.firstName as string).trim();
+  const lastName = (p.lastName as string).trim();
+
+  // Map our booleans to Pay.nl's enum shape.
+  // Stichting/vereniging boards act jointly → "shared"; otherwise "alone".
+  // (Teachers/admins can override later via the settings UI when we add it.)
+  const pseudoUboForms: readonly LegalForm[] = [
+    'stichting',
+    'vereniging',
+    'cooperatie',
+  ];
+  const authorizedToSign = p.isSignee
+    ? (pseudoUboForms.includes(legalForm) ? 'shared' : 'alone')
+    : 'no';
+  const ubo = p.isUbo
+    ? (pseudoUboForms.includes(legalForm) ? 'pseudo' : 'direct')
+    : 'no';
+
   return {
     ok: true,
     person: {
       clientRef: (p.clientRef as string).trim(),
-      fullName: (p.fullName as string).trim(),
+      firstName,
+      lastName,
+      fullName: `${firstName} ${lastName}`,
       dateOfBirth: p.dateOfBirth as string,
       nationality: (p.nationality as string).toUpperCase(),
       email: p.email ? (p.email as string).trim() : undefined,
@@ -155,9 +209,11 @@ function validatePerson(
         city: (addr.city as string).trim(),
         country: (addr.country as string).toUpperCase(),
       },
+      authorizedToSign,
+      ubo,
+      uboPercentage: uboPct,
       isSignee: p.isSignee,
       isUbo: p.isUbo,
-      uboPercentage: uboPct,
     },
   };
 }
@@ -229,13 +285,13 @@ function validateBody(
   if (!Array.isArray(r.persons) || r.persons.length === 0) {
     return { ok: false, error: 'persons must be a non-empty array' };
   }
-  const persons: MerchantPerson[] = [];
+  const persons: ValidatedPerson[] = [];
   const seenRefs = new Set<string>();
   let uboPercentageTotal = 0;
   let hasSignee = false;
   let hasUbo = false;
   for (let i = 0; i < r.persons.length; i++) {
-    const result = validatePerson(r.persons[i], i);
+    const result = validatePerson(r.persons[i], i, legalForm);
     if (!result.ok) return result;
     const p = result.person;
     if (seenRefs.has(p.clientRef)) {
@@ -356,7 +412,27 @@ export async function POST(
 
   try {
     // ---- Step 1: POST /v2/merchants ---------------------------------------
-    const merchantResult = await createMerchant(body);
+    //
+    // Pay.nl v2 takes the full merchant + persons in a single call. We
+    // translate our UI-friendly OnboardBody into Pay.nl's wire shape here.
+    const createPayload: CreateMerchantPayload = {
+      legalName: body.legalName,
+      publicName: body.tradingName,
+      legalForm: body.legalForm,
+      coc: body.kvkNumber,
+      vat: body.vatNumber,
+      contactEmail: body.contactEmail,
+      contactPhone: body.contactPhone,
+      iban: body.iban,
+      ibanOwner: body.ibanOwner,
+      visitAddress: body.address,
+      businessDescription: body.businessDescription,
+      website: body.websiteUrl,
+      countryCode: body.address.country,
+      contractLanguage: 'nl_NL',
+      persons: body.persons,
+    };
+    const merchantResult = await createMerchant(createPayload);
 
     // Persist the freshly minted merchant id so a crash in subsequent steps
     // leaves us with something to reconcile against.
@@ -399,12 +475,13 @@ export async function POST(
       );
     }
 
-    // ---- Step 2: POST /v2/licenses × persons ------------------------------
+    // ---- Step 2: Persist persons with personCodes returned by Pay.nl ------
     //
-    // We create rows in organization_persons first (so we have stable local
-    // ids for downstream document uploads), then call Pay.nl per person and
-    // backfill paynl_license_code as we go.
-    const personInsertPayload = body.persons.map((p) => ({
+    // Pay.nl echoes persons[] back in the create response in the same order
+    // we sent them, each carrying its assigned personCode. We insert our
+    // local rows with that code pre-populated (paynl_license_code column —
+    // name kept for DB back-compat; semantically it's now the personCode).
+    const personInsertPayload = body.persons.map((p, i) => ({
       organization_id: id,
       full_name: p.fullName,
       date_of_birth: p.dateOfBirth,
@@ -419,6 +496,7 @@ export async function POST(
       is_signee: p.isSignee,
       is_ubo: p.isUbo,
       ubo_percentage: p.uboPercentage ?? null,
+      paynl_license_code: merchantResult.persons[i]?.personCode || null,
     }));
 
     const { data: insertedPersons, error: personsError } = await supabaseAdmin
@@ -443,37 +521,13 @@ export async function POST(
       );
     }
 
-    // Map input persons to inserted rows by order (insertedPersons preserves
-    // insert order when Supabase uses a single INSERT .. RETURNING).
     const personErrors: Array<{ clientRef: string; error: string }> = [];
     for (let i = 0; i < body.persons.length; i++) {
-      const person = body.persons[i];
-      const localId = insertedPersons[i]?.id;
-      if (!localId) {
-        personErrors.push({ clientRef: person.clientRef, error: 'no local row' });
-        continue;
-      }
-
-      try {
-        const licenseResult = await createLicense(merchantResult.merchantCode, person);
-        await supabaseAdmin
-          .from('organization_persons')
-          .update({ paynl_license_code: licenseResult.licenseCode })
-          .eq('id', localId);
-      } catch (err) {
-        const message =
-          err instanceof PayNLError
-            ? `Pay.nl ${err.status}`
-            : err instanceof Error
-              ? err.message
-              : 'unknown';
-        console.error('[Alliance] createLicense failed', {
-          organizationId: id,
-          merchantCode: merchantResult.merchantCode,
-          clientRef: person.clientRef,
-          error: message,
+      if (!merchantResult.persons[i]?.personCode) {
+        personErrors.push({
+          clientRef: body.persons[i].clientRef,
+          error: 'Pay.nl did not return a personCode for this person',
         });
-        personErrors.push({ clientRef: person.clientRef, error: message });
       }
     }
 

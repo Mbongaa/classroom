@@ -76,7 +76,8 @@ const UBO_REQUIRED_FORMS = new Set([
 
 interface PersonFormState {
   clientRef: string;
-  fullName: string;
+  firstName: string;
+  lastName: string;
   dateOfBirth: string;
   nationality: string;
   email: string;
@@ -94,7 +95,8 @@ interface PersonFormState {
 function emptyPerson(country: string): PersonFormState {
   return {
     clientRef: crypto.randomUUID(),
-    fullName: '',
+    firstName: '',
+    lastName: '',
     dateOfBirth: '',
     nationality: country,
     email: '',
@@ -116,7 +118,7 @@ const STEPS = [
   { key: 'review', label: 'Review & submit', icon: FileCheck2 },
 ] as const;
 
-const DRAFT_SCHEMA_VERSION = 1;
+const DRAFT_SCHEMA_VERSION = 2;
 const draftStorageKey = (orgId: string) => `bayaan:onboarding-draft:${orgId}`;
 
 interface OnboardingDraft {
@@ -277,7 +279,8 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
     for (let i = 0; i < persons.length; i++) {
       const p = persons[i];
       const missing: string[] = [];
-      if (!p.fullName) missing.push('full name');
+      if (!p.firstName) missing.push('first name');
+      if (!p.lastName) missing.push('last name');
       if (!p.dateOfBirth) missing.push('date of birth');
       if (!p.nationality) missing.push('nationality');
       if (!p.street) missing.push('street');
@@ -365,7 +368,8 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
         websiteUrl: form.websiteUrl || undefined,
         persons: persons.map((p) => ({
           clientRef: p.clientRef,
-          fullName: p.fullName,
+          firstName: p.firstName,
+          lastName: p.lastName,
           dateOfBirth: p.dateOfBirth,
           nationality: p.nationality,
           email: p.email || undefined,
@@ -809,14 +813,18 @@ function PersonsStep({ persons, legalForm, onUpdate, onAdd, onRemove }: PersonsS
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="sm:col-span-2">
-                <FloatingLabelInput
-                  id={`p-name-${index}`}
-                  label="Full name"
-                  value={p.fullName}
-                  onChange={(e) => onUpdate(index, { fullName: e.target.value })}
-                />
-              </div>
+              <FloatingLabelInput
+                id={`p-firstname-${index}`}
+                label="First name"
+                value={p.firstName}
+                onChange={(e) => onUpdate(index, { firstName: e.target.value })}
+              />
+              <FloatingLabelInput
+                id={`p-lastname-${index}`}
+                label="Last name"
+                value={p.lastName}
+                onChange={(e) => onUpdate(index, { lastName: e.target.value })}
+              />
               <FloatingLabelInput
                 id={`p-dob-${index}`}
                 label="Date of birth"
@@ -1006,7 +1014,7 @@ function ReviewStep({
             >
               <div className="flex items-center justify-between">
                 <p className="font-medium">
-                  {p.fullName || `Person ${i + 1}`}
+                  {`${p.firstName} ${p.lastName}`.trim() || `Person ${i + 1}`}
                 </p>
                 <div className="flex gap-2 text-xs">
                   {p.isSignee && (
