@@ -76,7 +76,7 @@ const UBO_REQUIRED_FORMS = new Set([
 
 /** Kept in sync with the server-side minimum in the onboard route. Pay.nl
  * rejects shorter service.description values with `{INVALID_LENGTH}`. */
-const BUSINESS_DESCRIPTION_MIN_LENGTH = 25;
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 100;
 
 interface PersonFormState {
   clientRef: string;
@@ -663,8 +663,8 @@ function MosqueStep({ form, updateField }: MosqueStepProps) {
             id="businessDescription"
             value={form.businessDescription}
             onChange={(e) => updateField('businessDescription', e.target.value)}
-            placeholder="e.g. A community mosque collecting donations for weekly programs, building maintenance, and zakat distribution."
-            rows={3}
+            placeholder="e.g. Our mosque collects online donations from community members to fund Friday sermons, daily prayers, Quran classes for children, building maintenance, and zakat distribution to local families in need."
+            rows={4}
           />
           <p
             className={cn(

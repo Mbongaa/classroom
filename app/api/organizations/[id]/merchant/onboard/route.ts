@@ -47,10 +47,11 @@ const BIC_RE = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
 const PAYNL_CATEGORY_RE = /^[A-Z]{1,2}(-\d{4}){2,}$/;
 const URL_RE = /^https?:\/\/[^\s]+$/i;
 
-/** Pay.nl's `{INVALID_LENGTH}` on service.description fires below this
- * threshold. Experimentally ≥10 passes; we set 25 so the value is useful
- * on payer statements and in compliance review. */
-const BUSINESS_DESCRIPTION_MIN_LENGTH = 25;
+/** Pay.nl's `{INVALID_LENGTH}` (PAY-2816) on service.description fires
+ * well above the "any non-empty" threshold — their compliance validator
+ * rejects short descriptions. 100 chars is what their public merchant
+ * signup form requires; we mirror that here. */
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 100;
 
 const LEGAL_FORMS: readonly LegalForm[] = [
   'eenmanszaak',

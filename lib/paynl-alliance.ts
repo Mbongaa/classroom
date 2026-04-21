@@ -452,7 +452,10 @@ export async function createMerchant(
       name: payload.serviceName,
       description: payload.businessDescription,
       categoryCode: payload.serviceCategoryCode,
-      publication: { domainUrl: payload.servicePublicationUrl },
+      // Pay.nl v2 `merchant.service.publication` is a plain string URL at
+      // this endpoint (the `{ domainUrl }` object shape is only used by
+      // ServiceConfig on /v2/services).
+      publication: payload.servicePublicationUrl,
     },
   };
 
