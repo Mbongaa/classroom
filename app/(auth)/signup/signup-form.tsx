@@ -95,6 +95,11 @@ export function SignupForm() {
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
   const [orgSlug, setOrgSlug] = useState('');
+  const [addressStreet, setAddressStreet] = useState('');
+  const [addressHouseNumber, setAddressHouseNumber] = useState('');
+  const [addressPostalCode, setAddressPostalCode] = useState('');
+  const [addressCity, setAddressCity] = useState('');
+  const [addressCountry, setAddressCountry] = useState('NL');
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('beta');
 
   // Field-specific validation errors
@@ -128,6 +133,11 @@ export function SignupForm() {
     password.length >= 8 &&
     orgName.trim() !== '' &&
     orgSlug.trim() !== '' &&
+    addressStreet.trim() !== '' &&
+    addressHouseNumber.trim() !== '' &&
+    addressPostalCode.trim() !== '' &&
+    addressCity.trim() !== '' &&
+    addressCountry.trim().length === 2 &&
     !emailError &&
     !passwordError;
 
@@ -277,6 +287,78 @@ export function SignupForm() {
             </div>
             <p className="text-xs text-gray-600 dark:text-gray-400">
               Lowercase letters, numbers, and hyphens only
+            </p>
+          </div>
+
+          <div className="flex flex-col items-center gap-2 mt-2">
+            <span className="text-xs uppercase text-gray-600 dark:text-gray-400">
+              Mosque Address
+            </span>
+            <div className="w-full border-t border-[#4b5563]" />
+          </div>
+
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            <FloatingLabelInput
+              id="addressStreet"
+              name="addressStreet"
+              label="Street"
+              type="text"
+              autoComplete="address-line1"
+              value={addressStreet}
+              onChange={(e) => setAddressStreet(e.target.value)}
+              required
+            />
+            <FloatingLabelInput
+              id="addressHouseNumber"
+              name="addressHouseNumber"
+              label="No."
+              type="text"
+              autoComplete="address-line2"
+              value={addressHouseNumber}
+              onChange={(e) => setAddressHouseNumber(e.target.value)}
+              required
+              className="w-24"
+            />
+          </div>
+
+          <div className="grid grid-cols-[auto_1fr] gap-2">
+            <FloatingLabelInput
+              id="addressPostalCode"
+              name="addressPostalCode"
+              label="Postal code"
+              type="text"
+              autoComplete="postal-code"
+              value={addressPostalCode}
+              onChange={(e) => setAddressPostalCode(e.target.value)}
+              required
+              className="w-32"
+            />
+            <FloatingLabelInput
+              id="addressCity"
+              name="addressCity"
+              label="City"
+              type="text"
+              autoComplete="address-level2"
+              value={addressCity}
+              onChange={(e) => setAddressCity(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="grid gap-2">
+            <FloatingLabelInput
+              id="addressCountry"
+              name="addressCountry"
+              label="Country (2-letter code)"
+              type="text"
+              autoComplete="country"
+              value={addressCountry}
+              onChange={(e) => setAddressCountry(e.target.value.toUpperCase().slice(0, 2))}
+              required
+              maxLength={2}
+            />
+            <p className="text-xs text-gray-600 dark:text-gray-400">
+              e.g. NL, BE, DE, FR, GB
             </p>
           </div>
 

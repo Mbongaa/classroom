@@ -12,6 +12,7 @@ import {
   type MerchantPerson,
   type MerchantInfoDocument,
 } from '@/lib/paynl-alliance';
+import { geocodeAddress } from '@/lib/geocoding';
 
 /**
  * POST /api/organizations/[id]/merchant/onboard
@@ -475,6 +476,28 @@ export async function POST(
       );
     }
 
+    // Re-geocode the updated address for the superadmin map. Fire-and-forget:
+    // the KYC flow must not fail if Nominatim is slow or down.
+    void (async () => {
+      const coords = await geocodeAddress({
+        street: body.address.street,
+        houseNumber: body.address.houseNumber,
+        postalCode: body.address.postalCode,
+        city: body.address.city,
+        country: body.address.country,
+      });
+      if (!coords) return;
+      const { error: geoError } = await supabaseAdmin
+        .from('organizations')
+        .update({
+          latitude: coords.lat,
+          longitude: coords.lng,
+          geocoded_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+      if (geoError) console.error('[Alliance] Geocode update failed', geoError);
+    })();
+
     // ---- Step 2: Persist persons with personCodes returned by Pay.nl ------
     //
     // Pay.nl echoes persons[] back in the create response in the same order
@@ -626,18 +649,23 @@ export async function POST(
       console.error('[Alliance] createMerchant failed', {
         organizationId: id,
         status: error.status,
+        message: error.message,
         body: error.body,
       });
-      const detail = extractPayNLErrorDetail(error.body);
+      const detail = extractPayNLErrorDetail(error.body) ?? error.message;
+      // If the body is null, it's almost certainly one of our own throws
+      // (config missing / unexpected response shape) — return 500, not 502,
+      // and skip the misleading "Pay.nl rejected" framing.
+      const isLocalError = error.body == null;
       return NextResponse.json(
         {
-          error:
-            `Pay.nl rejected the merchant application (HTTP ${error.status})` +
-            (detail ? `: ${detail}` : '. Please verify your details.'),
+          error: isLocalError
+            ? `Onboarding failed: ${detail}`
+            : `Pay.nl rejected the merchant application (HTTP ${error.status}): ${detail}`,
           paynlStatus: error.status,
           paynlBody: error.body,
         },
-        { status: 502 },
+        { status: isLocalError ? 500 : 502 },
       );
     }
     console.error('[Alliance] Unexpected error in merchant/onboard:', error);

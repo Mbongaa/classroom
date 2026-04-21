@@ -7,6 +7,7 @@ import {
   IconBuilding,
   IconDashboard,
   IconLayoutDashboard,
+  IconMap2,
   IconVideo,
 } from '@tabler/icons-react';
 import { signOut } from '@/lib/actions/auth';
@@ -36,6 +37,11 @@ const navigation = [
     label: 'Organizations',
     href: '/superadmin/organizations',
     icon: IconBuilding,
+  },
+  {
+    label: 'Map',
+    href: '/superadmin/map',
+    icon: IconMap2,
   },
   {
     label: 'Sessions',

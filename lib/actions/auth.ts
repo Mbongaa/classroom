@@ -13,6 +13,7 @@ import {
 } from '@/lib/stripe';
 import { slugify } from '@/lib/slugify';
 import { isLocale, LOCALE_COOKIE_NAME, type Locale } from '@/i18n/config';
+import { geocodeAddress } from '@/lib/geocoding';
 
 export type AuthResult = {
   success: boolean;
@@ -72,9 +73,25 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   const fullName = formData.get('fullName') as string;
   const orgName = formData.get('orgName') as string;
   const orgSlug = formData.get('orgSlug') as string;
+  const addressStreet = (formData.get('addressStreet') as string | null)?.trim() ?? '';
+  const addressHouseNumber = (formData.get('addressHouseNumber') as string | null)?.trim() ?? '';
+  const addressPostalCode = (formData.get('addressPostalCode') as string | null)?.trim() ?? '';
+  const addressCity = (formData.get('addressCity') as string | null)?.trim() ?? '';
+  const addressCountry = (formData.get('addressCountry') as string | null)?.trim().toUpperCase() ?? '';
   const plan = (formData.get('plan') as PlanType) || 'pro';
 
-  if (!email || !password || !fullName || !orgName || !orgSlug) {
+  if (
+    !email ||
+    !password ||
+    !fullName ||
+    !orgName ||
+    !orgSlug ||
+    !addressStreet ||
+    !addressHouseNumber ||
+    !addressPostalCode ||
+    !addressCity ||
+    addressCountry.length !== 2
+  ) {
     return { success: false, error: 'All fields are required' };
   }
 
@@ -120,6 +137,11 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
       slug: orgSlug,
       subscription_status: isBeta ? 'active' : 'incomplete',
       subscription_tier: 'free',
+      address_street: addressStreet,
+      address_house_number: addressHouseNumber,
+      address_postal_code: addressPostalCode,
+      city: addressCity,
+      country: addressCountry,
     })
     .select()
     .single();
@@ -127,6 +149,28 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   if (orgError) {
     return { success: false, error: `Failed to create organization: ${orgError.message}` };
   }
+
+  // Geocode the address so the mosque shows up on the superadmin map.
+  // Fire-and-forget: signup must not fail if Nominatim is slow or down.
+  void (async () => {
+    const coords = await geocodeAddress({
+      street: addressStreet,
+      houseNumber: addressHouseNumber,
+      postalCode: addressPostalCode,
+      city: addressCity,
+      country: addressCountry,
+    });
+    if (!coords) return;
+    const { error: geoError } = await supabaseAdmin
+      .from('organizations')
+      .update({
+        latitude: coords.lat,
+        longitude: coords.lng,
+        geocoded_at: new Date().toISOString(),
+      })
+      .eq('id', org.id);
+    if (geoError) console.error('[Signup] Geocode update failed', geoError);
+  })();
 
   // Update profile with organization using admin client
   const { error: profileError } = await supabaseAdmin
