@@ -482,7 +482,14 @@ function normaliseMerchantCreateResponse(raw: unknown): CreateMerchantResponse {
     throw new PayNLError(502, raw, 'Pay.nl did not return a merchantCode');
   }
 
-  const personsArr = (m.persons as unknown[] | undefined) ?? [];
+  // Pay.nl's create response echoes persons back under `licenses[]` (their
+  // internal term for the per-person compliance license record). Verified
+  // empirically against POST /v2/merchants — the 201 body contains no
+  // `persons` array. We accept either for forward compatibility.
+  const personsArr =
+    (m.persons as unknown[] | undefined) ??
+    (m.licenses as unknown[] | undefined) ??
+    [];
   const persons: CreatedPerson[] = personsArr.map((p) => {
     const po = (p ?? {}) as Record<string, unknown>;
     return {

@@ -47,11 +47,15 @@ const BIC_RE = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
 const PAYNL_CATEGORY_RE = /^[A-Z]{1,2}(-\d{4}){2,}$/;
 const URL_RE = /^https?:\/\/[^\s]+$/i;
 
-/** Pay.nl's `{INVALID_LENGTH}` (PAY-2816) on service.description fires
- * well above the "any non-empty" threshold — their compliance validator
- * rejects short descriptions. 100 chars is what their public merchant
- * signup form requires; we mirror that here. */
-const BUSINESS_DESCRIPTION_MIN_LENGTH = 100;
+/** Pay.nl's service.description is a varchar(255) — probed empirically
+ * against /v2/merchants: accepts 2-255 chars, rejects outside that band
+ * with `{INVALID_LENGTH}` (PAY-2816). The same bounds apply to
+ * service.name. We pick a friendlier min (10) than Pay.nl's hard 2 so
+ * descriptions stay meaningful for compliance review + payer statements. */
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 10;
+const BUSINESS_DESCRIPTION_MAX_LENGTH = 255;
+const SERVICE_NAME_MIN_LENGTH = 2;
+const SERVICE_NAME_MAX_LENGTH = 255;
 
 const LEGAL_FORMS: readonly LegalForm[] = [
   'eenmanszaak',
@@ -320,7 +324,26 @@ function validateBody(
   if (trimmedDescription.length < BUSINESS_DESCRIPTION_MIN_LENGTH) {
     return {
       ok: false,
-      error: `businessDescription must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters (Pay.nl rejects shorter values).`,
+      error: `businessDescription must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters.`,
+    };
+  }
+  if (trimmedDescription.length > BUSINESS_DESCRIPTION_MAX_LENGTH) {
+    return {
+      ok: false,
+      error: `businessDescription must be at most ${BUSINESS_DESCRIPTION_MAX_LENGTH} characters (Pay.nl caps service.description at ${BUSINESS_DESCRIPTION_MAX_LENGTH}).`,
+    };
+  }
+  const trimmedTradingName = (r.tradingName as string).trim();
+  if (trimmedTradingName.length < SERVICE_NAME_MIN_LENGTH) {
+    return {
+      ok: false,
+      error: `tradingName must be at least ${SERVICE_NAME_MIN_LENGTH} characters.`,
+    };
+  }
+  if (trimmedTradingName.length > SERVICE_NAME_MAX_LENGTH) {
+    return {
+      ok: false,
+      error: `tradingName must be at most ${SERVICE_NAME_MAX_LENGTH} characters.`,
     };
   }
   if (r.websiteUrl !== undefined && typeof r.websiteUrl !== 'string') {
@@ -515,6 +538,18 @@ export async function POST(
       serviceCategoryCode: body.serviceCategoryCode ?? DEFAULT_PAYNL_CATEGORY_CODE,
       servicePublicationUrl,
     };
+
+    console.log('[Alliance] Submitting merchant payload', {
+      organizationId: id,
+      legalNameLen: createPayload.legalName.length,
+      publicNameLen: createPayload.publicName.length,
+      descriptionLen: createPayload.businessDescription.length,
+      serviceNameLen: createPayload.serviceName.length,
+      categoryCode: createPayload.serviceCategoryCode,
+      publication: createPayload.servicePublicationUrl,
+      hasBic: Boolean(createPayload.bic),
+      personCount: createPayload.persons.length,
+    });
     const merchantResult = await createMerchant(createPayload);
 
     // Persist the freshly minted merchant id so a crash in subsequent steps

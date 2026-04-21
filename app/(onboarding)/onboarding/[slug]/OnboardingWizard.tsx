@@ -74,9 +74,12 @@ const UBO_REQUIRED_FORMS = new Set([
   'cooperatie',
 ]);
 
-/** Kept in sync with the server-side minimum in the onboard route. Pay.nl
- * rejects shorter service.description values with `{INVALID_LENGTH}`. */
-const BUSINESS_DESCRIPTION_MIN_LENGTH = 100;
+/** Kept in sync with the server-side bounds in the onboard route. Pay.nl's
+ * service.description is a varchar(255); it rejects values outside 2-255
+ * with `{INVALID_LENGTH}`. We pick a slightly higher floor so the value
+ * is useful on payer statements. */
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 10;
+const BUSINESS_DESCRIPTION_MAX_LENGTH = 255;
 
 interface PersonFormState {
   clientRef: string;
@@ -275,8 +278,12 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
     for (const [val, label] of required) {
       if (!val || val.trim() === '') return `${label} is required.`;
     }
-    if (form.businessDescription.trim().length < BUSINESS_DESCRIPTION_MIN_LENGTH) {
-      return `Description must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters so Pay.nl accepts it.`;
+    const descLen = form.businessDescription.trim().length;
+    if (descLen < BUSINESS_DESCRIPTION_MIN_LENGTH) {
+      return `Description must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters.`;
+    }
+    if (descLen > BUSINESS_DESCRIPTION_MAX_LENGTH) {
+      return `Description must be at most ${BUSINESS_DESCRIPTION_MAX_LENGTH} characters (Pay.nl caps it at ${BUSINESS_DESCRIPTION_MAX_LENGTH}).`;
     }
     return null;
   }
@@ -662,22 +669,35 @@ function MosqueStep({ form, updateField }: MosqueStepProps) {
           <Textarea
             id="businessDescription"
             value={form.businessDescription}
-            onChange={(e) => updateField('businessDescription', e.target.value)}
-            placeholder="e.g. Our mosque collects online donations from community members to fund Friday sermons, daily prayers, Quran classes for children, building maintenance, and zakat distribution to local families in need."
-            rows={4}
+            onChange={(e) =>
+              updateField(
+                'businessDescription',
+                e.target.value.slice(0, BUSINESS_DESCRIPTION_MAX_LENGTH),
+              )
+            }
+            placeholder="e.g. Community mosque collecting donations for daily prayers, classes, and upkeep."
+            rows={3}
+            maxLength={BUSINESS_DESCRIPTION_MAX_LENGTH}
           />
-          <p
-            className={cn(
-              'text-xs',
-              form.businessDescription.trim().length < BUSINESS_DESCRIPTION_MIN_LENGTH
-                ? 'text-amber-600 dark:text-amber-400'
-                : 'text-slate-500 dark:text-slate-400',
-            )}
-          >
-            {form.businessDescription.trim().length}/{BUSINESS_DESCRIPTION_MIN_LENGTH}{' '}
-            minimum characters · appears on payer bank statements and in Pay.nl&apos;s
-            compliance review.
-          </p>
+          {(() => {
+            const len = form.businessDescription.trim().length;
+            const tooShort = len < BUSINESS_DESCRIPTION_MIN_LENGTH;
+            const nearMax = len >= BUSINESS_DESCRIPTION_MAX_LENGTH - 20;
+            return (
+              <p
+                className={cn(
+                  'text-xs',
+                  tooShort || nearMax
+                    ? 'text-amber-600 dark:text-amber-400'
+                    : 'text-slate-500 dark:text-slate-400',
+                )}
+              >
+                {len}/{BUSINESS_DESCRIPTION_MAX_LENGTH} characters (min{' '}
+                {BUSINESS_DESCRIPTION_MIN_LENGTH}) · shown on payer statements and in
+                Pay.nl&apos;s compliance review.
+              </p>
+            );
+          })()}
         </div>
         <div className="mt-4">
           <FloatingLabelInput
