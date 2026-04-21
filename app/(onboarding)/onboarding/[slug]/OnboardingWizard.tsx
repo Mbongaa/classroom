@@ -74,6 +74,10 @@ const UBO_REQUIRED_FORMS = new Set([
   'cooperatie',
 ]);
 
+/** Kept in sync with the server-side minimum in the onboard route. Pay.nl
+ * rejects shorter service.description values with `{INVALID_LENGTH}`. */
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 25;
+
 interface PersonFormState {
   clientRef: string;
   firstName: string;
@@ -270,6 +274,9 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
     ];
     for (const [val, label] of required) {
       if (!val || val.trim() === '') return `${label} is required.`;
+    }
+    if (form.businessDescription.trim().length < BUSINESS_DESCRIPTION_MIN_LENGTH) {
+      return `Description must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters so Pay.nl accepts it.`;
     }
     return null;
   }
@@ -656,9 +663,21 @@ function MosqueStep({ form, updateField }: MosqueStepProps) {
             id="businessDescription"
             value={form.businessDescription}
             onChange={(e) => updateField('businessDescription', e.target.value)}
-            placeholder="Briefly describe the mosque's activities and how donations are used"
+            placeholder="e.g. A community mosque collecting donations for weekly programs, building maintenance, and zakat distribution."
             rows={3}
           />
+          <p
+            className={cn(
+              'text-xs',
+              form.businessDescription.trim().length < BUSINESS_DESCRIPTION_MIN_LENGTH
+                ? 'text-amber-600 dark:text-amber-400'
+                : 'text-slate-500 dark:text-slate-400',
+            )}
+          >
+            {form.businessDescription.trim().length}/{BUSINESS_DESCRIPTION_MIN_LENGTH}{' '}
+            minimum characters · appears on payer bank statements and in Pay.nl&apos;s
+            compliance review.
+          </p>
         </div>
         <div className="mt-4">
           <FloatingLabelInput

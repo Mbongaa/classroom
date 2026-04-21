@@ -74,6 +74,56 @@ function getRestBase(): string {
 }
 
 // ---------------------------------------------------------------------------
+// BIC derivation (NL IBANs)
+//
+// Pay.nl requires a BIC alongside the IBAN on clearingAccounts. For NL
+// IBANs the 4-char bank code at positions 5-8 maps 1:1 to a well-known
+// BIC, so we derive it rather than asking for another form field. Foreign
+// IBANs fall back to whatever the caller passes.
+// ---------------------------------------------------------------------------
+
+const NL_BIC_BY_BANK_CODE: Record<string, string> = {
+  ABNA: 'ABNANL2A',
+  INGB: 'INGBNL2A',
+  RABO: 'RABONL2U',
+  SNSB: 'SNSBNL2A',
+  TRIO: 'TRIONL2U',
+  ASNB: 'ASNBNL21',
+  KNAB: 'KNABNL2H',
+  BUNQ: 'BUNQNL2A',
+  RBRB: 'RBRBNL21',
+  FVLB: 'FVLBNL22',
+  DEUT: 'DEUTNL2N',
+  FBHL: 'FBHLNL2A',
+  NNBA: 'NNBANL2G',
+  HAND: 'HANDNL2A',
+  BCIT: 'BCITNL2A',
+  AEGO: 'AEGONL2U',
+  BOFA: 'BOFANLNX',
+  COBA: 'COBANL2X',
+  GILL: 'GILLNL2A',
+  HSBC: 'HSBCNL2A',
+  LOCY: 'LOCYNL2A',
+  LPLN: 'LPLNNL2F',
+  NWAB: 'NWABNL2G',
+  UGBI: 'UGBINL2A',
+};
+
+/** Derive the BIC from a Dutch IBAN. Returns null for non-NL or unknown banks. */
+export function deriveBicFromIban(iban: string): string | null {
+  const clean = iban.replace(/\s+/g, '').toUpperCase();
+  if (!/^NL[0-9]{2}[A-Z]{4}[0-9]{10}$/.test(clean)) return null;
+  const bankCode = clean.slice(4, 8);
+  return NL_BIC_BY_BANK_CODE[bankCode] ?? null;
+}
+
+/** Default Pay.nl category code when the caller doesn't override. Mosque
+ * donations in NL use "Charity (ANBI state)" which maps to CY-2010-8020
+ * and is available across Alliance packages. */
+export const DEFAULT_PAYNL_CATEGORY_CODE =
+  process.env.PAYNL_DEFAULT_CATEGORY_CODE || 'CY-2010-8020';
+
+// ---------------------------------------------------------------------------
 // Shared types
 // ---------------------------------------------------------------------------
 
@@ -261,9 +311,13 @@ export interface CreateMerchantPayload {
   iban: string;
   /** Account holder name (must match IBAN). */
   ibanOwner: string;
+  /** SWIFT/BIC of the bank. For NL IBANs we derive this; for foreign IBANs
+   * the caller must supply it. Required by Pay.nl v2. */
+  bic?: string;
   /** Address of the merchant's registered office. */
   visitAddress: PayNLAddress;
-  /** Brief description of what the merchant sells/accepts donations for. */
+  /** Brief description of what the merchant sells/accepts donations for.
+   * Also used as service.description. Must satisfy Pay.nl's minimum length. */
   businessDescription: string;
   /** URL of the merchant's public website. */
   website?: string;
@@ -273,6 +327,14 @@ export interface CreateMerchantPayload {
   contractLanguage: string;
   /** Embedded persons (signees + UBOs). Required by Pay.nl. */
   persons: MerchantPerson[];
+  /** Service name shown on payer statements (Pay.nl "sales location"). */
+  serviceName: string;
+  /** Pay.nl category code (CY-####-####). Distinct from MCC — enumerable
+   * via GET /v2/categories. */
+  serviceCategoryCode: string;
+  /** Canonical URL where the service publishes its offer (donation page,
+   * product page, etc.). Sent as service.publication.domainUrl. */
+  servicePublicationUrl: string;
 }
 
 export interface CreatedPerson {
@@ -369,7 +431,14 @@ export async function createMerchant(
     ...(payload.contactPhone ? { contactPhone: payload.contactPhone } : {}),
     ...(payload.website ? { website: payload.website } : {}),
     clearingAccounts: [
-      { method: 'iban', iban: { iban: payload.iban, owner: payload.ibanOwner } },
+      {
+        method: 'iban',
+        iban: {
+          iban: payload.iban,
+          ...(payload.bic ? { bic: payload.bic } : {}),
+          owner: payload.ibanOwner,
+        },
+      },
     ],
     visitAddress: {
       streetName: payload.visitAddress.street,
@@ -379,7 +448,12 @@ export async function createMerchant(
       countryCode: payload.visitAddress.country,
     },
     persons: personObjects,
-    service: { description: payload.businessDescription },
+    service: {
+      name: payload.serviceName,
+      description: payload.businessDescription,
+      categoryCode: payload.serviceCategoryCode,
+      publication: { domainUrl: payload.servicePublicationUrl },
+    },
   };
 
   const raw = await paynlRequest<unknown>(

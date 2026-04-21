@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import {
   createMerchant,
+  deriveBicFromIban,
+  DEFAULT_PAYNL_CATEGORY_CODE,
   getMerchantInfo,
   isAllianceEnabled,
   PayNLAllianceNotActivatedError,
@@ -41,6 +43,14 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const KVK_RE = /^[0-9]{8}$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const MCC_RE = /^[0-9]{4}$/;
+const BIC_RE = /^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/;
+const PAYNL_CATEGORY_RE = /^[A-Z]{1,2}(-\d{4}){2,}$/;
+const URL_RE = /^https?:\/\/[^\s]+$/i;
+
+/** Pay.nl's `{INVALID_LENGTH}` on service.description fires below this
+ * threshold. Experimentally ≥10 passes; we set 25 so the value is useful
+ * on payer statements and in compliance review. */
+const BUSINESS_DESCRIPTION_MIN_LENGTH = 25;
 
 const LEGAL_FORMS: readonly LegalForm[] = [
   'eenmanszaak',
@@ -78,6 +88,8 @@ interface OnboardBody {
   contactPhone?: string;
   iban: string;
   ibanOwner: string;
+  /** Optional — derived from IBAN for NL accounts; required for foreign IBANs. */
+  bic?: string;
   address: {
     street: string;
     houseNumber: string;
@@ -87,6 +99,8 @@ interface OnboardBody {
   };
   businessDescription: string;
   websiteUrl?: string;
+  /** Optional override for Pay.nl's service.categoryCode (CY-####-####). */
+  serviceCategoryCode?: string;
   persons: ValidatedPerson[];
 }
 
@@ -262,6 +276,28 @@ function validateBody(
   if (typeof r.ibanOwner !== 'string' || r.ibanOwner.trim().length === 0) {
     return { ok: false, error: 'ibanOwner is required' };
   }
+  let bic: string | undefined;
+  if (r.bic !== undefined) {
+    if (typeof r.bic !== 'string') {
+      return { ok: false, error: 'bic must be a string if provided' };
+    }
+    const cleanBic = r.bic.replace(/\s+/g, '').toUpperCase();
+    if (!BIC_RE.test(cleanBic)) {
+      return { ok: false, error: 'bic is not in a valid SWIFT/BIC format' };
+    }
+    bic = cleanBic;
+  }
+  if (!bic) {
+    const derived = deriveBicFromIban(ibanClean);
+    if (derived) bic = derived;
+    else if (!ibanClean.startsWith('NL')) {
+      return {
+        ok: false,
+        error:
+          'bic is required for non-NL IBANs (Pay.nl rejects the merchant without it).',
+      };
+    }
+  }
 
   if (!r.address || typeof r.address !== 'object') {
     return { ok: false, error: 'address is required and must be an object' };
@@ -279,8 +315,29 @@ function validateBody(
   if (typeof r.businessDescription !== 'string' || r.businessDescription.trim().length === 0) {
     return { ok: false, error: 'businessDescription is required' };
   }
+  const trimmedDescription = r.businessDescription.trim();
+  if (trimmedDescription.length < BUSINESS_DESCRIPTION_MIN_LENGTH) {
+    return {
+      ok: false,
+      error: `businessDescription must be at least ${BUSINESS_DESCRIPTION_MIN_LENGTH} characters (Pay.nl rejects shorter values).`,
+    };
+  }
   if (r.websiteUrl !== undefined && typeof r.websiteUrl !== 'string') {
     return { ok: false, error: 'websiteUrl must be a string if provided' };
+  }
+  if (r.websiteUrl && !URL_RE.test(r.websiteUrl.trim())) {
+    return { ok: false, error: 'websiteUrl must be an absolute http(s) URL' };
+  }
+  if (r.serviceCategoryCode !== undefined) {
+    if (typeof r.serviceCategoryCode !== 'string') {
+      return { ok: false, error: 'serviceCategoryCode must be a string if provided' };
+    }
+    if (!PAYNL_CATEGORY_RE.test(r.serviceCategoryCode)) {
+      return {
+        ok: false,
+        error: 'serviceCategoryCode must be a Pay.nl category code (e.g. CY-1234-5678).',
+      };
+    }
   }
 
   if (!Array.isArray(r.persons) || r.persons.length === 0) {
@@ -335,6 +392,7 @@ function validateBody(
       contactPhone: r.contactPhone ? (r.contactPhone as string).trim() : undefined,
       iban: ibanClean,
       ibanOwner: r.ibanOwner.trim(),
+      bic,
       address: {
         street: (addr.street as string).trim(),
         houseNumber: (addr.houseNumber as string).trim(),
@@ -342,8 +400,11 @@ function validateBody(
         city: (addr.city as string).trim(),
         country: (addr.country as string).toUpperCase(),
       },
-      businessDescription: r.businessDescription.trim(),
+      businessDescription: trimmedDescription,
       websiteUrl: r.websiteUrl ? (r.websiteUrl as string).trim() : undefined,
+      serviceCategoryCode: r.serviceCategoryCode
+        ? (r.serviceCategoryCode as string).trim()
+        : undefined,
       persons,
     },
   };
@@ -393,7 +454,7 @@ export async function POST(
   // Guard: org must not already be onboarded.
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
-    .select('id, paynl_merchant_id, kyc_status, paynl_boarding_status')
+    .select('id, slug, paynl_merchant_id, kyc_status, paynl_boarding_status')
     .eq('id', id)
     .single();
   if (orgError || !org) {
@@ -416,6 +477,22 @@ export async function POST(
     //
     // Pay.nl v2 takes the full merchant + persons in a single call. We
     // translate our UI-friendly OnboardBody into Pay.nl's wire shape here.
+    // Pay.nl's service.publication.domainUrl must be a fully-qualified URL
+    // that Compliance can load. Prefer the merchant's own website; fall
+    // back to the hosted Bayaan donation page.
+    const servicePublicationUrl =
+      body.websiteUrl ??
+      (org.slug ? `https://www.bayaan.app/donate/${org.slug}` : null);
+    if (!servicePublicationUrl) {
+      return NextResponse.json(
+        {
+          error:
+            'Cannot build service.publication.domainUrl: organization has no slug and no websiteUrl was supplied.',
+        },
+        { status: 400 },
+      );
+    }
+
     const createPayload: CreateMerchantPayload = {
       legalName: body.legalName,
       publicName: body.tradingName,
@@ -426,12 +503,16 @@ export async function POST(
       contactPhone: body.contactPhone,
       iban: body.iban,
       ibanOwner: body.ibanOwner,
+      bic: body.bic,
       visitAddress: body.address,
       businessDescription: body.businessDescription,
       website: body.websiteUrl,
       countryCode: body.address.country,
       contractLanguage: 'nl_NL',
       persons: body.persons,
+      serviceName: body.tradingName,
+      serviceCategoryCode: body.serviceCategoryCode ?? DEFAULT_PAYNL_CATEGORY_CODE,
+      servicePublicationUrl,
     };
     const merchantResult = await createMerchant(createPayload);
 
@@ -687,17 +768,27 @@ function extractPayNLErrorDetail(body: unknown): string | null {
   if (typeof body !== 'object') return null;
   const b = body as Record<string, unknown>;
 
-  const errorsArr = b.errors ?? b.violations;
+  const errorsArr = b.errors ?? b.violations ?? b.validationErrors;
   if (Array.isArray(errorsArr) && errorsArr.length > 0) {
     const parts = errorsArr
       .map((e) => {
         if (typeof e === 'string') return e;
         if (e && typeof e === 'object') {
           const r = e as Record<string, unknown>;
-          const field = r.field ?? r.path ?? r.property;
-          const msg = r.message ?? r.detail ?? r.description;
+          const field =
+            r.field ??
+            r.path ??
+            r.property ??
+            r.propertyPath ??
+            r.propertyName ??
+            r.name ??
+            r.key ??
+            r.fieldName ??
+            r.parameter;
+          const msg = r.message ?? r.detail ?? r.description ?? r.error ?? r.code;
           if (field && msg) return `${field}: ${msg}`;
-          return (msg as string) ?? JSON.stringify(e);
+          if (msg) return String(msg);
+          return JSON.stringify(e);
         }
         return String(e);
       })
