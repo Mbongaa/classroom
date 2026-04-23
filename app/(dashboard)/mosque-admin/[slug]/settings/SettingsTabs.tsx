@@ -1373,6 +1373,35 @@ function BirthCountryField({
   );
 }
 
+const ID_TYPES = [
+  {
+    value: 'passport',
+    label: 'Passport',
+    hint: 'Upload the full data page (photo page) as one file.',
+    needsBack: false,
+  },
+  {
+    value: 'id_card',
+    label: 'Identity card',
+    hint: 'Combine front and back into one PDF or image file.',
+    needsBack: true,
+  },
+  {
+    value: 'drivers_licence',
+    label: "Driver's licence (Dutch only)",
+    hint: 'Only a Dutch rijbewijs is accepted. Combine front and back into one file.',
+    needsBack: true,
+  },
+  {
+    value: 'residence_permit',
+    label: 'Residence permit',
+    hint: 'Upload the full residence permit as one file.',
+    needsBack: false,
+  },
+] as const;
+
+type IdTypeValue = (typeof ID_TYPES)[number]['value'];
+
 function DocumentRow({
   organizationId,
   doc,
@@ -1389,9 +1418,22 @@ function DocumentRow({
   disabledReason?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [idType, setIdType] = useState<IdTypeValue | ''>('');
 
+  const isIdentification = doc.doc_type === 'identification';
   const { label, description } = resolveDocLabel(doc, locale);
   const documentCode = doc.paynl_document_code;
+
+  const selectedIdType = ID_TYPES.find((t) => t.value === idType);
+
+  // For identification docs, require the admin to select the type first.
+  const uploadReady = !isIdentification || !!idType;
+
+  function buildFileName(originalName: string): string {
+    if (!isIdentification || !idType) return originalName;
+    const ext = originalName.includes('.') ? originalName.split('.').pop() : 'pdf';
+    return `${idType}.${ext}`;
+  }
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1400,12 +1442,17 @@ function DocumentRow({
       toast.error('This document is missing its Pay.nl code — refresh merchant info.');
       return;
     }
+    if (isIdentification && !idType) {
+      toast.error('Please select the document type before uploading.');
+      return;
+    }
 
     setUploading(true);
     try {
+      const renamedFile = new File([file], buildFileName(file.name), { type: file.type });
       const formData = new FormData();
       formData.append('documentCode', documentCode);
-      formData.append('file', file);
+      formData.append('file', renamedFile);
 
       const res = await fetch(
         `/api/organizations/${organizationId}/merchant/documents`,
@@ -1414,11 +1461,7 @@ function DocumentRow({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Upload failed');
 
-      onUpdated({
-        ...doc,
-        status: data.status,
-        uploaded_at: data.uploadedAt,
-      });
+      onUpdated({ ...doc, status: data.status, uploaded_at: data.uploadedAt });
       toast.success(`${label} uploaded`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Upload failed');
@@ -1433,49 +1476,120 @@ function DocumentRow({
   const effectiveDisabled = disabled || !documentCode || doc.status === 'accepted';
 
   return (
-    <div className="flex flex-col gap-2 rounded-md border border-[rgba(128,128,128,0.2)] p-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-start gap-3">
-        {hasUpload ? (
-          <FileCheck2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-        ) : (
-          <Upload className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400" />
-        )}
-        <div>
-          <p className="text-sm font-medium">
-            {label}
-            {doc.paynl_required && <span className="ml-1 text-red-500">*</span>}
-          </p>
-          {description && (
-            <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+    <div className="rounded-md border border-[rgba(128,128,128,0.2)] p-3 space-y-2">
+      <div className="flex items-start gap-3 justify-between">
+        <div className="flex items-start gap-3">
+          {hasUpload ? (
+            <FileCheck2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+          ) : (
+            <Upload className="mt-0.5 h-5 w-5 flex-shrink-0 text-slate-400" />
           )}
-          <p className="mt-1 text-xs">
-            Status: <span className="font-medium">{doc.status}</span>
-          </p>
-          {disabled && disabledReason && (
-            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{disabledReason}</p>
-          )}
+          <div>
+            <p className="text-sm font-medium">
+              {label}
+              {doc.paynl_required && <span className="ml-1 text-red-500">*</span>}
+            </p>
+            {description && (
+              <p className="text-xs text-slate-500 dark:text-slate-400">{description}</p>
+            )}
+            <p className="mt-1 text-xs">
+              Status: <span className="font-medium">{doc.status}</span>
+            </p>
+            {disabled && disabledReason && (
+              <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">{disabledReason}</p>
+            )}
+          </div>
         </div>
+
+        {!isIdentification && (
+          <div className="shrink-0">
+            <input
+              id={inputId}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,application/pdf"
+              className="hidden"
+              onChange={handleChange}
+              disabled={uploading || effectiveDisabled}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading || effectiveDisabled}
+              onClick={() => document.getElementById(inputId)?.click()}
+            >
+              {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {doc.status === 'accepted' ? 'Accepted' : hasUpload ? 'Replace' : 'Upload'}
+            </Button>
+          </div>
+        )}
       </div>
-      <div>
-        <input
-          id={inputId}
-          type="file"
-          accept="image/png,image/jpeg,image/webp,application/pdf"
-          className="hidden"
-          onChange={handleChange}
-          disabled={uploading || effectiveDisabled}
-        />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={uploading || effectiveDisabled}
-          onClick={() => document.getElementById(inputId)?.click()}
-        >
-          {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {doc.status === 'accepted' ? 'Accepted' : hasUpload ? 'Replace' : 'Upload'}
-        </Button>
-      </div>
+
+      {/* Identification-specific type selector + upload */}
+      {isIdentification && doc.status !== 'accepted' && (
+        <div className="pt-1 space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {ID_TYPES.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setIdType(t.value)}
+                className={cn(
+                  'rounded-full border px-3 py-1 text-xs font-medium transition-colors',
+                  idType === t.value
+                    ? 'border-black bg-black text-white dark:border-white dark:bg-white dark:text-black'
+                    : 'border-[rgba(128,128,128,0.4)] text-slate-600 hover:border-slate-400 dark:text-slate-300',
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          {selectedIdType && (
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              {selectedIdType.hint}
+              {selectedIdType.needsBack && (
+                <span className="ml-1 font-medium text-amber-700 dark:text-amber-400">
+                  Front + back required — combine into one file.
+                </span>
+              )}
+            </p>
+          )}
+
+          <div>
+            <input
+              id={inputId}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,application/pdf"
+              className="hidden"
+              onChange={handleChange}
+              disabled={uploading || effectiveDisabled || !uploadReady}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading || effectiveDisabled || !uploadReady}
+              onClick={() => document.getElementById(inputId)?.click()}
+            >
+              {uploading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {!idType
+                ? 'Select type first'
+                : hasUpload
+                  ? 'Replace'
+                  : `Upload ${selectedIdType?.label ?? ''}`}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Already accepted — show green check state for identification */}
+      {isIdentification && doc.status === 'accepted' && (
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+          Identification accepted by Pay.nl ✓
+        </p>
+      )}
     </div>
   );
 }

@@ -637,6 +637,9 @@ export async function POST(
       is_ubo: p.isUbo,
       ubo_percentage: p.uboPercentage ?? null,
       paynl_license_code: merchantResult.persons[i]?.personCode || null,
+      // Store the UBO classification we sent to Pay.nl so the UI can display
+      // it immediately without needing Pay.nl to echo it back via /info.
+      ubo_type: p.isUbo ? (p.ubo === 'no' ? null : p.ubo) : null,
     }));
 
     const { data: insertedPersons, error: personsError } = await supabaseAdmin

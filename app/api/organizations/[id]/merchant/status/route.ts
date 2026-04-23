@@ -154,21 +154,17 @@ export async function GET(
   try {
     const info = await getMerchantInfo(org.paynl_merchant_id);
 
-    // Log raw response for debugging compliance field discovery.
-    console.log('[Alliance] getMerchantInfo raw', {
+    // Log raw response so we can discover the exact field names Pay.nl uses
+    // for license data (birthCountry, uboType) and document statuses.
+    console.log('[Alliance] getMerchantInfo raw', JSON.stringify({
       organizationId: id,
       merchantCode: org.paynl_merchant_id,
       boardingStatus: info.boardingStatus,
-      documentCount: info.documents.length,
-      licenseCount: info.licenses.length,
-      licenseFields: info.licenses.map((l) => ({
-        code: l.code,
-        birthCountry: l.birthCountry,
-        uboType: l.uboType,
-        status: l.status,
-        docCount: l.documents.length,
-      })),
-    });
+      // Raw document statuses from Pay.nl BEFORE our mapping.
+      rawDocStatuses: info.documents.map((d) => ({ code: d.code, type: d.type, rawStatus: d.status })),
+      // Full raw license objects — reveals actual field names for birthCountry / uboType.
+      rawLicenses: info.raw,
+    }));
 
     const nextKyc = mapBoardingToKyc(info.boardingStatus, org.kyc_status as KycStatus);
 
