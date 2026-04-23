@@ -71,17 +71,30 @@ function mapBoardingToKyc(
 
 function mapRemoteDocStatus(
   remote: string,
+  existingStatus?: string,
 ): 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected' {
   switch (remote?.toUpperCase()) {
     case 'REQUESTED':
+      // Pay.nl sometimes echoes REQUESTED for documents it already verified
+      // internally (e.g. CoC via KvK lookup at signup). Don't downgrade from
+      // accepted back to requested.
+      if (existingStatus === 'accepted') return 'accepted';
       return 'requested';
     case 'UPLOADED':
       return 'forwarded';
+    case 'VERIFIED':
+    case 'APPROVED':
+    case 'COMPLETED':
     case 'ACCEPTED':
       return 'accepted';
     case 'REJECTED':
       return 'rejected';
     default:
+      // Preserve the existing local status for unknown Pay.nl status strings
+      // rather than defaulting to 'requested' (which would undo manual fixes).
+      if (existingStatus === 'accepted' || existingStatus === 'rejected') {
+        return existingStatus as 'accepted' | 'rejected';
+      }
       return 'requested';
   }
 }
@@ -218,6 +231,18 @@ export async function GET(
     const syncedAt = new Date().toISOString();
 
     if (info.documents.length > 0) {
+      // Fetch existing doc statuses so we don't downgrade docs that are already
+      // accepted (e.g. CoC that Pay.nl verified via KvK at signup).
+      const { data: existingDocs } = await supabaseAdmin
+        .from('organization_kyc_documents')
+        .select('paynl_document_code, status')
+        .eq('organization_id', id);
+      const existingStatusByCode = new Map<string, string>(
+        (existingDocs ?? [])
+          .filter((d) => d.paynl_document_code)
+          .map((d) => [d.paynl_document_code as string, d.status as string]),
+      );
+
       const docRows = info.documents.map((d) => ({
         organization_id: id,
         person_id: d.licenseCode ? (localIdByLicense.get(d.licenseCode) ?? null) : null,
@@ -225,7 +250,7 @@ export async function GET(
         paynl_document_code: d.code,
         paynl_required: true,
         translations: d.translations ?? null,
-        status: mapRemoteDocStatus(d.status),
+        status: mapRemoteDocStatus(d.status, existingStatusByCode.get(d.code)),
         last_synced_at: syncedAt,
       }));
       const { error: docsError } = await supabaseAdmin
