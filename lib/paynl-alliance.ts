@@ -584,7 +584,7 @@ export async function getMerchantInfo(
       // use the license's own code as the linkage key.
       licenseDocsRaw.push({
         ...doc,
-        licenseCode: doc.licenseCode ?? doc.personCode ?? lCode || undefined,
+        licenseCode: (doc.licenseCode ?? doc.personCode ?? lCode) || undefined,
       });
     }
   }
