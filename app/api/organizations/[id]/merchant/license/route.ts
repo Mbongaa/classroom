@@ -12,9 +12,10 @@ import {
  * PATCH /api/organizations/[id]/merchant/license
  *
  * Updates a person's compliance data fields on their Pay.nl license.
- * Currently supports: birthCountry (2-letter ISO code).
+ * Supports: birthCountry (2-letter ISO code) + birthPlace (city name).
+ * Pay.nl requires BOTH fields to save the birth data.
  *
- * Body: { personId: string, birthCountry: string }
+ * Body: { personId: string, birthCountry: string, birthPlace: string }
  *
  * Auth: org admin or platform superadmin.
  */
@@ -59,6 +60,13 @@ export async function PATCH(
       { status: 400 },
     );
   }
+  if (typeof b.birthPlace !== 'string' || !b.birthPlace.trim()) {
+    return NextResponse.json(
+      { error: 'birthPlace (city of birth) is required' },
+      { status: 400 },
+    );
+  }
+  const birthPlace = b.birthPlace.trim();
 
   const supabaseAdmin = createAdminClient();
 
@@ -84,15 +92,16 @@ export async function PATCH(
     await updateLicense({
       licenseCode: person.paynl_license_code,
       birthCountry: b.birthCountry,
+      birthPlace,
     });
 
     // Persist locally so the UI reflects the change immediately.
     await supabaseAdmin
       .from('organization_persons')
-      .update({ birth_country: b.birthCountry, updated_at: new Date().toISOString() })
+      .update({ birth_country: b.birthCountry, birth_city: birthPlace, updated_at: new Date().toISOString() })
       .eq('id', b.personId);
 
-    return NextResponse.json({ ok: true, personId: b.personId, birthCountry: b.birthCountry });
+    return NextResponse.json({ ok: true, personId: b.personId, birthCountry: b.birthCountry, birthPlace });
   } catch (error) {
     if (error instanceof PayNLAllianceNotActivatedError) {
       return NextResponse.json({ error: error.message }, { status: 503 });

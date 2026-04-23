@@ -45,7 +45,7 @@ async function fetchLocalPersons(
 ) {
   const { data } = await supabase
     .from('organization_persons')
-    .select('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, ubo_type')
+    .select('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, birth_city, ubo_type')
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: true });
   return data ?? [];
@@ -312,6 +312,7 @@ export async function GET(
         if (!personId) continue;
         const personUpdate: Record<string, unknown> = { updated_at: syncedAt };
         if (lic.birthCountry) personUpdate.birth_country = lic.birthCountry;
+        if (lic.birthPlace) personUpdate.birth_city = lic.birthPlace;
         if (lic.uboType) personUpdate.ubo_type = lic.uboType;
         if (Object.keys(personUpdate).length > 1) {
           await supabaseAdmin

@@ -545,8 +545,10 @@ export interface MerchantInfoLicense {
   status?: string;
   firstName?: string;
   lastName?: string;
-  /** 2-letter ISO country of birth (e.g. "NL"). Null if not yet set. */
+  /** 2-letter ISO country of birth (e.g. "NL"). */
   birthCountry?: string;
+  /** City/town of birth (e.g. "Amsterdam"). */
+  birthPlace?: string;
   /** Pay.nl UBO classification: "pseudo", "direct", or "no". */
   uboType?: string;
   /** Documents required for this specific person. */
@@ -618,8 +620,8 @@ export async function getMerchantInfo(
       status: l.status as string | undefined,
       firstName: l.firstName as string | undefined,
       lastName: l.lastName as string | undefined,
-      // Pay.nl uses birthCountry or birthPlace depending on version.
-      birthCountry: (l.birthCountry ?? l.birthPlace) as string | undefined,
+      birthCountry: l.birthCountry as string | undefined,
+      birthPlace: l.birthPlace as string | undefined,
       // Pay.nl uses ubo, uboType, or uboStatus for the classification.
       uboType: (l.ubo ?? l.uboType ?? l.uboStatus) as string | undefined,
       documents: lDocs.map((d) => parseDocument(d, lCode)),
@@ -711,6 +713,8 @@ export interface UpdateLicenseParams {
   licenseCode: string;
   /** 2-letter ISO country code (e.g. "NL"). */
   birthCountry?: string;
+  /** City/town of birth (e.g. "Amsterdam"). */
+  birthPlace?: string;
 }
 
 export async function updateLicense(params: UpdateLicenseParams): Promise<void> {
@@ -718,6 +722,7 @@ export async function updateLicense(params: UpdateLicenseParams): Promise<void> 
 
   const body: Record<string, unknown> = {};
   if (params.birthCountry) body.birthCountry = params.birthCountry;
+  if (params.birthPlace) body.birthPlace = params.birthPlace;
 
   if (Object.keys(body).length === 0) return;
 

@@ -58,6 +58,7 @@ interface OrganizationPerson {
   is_ubo: boolean;
   paynl_license_code: string | null;
   birth_country: string | null;
+  birth_city: string | null;
   ubo_type: string | null;
 }
 
@@ -282,7 +283,7 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
 
   const hasOutstandingDocs = docs.some((d) => d.paynl_required && d.status === 'requested');
   const hasMissingPersonData = persons.some(
-    (p) => p.paynl_license_code && !p.birth_country,
+    (p) => p.paynl_license_code && (!p.birth_country || !p.birth_city),
   );
   const showDocuments = hasOutstandingDocs || hasMissingPersonData;
 
@@ -1124,14 +1125,14 @@ function DocumentsPanel({
   // Show per-person section for persons that have a license code AND either
   // have documents OR are missing birth_country (compliance data field).
   const personsWithCompliance = persons.filter(
-    (p) => p.paynl_license_code && ((docsByPerson.get(p.id)?.length ?? 0) > 0 || !p.birth_country),
+    (p) => p.paynl_license_code && ((docsByPerson.get(p.id)?.length ?? 0) > 0 || !p.birth_country || !p.birth_city),
   );
 
   const outstandingRequired = docs.filter(
     (d) => d.paynl_required && d.status === 'requested',
   );
   const missingBirthCountry = persons.filter(
-    (p) => p.paynl_license_code && !p.birth_country,
+    (p) => p.paynl_license_code && (!p.birth_country || !p.birth_city),
   );
   const canSubmit =
     docs.length > 0 &&
@@ -1331,28 +1332,26 @@ function BirthCountryField({
   person: OrganizationPerson;
   onUpdated: (person: OrganizationPerson) => void;
 }) {
-  const [editing, setEditing] = useState(!person.birth_country);
+  const isSaved = !!(person.birth_country && person.birth_city);
+  const [editing, setEditing] = useState(!isSaved);
   const [saving, setSaving] = useState(false);
-  const [selected, setSelected] = useState(person.birth_country ?? '');
+  const [country, setCountry] = useState(person.birth_country ?? '');
+  const [city, setCity] = useState(person.birth_city ?? '');
 
-  const countryLabel =
-    COUNTRY_OPTIONS.find((c) => c.value === person.birth_country)?.label ??
-    person.birth_country;
-
-  async function handleSave() {
-    if (!selected) return;
+  async function trySave(nextCountry: string, nextCity: string) {
+    if (!nextCountry || !nextCity.trim() || saving) return;
     setSaving(true);
     try {
       const res = await fetch(`/api/organizations/${organizationId}/merchant/license`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ personId: person.id, birthCountry: selected }),
+        body: JSON.stringify({ personId: person.id, birthCountry: nextCountry, birthPlace: nextCity.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save');
-      onUpdated({ ...person, birth_country: selected });
+      onUpdated({ ...person, birth_country: nextCountry, birth_city: nextCity.trim() });
       setEditing(false);
-      toast.success('Birth country saved');
+      toast.success('Birth details saved');
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save');
     } finally {
@@ -1360,50 +1359,59 @@ function BirthCountryField({
     }
   }
 
-  if (!editing && person.birth_country) {
+  if (!editing && isSaved) {
+    const countryLabel = COUNTRY_OPTIONS.find((c) => c.value === person.birth_country)?.label ?? person.birth_country;
     return (
       <div className="flex items-center justify-between rounded-md border border-[rgba(128,128,128,0.2)] p-3">
         <div>
-          <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            Country of birth
-          </p>
-          <p className="mt-0.5 text-sm font-medium">{countryLabel}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Place of birth</p>
+          <p className="mt-0.5 text-sm font-medium">{person.birth_city}, {countryLabel}</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-          Edit
-        </Button>
+        <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>Edit</Button>
       </div>
     );
   }
 
   return (
     <div className="rounded-md border border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 space-y-2">
-      <p className="text-xs font-medium text-amber-800 dark:text-amber-300 uppercase tracking-wider">
-        Country of birth required
-      </p>
-      <div className="flex gap-2">
-        <Select value={selected} onValueChange={setSelected}>
-          <SelectTrigger className="flex-1">
-            <SelectValue placeholder="Select country…" />
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-amber-800 dark:text-amber-300 uppercase tracking-wider">
+          Place of birth required
+        </p>
+        {saving && <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-600" />}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Input
+          placeholder="City / town of birth"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          onBlur={() => trySave(country, city)}
+          className="h-8 text-sm col-span-2 sm:col-span-1"
+          disabled={saving}
+        />
+        <Select
+          value={country}
+          onValueChange={(val) => {
+            setCountry(val);
+            trySave(val, city);
+          }}
+          disabled={saving}
+        >
+          <SelectTrigger className="h-8 text-sm col-span-2 sm:col-span-1">
+            <SelectValue placeholder="Country of birth…" />
           </SelectTrigger>
           <SelectContent>
             {COUNTRY_OPTIONS.map((c) => (
-              <SelectItem key={c.value} value={c.value}>
-                {c.label}
-              </SelectItem>
+              <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Button size="sm" onClick={handleSave} disabled={!selected || saving}>
-          {saving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
-          Save
-        </Button>
-        {person.birth_country && (
-          <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
-            Cancel
-          </Button>
-        )}
       </div>
+      {isSaved && (
+        <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => setEditing(false)}>
+          Cancel
+        </Button>
+      )}
     </div>
   );
 }
