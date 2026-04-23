@@ -134,10 +134,6 @@ export async function GET(
   try {
     const info = await getMerchantInfo(org.paynl_merchant_id);
 
-    // TEMP DEBUG — expose raw Pay.nl /info structure (remove after diagnosis)
-    console.log('[Alliance][DEBUG] raw top-level keys:', Object.keys(info.raw as object ?? {}));
-    console.log('[Alliance][DEBUG] raw:', JSON.stringify(info.raw));
-
     const nextKyc = mapBoardingToKyc(info.boardingStatus, org.kyc_status as KycStatus);
 
     const update: Record<string, unknown> = {};

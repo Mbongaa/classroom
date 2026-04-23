@@ -559,12 +559,39 @@ export async function getMerchantInfo(
   const root = raw as Record<string, unknown> | null;
   const m = (root?.merchant ?? root?.data ?? root ?? {}) as Record<string, unknown>;
 
-  const documentsRaw =
+  // Merchant-level documents (org-scoped, no person).
+  const merchantDocsRaw =
     (m.documents as unknown[] | undefined) ??
     (root?.documents as unknown[] | undefined) ??
     [];
 
-  const documents: MerchantInfoDocument[] = documentsRaw.map((d) => {
+  // Per-person documents live under licenses[].documents[] at root or under
+  // merchant.licenses[]. Each license carries the personCode/licenseCode that
+  // links it back to a specific signee/UBO.
+  const licensesRaw =
+    (m.licenses as unknown[] | undefined) ??
+    (root?.licenses as unknown[] | undefined) ??
+    [];
+
+  const licenseDocsRaw: unknown[] = [];
+  for (const license of licensesRaw) {
+    const l = (license ?? {}) as Record<string, unknown>;
+    const lCode = String(l.code ?? '');
+    const lDocs = (l.documents as unknown[] | undefined) ?? [];
+    for (const d of lDocs) {
+      const doc = (d ?? {}) as Record<string, unknown>;
+      // Preserve existing licenseCode/personCode if already set, otherwise
+      // use the license's own code as the linkage key.
+      licenseDocsRaw.push({
+        ...doc,
+        licenseCode: doc.licenseCode ?? doc.personCode ?? lCode || undefined,
+      });
+    }
+  }
+
+  const allDocsRaw = [...merchantDocsRaw, ...licenseDocsRaw];
+
+  const documents: MerchantInfoDocument[] = allDocsRaw.map((d) => {
     const doc = (d ?? {}) as Record<string, unknown>;
     return {
       code: String(doc.code ?? ''),
