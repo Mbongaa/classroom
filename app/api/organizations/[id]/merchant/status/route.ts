@@ -35,7 +35,7 @@ async function fetchLocalDocs(
     .from('organization_kyc_documents')
     .select('id, doc_type, person_id, paynl_document_code, paynl_required, translations, status, uploaded_at')
     .eq('organization_id', organizationId)
-    .order('created_at', { ascending: true });
+    .order('last_synced_at', { ascending: true });
   return data ?? [];
 }
 

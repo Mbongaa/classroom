@@ -117,7 +117,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
         'id, doc_type, person_id, paynl_document_code, paynl_required, translations, status, uploaded_at',
       )
       .eq('organization_id', organization.id)
-      .order('created_at', { ascending: true }),
+      .order('last_synced_at', { ascending: true }),
   ]);
 
   // Membership check (defense in depth).
