@@ -27,6 +27,18 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 type KycStatus = 'pending' | 'submitted' | 'approved' | 'rejected';
 
+async function fetchLocalDocs(
+  supabase: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+) {
+  const { data } = await supabase
+    .from('organization_kyc_documents')
+    .select('id, doc_type, person_id, paynl_document_code, paynl_required, translations, status, uploaded_at')
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: true });
+  return data ?? [];
+}
+
 function mapBoardingToKyc(
   boarding: BoardingStatus | undefined,
   current: KycStatus,
@@ -90,6 +102,7 @@ export async function GET(
 
   // No merchant yet → return local state.
   if (!org.paynl_merchant_id) {
+    const documents = await fetchLocalDocs(supabaseAdmin, id);
     return NextResponse.json({
       merchantId: null,
       serviceId: org.paynl_service_id,
@@ -98,11 +111,13 @@ export async function GET(
       donationsActive: org.donations_active,
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
+      documents,
       source: 'local',
     });
   }
 
   if (!isAllianceEnabled()) {
+    const documents = await fetchLocalDocs(supabaseAdmin, id);
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
@@ -111,6 +126,7 @@ export async function GET(
       donationsActive: org.donations_active,
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
+      documents,
       source: 'local',
     });
   }
@@ -191,6 +207,7 @@ export async function GET(
       }
     }
 
+    const documents = await fetchLocalDocs(supabaseAdmin, id);
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
@@ -202,6 +219,7 @@ export async function GET(
           ? new Date().toISOString()
           : org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
+      documents,
       source: 'paynl',
     });
   } catch (error) {
@@ -215,6 +233,7 @@ export async function GET(
         status: error.status,
         body: error.body,
       });
+      const documents = await fetchLocalDocs(supabaseAdmin, id);
       return NextResponse.json({
         merchantId: org.paynl_merchant_id,
         serviceId: org.paynl_service_id,
@@ -223,6 +242,7 @@ export async function GET(
         donationsActive: org.donations_active,
         onboardedAt: org.onboarded_at,
         platformFeeBps: org.platform_fee_bps,
+        documents,
         source: 'local-fallback',
         warning: 'Could not reach Pay.nl — showing cached status.',
       });

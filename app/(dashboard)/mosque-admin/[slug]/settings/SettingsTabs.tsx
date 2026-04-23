@@ -227,8 +227,10 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
   const [merchantId, setMerchantId] = useState(organization.paynl_merchant_id);
   const [serviceId, setServiceId] = useState(organization.paynl_service_id);
   const [donationsActive, setDonationsActive] = useState(organization.donations_active);
+  const [docs, setDocs] = useState<OrganizationKycDocument[]>(organization.kyc_documents);
 
-  // Refresh status from Pay.nl
+  // Refresh status from Pay.nl — also refreshes the document list so new
+  // requirements added by Pay.nl post-onboarding become visible without reload.
   const handleStatusRefresh = useCallback(async () => {
     try {
       const res = await fetch(`/api/organizations/${organization.id}/merchant/status`);
@@ -238,14 +240,17 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
       if (data.merchantId) setMerchantId(data.merchantId);
       if (data.serviceId) setServiceId(data.serviceId);
       if (data.donationsActive !== undefined) setDonationsActive(data.donationsActive);
+      if (Array.isArray(data.documents)) setDocs(data.documents);
     } catch {
       // silent — the UI already shows current state
     }
   }, [organization.id]);
 
+  function handleDocUpdated(doc: OrganizationKycDocument) {
+    setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, ...doc } : d)));
+  }
+
   // No merchant yet → direct to the isolated onboarding wizard.
-  // The inline form remains below for superadmin / fallback use but the CTA
-  // is the primary path so admins land in a distraction-free flow.
   if (!merchantId) {
     return <OnboardingCta slug={organization.slug} />;
   }
@@ -255,16 +260,29 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
     return <KycRejectedCard onRefresh={handleStatusRefresh} />;
   }
 
-  // Approved → merchant status + finance links
+  const hasOutstandingDocs = docs.some((d) => d.paynl_required && d.status === 'requested');
+
+  // Approved → merchant status + finance links.
+  // Still show the documents panel if Pay.nl has outstanding requirements
+  // (can happen when Pay.nl requests additional docs post-approval).
   if (kycStatus === 'approved') {
     return (
-      <MerchantStatusCard
-        organization={organization}
-        merchantId={merchantId}
-        serviceId={serviceId}
-        donationsActive={donationsActive}
-        onRefresh={handleStatusRefresh}
-      />
+      <div className="space-y-4">
+        <MerchantStatusCard
+          organization={organization}
+          merchantId={merchantId}
+          serviceId={serviceId}
+          donationsActive={donationsActive}
+          onRefresh={handleStatusRefresh}
+        />
+        {hasOutstandingDocs && (
+          <DocumentsPanel
+            organization={organization}
+            docs={docs}
+            onDocUpdated={handleDocUpdated}
+          />
+        )}
+      </div>
     );
   }
 
@@ -273,7 +291,11 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
   return (
     <div className="space-y-4">
       <KycPendingCard onRefresh={handleStatusRefresh} />
-      <DocumentsPanel organization={organization} />
+      <DocumentsPanel
+        organization={organization}
+        docs={docs}
+        onDocUpdated={handleDocUpdated}
+      />
     </div>
   );
 }
@@ -1030,12 +1052,19 @@ function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
 // the local list.
 // ---------------------------------------------------------------------------
 
-function DocumentsPanel({ organization }: { organization: OrganizationProp }) {
-  const [docs, setDocs] = useState<OrganizationKycDocument[]>(organization.kyc_documents);
+function DocumentsPanel({
+  organization,
+  docs,
+  onDocUpdated,
+}: {
+  organization: OrganizationProp;
+  docs: OrganizationKycDocument[];
+  onDocUpdated: (doc: OrganizationKycDocument) => void;
+}) {
   const [submitting, setSubmitting] = useState(false);
 
   function handleUpdated(doc: OrganizationKycDocument) {
-    setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, ...doc } : d)));
+    onDocUpdated(doc);
   }
 
   const locale = organization.preferred_locale ?? 'en';
