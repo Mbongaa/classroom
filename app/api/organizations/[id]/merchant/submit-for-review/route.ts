@@ -145,6 +145,44 @@ export async function POST(
       return NextResponse.json({ error: error.message }, { status: 503 });
     }
     if (error instanceof PayNLError) {
+      // Pay.nl returns 422 with COMPANY_ALREADY_MARKED_AS_READY when the
+      // merchant was already submitted in a previous session. This is not an
+      // error — the first submission succeeded. Treat as idempotent success.
+      const detail = typeof error.body?.detail === 'string' ? error.body.detail : '';
+      if (detail.includes('COMPANY_ALREADY_MARKED_AS_READY')) {
+        console.log('[Alliance] Merchant already submitted for review (idempotent)', {
+          organizationId: id,
+          merchantCode: org.paynl_merchant_id,
+        });
+
+        await supabaseAdmin
+          .from('organizations')
+          .update({ kyc_status: 'submitted' })
+          .eq('id', id);
+
+        // Refresh from Pay.nl to get the current boarding status.
+        let boardingStatus = org.paynl_boarding_status;
+        try {
+          const info = await getMerchantInfo(org.paynl_merchant_id);
+          if (info.boardingStatus) {
+            boardingStatus = info.boardingStatus;
+            await supabaseAdmin
+              .from('organizations')
+              .update({ paynl_boarding_status: info.boardingStatus })
+              .eq('id', id);
+          }
+        } catch {
+          // non-fatal
+        }
+
+        return NextResponse.json({
+          merchantCode: org.paynl_merchant_id,
+          boardingStatus,
+          kycStatus: 'submitted',
+          note: 'Already submitted — status confirmed.',
+        });
+      }
+
       console.error('[Alliance] submitForReview failed', {
         organizationId: id,
         merchantCode: org.paynl_merchant_id,
