@@ -1268,7 +1268,7 @@ function DocumentsPanel({
                   {outstandingRequired.length > 0
                     ? `${outstandingRequired.length} required document${outstandingRequired.length === 1 ? '' : 's'} still outstanding.`
                     : missingBirthCountry.length > 0
-                      ? `${missingBirthCountry.length} person${missingBirthCountry.length === 1 ? '' : 's'} missing birth country.`
+                      ? `${missingBirthCountry.length} person${missingBirthCountry.length === 1 ? '' : 's'} missing place of birth.`
                       : organization.paynl_boarding_status === 'ACCEPTED'
                         ? 'Pay.nl has already accepted this merchant.'
                         : 'All required information is complete. Submit to Pay.nl Compliance.'}

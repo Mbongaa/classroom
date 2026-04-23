@@ -61,6 +61,7 @@ interface PersonRow {
   is_ubo: boolean;
   paynl_license_code: string | null;
   birth_country: string | null;
+  birth_city: string | null;
   ubo_type: string | null;
 }
 
@@ -110,7 +111,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   const [{ data: personsData }, { data: documentsData }] = await Promise.all([
     supabaseAdmin
       .from('organization_persons')
-      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, ubo_type')
+      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, birth_city, ubo_type')
       .eq('organization_id', organization.id)
       .order('created_at', { ascending: true }),
     supabaseAdmin

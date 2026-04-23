@@ -75,10 +75,16 @@ function mapRemoteDocStatus(
 ): 'requested' | 'uploaded' | 'forwarded' | 'accepted' | 'rejected' {
   switch (remote?.toUpperCase()) {
     case 'REQUESTED':
-      // Pay.nl sometimes echoes REQUESTED for documents it already verified
-      // internally (e.g. CoC via KvK lookup at signup). Don't downgrade from
-      // accepted back to requested.
-      if (existingStatus === 'accepted') return 'accepted';
+      // Pay.nl echoes REQUESTED for documents that are uploaded but still under
+      // compliance review. Never downgrade a doc that we've already submitted
+      // (uploaded / forwarded) or that Pay.nl has already verified (accepted).
+      if (
+        existingStatus === 'accepted' ||
+        existingStatus === 'forwarded' ||
+        existingStatus === 'uploaded'
+      ) {
+        return existingStatus as 'uploaded' | 'forwarded' | 'accepted';
+      }
       return 'requested';
     case 'UPLOADED':
       return 'forwarded';
