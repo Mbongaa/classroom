@@ -56,6 +56,8 @@ interface OrganizationPerson {
   is_signee: boolean;
   is_ubo: boolean;
   paynl_license_code: string | null;
+  birth_country: string | null;
+  ubo_type: string | null;
 }
 
 interface OrganizationKycDocument {
@@ -228,9 +230,10 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
   const [serviceId, setServiceId] = useState(organization.paynl_service_id);
   const [donationsActive, setDonationsActive] = useState(organization.donations_active);
   const [docs, setDocs] = useState<OrganizationKycDocument[]>(organization.kyc_documents);
+  const [persons, setPersons] = useState<OrganizationPerson[]>(organization.persons);
 
-  // Refresh status from Pay.nl — also refreshes the document list so new
-  // requirements added by Pay.nl post-onboarding become visible without reload.
+  // Refresh status from Pay.nl — also refreshes docs and persons so new
+  // Pay.nl requirements and license data become visible without page reload.
   const handleStatusRefresh = useCallback(async () => {
     try {
       const res = await fetch(`/api/organizations/${organization.id}/merchant/status`);
@@ -241,6 +244,7 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
       if (data.serviceId) setServiceId(data.serviceId);
       if (data.donationsActive !== undefined) setDonationsActive(data.donationsActive);
       if (Array.isArray(data.documents)) setDocs(data.documents);
+      if (Array.isArray(data.persons)) setPersons(data.persons);
     } catch {
       // silent — the UI already shows current state
     }
@@ -248,6 +252,10 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
 
   function handleDocUpdated(doc: OrganizationKycDocument) {
     setDocs((prev) => prev.map((d) => (d.id === doc.id ? { ...d, ...doc } : d)));
+  }
+
+  function handlePersonUpdated(person: OrganizationPerson) {
+    setPersons((prev) => prev.map((p) => (p.id === person.id ? { ...p, ...person } : p)));
   }
 
   // No merchant yet → direct to the isolated onboarding wizard.
@@ -261,6 +269,10 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
   }
 
   const hasOutstandingDocs = docs.some((d) => d.paynl_required && d.status === 'requested');
+  const hasMissingPersonData = persons.some(
+    (p) => p.paynl_license_code && !p.birth_country,
+  );
+  const showDocuments = hasOutstandingDocs || hasMissingPersonData;
 
   // Approved → merchant status + finance links.
   // Still show the documents panel if Pay.nl has outstanding requirements
@@ -275,11 +287,13 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
           donationsActive={donationsActive}
           onRefresh={handleStatusRefresh}
         />
-        {hasOutstandingDocs && (
+        {showDocuments && (
           <DocumentsPanel
             organization={organization}
             docs={docs}
+            persons={persons}
             onDocUpdated={handleDocUpdated}
+            onPersonUpdated={handlePersonUpdated}
           />
         )}
       </div>
@@ -294,7 +308,9 @@ function PaymentsPanel({ organization }: { organization: OrganizationProp }) {
       <DocumentsPanel
         organization={organization}
         docs={docs}
+        persons={persons}
         onDocUpdated={handleDocUpdated}
+        onPersonUpdated={handlePersonUpdated}
       />
     </div>
   );
@@ -1055,37 +1071,46 @@ function KycRejectedCard({ onRefresh }: { onRefresh: () => Promise<void> }) {
 function DocumentsPanel({
   organization,
   docs,
+  persons,
   onDocUpdated,
+  onPersonUpdated,
 }: {
   organization: OrganizationProp;
   docs: OrganizationKycDocument[];
+  persons: OrganizationPerson[];
   onDocUpdated: (doc: OrganizationKycDocument) => void;
+  onPersonUpdated: (person: OrganizationPerson) => void;
 }) {
   const [submitting, setSubmitting] = useState(false);
-
-  function handleUpdated(doc: OrganizationKycDocument) {
-    onDocUpdated(doc);
-  }
 
   const locale = organization.preferred_locale ?? 'en';
 
   // Group docs: org-scoped (no person_id) vs per-person.
   const orgDocs = docs.filter((d) => !d.person_id);
-  const personDocs = docs.filter((d) => d.person_id);
   const docsByPerson = new Map<string, OrganizationKycDocument[]>();
-  for (const d of personDocs) {
+  for (const d of docs) {
     if (!d.person_id) continue;
     const list = docsByPerson.get(d.person_id) ?? [];
     list.push(d);
     docsByPerson.set(d.person_id, list);
   }
 
+  // Show per-person section for persons that have a license code AND either
+  // have documents OR are missing birth_country (compliance data field).
+  const personsWithCompliance = persons.filter(
+    (p) => p.paynl_license_code && ((docsByPerson.get(p.id)?.length ?? 0) > 0 || !p.birth_country),
+  );
+
   const outstandingRequired = docs.filter(
     (d) => d.paynl_required && d.status === 'requested',
+  );
+  const missingBirthCountry = persons.filter(
+    (p) => p.paynl_license_code && !p.birth_country,
   );
   const canSubmit =
     docs.length > 0 &&
     outstandingRequired.length === 0 &&
+    missingBirthCountry.length === 0 &&
     organization.paynl_boarding_status !== 'ACCEPTED';
 
   async function handleSubmitForReview() {
@@ -1105,6 +1130,8 @@ function DocumentsPanel({
     }
   }
 
+  const hasAnything = docs.length > 0 || personsWithCompliance.length > 0;
+
   return (
     <Card>
       <CardHeader>
@@ -1113,19 +1140,19 @@ function DocumentsPanel({
             <Upload className="h-5 w-5 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <CardTitle className="text-lg">KYC documents</CardTitle>
+            <CardTitle className="text-lg">KYC compliance</CardTitle>
             <CardDescription>
-              Pay.nl needs these before donations can go live. All files are private and
+              Pay.nl needs these before donations can go live. Files are private and
               forwarded directly to Pay.nl.
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {docs.length === 0 && (
+        {!hasAnything && (
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Pay.nl has not yet reported any required documents. This usually syncs
-            automatically after onboarding. If this persists, refresh merchant status.
+            automatically after onboarding. If this persists, click Refresh Status.
           </p>
         )}
 
@@ -1135,27 +1162,26 @@ function DocumentsPanel({
             organizationId={organization.id}
             doc={d}
             locale={locale}
-            onUpdated={handleUpdated}
+            onUpdated={onDocUpdated}
           />
         ))}
 
-        {organization.persons.length > 0 && personDocs.length > 0 && (
+        {personsWithCompliance.length > 0 && (
           <>
             <Separator />
             <div>
               <p className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Per-person documents
+                Per-person compliance
               </p>
               <div className="space-y-4">
-                {organization.persons.map((person) => {
+                {personsWithCompliance.map((person) => {
                   const rows = docsByPerson.get(person.id) ?? [];
-                  if (rows.length === 0) return null;
                   return (
                     <div
                       key={person.id}
-                      className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4"
+                      className="rounded-lg border border-[rgba(128,128,128,0.3)] p-4 space-y-3"
                     >
-                      <p className="mb-3 text-sm font-medium">
+                      <p className="text-sm font-medium">
                         {person.full_name}
                         <span className="ml-2 text-xs font-normal text-slate-500 dark:text-slate-400">
                           {[
@@ -1165,14 +1191,26 @@ function DocumentsPanel({
                             .filter(Boolean)
                             .join(' · ')}
                         </span>
+                        {person.ubo_type && (
+                          <span className="ml-2 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs">
+                            {person.ubo_type}
+                          </span>
+                        )}
                       </p>
+
+                      <BirthCountryField
+                        organizationId={organization.id}
+                        person={person}
+                        onUpdated={onPersonUpdated}
+                      />
+
                       {rows.map((d) => (
                         <DocumentRow
                           key={d.id}
                           organizationId={organization.id}
                           doc={d}
                           locale={locale}
-                          onUpdated={handleUpdated}
+                          onUpdated={onDocUpdated}
                           disabled={!person.paynl_license_code}
                           disabledReason="Waiting for Pay.nl to issue a license code for this person."
                         />
@@ -1185,7 +1223,7 @@ function DocumentsPanel({
           </>
         )}
 
-        {docs.length > 0 && (
+        {hasAnything && (
           <div className="border-t border-[rgba(128,128,128,0.2)] pt-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
@@ -1193,9 +1231,11 @@ function DocumentsPanel({
                 <p className="text-xs text-slate-500 dark:text-slate-400">
                   {outstandingRequired.length > 0
                     ? `${outstandingRequired.length} required document${outstandingRequired.length === 1 ? '' : 's'} still outstanding.`
-                    : organization.paynl_boarding_status === 'ACCEPTED'
-                      ? 'Pay.nl has already accepted this merchant.'
-                      : 'All required documents are uploaded. Submit to Pay.nl Compliance.'}
+                    : missingBirthCountry.length > 0
+                      ? `${missingBirthCountry.length} person${missingBirthCountry.length === 1 ? '' : 's'} missing birth country.`
+                      : organization.paynl_boarding_status === 'ACCEPTED'
+                        ? 'Pay.nl has already accepted this merchant.'
+                        : 'All required information is complete. Submit to Pay.nl Compliance.'}
                 </p>
               </div>
               <Button
@@ -1211,6 +1251,125 @@ function DocumentsPanel({
         )}
       </CardContent>
     </Card>
+  );
+}
+
+// Common EU/world countries relevant for Dutch mosque admins.
+const COUNTRY_OPTIONS = [
+  { value: 'NL', label: 'Netherlands' },
+  { value: 'BE', label: 'Belgium' },
+  { value: 'DE', label: 'Germany' },
+  { value: 'FR', label: 'France' },
+  { value: 'GB', label: 'United Kingdom' },
+  { value: 'TR', label: 'Turkey' },
+  { value: 'MA', label: 'Morocco' },
+  { value: 'IQ', label: 'Iraq' },
+  { value: 'SY', label: 'Syria' },
+  { value: 'AF', label: 'Afghanistan' },
+  { value: 'SO', label: 'Somalia' },
+  { value: 'ER', label: 'Eritrea' },
+  { value: 'EG', label: 'Egypt' },
+  { value: 'PK', label: 'Pakistan' },
+  { value: 'IN', label: 'India' },
+  { value: 'ID', label: 'Indonesia' },
+  { value: 'NG', label: 'Nigeria' },
+  { value: 'SD', label: 'Sudan' },
+  { value: 'SS', label: 'South Sudan' },
+  { value: 'LY', label: 'Libya' },
+  { value: 'TN', label: 'Tunisia' },
+  { value: 'DZ', label: 'Algeria' },
+  { value: 'SA', label: 'Saudi Arabia' },
+  { value: 'YE', label: 'Yemen' },
+  { value: 'OTHER', label: 'Other country' },
+];
+
+/**
+ * Inline field for a person's country of birth. Shows current value (if set)
+ * or a country selector (if not). Submits to PATCH /merchant/license.
+ */
+function BirthCountryField({
+  organizationId,
+  person,
+  onUpdated,
+}: {
+  organizationId: string;
+  person: OrganizationPerson;
+  onUpdated: (person: OrganizationPerson) => void;
+}) {
+  const [editing, setEditing] = useState(!person.birth_country);
+  const [saving, setSaving] = useState(false);
+  const [selected, setSelected] = useState(person.birth_country ?? '');
+
+  const countryLabel =
+    COUNTRY_OPTIONS.find((c) => c.value === person.birth_country)?.label ??
+    person.birth_country;
+
+  async function handleSave() {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/organizations/${organizationId}/merchant/license`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ personId: person.id, birthCountry: selected }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save');
+      onUpdated({ ...person, birth_country: selected });
+      setEditing(false);
+      toast.success('Birth country saved');
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (!editing && person.birth_country) {
+    return (
+      <div className="flex items-center justify-between rounded-md border border-[rgba(128,128,128,0.2)] p-3">
+        <div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            Country of birth
+          </p>
+          <p className="mt-0.5 text-sm font-medium">{countryLabel}</p>
+        </div>
+        <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
+          Edit
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 p-3 space-y-2">
+      <p className="text-xs font-medium text-amber-800 dark:text-amber-300 uppercase tracking-wider">
+        Country of birth required
+      </p>
+      <div className="flex gap-2">
+        <Select value={selected} onValueChange={setSelected}>
+          <SelectTrigger className="flex-1">
+            <SelectValue placeholder="Select country…" />
+          </SelectTrigger>
+          <SelectContent>
+            {COUNTRY_OPTIONS.map((c) => (
+              <SelectItem key={c.value} value={c.value}>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button size="sm" onClick={handleSave} disabled={!selected || saving}>
+          {saving && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
+          Save
+        </Button>
+        {person.birth_country && (
+          <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>
+            Cancel
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }
 

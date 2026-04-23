@@ -60,6 +60,8 @@ interface PersonRow {
   is_signee: boolean;
   is_ubo: boolean;
   paynl_license_code: string | null;
+  birth_country: string | null;
+  ubo_type: string | null;
 }
 
 interface KycDocumentRow {
@@ -108,7 +110,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   const [{ data: personsData }, { data: documentsData }] = await Promise.all([
     supabaseAdmin
       .from('organization_persons')
-      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_license_code')
+      .select<string, PersonRow>('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, ubo_type')
       .eq('organization_id', organization.id)
       .order('created_at', { ascending: true }),
     supabaseAdmin

@@ -535,12 +535,32 @@ export interface MerchantInfoDocument {
   personCode?: string;
 }
 
+/**
+ * Full compliance data for one license (person) as returned by /v2/merchants/{code}/info.
+ * Pay.nl uses "license" to mean the per-person compliance record.
+ */
+export interface MerchantInfoLicense {
+  /** AL-XXXX-XXXX — the person's compliance identifier. */
+  code: string;
+  status?: string;
+  firstName?: string;
+  lastName?: string;
+  /** 2-letter ISO country of birth (e.g. "NL"). Null if not yet set. */
+  birthCountry?: string;
+  /** Pay.nl UBO classification: "pseudo", "direct", or "no". */
+  uboType?: string;
+  /** Documents required for this specific person. */
+  documents: MerchantInfoDocument[];
+}
+
 export interface MerchantInfoResponse {
   merchantCode: string;
   status?: MerchantStatus;
   boardingStatus?: BoardingStatus;
   payoutStatus?: PayoutStatus;
   documents: MerchantInfoDocument[];
+  /** Full per-person license records (includes data fields + docs). */
+  licenses: MerchantInfoLicense[];
   /** Raw response kept for forward compatibility / debugging. */
   raw: unknown;
 }
@@ -573,36 +593,43 @@ export async function getMerchantInfo(
     (root?.licenses as unknown[] | undefined) ??
     [];
 
-  const licenseDocsRaw: unknown[] = [];
-  for (const license of licensesRaw) {
-    const l = (license ?? {}) as Record<string, unknown>;
-    const lCode = String(l.code ?? '');
-    const lDocs = (l.documents as unknown[] | undefined) ?? [];
-    for (const d of lDocs) {
-      const doc = (d ?? {}) as Record<string, unknown>;
-      // Preserve existing licenseCode/personCode if already set, otherwise
-      // use the license's own code as the linkage key.
-      licenseDocsRaw.push({
-        ...doc,
-        licenseCode: (doc.licenseCode ?? doc.personCode ?? lCode) || undefined,
-      });
-    }
-  }
-
-  const allDocsRaw = [...merchantDocsRaw, ...licenseDocsRaw];
-
-  const documents: MerchantInfoDocument[] = allDocsRaw.map((d) => {
+  function parseDocument(d: unknown, overrideLicenseCode?: string): MerchantInfoDocument {
     const doc = (d ?? {}) as Record<string, unknown>;
+    const licenseCode =
+      (doc.licenseCode ?? doc.personCode ?? overrideLicenseCode) as string | undefined;
     return {
       code: String(doc.code ?? ''),
       type: String(doc.type ?? ''),
       status: (doc.status as MerchantInfoDocument['status']) ?? 'REQUESTED',
       name: doc.name as string | undefined,
       translations: doc.translations as MerchantInfoDocument['translations'],
-      licenseCode: doc.licenseCode as string | undefined,
+      licenseCode: licenseCode || undefined,
       personCode: doc.personCode as string | undefined,
     };
+  }
+
+  // Parse each license fully: data fields + per-person documents.
+  const licenses: MerchantInfoLicense[] = licensesRaw.map((license) => {
+    const l = (license ?? {}) as Record<string, unknown>;
+    const lCode = String(l.code ?? '');
+    const lDocs = (l.documents as unknown[] | undefined) ?? [];
+    return {
+      code: lCode,
+      status: l.status as string | undefined,
+      firstName: l.firstName as string | undefined,
+      lastName: l.lastName as string | undefined,
+      // Pay.nl uses birthCountry or birthPlace depending on version.
+      birthCountry: (l.birthCountry ?? l.birthPlace) as string | undefined,
+      // Pay.nl uses ubo, uboType, or uboStatus for the classification.
+      uboType: (l.ubo ?? l.uboType ?? l.uboStatus) as string | undefined,
+      documents: lDocs.map((d) => parseDocument(d, lCode)),
+    };
   });
+
+  // Flatten all documents: merchant-level + all per-license docs.
+  const merchantDocs = merchantDocsRaw.map((d) => parseDocument(d));
+  const licenseDocs = licenses.flatMap((lic) => lic.documents);
+  const documents: MerchantInfoDocument[] = [...merchantDocs, ...licenseDocs];
 
   return {
     merchantCode: String(m.code ?? m.merchantCode ?? merchantCode),
@@ -610,6 +637,7 @@ export async function getMerchantInfo(
     boardingStatus: m.boardingStatus as BoardingStatus | undefined,
     payoutStatus: m.payoutStatus as PayoutStatus | undefined,
     documents,
+    licenses,
     raw,
   };
 }
@@ -672,7 +700,37 @@ function toBase64(input: Uint8Array | ArrayBuffer | Buffer): string {
 }
 
 // ---------------------------------------------------------------------------
-// 5. submitForReview — PATCH /v2/boarding/{code}/ready
+// 5. updateLicense — PATCH /v2/licenses/{code}
+//
+// Updates a person's compliance data fields on an existing license.
+// Used after onboarding to supply birth country and other required fields.
+// ---------------------------------------------------------------------------
+
+export interface UpdateLicenseParams {
+  /** AL-XXXX-XXXX code returned at onboarding or from getMerchantInfo. */
+  licenseCode: string;
+  /** 2-letter ISO country code (e.g. "NL"). */
+  birthCountry?: string;
+}
+
+export async function updateLicense(params: UpdateLicenseParams): Promise<void> {
+  assertAllianceEnabled('updateLicense');
+
+  const body: Record<string, unknown> = {};
+  if (params.birthCountry) body.birthCountry = params.birthCountry;
+
+  if (Object.keys(body).length === 0) return;
+
+  await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/licenses/${encodeURIComponent(params.licenseCode)}`,
+    'PATCH',
+    body,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 6. submitForReview — PATCH /v2/boarding/{code}/ready
 //
 // Flips the merchant from REGISTERED/ONBOARDING into the Compliance queue.
 // Pay.nl then returns ACCEPTED / SUSPENDED asynchronously; poll /info to

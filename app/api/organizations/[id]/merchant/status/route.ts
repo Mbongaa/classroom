@@ -39,6 +39,18 @@ async function fetchLocalDocs(
   return data ?? [];
 }
 
+async function fetchLocalPersons(
+  supabase: ReturnType<typeof createAdminClient>,
+  organizationId: string,
+) {
+  const { data } = await supabase
+    .from('organization_persons')
+    .select('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, ubo_type')
+    .eq('organization_id', organizationId)
+    .order('created_at', { ascending: true });
+  return data ?? [];
+}
+
 function mapBoardingToKyc(
   boarding: BoardingStatus | undefined,
   current: KycStatus,
@@ -102,7 +114,10 @@ export async function GET(
 
   // No merchant yet → return local state.
   if (!org.paynl_merchant_id) {
-    const documents = await fetchLocalDocs(supabaseAdmin, id);
+    const [documents, persons] = await Promise.all([
+      fetchLocalDocs(supabaseAdmin, id),
+      fetchLocalPersons(supabaseAdmin, id),
+    ]);
     return NextResponse.json({
       merchantId: null,
       serviceId: org.paynl_service_id,
@@ -112,12 +127,16 @@ export async function GET(
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
       documents,
+      persons,
       source: 'local',
     });
   }
 
   if (!isAllianceEnabled()) {
-    const documents = await fetchLocalDocs(supabaseAdmin, id);
+    const [documents, persons] = await Promise.all([
+      fetchLocalDocs(supabaseAdmin, id),
+      fetchLocalPersons(supabaseAdmin, id),
+    ]);
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
@@ -127,12 +146,29 @@ export async function GET(
       onboardedAt: org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
       documents,
+      persons,
       source: 'local',
     });
   }
 
   try {
     const info = await getMerchantInfo(org.paynl_merchant_id);
+
+    // Log raw response for debugging compliance field discovery.
+    console.log('[Alliance] getMerchantInfo raw', {
+      organizationId: id,
+      merchantCode: org.paynl_merchant_id,
+      boardingStatus: info.boardingStatus,
+      documentCount: info.documents.length,
+      licenseCount: info.licenses.length,
+      licenseFields: info.licenses.map((l) => ({
+        code: l.code,
+        birthCountry: l.birthCountry,
+        uboType: l.uboType,
+        status: l.status,
+        docCount: l.documents.length,
+      })),
+    });
 
     const nextKyc = mapBoardingToKyc(info.boardingStatus, org.kyc_status as KycStatus);
 
@@ -172,17 +208,20 @@ export async function GET(
       }
     }
 
-    // Refresh document statuses (best-effort). Map license → local person id.
-    if (info.documents.length > 0) {
-      const { data: personRows } = await supabaseAdmin
-        .from('organization_persons')
-        .select('id, paynl_license_code')
-        .eq('organization_id', id);
-      const localIdByLicense = new Map<string, string>();
-      for (const row of personRows ?? []) {
-        if (row.paynl_license_code) localIdByLicense.set(row.paynl_license_code, row.id);
-      }
+    // ---- Sync documents -------------------------------------------------------
+    // Fetch existing local persons so we can map license codes to person IDs.
+    const { data: personRows } = await supabaseAdmin
+      .from('organization_persons')
+      .select('id, paynl_license_code')
+      .eq('organization_id', id);
+    const localIdByLicense = new Map<string, string>();
+    for (const row of personRows ?? []) {
+      if (row.paynl_license_code) localIdByLicense.set(row.paynl_license_code, row.id);
+    }
 
+    const syncedAt = new Date().toISOString();
+
+    if (info.documents.length > 0) {
       const docRows = info.documents.map((d) => ({
         organization_id: id,
         person_id: d.licenseCode ? (localIdByLicense.get(d.licenseCode) ?? null) : null,
@@ -191,7 +230,7 @@ export async function GET(
         paynl_required: true,
         translations: d.translations ?? null,
         status: mapRemoteDocStatus(d.status),
-        last_synced_at: new Date().toISOString(),
+        last_synced_at: syncedAt,
       }));
       const { error: docsError } = await supabaseAdmin
         .from('organization_kyc_documents')
@@ -207,7 +246,66 @@ export async function GET(
       }
     }
 
-    const documents = await fetchLocalDocs(supabaseAdmin, id);
+    // Pay.nl drops accepted/completed documents from the /info response.
+    // Any doc we have locally with status requested/forwarded that is now
+    // ABSENT from Pay.nl's response has been accepted on their side.
+    // Only do this when Pay.nl returned at least one document (non-empty
+    // response means the API is working and missing = accepted, not error).
+    if (info.documents.length > 0) {
+      const remoteDocCodes = info.documents.map((d) => d.code).filter(Boolean);
+      if (remoteDocCodes.length > 0) {
+        const { data: pendingDocs } = await supabaseAdmin
+          .from('organization_kyc_documents')
+          .select('id, paynl_document_code')
+          .eq('organization_id', id)
+          .in('status', ['requested', 'forwarded']);
+        const toAccept = (pendingDocs ?? [])
+          .filter((row) => row.paynl_document_code && !remoteDocCodes.includes(row.paynl_document_code))
+          .map((row) => row.id);
+        if (toAccept.length > 0) {
+          const { error: acceptErr } = await supabaseAdmin
+            .from('organization_kyc_documents')
+            .update({ status: 'accepted', last_synced_at: syncedAt })
+            .in('id', toAccept);
+          if (acceptErr) {
+            console.warn('[Alliance] Failed to mark absent docs as accepted', {
+              organizationId: id,
+              error: acceptErr.message,
+            });
+          } else {
+            console.log('[Alliance] Marked absent docs as accepted', {
+              organizationId: id,
+              count: toAccept.length,
+            });
+          }
+        }
+      }
+    }
+
+    // ---- Sync license data fields (birthCountry, uboType) -------------------
+    // These are compliance properties on the person, not file documents.
+    if (info.licenses.length > 0) {
+      for (const lic of info.licenses) {
+        if (!lic.code) continue;
+        const personId = localIdByLicense.get(lic.code);
+        if (!personId) continue;
+        const personUpdate: Record<string, unknown> = { updated_at: syncedAt };
+        if (lic.birthCountry) personUpdate.birth_country = lic.birthCountry;
+        if (lic.uboType) personUpdate.ubo_type = lic.uboType;
+        if (Object.keys(personUpdate).length > 1) {
+          await supabaseAdmin
+            .from('organization_persons')
+            .update(personUpdate)
+            .eq('id', personId);
+        }
+      }
+    }
+
+    const [documents, persons] = await Promise.all([
+      fetchLocalDocs(supabaseAdmin, id),
+      fetchLocalPersons(supabaseAdmin, id),
+    ]);
+
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
@@ -220,6 +318,7 @@ export async function GET(
           : org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,
       documents,
+      persons,
       source: 'paynl',
     });
   } catch (error) {
@@ -233,7 +332,10 @@ export async function GET(
         status: error.status,
         body: error.body,
       });
-      const documents = await fetchLocalDocs(supabaseAdmin, id);
+      const [documents, persons] = await Promise.all([
+        fetchLocalDocs(supabaseAdmin, id),
+        fetchLocalPersons(supabaseAdmin, id),
+      ]);
       return NextResponse.json({
         merchantId: org.paynl_merchant_id,
         serviceId: org.paynl_service_id,
@@ -243,6 +345,7 @@ export async function GET(
         onboardedAt: org.onboarded_at,
         platformFeeBps: org.platform_fee_bps,
         documents,
+        persons,
         source: 'local-fallback',
         warning: 'Could not reach Pay.nl — showing cached status.',
       });
