@@ -148,7 +148,12 @@ export async function POST(
       // Pay.nl returns 422 with COMPANY_ALREADY_MARKED_AS_READY when the
       // merchant was already submitted in a previous session. This is not an
       // error — the first submission succeeded. Treat as idempotent success.
-      const detail = typeof error.body?.detail === 'string' ? error.body.detail : '';
+      const body = error.body;
+      const detail =
+        body && typeof body === 'object' && 'detail' in body &&
+        typeof (body as { detail: unknown }).detail === 'string'
+          ? (body as { detail: string }).detail
+          : '';
       if (detail.includes('COMPANY_ALREADY_MARKED_AS_READY')) {
         console.log('[Alliance] Merchant already submitted for review (idempotent)', {
           organizationId: id,
