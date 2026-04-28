@@ -155,6 +155,21 @@ function validatePerson(
   if (typeof p.nationality !== 'string' || p.nationality.length !== 2) {
     return { ok: false, error: `${prefix}.nationality must be a 2-letter ISO code` };
   }
+  if (p.gender !== undefined) {
+    if (typeof p.gender !== 'string' || !/^[MF]$/.test(p.gender)) {
+      return { ok: false, error: `${prefix}.gender must be "M" or "F" if provided` };
+    }
+  }
+  if (p.placeOfBirth !== undefined) {
+    if (typeof p.placeOfBirth !== 'string' || !p.placeOfBirth.trim()) {
+      return { ok: false, error: `${prefix}.placeOfBirth must be a non-empty string if provided` };
+    }
+  }
+  if (p.birthCountry !== undefined) {
+    if (typeof p.birthCountry !== 'string' || !/^[A-Za-z]{2}$/.test(p.birthCountry)) {
+      return { ok: false, error: `${prefix}.birthCountry must be a 2-letter ISO code if provided` };
+    }
+  }
   if (p.email !== undefined && (typeof p.email !== 'string' || !EMAIL_RE.test(p.email))) {
     return { ok: false, error: `${prefix}.email must be a valid email if provided` };
   }
@@ -218,6 +233,7 @@ function validatePerson(
       firstName,
       lastName,
       fullName: `${firstName} ${lastName}`,
+      gender: p.gender as 'M' | 'F' | undefined,
       dateOfBirth: p.dateOfBirth as string,
       nationality: (p.nationality as string).toUpperCase(),
       email: p.email ? (p.email as string).trim() : undefined,
@@ -229,6 +245,10 @@ function validatePerson(
         city: (addr.city as string).trim(),
         country: (addr.country as string).toUpperCase(),
       },
+      placeOfBirth: p.placeOfBirth ? (p.placeOfBirth as string).trim() : undefined,
+      birthCountry: p.birthCountry
+        ? (p.birthCountry as string).toUpperCase()
+        : undefined,
       authorizedToSign,
       ubo,
       uboPercentage: uboPct,
@@ -624,6 +644,7 @@ export async function POST(
     const personInsertPayload = body.persons.map((p, i) => ({
       organization_id: id,
       full_name: p.fullName,
+      gender: p.gender ?? null,
       date_of_birth: p.dateOfBirth,
       nationality: p.nationality,
       email: p.email ?? null,
@@ -640,6 +661,8 @@ export async function POST(
       // Store the UBO classification we sent to Pay.nl so the UI can display
       // it immediately without needing Pay.nl to echo it back via /info.
       ubo_type: p.isUbo ? (p.ubo === 'no' ? null : p.ubo) : null,
+      birth_city: p.placeOfBirth ?? null,
+      birth_country: p.birthCountry ?? null,
     }));
 
     const { data: insertedPersons, error: personsError } = await supabaseAdmin

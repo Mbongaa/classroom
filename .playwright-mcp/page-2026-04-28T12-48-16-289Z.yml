@@ -1,0 +1,131 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e48]: Bayaan.ai | Real-Time Speech Translation for Classrooms
+  - generic [ref=e53]:
+    - generic [ref=e56]:
+      - button "Toggle Sidebar" [ref=e59] [cursor=pointer]:
+        - img
+        - generic [ref=e60]: Toggle Sidebar
+      - list [ref=e64]:
+        - listitem [ref=e65]:
+          - link "Dashboard" [ref=e66] [cursor=pointer]:
+            - /url: /dashboard
+            - img [ref=e67]
+            - generic: Dashboard
+        - listitem [ref=e71]:
+          - link "Classrooms" [ref=e72] [cursor=pointer]:
+            - /url: /dashboard/rooms
+            - img [ref=e73]
+            - generic: Classrooms
+        - listitem [ref=e76]:
+          - link "Session History" [ref=e77] [cursor=pointer]:
+            - /url: /dashboard/recordings
+            - img [ref=e78]
+            - generic: Session History
+      - list [ref=e82]:
+        - listitem [ref=e83]:
+          - link "Billing" [ref=e84] [cursor=pointer]:
+            - /url: /dashboard/billing
+            - img [ref=e85]
+            - generic: Billing
+        - listitem [ref=e87]:
+          - link "Profile" [ref=e88] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e89]
+            - generic: Profile
+        - listitem [ref=e92]:
+          - link "F" [ref=e93] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e95]: F
+        - listitem [ref=e96]:
+          - button "Sign Out" [ref=e97] [cursor=pointer]:
+            - img [ref=e98]
+            - generic: Sign Out
+    - main [ref=e101]:
+      - generic [ref=e103]:
+        - generic [ref=e105]: bayaan.ai
+        - tablist "Dashboard mode" [ref=e106]:
+          - tab "Translation dashboard" [selected] [ref=e107] [cursor=pointer]:
+            - img [ref=e108]
+          - tab "Finance dashboard" [ref=e113] [cursor=pointer]:
+            - img [ref=e114]
+        - generic [ref=e117]:
+          - combobox "Language" [ref=e118] [cursor=pointer]:
+            - img [ref=e119]
+            - generic: English
+            - img [ref=e122]
+          - button "Toggle theme" [ref=e124] [cursor=pointer]:
+            - generic [ref=e125]: Toggle theme
+            - img [ref=e126]
+      - main [ref=e131]:
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - heading "Welcome back, fourqaan!" [level=1] [ref=e135]
+            - paragraph [ref=e136]: Here's what's happening with your classrooms today.
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - heading "Active Classrooms" [level=3] [ref=e140]
+              - generic [ref=e141]:
+                - generic [ref=e142]: "3"
+                - paragraph [ref=e143]: Live and scheduled classes
+                - link "View all →" [ref=e144] [cursor=pointer]:
+                  - /url: /dashboard/classrooms
+                  - button "View all →" [ref=e145]
+            - generic [ref=e146]:
+              - heading "Recordings" [level=3] [ref=e148]
+              - generic [ref=e149]:
+                - generic [ref=e150]: "0"
+                - paragraph [ref=e151]: Saved session recordings
+                - link "View all →" [ref=e152] [cursor=pointer]:
+                  - /url: /dashboard/recordings
+                  - button "View all →" [ref=e153]
+            - generic [ref=e154]:
+              - heading "Organization" [level=3] [ref=e156]
+              - generic [ref=e157]:
+                - generic [ref=e158]: fourqaan
+                - paragraph [ref=e159]: Your organization
+                - link "View all →" [ref=e160] [cursor=pointer]:
+                  - /url: /dashboard/organization
+                  - button "View all →" [ref=e161]
+          - generic [ref=e162]:
+            - generic [ref=e163]:
+              - generic [ref=e164]:
+                - heading "Quick Actions" [level=3] [ref=e165]
+                - paragraph [ref=e166]: Start or join a session instantly
+              - generic [ref=e167]:
+                - paragraph [ref=e168]: Start or join a video conference session.
+                - generic [ref=e169]:
+                  - button "Start Classroom" [ref=e170] [cursor=pointer]
+                  - button "Start Speech Session" [ref=e171] [cursor=pointer]
+                  - button "Manage Persistent Rooms" [ref=e173] [cursor=pointer]
+            - generic [ref=e174]:
+              - generic [ref=e176]:
+                - generic [ref=e177]:
+                  - heading "Recent Rooms" [level=3] [ref=e178]
+                  - paragraph [ref=e179]: Your most recently created classrooms
+                - link "View all" [ref=e180] [cursor=pointer]:
+                  - /url: /dashboard/rooms
+                  - button "View all" [ref=e181]:
+                    - text: View all
+                    - img
+              - generic [ref=e183]:
+                - generic [ref=e184] [cursor=pointer]:
+                  - generic [ref=e185]:
+                    - generic [ref=e186]:
+                      - paragraph [ref=e187]: Tester2
+                      - generic [ref=e188]: Speech
+                    - paragraph [ref=e189]: Sheikh Mamdouh
+                  - img [ref=e190]
+                - generic [ref=e193] [cursor=pointer]:
+                  - generic [ref=e194]:
+                    - generic [ref=e195]:
+                      - paragraph [ref=e196]: Khutba1
+                      - generic [ref=e197]: Speech
+                    - paragraph [ref=e198]: Sheyq Mamdouh
+                  - img [ref=e199]
+                - generic [ref=e202] [cursor=pointer]:
+                  - generic [ref=e203]:
+                    - generic [ref=e204]:
+                      - paragraph [ref=e205]: Test
+                      - generic [ref=e206]: Speech
+                    - paragraph [ref=e207]: Sheikh mamdouh
+                  - img [ref=e208]

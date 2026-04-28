@@ -11,17 +11,20 @@ import {
 /**
  * PATCH /api/organizations/[id]/merchant/license
  *
- * Updates a person's compliance data fields on their Pay.nl license.
- * Supports: birthCountry (2-letter ISO code) + birthPlace (city name).
- * Pay.nl requires BOTH fields to save the birth data.
+ * Updates a person's compliance data on their Pay.nl license.
+ * Accepts gender (M|F), birthCountry (ISO-2), birthPlace (city). Sends the
+ * Pay.nl-supported fields to PATCH /v2/licenses/{code} and stores everything
+ * locally so the dashboard reflects it immediately.
  *
- * Body: { personId: string, birthCountry: string, birthPlace: string }
+ * Body: { personId, gender?, birthCountry?, birthPlace? } (at least one of
+ * the value fields required).
  *
  * Auth: org admin or platform superadmin.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COUNTRY_RE = /^[A-Z]{2}$/;
+const GENDER_RE = /^[MF]$/;
 
 export async function PATCH(
   request: NextRequest,
@@ -54,19 +57,46 @@ export async function PATCH(
   if (typeof b.personId !== 'string' || !UUID_RE.test(b.personId)) {
     return NextResponse.json({ error: 'personId must be a valid UUID' }, { status: 400 });
   }
-  if (typeof b.birthCountry !== 'string' || !COUNTRY_RE.test(b.birthCountry)) {
+
+  let gender: 'M' | 'F' | undefined;
+  if (b.gender !== undefined) {
+    if (typeof b.gender !== 'string' || !GENDER_RE.test(b.gender)) {
+      return NextResponse.json(
+        { error: 'gender must be "M" or "F" if provided' },
+        { status: 400 },
+      );
+    }
+    gender = b.gender as 'M' | 'F';
+  }
+
+  let birthCountry: string | undefined;
+  if (b.birthCountry !== undefined) {
+    if (typeof b.birthCountry !== 'string' || !COUNTRY_RE.test(b.birthCountry)) {
+      return NextResponse.json(
+        { error: 'birthCountry must be a 2-letter uppercase ISO country code (e.g. "NL")' },
+        { status: 400 },
+      );
+    }
+    birthCountry = b.birthCountry;
+  }
+
+  let birthPlace: string | undefined;
+  if (b.birthPlace !== undefined) {
+    if (typeof b.birthPlace !== 'string' || !b.birthPlace.trim()) {
+      return NextResponse.json(
+        { error: 'birthPlace must be a non-empty string if provided' },
+        { status: 400 },
+      );
+    }
+    birthPlace = b.birthPlace.trim();
+  }
+
+  if (!gender && !birthCountry && !birthPlace) {
     return NextResponse.json(
-      { error: 'birthCountry must be a 2-letter uppercase ISO country code (e.g. "NL")' },
+      { error: 'At least one of gender, birthCountry, birthPlace must be provided' },
       { status: 400 },
     );
   }
-  if (typeof b.birthPlace !== 'string' || !b.birthPlace.trim()) {
-    return NextResponse.json(
-      { error: 'birthPlace (city of birth) is required' },
-      { status: 400 },
-    );
-  }
-  const birthPlace = b.birthPlace.trim();
 
   const supabaseAdmin = createAdminClient();
 
@@ -89,19 +119,33 @@ export async function PATCH(
   }
 
   try {
-    await updateLicense({
-      licenseCode: person.paynl_license_code,
-      birthCountry: b.birthCountry,
-      birthPlace,
-    });
+    if (birthCountry || birthPlace) {
+      await updateLicense({
+        licenseCode: person.paynl_license_code,
+        birthCountry,
+        birthPlace,
+      });
+    }
 
-    // Persist locally so the UI reflects the change immediately.
+    // Persist locally so the UI reflects the change immediately. Gender lives
+    // only locally (Pay.nl V2's PATCH /v2/licenses doesn't accept it; the
+    // value is set at create time via POST /v2/merchants persons[].gender).
+    const localUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (birthCountry) localUpdate.birth_country = birthCountry;
+    if (birthPlace) localUpdate.birth_city = birthPlace;
+    if (gender) localUpdate.gender = gender;
     await supabaseAdmin
       .from('organization_persons')
-      .update({ birth_country: b.birthCountry, birth_city: birthPlace, updated_at: new Date().toISOString() })
+      .update(localUpdate)
       .eq('id', b.personId);
 
-    return NextResponse.json({ ok: true, personId: b.personId, birthCountry: b.birthCountry, birthPlace });
+    return NextResponse.json({
+      ok: true,
+      personId: b.personId,
+      gender: gender ?? null,
+      birthCountry: birthCountry ?? null,
+      birthPlace: birthPlace ?? null,
+    });
   } catch (error) {
     if (error instanceof PayNLAllianceNotActivatedError) {
       return NextResponse.json({ error: error.message }, { status: 503 });

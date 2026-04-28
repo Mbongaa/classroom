@@ -1,0 +1,187 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e43]:
+      - button "Toggle Sidebar" [ref=e46] [cursor=pointer]:
+        - img
+        - generic [ref=e47]: Toggle Sidebar
+      - list [ref=e51]:
+        - listitem [ref=e52]:
+          - link "Dashboard" [ref=e53] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan
+            - img [ref=e54]
+            - generic: Dashboard
+        - listitem [ref=e59]:
+          - link "Campaigns" [ref=e60] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/campaigns
+            - img [ref=e61]
+            - generic: Campaigns
+        - listitem [ref=e66]:
+          - link "Products" [ref=e67] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/products
+            - img [ref=e68]
+            - generic: Products
+        - listitem [ref=e73]:
+          - link "Appointments" [ref=e74] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/appointments
+            - img [ref=e75]
+            - generic: Appointments
+        - listitem [ref=e77]:
+          - link "Members" [ref=e78] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/members
+            - img [ref=e79]
+            - generic: Members
+        - listitem [ref=e84]:
+          - link "Transactions" [ref=e85] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/transactions
+            - img [ref=e86]
+            - generic: Transactions
+        - listitem [ref=e88]:
+          - link "Settings" [ref=e89] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/settings
+            - img [ref=e90]
+            - generic: Settings
+      - list [ref=e94]:
+        - listitem [ref=e95]:
+          - link "Billing" [ref=e96] [cursor=pointer]:
+            - /url: /dashboard/billing
+            - img [ref=e97]
+            - generic: Billing
+        - listitem [ref=e99]:
+          - link "Profile" [ref=e100] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e101]
+            - generic: Profile
+        - listitem [ref=e104]:
+          - link "F" [ref=e105] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e107]: F
+        - listitem [ref=e108]:
+          - button "Sign Out" [ref=e109] [cursor=pointer]:
+            - img [ref=e110]
+            - generic: Sign Out
+    - main [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e8]: bayaan.ai
+        - tablist "Dashboard mode" [ref=e9]:
+          - tab "Translation dashboard" [ref=e10] [cursor=pointer]:
+            - img [ref=e11]
+          - tab "Finance dashboard" [selected] [ref=e16] [cursor=pointer]:
+            - img [ref=e17]
+        - generic [ref=e20]:
+          - combobox "Language" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+            - generic: English
+            - img [ref=e25]
+          - button "Toggle theme" [ref=e27] [cursor=pointer]:
+            - generic [ref=e28]: Toggle theme
+            - img [ref=e29]
+      - main [ref=e34]:
+        - generic [ref=e113]:
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - paragraph [ref=e116]: Mosque settings
+              - heading "fourqaan" [level=1] [ref=e117]
+            - link "← Back to dashboard" [ref=e118] [cursor=pointer]:
+              - /url: /mosque-admin/fourqaan
+          - generic [ref=e119]:
+            - tablist [ref=e120]:
+              - tab "General" [ref=e121] [cursor=pointer]
+              - tab "Payments" [selected] [ref=e122] [cursor=pointer]
+              - tab "Thank-You Animation" [ref=e123] [cursor=pointer]
+              - tab "Language" [ref=e124] [cursor=pointer]
+            - tabpanel "Payments" [ref=e125]:
+              - generic [ref=e126]:
+                - generic [ref=e128]:
+                  - img [ref=e130]
+                  - heading "Application under review" [level=3] [ref=e133]
+                  - paragraph [ref=e134]: Your merchant application has been submitted and is being reviewed by Pay.nl. This typically takes 1-3 business days. Once approved, you'll be able to receive donations directly.
+                  - button "Check status" [ref=e135] [cursor=pointer]
+                - generic [ref=e136]:
+                  - generic [ref=e138]:
+                    - img [ref=e140]
+                    - generic [ref=e144]:
+                      - heading "Merchant status at Pay.nl" [level=3] [ref=e145]
+                      - paragraph [ref=e146]: Live snapshot of your Pay.nl merchant record. Updates each time you refresh.
+                  - generic [ref=e147]:
+                    - generic [ref=e149]:
+                      - generic [ref=e150]: "Boarding:"
+                      - text: ONBOARDING
+                    - generic [ref=e152]:
+                      - paragraph [ref=e153]: Merchant code
+                      - paragraph [ref=e154]: M-4534-4164
+                    - generic [ref=e155]:
+                      - text: Pay.nl is reviewing your application. Boarding sits in
+                      - strong [ref=e156]: ONBOARDING
+                      - text: until
+                      - emphasis [ref=e157]: every
+                      - text: license has full person data plus an accepted ID document. Fill in any placeholders below to clear the gate.
+                - generic [ref=e158]:
+                  - generic [ref=e160]:
+                    - img [ref=e162]
+                    - generic [ref=e165]:
+                      - heading "KYC compliance" [level=3] [ref=e166]
+                      - paragraph [ref=e167]: Pay.nl needs these before donations can go live. Files are private and forwarded directly to Pay.nl.
+                  - generic [ref=e168]:
+                    - generic [ref=e170]:
+                      - generic [ref=e171]:
+                        - img [ref=e172]
+                        - generic [ref=e176]:
+                          - paragraph [ref=e177]: ubo_register*
+                          - paragraph [ref=e178]: "Status: accepted ✓"
+                      - generic [ref=e179]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e181]:
+                      - generic [ref=e182]:
+                        - img [ref=e183]
+                        - generic [ref=e187]:
+                          - paragraph [ref=e188]: Samenwerkingsovereenkomst (PAY × Alliance × Merchant)*
+                          - paragraph [ref=e189]: Dutch cooperation agreement — review and sign by drawing your signature. No upload needed.
+                          - paragraph [ref=e190]: "Status: accepted by Pay.nl ✓"
+                      - link "View signed PDF" [ref=e192] [cursor=pointer]:
+                        - /url: /api/organizations/f6e2244f-4d4b-487e-8bf8-56adf185633d/merchant/agreement/download?docId=f281d649-219d-4e55-b5b7-4f837e898f1f
+                    - generic [ref=e194]:
+                      - generic [ref=e195]:
+                        - img [ref=e196]
+                        - generic [ref=e200]:
+                          - paragraph [ref=e201]: ubo_register*
+                          - paragraph [ref=e202]: "Status: accepted ✓"
+                      - generic [ref=e203]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e205]:
+                      - generic [ref=e206]:
+                        - img [ref=e207]
+                        - generic [ref=e211]:
+                          - paragraph [ref=e212]: Chamber of Commerce extract*
+                          - paragraph [ref=e213]: Recent (≤6 months) extract of business registration
+                          - paragraph [ref=e214]: "Status: accepted ✓"
+                      - generic [ref=e215]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e216]:
+                      - paragraph [ref=e217]: Verified at Pay.nl (1)
+                      - list [ref=e218]:
+                        - listitem [ref=e219]:
+                          - generic [ref=e220]: Mohamed Suleymansignee · UBO · pseudo
+                          - generic [ref=e222]:
+                            - img [ref=e223]
+                            - text: Verified
+                    - generic [ref=e226]:
+                      - paragraph [ref=e227]: On file at Pay.nl (1)
+                      - paragraph [ref=e228]: These persons have a Pay.nl license but no document requests yet — Pay.nl Compliance hasn't flagged them as needing anything.
+                      - list [ref=e229]:
+                        - listitem [ref=e230]:
+                          - generic [ref=e231]: Dastan Azizsignee · UBO · pseudo
+                          - generic [ref=e232]: No requests
+                    - generic [ref=e233]:
+                      - paragraph [ref=e234]: Local-only persons (1) — not registered at Pay.nl
+                      - paragraph [ref=e235]: These rows exist in your dashboard but Pay.nl never returned a license code for them. They cannot upload ID copies or count toward Pay.nl boarding until they're re-submitted. Open any placeholder license below and pick the matching local person from the “Use existing person” dropdown to pre-fill it.
+                      - list [ref=e236]:
+                        - listitem [ref=e237]:
+                          - text: •
+                          - strong [ref=e238]: Mohamed Kuhi
+                          - generic [ref=e239]: — UBO · DOB 1960-04-12 · nat NL · Eindhoven, NL
+                    - generic [ref=e241]:
+                      - generic [ref=e242]:
+                        - paragraph [ref=e243]: Submit for review
+                        - paragraph [ref=e244]: 1 local person row not registered at Pay.nl — re-submit before review.
+                      - button "Submit to Pay.nl" [disabled]

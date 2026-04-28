@@ -271,7 +271,8 @@ export interface MerchantPerson {
   clientRef: string;
   firstName: string;
   lastName: string;
-  /** Optional gender. Pay.nl accepts "M" | "F". */
+  /** Pay.nl V2 enum: "M" | "F". Required by Pay.nl Compliance even though the
+   * V2 spec marks it optional — when absent, Compliance will block boarding. */
   gender?: 'M' | 'F';
   /** ISO date "YYYY-MM-DD". */
   dateOfBirth: string;
@@ -290,6 +291,12 @@ export interface MerchantPerson {
   relationshipDescription?: string;
   /** Politically exposed person flag. Defaults to false. */
   pep?: boolean;
+  /** City/town of birth. Not in the V2 spec but Pay.nl Compliance asks for it
+   * via the portal when missing. We forward it as an extra hint and also
+   * store it locally so the dashboard can show it. */
+  placeOfBirth?: string;
+  /** ISO 3166-1 alpha-2 country of birth. Same caveat as placeOfBirth. */
+  birthCountry?: string;
 }
 
 export interface CreateMerchantPayload {
@@ -416,6 +423,11 @@ export async function createMerchant(
       ...(p.relationshipDescription
         ? { relationshipDescription: p.relationshipDescription }
         : {}),
+      // placeOfBirth + birthCountry aren't in the V2 spec but Pay.nl
+      // Compliance derives them from ID-doc OCR, so passing them as
+      // hints can prevent the manual portal prompt.
+      ...(p.placeOfBirth ? { placeOfBirth: p.placeOfBirth } : {}),
+      ...(p.birthCountry ? { birthCountry: p.birthCountry } : {}),
     },
   }));
 
@@ -555,11 +567,36 @@ export interface MerchantInfoLicense {
   documents: MerchantInfoDocument[];
 }
 
+export interface MerchantClearingAccount {
+  code: string;
+  status?: string;
+  method?: string;
+  iban?: string;
+  bic?: string;
+  owner?: string;
+}
+
 export interface MerchantInfoResponse {
   merchantCode: string;
+  name?: string;
+  publicName?: string;
   status?: MerchantStatus;
   boardingStatus?: BoardingStatus;
   payoutStatus?: PayoutStatus;
+  /** Pay.nl pricing/contract package, e.g. "Merchant By Alliance PLUS". */
+  contractPackage?: string;
+  /** Email of the assigned Pay.nl Compliance account manager. */
+  accountManager?: string;
+  /** Date the contract was signed/accepted. Distinct from boarding ACCEPTED. */
+  acceptedAt?: string;
+  suspendedAt?: string;
+  reviewedAt?: string;
+  /** When the merchant must next undergo periodic compliance review. */
+  nextReviewDate?: string;
+  contractLanguage?: string;
+  countryCode?: string;
+  website?: string;
+  clearingAccounts: MerchantClearingAccount[];
   documents: MerchantInfoDocument[];
   /** Full per-person license records (includes data fields + docs). */
   licenses: MerchantInfoLicense[];
@@ -628,16 +665,56 @@ export async function getMerchantInfo(
     };
   });
 
-  // Flatten all documents: merchant-level + all per-license docs.
+  // Flatten all documents: merchant-level + all per-license docs, deduped by
+  // `code`. Pay.nl /info sometimes echoes the same document under both
+  // documents[] and licenses[].documents[]; without dedup we render the same
+  // row twice in the dashboard.
   const merchantDocs = merchantDocsRaw.map((d) => parseDocument(d));
   const licenseDocs = licenses.flatMap((lic) => lic.documents);
-  const documents: MerchantInfoDocument[] = [...merchantDocs, ...licenseDocs];
+  const seen = new Set<string>();
+  const documents: MerchantInfoDocument[] = [];
+  for (const d of [...merchantDocs, ...licenseDocs]) {
+    const key = d.code || `${d.type}:${d.licenseCode ?? ''}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    documents.push(d);
+  }
+
+  // Parse clearingAccounts so the UI can show settlement bank info.
+  const clearingRaw =
+    (m.clearingAccounts as unknown[] | undefined) ??
+    (root?.clearingAccounts as unknown[] | undefined) ??
+    [];
+  const clearingAccounts: MerchantClearingAccount[] = clearingRaw.map((c) => {
+    const co = (c ?? {}) as Record<string, unknown>;
+    const iban = (co.iban ?? {}) as Record<string, unknown>;
+    return {
+      code: String(co.code ?? ''),
+      status: co.status as string | undefined,
+      method: co.method as string | undefined,
+      iban: iban.iban as string | undefined,
+      bic: iban.bic as string | undefined,
+      owner: iban.owner as string | undefined,
+    };
+  });
 
   return {
     merchantCode: String(m.code ?? m.merchantCode ?? merchantCode),
+    name: m.name as string | undefined,
+    publicName: m.publicName as string | undefined,
     status: m.status as MerchantStatus | undefined,
     boardingStatus: m.boardingStatus as BoardingStatus | undefined,
     payoutStatus: m.payoutStatus as PayoutStatus | undefined,
+    contractPackage: m.contractPackage as string | undefined,
+    accountManager: m.accountManager as string | undefined,
+    acceptedAt: m.acceptedAt as string | undefined,
+    suspendedAt: m.suspendedAt as string | undefined,
+    reviewedAt: m.reviewedAt as string | undefined,
+    nextReviewDate: m.nextReviewDate as string | undefined,
+    contractLanguage: m.contractLanguage as string | undefined,
+    countryCode: m.countryCode as string | undefined,
+    website: m.website as string | undefined,
+    clearingAccounts,
     documents,
     licenses,
     raw,
@@ -803,6 +880,198 @@ export async function getMerchant(merchantCode: string): Promise<MerchantSummary
     payoutStatus: m.payoutStatus as PayoutStatus | undefined,
     raw,
   };
+}
+
+// ---------------------------------------------------------------------------
+// 7. createLicense — POST /v2/licenses
+//
+// Creates a brand-new person/license under an existing merchant. Required to
+// add board members after the initial onboarding (e.g. when Pay.nl auto-pulled
+// licenses from the KvK extract and we need to populate them).
+//
+// Note: PATCH /v2/licenses/{code} can only update complianceData + a few
+// non-person fields. To "fix" an empty placeholder license you must DELETE
+// it first, then POST a new one with full firstName/lastName/gender/address
+// data — see deleteLicense() below.
+// ---------------------------------------------------------------------------
+
+export interface CreateLicenseParams {
+  /** Pay.nl merchant code (M-XXXX-XXXX) the license attaches to. */
+  merchantCode: string;
+  person: MerchantPerson;
+  /** Pay.nl locale tag (e.g. "nl_NL"). Falls back to person.language → "nl_NL". */
+  contractLanguage?: string;
+}
+
+export interface CreateLicenseResponse {
+  licenseCode: string;
+  raw: unknown;
+}
+
+export async function createLicense(
+  params: CreateLicenseParams,
+): Promise<CreateLicenseResponse> {
+  assertAllianceEnabled('createLicense');
+
+  const p = params.person;
+  const personObject = {
+    firstName: p.firstName,
+    lastName: p.lastName,
+    ...(p.gender ? { gender: p.gender } : {}),
+    ...(p.email ? { email: p.email } : {}),
+    ...(p.phone ? { phone: p.phone } : {}),
+    language: p.language ?? params.contractLanguage ?? 'nl_NL',
+    visitAddress: {
+      streetName: p.address.street,
+      streetNumber: p.address.houseNumber,
+      zipCode: p.address.postalCode,
+      city: p.address.city,
+      countryCode: p.address.country,
+    },
+    platform: { authorisation: 'all', authorisationGroups: [] },
+    complianceData: {
+      dateOfBirth: p.dateOfBirth,
+      nationality: p.nationality,
+      authorizedToSign: p.authorizedToSign,
+      pep: p.pep ?? false,
+      ubo: p.ubo,
+      ...(p.ubo !== 'no' && typeof p.uboPercentage === 'number'
+        ? { uboPercentage: Math.round(p.uboPercentage) }
+        : {}),
+      ...(p.relationshipDescription
+        ? { relationshipDescription: p.relationshipDescription }
+        : {}),
+      // Off-spec hints; Pay.nl V2 ignores unknown fields and we keep the
+      // values locally for the dashboard.
+      ...(p.placeOfBirth ? { placeOfBirth: p.placeOfBirth } : {}),
+      ...(p.birthCountry ? { birthCountry: p.birthCountry } : {}),
+    },
+  };
+
+  const raw = await paynlRequest<unknown>(getRestBase(), '/v2/licenses', 'POST', {
+    merchantCode: params.merchantCode,
+    person: personObject,
+  });
+
+  const root = raw as Record<string, unknown> | null;
+  const license = (root?.license ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+  const licenseCode =
+    (license.code as string | undefined) ??
+    (license.licenseCode as string | undefined) ??
+    (license.id as string | undefined);
+
+  if (!licenseCode) {
+    throw new PayNLError(502, raw, 'Pay.nl POST /v2/licenses did not return a licenseCode');
+  }
+  return { licenseCode, raw };
+}
+
+// ---------------------------------------------------------------------------
+// 8. deleteLicense — DELETE /v2/licenses/{code}
+//
+// Removes a license from a merchant. Used to clear empty placeholder licenses
+// before swapping in a new one with full person data.
+// ---------------------------------------------------------------------------
+
+export async function deleteLicense(licenseCode: string): Promise<void> {
+  assertAllianceEnabled('deleteLicense');
+  await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/licenses/${encodeURIComponent(licenseCode)}`,
+    'DELETE',
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 9. listLicenses — GET /v2/licenses?merchant={code}
+//
+// Returns the full PersonLicense list for a merchant: code, name (often null
+// for placeholders), language, complianceData ({ubo, uboPercentage,
+// authorizedToSign, pep, pepDescription, relationshipDescription}),
+// notificationGroup, platform, documents[], roles, timestamps.
+//
+// The /info endpoint strips empty fields aggressively, so this is the only
+// reliable way to see per-license complianceData (which is what tells us
+// which placeholder slots Pay.nl is waiting on).
+// ---------------------------------------------------------------------------
+
+export interface PersonLicenseFromList {
+  code: string;
+  /** Combined display name. Often null/empty for auto-created placeholders. */
+  name: string | null;
+  language?: string;
+  complianceData: {
+    authorizedToSign?: AuthorizedToSign;
+    pep?: boolean;
+    pepDescription?: string | null;
+    ubo?: UboType;
+    uboPercentage?: number;
+    relationshipDescription?: string | null;
+    dateOfBirth?: string | null;
+    nationality?: string | null;
+  };
+  documents: MerchantInfoDocument[];
+  roles?: { primaryContactPerson?: boolean; internalAdministrator?: boolean };
+  createdBy?: string | null;
+  createdAt?: string | null;
+}
+
+export async function listLicenses(
+  merchantCode: string,
+): Promise<PersonLicenseFromList[]> {
+  assertAllianceEnabled('listLicenses');
+
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/licenses?merchant=${encodeURIComponent(merchantCode)}`,
+    'GET',
+  );
+  const root = raw as Record<string, unknown> | null;
+  const arr =
+    (root?.licenses as unknown[] | undefined) ??
+    (Array.isArray(raw) ? (raw as unknown[]) : []);
+
+  return arr.map((entry) => {
+    const l = (entry ?? {}) as Record<string, unknown>;
+    const cd = (l.complianceData ?? {}) as Record<string, unknown>;
+    const docs = ((l.documents as unknown[] | undefined) ?? []).map((d) => {
+      const doc = (d ?? {}) as Record<string, unknown>;
+      return {
+        code: String(doc.code ?? ''),
+        type: String(doc.type ?? ''),
+        status:
+          (doc.status as MerchantInfoDocument['status']) ?? 'REQUESTED',
+        name: doc.name as string | undefined,
+        translations: doc.translations as MerchantInfoDocument['translations'],
+        licenseCode: l.code as string | undefined,
+      };
+    });
+    return {
+      code: String(l.code ?? ''),
+      name: (l.name as string | null) ?? null,
+      language: l.language as string | undefined,
+      complianceData: {
+        authorizedToSign: cd.authorizedToSign as AuthorizedToSign | undefined,
+        pep: cd.pep as boolean | undefined,
+        pepDescription: (cd.pepDescription as string | null) ?? null,
+        ubo: cd.ubo as UboType | undefined,
+        uboPercentage:
+          typeof cd.uboPercentage === 'number'
+            ? (cd.uboPercentage as number)
+            : undefined,
+        relationshipDescription:
+          (cd.relationshipDescription as string | null) ?? null,
+        dateOfBirth: (cd.dateOfBirth as string | null) ?? null,
+        nationality: (cd.nationality as string | null) ?? null,
+      },
+      documents: docs,
+      roles: l.roles as
+        | { primaryContactPerson?: boolean; internalAdministrator?: boolean }
+        | undefined,
+      createdBy: (l.createdBy as string | null) ?? null,
+      createdAt: (l.createdAt as string | null) ?? null,
+    };
+  });
 }
 
 // ---------------------------------------------------------------------------

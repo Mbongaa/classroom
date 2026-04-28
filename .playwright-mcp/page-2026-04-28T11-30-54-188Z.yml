@@ -1,0 +1,158 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - button "Toggle Sidebar" [ref=e9] [cursor=pointer]:
+        - img
+        - generic [ref=e10]: Toggle Sidebar
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Dashboard" [ref=e16] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan
+            - img [ref=e17]
+            - generic: Dashboard
+        - listitem [ref=e22]:
+          - link "Campaigns" [ref=e23] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/campaigns
+            - img [ref=e24]
+            - generic: Campaigns
+        - listitem [ref=e29]:
+          - link "Products" [ref=e30] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/products
+            - img [ref=e31]
+            - generic: Products
+        - listitem [ref=e36]:
+          - link "Appointments" [ref=e37] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/appointments
+            - img [ref=e38]
+            - generic: Appointments
+        - listitem [ref=e40]:
+          - link "Members" [ref=e41] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/members
+            - img [ref=e42]
+            - generic: Members
+        - listitem [ref=e47]:
+          - link "Transactions" [ref=e48] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/transactions
+            - img [ref=e49]
+            - generic: Transactions
+        - listitem [ref=e51]:
+          - link "Settings" [ref=e52] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/settings
+            - img [ref=e53]
+            - generic: Settings
+      - list [ref=e57]:
+        - listitem [ref=e58]:
+          - link "Billing" [ref=e59] [cursor=pointer]:
+            - /url: /dashboard/billing
+            - img [ref=e60]
+            - generic: Billing
+        - listitem [ref=e62]:
+          - link "Profile" [ref=e63] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e64]
+            - generic: Profile
+        - listitem [ref=e67]:
+          - link "F" [ref=e68] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e70]: F
+        - listitem [ref=e71]:
+          - button "Sign Out" [ref=e72] [cursor=pointer]:
+            - img [ref=e73]
+            - generic: Sign Out
+    - main [ref=e76]:
+      - generic [ref=e78]:
+        - generic [ref=e80]: bayaan.ai
+        - tablist "Dashboard mode" [ref=e81]:
+          - tab "Translation dashboard" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+          - tab "Finance dashboard" [selected] [ref=e88] [cursor=pointer]:
+            - img [ref=e89]
+        - generic [ref=e92]:
+          - combobox "Language" [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic: English
+            - img [ref=e97]
+          - button "Toggle theme" [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]: Toggle theme
+            - img [ref=e101]
+      - main [ref=e106]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - paragraph [ref=e111]: Mosque settings
+              - heading "fourqaan" [level=1] [ref=e112]
+            - link "← Back to dashboard" [ref=e113] [cursor=pointer]:
+              - /url: /mosque-admin/fourqaan
+          - generic [ref=e114]:
+            - tablist [ref=e115]:
+              - tab "General" [ref=e116] [cursor=pointer]
+              - tab "Payments" [selected] [ref=e117] [cursor=pointer]
+              - tab "Thank-You Animation" [ref=e118] [cursor=pointer]
+              - tab "Language" [ref=e119] [cursor=pointer]
+            - tabpanel "Payments" [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e123]:
+                  - img [ref=e129]
+                  - heading "Application under review" [level=3] [ref=e127]
+                  - paragraph [ref=e128]: Your merchant application has been submitted and is being reviewed by Pay.nl. This typically takes 1-3 business days. Once approved, you'll be able to receive donations directly.
+                  - button "Check status" [ref=e132] [cursor=pointer]
+                - generic [ref=e133]:
+                  - generic [ref=e135]:
+                    - img [ref=e137]
+                    - generic [ref=e140]:
+                      - heading "KYC compliance" [level=3] [ref=e141]
+                      - paragraph [ref=e142]: Pay.nl needs these before donations can go live. Files are private and forwarded directly to Pay.nl.
+                  - generic [ref=e143]:
+                    - generic [ref=e145]:
+                      - generic [ref=e146]:
+                        - img [ref=e147]
+                        - generic [ref=e151]:
+                          - paragraph [ref=e152]: ubo_register*
+                          - paragraph [ref=e153]: "Status: accepted ✓"
+                      - generic [ref=e154]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e157]:
+                      - img [ref=e158]
+                      - generic [ref=e162]:
+                        - paragraph [ref=e163]: Samenwerkingsovereenkomst (PAY × Alliance × Merchant)*
+                        - paragraph [ref=e164]: Dutch cooperation agreement — review and sign by drawing your signature. No upload needed.
+                        - paragraph [ref=e165]: "Status: accepted by Pay.nl ✓"
+                    - generic [ref=e167]:
+                      - generic [ref=e168]:
+                        - img [ref=e169]
+                        - generic [ref=e173]:
+                          - paragraph [ref=e174]: ubo_register*
+                          - paragraph [ref=e175]: "Status: accepted ✓"
+                      - generic [ref=e176]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e178]:
+                      - generic [ref=e179]:
+                        - img [ref=e180]
+                        - generic [ref=e184]:
+                          - paragraph [ref=e185]: Chamber of Commerce extract*
+                          - paragraph [ref=e186]: Recent (≤6 months) extract of business registration
+                          - paragraph [ref=e187]: "Status: accepted ✓"
+                      - generic [ref=e188]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e189]:
+                      - paragraph [ref=e190]: Per-person compliance
+                      - generic [ref=e192]:
+                        - paragraph [ref=e193]: Mohamed Suleymansignee · UBOpseudo
+                        - generic [ref=e194]:
+                          - generic [ref=e195]:
+                            - paragraph [ref=e196]: Place of birth
+                            - paragraph [ref=e197]: Mogadishu, Somalia
+                          - button "Edit" [ref=e198] [cursor=pointer]
+                        - generic [ref=e199]:
+                          - generic [ref=e201]:
+                            - img [ref=e202]
+                            - generic [ref=e206]:
+                              - paragraph [ref=e207]: identification*
+                              - paragraph [ref=e208]: "Status: accepted ✓"
+                          - paragraph [ref=e209]: Identification accepted by Pay.nl ✓
+                    - generic [ref=e211]:
+                      - generic [ref=e212]:
+                        - paragraph [ref=e213]: Submit for review
+                        - paragraph [ref=e214]: All required information is complete. Submit to Pay.nl Compliance.
+                      - button "Submit to Pay.nl" [ref=e215] [cursor=pointer]

@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e48]: Bayaan.ai | Real-Time Speech Translation for Classrooms
+  - main [ref=e54]:
+    - generic [ref=e56]:
+      - generic [ref=e58]: bayaan.ai
+      - tablist "Dashboard mode" [ref=e59]:
+        - tab "Translation dashboard" [selected] [ref=e60] [cursor=pointer]:
+          - img [ref=e61]
+        - tab "Finance dashboard" [ref=e66] [cursor=pointer]:
+          - img [ref=e67]
+      - generic [ref=e70]:
+        - combobox "Language" [ref=e71] [cursor=pointer]:
+          - img [ref=e72]
+          - generic: English
+          - img [ref=e75]
+        - button "Toggle theme" [ref=e77] [cursor=pointer]:
+          - generic [ref=e78]: Toggle theme
+          - img [ref=e79]
+    - main [ref=e84]

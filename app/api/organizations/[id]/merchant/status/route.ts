@@ -4,9 +4,11 @@ import { requireOrgAdmin } from '@/lib/api-auth';
 import {
   getMerchantInfo,
   isAllianceEnabled,
+  listLicenses,
   PayNLAllianceNotActivatedError,
   PayNLError,
   type BoardingStatus,
+  type PersonLicenseFromList,
 } from '@/lib/paynl-alliance';
 
 /**
@@ -45,7 +47,9 @@ async function fetchLocalPersons(
 ) {
   const { data } = await supabase
     .from('organization_persons')
-    .select('id, full_name, is_signee, is_ubo, paynl_license_code, birth_country, birth_city, ubo_type')
+    .select(
+      'id, full_name, is_signee, is_ubo, paynl_license_code, gender, birth_country, birth_city, ubo_type, date_of_birth, nationality, email, phone, address_street, address_house_number, address_postal_code, address_city, address_country, ubo_percentage',
+    )
     .eq('organization_id', organizationId)
     .order('created_at', { ascending: true });
   return data ?? [];
@@ -171,7 +175,22 @@ export async function GET(
   }
 
   try {
-    const info = await getMerchantInfo(org.paynl_merchant_id);
+    // Fetch /info AND /v2/licenses?merchant=... in parallel. /info gives us
+    // merchant-level state + document requests; /v2/licenses gives us full
+    // per-license complianceData (which /info aggressively strips when the
+    // license is empty — making it impossible to detect placeholders without
+    // this second call).
+    const [info, allLicenses] = await Promise.all([
+      getMerchantInfo(org.paynl_merchant_id),
+      listLicenses(org.paynl_merchant_id).catch((err) => {
+        console.warn('[Alliance] listLicenses failed', {
+          organizationId: id,
+          merchantCode: org.paynl_merchant_id,
+          error: err instanceof Error ? err.message : err,
+        });
+        return [] as PersonLicenseFromList[];
+      }),
+    ]);
 
     // Log raw response so we can discover the exact field names Pay.nl uses
     // for license data (birthCountry, uboType) and document statuses.
@@ -334,10 +353,101 @@ export async function GET(
       fetchLocalPersons(supabaseAdmin, id),
     ]);
 
+    // Surface every license Pay.nl reported, including ones we don't have a
+    // local row for (Pay.nl auto-creates licenses for KvK board members).
+    // Prefer GET /v2/licenses output as the source of truth — it includes
+    // complianceData; /info strips empties.
+    const sourceLicenses: Array<{
+      code: string;
+      name: string | null;
+      complianceData: PersonLicenseFromList['complianceData'];
+      documents: typeof info.licenses[number]['documents'];
+    }> = allLicenses.length > 0
+      ? allLicenses.map((l) => ({
+          code: l.code,
+          name: l.name,
+          complianceData: l.complianceData,
+          documents: l.documents,
+        }))
+      : info.licenses.map((l) => ({
+          code: l.code,
+          name: l.firstName || l.lastName ? `${l.firstName ?? ''} ${l.lastName ?? ''}`.trim() : null,
+          complianceData: {},
+          documents: l.documents,
+        }));
+
+    const remoteLicenses = sourceLicenses.map((lic) => {
+      const localId = localIdByLicense.get(lic.code) ?? null;
+      const cd = lic.complianceData;
+      const hasAcceptedDoc = lic.documents.some(
+        (d) => d.status?.toUpperCase() === 'APPROVED' || d.status?.toUpperCase() === 'ACCEPTED',
+      );
+      const hasName = !!(lic.name && lic.name.trim());
+      // Per-license heuristic: a license is "blank" / placeholder when it has
+      // no name AND no accepted documents AND its complianceData is the
+      // Pay.nl auto-default (uboPercentage=0 or unset, no DOB/nationality).
+      const cdSeemsDefault =
+        !cd.dateOfBirth &&
+        !cd.nationality &&
+        (cd.uboPercentage === undefined || cd.uboPercentage === 0);
+      const isBlank = !hasName && !hasAcceptedDoc && cdSeemsDefault;
+
+      // Field-level missing list — what Pay.nl Compliance still wants for
+      // this license. We list the V2-spec-supported fields; the Pay.nl portal
+      // additionally surfaces birthPlace/birthCountry/zipCode visually but
+      // those map to visitAddress + (locally-stored) place of birth.
+      const missing: string[] = [];
+      if (!hasName) {
+        missing.push('firstName', 'lastName', 'gender', 'visitAddress');
+      }
+      if (!cd.dateOfBirth) missing.push('dateOfBirth');
+      if (!cd.nationality) missing.push('nationality');
+      if (cd.ubo && cd.ubo !== 'no' && (cd.uboPercentage ?? 0) <= 0) {
+        missing.push('uboPercentage');
+      }
+      if (cd.authorizedToSign === undefined) missing.push('authorizedToSign');
+      if (!hasAcceptedDoc) missing.push('identification');
+      // Place of birth + country of birth aren't in the V2 spec but the
+      // Pay.nl portal asks for them — surface as hints when license is blank.
+      if (isBlank) missing.push('placeOfBirth', 'birthCountry');
+
+      return {
+        code: lic.code,
+        name: lic.name,
+        complianceData: cd,
+        documentCount: lic.documents.length,
+        hasAcceptedDoc,
+        isBlank,
+        missingFields: missing,
+        // True when we have no local row for this license — UI shows a
+        // "fill in person details" CTA so admin can complete it.
+        isPlaceholder: localId === null,
+        localPersonId: localId,
+        // Legacy name fields kept for back-compat with existing client code.
+        firstName: null as string | null,
+        lastName: null as string | null,
+        birthCountry: null as string | null,
+        birthPlace: null as string | null,
+        uboType: cd.ubo ?? null,
+      };
+    });
+
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
       boardingStatus: info.boardingStatus ?? org.paynl_boarding_status,
+      status: info.status,
+      payoutStatus: info.payoutStatus,
+      contractPackage: info.contractPackage,
+      accountManager: info.accountManager,
+      acceptedAt: info.acceptedAt,
+      suspendedAt: info.suspendedAt,
+      reviewedAt: info.reviewedAt,
+      nextReviewDate: info.nextReviewDate,
+      contractLanguage: info.contractLanguage,
+      website: info.website,
+      clearingAccounts: info.clearingAccounts,
+      remoteLicenses,
       kycStatus: nextKyc,
       donationsActive: nextKyc === 'approved' ? true : org.donations_active,
       onboardedAt:

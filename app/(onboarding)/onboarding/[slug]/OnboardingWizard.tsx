@@ -85,8 +85,16 @@ interface PersonFormState {
   clientRef: string;
   firstName: string;
   lastName: string;
+  /** Pay.nl V2 enum: M | F. Required by Pay.nl Compliance — stored as a 1-char
+   * string here, validated server-side. Empty string = not yet selected. */
+  gender: '' | 'M' | 'F';
   dateOfBirth: string;
   nationality: string;
+  /** City/town of birth — Pay.nl Compliance asks for this in the portal when
+   * missing. Not in the V2 spec but we forward it as a hint and store locally. */
+  placeOfBirth: string;
+  /** ISO-2 country of birth. Same caveat as placeOfBirth. */
+  birthCountry: string;
   email: string;
   phone: string;
   street: string;
@@ -104,8 +112,11 @@ function emptyPerson(country: string): PersonFormState {
     clientRef: crypto.randomUUID(),
     firstName: '',
     lastName: '',
+    gender: '',
     dateOfBirth: '',
     nationality: country,
+    placeOfBirth: '',
+    birthCountry: country,
     email: '',
     phone: '',
     street: '',
@@ -125,7 +136,8 @@ const STEPS = [
   { key: 'review', label: 'Review & submit', icon: FileCheck2 },
 ] as const;
 
-const DRAFT_SCHEMA_VERSION = 2;
+// v3: added gender, placeOfBirth, birthCountry per person.
+const DRAFT_SCHEMA_VERSION = 3;
 const draftStorageKey = (orgId: string) => `bayaan:onboarding-draft:${orgId}`;
 
 interface OnboardingDraft {
@@ -295,8 +307,11 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
       const missing: string[] = [];
       if (!p.firstName) missing.push('first name');
       if (!p.lastName) missing.push('last name');
+      if (!p.gender) missing.push('gender');
       if (!p.dateOfBirth) missing.push('date of birth');
       if (!p.nationality) missing.push('nationality');
+      if (!p.placeOfBirth) missing.push('place of birth');
+      if (!p.birthCountry) missing.push('country of birth');
       if (!p.street) missing.push('street');
       if (!p.houseNumber) missing.push('house number');
       if (!p.postalCode) missing.push('postal code');
@@ -384,8 +399,11 @@ export function OnboardingWizard({ organization }: { organization: OrganizationP
           clientRef: p.clientRef,
           firstName: p.firstName,
           lastName: p.lastName,
+          gender: p.gender || undefined,
           dateOfBirth: p.dateOfBirth,
           nationality: p.nationality,
+          placeOfBirth: p.placeOfBirth || undefined,
+          birthCountry: p.birthCountry || undefined,
           email: p.email || undefined,
           phone: p.phone || undefined,
           address: {
@@ -864,12 +882,46 @@ function PersonsStep({ persons, legalForm, onUpdate, onAdd, onRemove }: PersonsS
                 value={p.lastName}
                 onChange={(e) => onUpdate(index, { lastName: e.target.value })}
               />
+              <div className="space-y-2">
+                <Label htmlFor={`p-gender-${index}`}>Gender</Label>
+                <Select
+                  value={p.gender || undefined}
+                  onValueChange={(value) =>
+                    onUpdate(index, { gender: value as 'M' | 'F' })
+                  }
+                >
+                  <SelectTrigger id={`p-gender-${index}`}>
+                    <SelectValue placeholder="Select…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="M">Male</SelectItem>
+                    <SelectItem value="F">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <FloatingLabelInput
                 id={`p-dob-${index}`}
                 label="Date of birth"
                 type="date"
                 value={p.dateOfBirth}
                 onChange={(e) => onUpdate(index, { dateOfBirth: e.target.value })}
+              />
+              <FloatingLabelInput
+                id={`p-pob-${index}`}
+                label="Place of birth (city)"
+                value={p.placeOfBirth}
+                onChange={(e) => onUpdate(index, { placeOfBirth: e.target.value })}
+              />
+              <FloatingLabelInput
+                id={`p-bcountry-${index}`}
+                label="Country of birth (ISO)"
+                value={p.birthCountry}
+                onChange={(e) =>
+                  onUpdate(index, {
+                    birthCountry: e.target.value.toUpperCase().slice(0, 2),
+                  })
+                }
+                maxLength={2}
               />
               <FloatingLabelInput
                 id={`p-nat-${index}`}
