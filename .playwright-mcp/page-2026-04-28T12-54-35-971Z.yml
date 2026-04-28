@@ -1,0 +1,19 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - main [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e8]: bayaan.ai
+      - tablist "Dashboard mode" [ref=e9]:
+        - tab "Translation dashboard" [selected] [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - tab "Finance dashboard" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+      - generic [ref=e20]:
+        - combobox "Language" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+          - generic: English
+          - img [ref=e25]
+        - button "Toggle theme" [ref=e27] [cursor=pointer]:
+          - generic [ref=e28]: Toggle theme
+          - img [ref=e29]
+    - main [ref=e34]

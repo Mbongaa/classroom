@@ -1,0 +1,483 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - button "Toggle Sidebar" [ref=e9] [cursor=pointer]:
+        - img
+        - generic [ref=e10]: Toggle Sidebar
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Dashboard" [ref=e16] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan
+            - img [ref=e17]
+            - generic: Dashboard
+        - listitem [ref=e22]:
+          - link "Campaigns" [ref=e23] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/campaigns
+            - img [ref=e24]
+            - generic: Campaigns
+        - listitem [ref=e29]:
+          - link "Products" [ref=e30] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/products
+            - img [ref=e31]
+            - generic: Products
+        - listitem [ref=e36]:
+          - link "Appointments" [ref=e37] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/appointments
+            - img [ref=e38]
+            - generic: Appointments
+        - listitem [ref=e40]:
+          - link "Members" [ref=e41] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/members
+            - img [ref=e42]
+            - generic: Members
+        - listitem [ref=e47]:
+          - link "Transactions" [ref=e48] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/transactions
+            - img [ref=e49]
+            - generic: Transactions
+        - listitem [ref=e51]:
+          - link "Settings" [ref=e52] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/settings
+            - img [ref=e53]
+            - generic: Settings
+      - list [ref=e57]:
+        - listitem [ref=e58]:
+          - link "Billing" [ref=e59] [cursor=pointer]:
+            - /url: /dashboard/billing
+            - img [ref=e60]
+            - generic: Billing
+        - listitem [ref=e62]:
+          - link "Profile" [ref=e63] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e64]
+            - generic: Profile
+        - listitem [ref=e67]:
+          - link "F" [ref=e68] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e70]: F
+        - listitem [ref=e71]:
+          - button "Sign Out" [ref=e72] [cursor=pointer]:
+            - img [ref=e73]
+            - generic: Sign Out
+    - main [ref=e76]:
+      - generic [ref=e78]:
+        - generic [ref=e80]: bayaan.ai
+        - tablist "Dashboard mode" [ref=e81]:
+          - tab "Translation dashboard" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+          - tab "Finance dashboard" [selected] [ref=e88] [cursor=pointer]:
+            - img [ref=e89]
+        - generic [ref=e92]:
+          - combobox "Language" [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic: English
+            - img [ref=e97]
+          - button "Toggle theme" [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]: Toggle theme
+            - img [ref=e101]
+      - main [ref=e106]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - paragraph [ref=e111]: Mosque settings
+              - heading "fourqaan" [level=1] [ref=e112]
+            - link "← Back to dashboard" [ref=e113] [cursor=pointer]:
+              - /url: /mosque-admin/fourqaan
+          - generic [ref=e114]:
+            - tablist [ref=e115]:
+              - tab "General" [ref=e116] [cursor=pointer]
+              - tab "Payments" [selected] [ref=e117] [cursor=pointer]
+              - tab "Thank-You Animation" [ref=e118] [cursor=pointer]
+              - tab "Language" [ref=e119] [cursor=pointer]
+            - tabpanel "Payments" [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e123]:
+                  - img [ref=e149]
+                  - heading "Application under review" [level=3] [ref=e127]
+                  - paragraph [ref=e128]: Your merchant application has been submitted and is being reviewed by Pay.nl. This typically takes 1-3 business days. Once approved, you'll be able to receive donations directly.
+                  - button "Check status" [ref=e152] [cursor=pointer]
+                - generic [ref=e129]:
+                  - generic [ref=e131]:
+                    - img [ref=e153]
+                    - generic [ref=e135]:
+                      - heading "Merchant status at Pay.nl" [level=3] [ref=e136]
+                      - paragraph [ref=e137]: Live snapshot of your Pay.nl merchant record. Updates each time you refresh.
+                  - generic [ref=e138]:
+                    - generic [ref=e139]:
+                      - generic [ref=e140]:
+                        - generic [ref=e141]: "Boarding:"
+                        - text: ONBOARDING
+                      - generic [ref=e157]:
+                        - generic [ref=e158]: "Account:"
+                        - text: ACTIVE
+                      - generic [ref=e159]:
+                        - generic [ref=e160]: "Payouts:"
+                        - text: DISABLED
+                    - generic [ref=e142]:
+                      - generic [ref=e143]:
+                        - paragraph [ref=e144]: Merchant code
+                        - paragraph [ref=e145]: M-4534-4164
+                      - generic [ref=e161]:
+                        - paragraph [ref=e162]: Package
+                        - paragraph [ref=e163]: Merchant By Alliance PLUS
+                      - generic [ref=e164]:
+                        - paragraph [ref=e165]: Account manager
+                        - paragraph [ref=e166]: g.leeuwenburg@pay.nl
+                      - generic [ref=e167]:
+                        - paragraph [ref=e168]: Contract signed
+                        - paragraph [ref=e169]: 28-4-2026, 12:25:03
+                      - generic [ref=e170]:
+                        - paragraph [ref=e171]: Next compliance review
+                        - paragraph [ref=e172]: 28-4-2031
+                    - generic [ref=e173]:
+                      - paragraph [ref=e174]: Settlement bank accounts
+                      - list [ref=e175]:
+                        - listitem [ref=e176]:
+                          - generic [ref=e177]: NL02INGB0009268043
+                          - generic [ref=e178]:
+                            - generic [ref=e179]: Stichting Alabraar
+                            - generic [ref=e180]: APPROVED
+                    - generic [ref=e146]:
+                      - text: Pay.nl is reviewing your application. Boarding sits in
+                      - strong [ref=e147]: ONBOARDING
+                      - text: until
+                      - emphasis [ref=e148]: every
+                      - text: license has full person data plus an accepted ID document. Fill in any placeholders below to clear the gate.
+                - generic [ref=e181]:
+                  - generic [ref=e183]:
+                    - img [ref=e185]
+                    - generic [ref=e188]:
+                      - heading "KYC compliance" [level=3] [ref=e189]
+                      - paragraph [ref=e190]: Pay.nl needs these before donations can go live. Files are private and forwarded directly to Pay.nl.
+                  - generic [ref=e191]:
+                    - generic [ref=e193]:
+                      - generic [ref=e194]:
+                        - img [ref=e195]
+                        - generic [ref=e199]:
+                          - paragraph [ref=e200]: ubo_register*
+                          - paragraph [ref=e201]: "Status: accepted ✓"
+                      - generic [ref=e202]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e204]:
+                      - generic [ref=e205]:
+                        - img [ref=e206]
+                        - generic [ref=e210]:
+                          - paragraph [ref=e211]: Samenwerkingsovereenkomst (PAY × Alliance × Merchant)*
+                          - paragraph [ref=e212]: Dutch cooperation agreement — review and sign by drawing your signature. No upload needed.
+                          - paragraph [ref=e213]: "Status: accepted by Pay.nl ✓"
+                      - link "View signed PDF" [ref=e215] [cursor=pointer]:
+                        - /url: /api/organizations/f6e2244f-4d4b-487e-8bf8-56adf185633d/merchant/agreement/download?docId=f281d649-219d-4e55-b5b7-4f837e898f1f
+                    - generic [ref=e217]:
+                      - generic [ref=e218]:
+                        - img [ref=e219]
+                        - generic [ref=e223]:
+                          - paragraph [ref=e224]: ubo_register*
+                          - paragraph [ref=e225]: "Status: accepted ✓"
+                      - generic [ref=e226]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e228]:
+                      - generic [ref=e229]:
+                        - img [ref=e230]
+                        - generic [ref=e234]:
+                          - paragraph [ref=e235]: Chamber of Commerce extract*
+                          - paragraph [ref=e236]: Recent (≤6 months) extract of business registration
+                          - paragraph [ref=e237]: "Status: accepted ✓"
+                      - generic [ref=e238]:
+                        - button "Accepted" [disabled]
+                    - generic [ref=e239]:
+                      - paragraph [ref=e240]: Verified at Pay.nl (1)
+                      - list [ref=e241]:
+                        - listitem [ref=e242]:
+                          - generic [ref=e243]: Mohamed Suleymansignee · UBO · pseudo
+                          - generic [ref=e245]:
+                            - img [ref=e246]
+                            - text: Verified
+                    - generic [ref=e249]:
+                      - paragraph [ref=e250]: On file at Pay.nl (1)
+                      - paragraph [ref=e251]: These persons have a Pay.nl license but no document requests yet — Pay.nl Compliance hasn't flagged them as needing anything.
+                      - list [ref=e252]:
+                        - listitem [ref=e253]:
+                          - generic [ref=e254]: Dastan Azizsignee · UBO · pseudo
+                          - generic [ref=e255]: No requests
+                    - generic [ref=e256]:
+                      - paragraph [ref=e257]: Local-only persons (1) — not registered at Pay.nl
+                      - paragraph [ref=e258]: These rows exist in your dashboard but Pay.nl never returned a license code for them. They cannot upload ID copies or count toward Pay.nl boarding until they're re-submitted. Open any placeholder license below and pick the matching local person from the “Use existing person” dropdown to pre-fill it.
+                      - list [ref=e259]:
+                        - listitem [ref=e260]:
+                          - text: •
+                          - strong [ref=e261]: Mohamed Kuhi
+                          - generic [ref=e262]: — UBO · DOB 1960-04-12 · nat NL · Eindhoven, NL
+                    - generic [ref=e263]:
+                      - paragraph [ref=e264]: Pay.nl is waiting on these 3 board members
+                      - paragraph [ref=e265]:
+                        - text: Pay.nl pulled these license slots from your Chamber of Commerce extract. Pay.nl Compliance has each one open and is asking for
+                        - strong [ref=e266]: specific person details
+                        - text: "(not documents): name, gender, date of birth, nationality, place of birth, country of birth, home address, ownership percentage — and afterwards a copy of their ID. Submitting the form here replaces the placeholder with a fully-populated license at Pay.nl in one step."
+                      - generic [ref=e267]:
+                        - paragraph [ref=e268]: 1 local person has data on file but no Pay.nl license
+                        - paragraph [ref=e269]:
+                          - text: Open the form for any placeholder below and click
+                          - emphasis [ref=e270]: Use existing person
+                          - text: to pre-fill it from Mohamed Kuhi.
+                      - generic [ref=e271]:
+                        - generic [ref=e272]:
+                          - 'button "AL-9093-5667 Pay.nl Compliance is asking for the following details: First name Last name Gender (M / F) Home address (street, number, postal code, city, country) Date of birth Nationality Ownership percentage ID document copy Place of birth (city) Country of birth No ID yet" [ref=e273] [cursor=pointer]':
+                            - generic [ref=e274]:
+                              - paragraph [ref=e275]: AL-9093-5667
+                              - paragraph [ref=e276]: "Pay.nl Compliance is asking for the following details:"
+                              - list [ref=e277]:
+                                - listitem [ref=e278]: First name
+                                - listitem [ref=e279]: Last name
+                                - listitem [ref=e280]: Gender (M / F)
+                                - listitem [ref=e281]: Home address (street, number, postal code, city, country)
+                                - listitem [ref=e282]: Date of birth
+                                - listitem [ref=e283]: Nationality
+                                - listitem [ref=e284]: Ownership percentage
+                                - listitem [ref=e285]: ID document copy
+                                - listitem [ref=e286]: Place of birth (city)
+                                - listitem [ref=e287]: Country of birth
+                            - generic [ref=e288]: No ID yet
+                          - generic [ref=e289]:
+                            - generic [ref=e290]:
+                              - generic [ref=e291]: "Use existing person:"
+                              - combobox [ref=e292] [cursor=pointer]:
+                                - generic: Select a local person…
+                                - img [ref=e293]
+                              - generic [ref=e295]: — pre-fills the form below from local data
+                            - generic [ref=e296]:
+                              - generic [ref=e297]:
+                                - generic [ref=e298]: First name*
+                                - textbox [ref=e299]
+                              - generic [ref=e300]:
+                                - generic [ref=e301]: Last name*
+                                - textbox [ref=e302]
+                              - generic [ref=e303]:
+                                - generic [ref=e304]: Gender*
+                                - combobox [ref=e305] [cursor=pointer]:
+                                  - generic: Select…
+                                  - img [ref=e306]
+                              - generic [ref=e308]:
+                                - generic [ref=e309]: Date of birth*
+                                - textbox [ref=e310]
+                              - generic [ref=e311]:
+                                - generic [ref=e312]: Place of birth (city)*
+                                - textbox [ref=e313]
+                              - generic [ref=e314]:
+                                - generic [ref=e315]: Country of birth*
+                                - combobox [ref=e316] [cursor=pointer]:
+                                  - generic: Netherlands
+                                  - img [ref=e317]
+                              - generic [ref=e319]:
+                                - generic [ref=e320]: Nationality (ISO-2)*
+                                - textbox [ref=e321]: NL
+                              - generic [ref=e322]:
+                                - text: Email (optional)
+                                - textbox [ref=e323]
+                              - generic [ref=e324]:
+                                - text: Phone (optional)
+                                - textbox [ref=e325]
+                            - generic [ref=e326]:
+                              - generic [ref=e327]:
+                                - generic [ref=e328]: Street*
+                                - textbox [ref=e329]
+                              - generic [ref=e330]:
+                                - generic [ref=e331]: House number*
+                                - textbox [ref=e332]
+                              - generic [ref=e333]:
+                                - generic [ref=e334]: Postal code*
+                                - textbox [ref=e335]
+                              - generic [ref=e336]:
+                                - generic [ref=e337]: City*
+                                - textbox [ref=e338]
+                              - generic [ref=e339]:
+                                - generic [ref=e340]: Country (ISO-2)*
+                                - textbox [ref=e341]: NL
+                            - generic [ref=e342]:
+                              - generic [ref=e343]:
+                                - checkbox "Signee" [ref=e344]
+                                - text: Signee
+                              - generic [ref=e345]:
+                                - checkbox "UBO / pseudo-UBO" [checked] [ref=e346]
+                                - text: UBO / pseudo-UBO
+                              - generic [ref=e347]:
+                                - text: Ownership %
+                                - spinbutton [ref=e348]
+                            - generic [ref=e349]:
+                              - button "Cancel" [ref=e350] [cursor=pointer]
+                              - button "Replace placeholder & save" [ref=e351] [cursor=pointer]
+                        - generic [ref=e352]:
+                          - 'button "AL-5083-8667 Pay.nl Compliance is asking for the following details: First name Last name Gender (M / F) Home address (street, number, postal code, city, country) Date of birth Nationality Ownership percentage ID document copy Place of birth (city) Country of birth No ID yet" [ref=e353] [cursor=pointer]':
+                            - generic [ref=e354]:
+                              - paragraph [ref=e355]: AL-5083-8667
+                              - paragraph [ref=e356]: "Pay.nl Compliance is asking for the following details:"
+                              - list [ref=e357]:
+                                - listitem [ref=e358]: First name
+                                - listitem [ref=e359]: Last name
+                                - listitem [ref=e360]: Gender (M / F)
+                                - listitem [ref=e361]: Home address (street, number, postal code, city, country)
+                                - listitem [ref=e362]: Date of birth
+                                - listitem [ref=e363]: Nationality
+                                - listitem [ref=e364]: Ownership percentage
+                                - listitem [ref=e365]: ID document copy
+                                - listitem [ref=e366]: Place of birth (city)
+                                - listitem [ref=e367]: Country of birth
+                            - generic [ref=e368]: No ID yet
+                          - generic [ref=e369]:
+                            - generic [ref=e370]:
+                              - generic [ref=e371]: "Use existing person:"
+                              - combobox [ref=e372] [cursor=pointer]:
+                                - generic: Select a local person…
+                                - img [ref=e373]
+                              - generic [ref=e375]: — pre-fills the form below from local data
+                            - generic [ref=e376]:
+                              - generic [ref=e377]:
+                                - generic [ref=e378]: First name*
+                                - textbox [ref=e379]
+                              - generic [ref=e380]:
+                                - generic [ref=e381]: Last name*
+                                - textbox [ref=e382]
+                              - generic [ref=e383]:
+                                - generic [ref=e384]: Gender*
+                                - combobox [ref=e385] [cursor=pointer]:
+                                  - generic: Select…
+                                  - img [ref=e386]
+                              - generic [ref=e388]:
+                                - generic [ref=e389]: Date of birth*
+                                - textbox [ref=e390]
+                              - generic [ref=e391]:
+                                - generic [ref=e392]: Place of birth (city)*
+                                - textbox [ref=e393]
+                              - generic [ref=e394]:
+                                - generic [ref=e395]: Country of birth*
+                                - combobox [ref=e396] [cursor=pointer]:
+                                  - generic: Netherlands
+                                  - img [ref=e397]
+                              - generic [ref=e399]:
+                                - generic [ref=e400]: Nationality (ISO-2)*
+                                - textbox [ref=e401]: NL
+                              - generic [ref=e402]:
+                                - text: Email (optional)
+                                - textbox [ref=e403]
+                              - generic [ref=e404]:
+                                - text: Phone (optional)
+                                - textbox [ref=e405]
+                            - generic [ref=e406]:
+                              - generic [ref=e407]:
+                                - generic [ref=e408]: Street*
+                                - textbox [ref=e409]
+                              - generic [ref=e410]:
+                                - generic [ref=e411]: House number*
+                                - textbox [ref=e412]
+                              - generic [ref=e413]:
+                                - generic [ref=e414]: Postal code*
+                                - textbox [ref=e415]
+                              - generic [ref=e416]:
+                                - generic [ref=e417]: City*
+                                - textbox [ref=e418]
+                              - generic [ref=e419]:
+                                - generic [ref=e420]: Country (ISO-2)*
+                                - textbox [ref=e421]: NL
+                            - generic [ref=e422]:
+                              - generic [ref=e423]:
+                                - checkbox "Signee" [ref=e424]
+                                - text: Signee
+                              - generic [ref=e425]:
+                                - checkbox "UBO / pseudo-UBO" [checked] [ref=e426]
+                                - text: UBO / pseudo-UBO
+                              - generic [ref=e427]:
+                                - text: Ownership %
+                                - spinbutton [ref=e428]
+                            - generic [ref=e429]:
+                              - button "Cancel" [ref=e430] [cursor=pointer]
+                              - button "Replace placeholder & save" [ref=e431] [cursor=pointer]
+                        - generic [ref=e432]:
+                          - 'button "AL-6063-7677 Pay.nl Compliance is asking for the following details: First name Last name Gender (M / F) Home address (street, number, postal code, city, country) Date of birth Nationality Ownership percentage ID document copy Place of birth (city) Country of birth No ID yet" [ref=e433] [cursor=pointer]':
+                            - generic [ref=e434]:
+                              - paragraph [ref=e435]: AL-6063-7677
+                              - paragraph [ref=e436]: "Pay.nl Compliance is asking for the following details:"
+                              - list [ref=e437]:
+                                - listitem [ref=e438]: First name
+                                - listitem [ref=e439]: Last name
+                                - listitem [ref=e440]: Gender (M / F)
+                                - listitem [ref=e441]: Home address (street, number, postal code, city, country)
+                                - listitem [ref=e442]: Date of birth
+                                - listitem [ref=e443]: Nationality
+                                - listitem [ref=e444]: Ownership percentage
+                                - listitem [ref=e445]: ID document copy
+                                - listitem [ref=e446]: Place of birth (city)
+                                - listitem [ref=e447]: Country of birth
+                            - generic [ref=e448]: No ID yet
+                          - generic [ref=e449]:
+                            - generic [ref=e450]:
+                              - generic [ref=e451]: "Use existing person:"
+                              - combobox [ref=e452] [cursor=pointer]:
+                                - generic: Select a local person…
+                                - img [ref=e453]
+                              - generic [ref=e455]: — pre-fills the form below from local data
+                            - generic [ref=e456]:
+                              - generic [ref=e457]:
+                                - generic [ref=e458]: First name*
+                                - textbox [ref=e459]
+                              - generic [ref=e460]:
+                                - generic [ref=e461]: Last name*
+                                - textbox [ref=e462]
+                              - generic [ref=e463]:
+                                - generic [ref=e464]: Gender*
+                                - combobox [ref=e465] [cursor=pointer]:
+                                  - generic: Select…
+                                  - img [ref=e466]
+                              - generic [ref=e468]:
+                                - generic [ref=e469]: Date of birth*
+                                - textbox [ref=e470]
+                              - generic [ref=e471]:
+                                - generic [ref=e472]: Place of birth (city)*
+                                - textbox [ref=e473]
+                              - generic [ref=e474]:
+                                - generic [ref=e475]: Country of birth*
+                                - combobox [ref=e476] [cursor=pointer]:
+                                  - generic: Netherlands
+                                  - img [ref=e477]
+                              - generic [ref=e479]:
+                                - generic [ref=e480]: Nationality (ISO-2)*
+                                - textbox [ref=e481]: NL
+                              - generic [ref=e482]:
+                                - text: Email (optional)
+                                - textbox [ref=e483]
+                              - generic [ref=e484]:
+                                - text: Phone (optional)
+                                - textbox [ref=e485]
+                            - generic [ref=e486]:
+                              - generic [ref=e487]:
+                                - generic [ref=e488]: Street*
+                                - textbox [ref=e489]
+                              - generic [ref=e490]:
+                                - generic [ref=e491]: House number*
+                                - textbox [ref=e492]
+                              - generic [ref=e493]:
+                                - generic [ref=e494]: Postal code*
+                                - textbox [ref=e495]
+                              - generic [ref=e496]:
+                                - generic [ref=e497]: City*
+                                - textbox [ref=e498]
+                              - generic [ref=e499]:
+                                - generic [ref=e500]: Country (ISO-2)*
+                                - textbox [ref=e501]: NL
+                            - generic [ref=e502]:
+                              - generic [ref=e503]:
+                                - checkbox "Signee" [ref=e504]
+                                - text: Signee
+                              - generic [ref=e505]:
+                                - checkbox "UBO / pseudo-UBO" [checked] [ref=e506]
+                                - text: UBO / pseudo-UBO
+                              - generic [ref=e507]:
+                                - text: Ownership %
+                                - spinbutton [ref=e508]
+                            - generic [ref=e509]:
+                              - button "Cancel" [ref=e510] [cursor=pointer]
+                              - button "Replace placeholder & save" [ref=e511] [cursor=pointer]
+                    - generic [ref=e513]:
+                      - generic [ref=e514]:
+                        - paragraph [ref=e515]: Submit for review
+                        - paragraph [ref=e516]: 3 Pay.nl-created licenses still need person details + ID copy.
+                      - button "Submit to Pay.nl" [disabled]

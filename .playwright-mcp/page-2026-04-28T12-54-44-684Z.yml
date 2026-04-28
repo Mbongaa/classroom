@@ -1,0 +1,120 @@
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - generic [ref=e6]:
+      - button "Toggle Sidebar" [ref=e9] [cursor=pointer]:
+        - img
+        - generic [ref=e10]: Toggle Sidebar
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Dashboard" [ref=e16] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan
+            - img [ref=e17]
+            - generic: Dashboard
+        - listitem [ref=e22]:
+          - link "Campaigns" [ref=e23] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/campaigns
+            - img [ref=e24]
+            - generic: Campaigns
+        - listitem [ref=e29]:
+          - link "Products" [ref=e30] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/products
+            - img [ref=e31]
+            - generic: Products
+        - listitem [ref=e36]:
+          - link "Appointments" [ref=e37] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/appointments
+            - img [ref=e38]
+            - generic: Appointments
+        - listitem [ref=e40]:
+          - link "Members" [ref=e41] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/members
+            - img [ref=e42]
+            - generic: Members
+        - listitem [ref=e47]:
+          - link "Transactions" [ref=e48] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/transactions
+            - img [ref=e49]
+            - generic: Transactions
+        - listitem [ref=e51]:
+          - link "Settings" [ref=e52] [cursor=pointer]:
+            - /url: /mosque-admin/fourqaan/settings
+            - img [ref=e53]
+            - generic: Settings
+      - list [ref=e57]:
+        - listitem [ref=e58]:
+          - link "Billing" [ref=e59] [cursor=pointer]:
+            - /url: /dashboard/billing
+            - img [ref=e60]
+            - generic: Billing
+        - listitem [ref=e62]:
+          - link "Profile" [ref=e63] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - img [ref=e64]
+            - generic: Profile
+        - listitem [ref=e67]:
+          - link "F" [ref=e68] [cursor=pointer]:
+            - /url: /dashboard/profile
+            - generic [ref=e70]: F
+        - listitem [ref=e71]:
+          - button "Sign Out" [ref=e72] [cursor=pointer]:
+            - img [ref=e73]
+            - generic: Sign Out
+    - main [ref=e76]:
+      - generic [ref=e78]:
+        - generic [ref=e80]: bayaan.ai
+        - tablist "Dashboard mode" [ref=e81]:
+          - tab "Translation dashboard" [ref=e82] [cursor=pointer]:
+            - img [ref=e83]
+          - tab "Finance dashboard" [selected] [ref=e88] [cursor=pointer]:
+            - img [ref=e89]
+        - generic [ref=e92]:
+          - combobox "Language" [ref=e93] [cursor=pointer]:
+            - img [ref=e94]
+            - generic: English
+            - img [ref=e97]
+          - button "Toggle theme" [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]: Toggle theme
+            - img [ref=e101]
+      - main [ref=e106]:
+        - generic [ref=e108]:
+          - generic [ref=e109]:
+            - generic [ref=e110]:
+              - paragraph [ref=e111]: Mosque settings
+              - heading "fourqaan" [level=1] [ref=e112]
+            - link "← Back to dashboard" [ref=e113] [cursor=pointer]:
+              - /url: /mosque-admin/fourqaan
+          - generic [ref=e114]:
+            - tablist [ref=e115]:
+              - tab "General" [ref=e116] [cursor=pointer]
+              - tab "Payments" [selected] [ref=e117] [cursor=pointer]
+              - tab "Thank-You Animation" [ref=e118] [cursor=pointer]
+              - tab "Language" [ref=e119] [cursor=pointer]
+            - tabpanel "Payments" [ref=e120]:
+              - generic [ref=e121]:
+                - generic [ref=e123]:
+                  - img [ref=e125]
+                  - heading "Application under review" [level=3] [ref=e127]
+                  - paragraph [ref=e128]: Checking...
+                  - button "Checking..." [disabled]:
+                    - img
+                    - text: Checking...
+                - generic [ref=e129]:
+                  - generic [ref=e131]:
+                    - img [ref=e133]
+                    - generic [ref=e135]:
+                      - heading "Merchant status at Pay.nl" [level=3] [ref=e136]
+                      - paragraph [ref=e137]: Live snapshot of your Pay.nl merchant record. Updates each time you refresh.
+                  - generic [ref=e138]:
+                    - generic [ref=e140]:
+                      - generic [ref=e141]: "Boarding:"
+                      - text: ONBOARDING
+                    - generic [ref=e143]:
+                      - paragraph [ref=e144]: Merchant code
+                      - paragraph [ref=e145]: M-4534-4164
+                    - generic [ref=e146]:
+                      - text: Pay.nl is reviewing your application. Boarding sits in
+                      - strong [ref=e147]: ONBOARDING
+                      - text: until
+                      - emphasis [ref=e148]: every
+                      - text: license has full person data plus an accepted ID document. Fill in any placeholders below to clear the gate.

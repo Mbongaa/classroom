@@ -1725,17 +1725,26 @@ function DocumentsPanel({
                 step.
               </p>
 
-              {orphanPersons.length > 0 && (
+              {persons.length > 0 && (
                 <div className="mb-3 rounded-md border border-blue-300 bg-blue-50 p-3 text-xs dark:border-blue-700 dark:bg-blue-950/30">
                   <p className="font-semibold text-blue-800 dark:text-blue-200">
-                    {orphanPersons.length} local person
-                    {orphanPersons.length === 1 ? ' has' : 's have'} data on
-                    file but no Pay.nl license
+                    Tip — copy from an existing local person
                   </p>
                   <p className="mt-1 text-blue-700 dark:text-blue-300">
-                    Open the form for any placeholder below and click{' '}
-                    <em>Use existing person</em> to pre-fill it from{' '}
-                    {orphanPersons.map((p) => p.full_name).join(', ')}.
+                    Each placeholder form below has a{' '}
+                    <em>Copy from a local person</em> dropdown listing all your
+                    saved persons ({persons.map((p) => p.full_name).join(', ')}).
+                    Pick one to pre-fill the form, then change the name fields
+                    to whoever this placeholder is actually for.
+                    {orphanPersons.length > 0 && (
+                      <>
+                        {' '}Persons with no Pay.nl license — currently{' '}
+                        <strong>
+                          {orphanPersons.map((p) => p.full_name).join(', ')}
+                        </strong>{' '}
+                        — are the most common candidates.
+                      </>
+                    )}
                   </p>
                 </div>
               )}
@@ -1746,7 +1755,7 @@ function DocumentsPanel({
                     key={lic.code}
                     organization={organization}
                     license={lic}
-                    orphanPersons={orphanPersons}
+                    allPersons={persons}
                     onCompleted={onPlaceholderResolved}
                   />
                 ))}
@@ -2200,12 +2209,16 @@ const MISSING_FIELD_LABELS: Record<string, string> = {
 function PlaceholderLicenseRow({
   organization,
   license,
-  orphanPersons,
+  allPersons,
   onCompleted,
 }: {
   organization: OrganizationProp;
   license: RemoteLicenseSummary;
-  orphanPersons: OrganizationPerson[];
+  /** Every local person row, regardless of license status. The dropdown
+   * lets the admin pick any of them as a fill-in template — the user is
+   * expected to retype the name fields to match the actual board member
+   * this placeholder is for. */
+  allPersons: OrganizationPerson[];
   onCompleted: () => Promise<void>;
 }) {
   const defaultCountry = organization.country || 'NL';
@@ -2217,10 +2230,19 @@ function PlaceholderLicenseRow({
   const [form, setForm] = useState<PlaceholderFormState>(() =>
     emptyPlaceholderForm(defaultCountry),
   );
+  // After prefilling from an already-linked person, we warn the admin to
+  // change the name fields so they don't accidentally re-create a duplicate
+  // person at Pay.nl under a different license code.
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
 
   function prefillFromOrphan(personId: string) {
-    const p = orphanPersons.find((op) => op.id === personId);
+    const p = allPersons.find((op) => op.id === personId);
     if (!p) return;
+    setDuplicateWarning(
+      p.paynl_license_code
+        ? `${p.full_name} is already linked to ${p.paynl_license_code} at Pay.nl. Change the First/Last name fields below to the actual person this placeholder is for — submitting as-is would create a duplicate at Pay.nl.`
+        : null,
+    );
     const parts = p.full_name.trim().split(/\s+/);
     const firstName = parts.length > 1 ? parts.slice(0, -1).join(' ') : p.full_name;
     const lastName = parts.length > 1 ? parts[parts.length - 1] : '';
@@ -2382,29 +2404,40 @@ function PlaceholderLicenseRow({
       </button>
       {open && (
         <div className="space-y-4 border-t border-amber-200 dark:border-amber-800 px-3 py-4">
-          {orphanPersons.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 rounded-md border border-blue-300 bg-blue-50 p-2 text-xs dark:border-blue-700 dark:bg-blue-950/30">
-              <span className="font-medium text-blue-800 dark:text-blue-200">
-                Use existing person:
-              </span>
-              <Select
-                value=""
-                onValueChange={(v) => prefillFromOrphan(v)}
-              >
-                <SelectTrigger className="h-7 w-auto min-w-[200px] text-xs">
-                  <SelectValue placeholder="Select a local person…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {orphanPersons.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.full_name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <span className="text-blue-700 dark:text-blue-300">
-                — pre-fills the form below from local data
-              </span>
+          {allPersons.length > 0 && (
+            <div className="space-y-2 rounded-md border border-blue-300 bg-blue-50 p-2 text-xs dark:border-blue-700 dark:bg-blue-950/30">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-medium text-blue-800 dark:text-blue-200">
+                  Copy from a local person:
+                </span>
+                <Select value="" onValueChange={(v) => prefillFromOrphan(v)}>
+                  <SelectTrigger className="h-7 w-auto min-w-[260px] text-xs">
+                    <SelectValue placeholder="Pick a person to use as template…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPersons.map((p) => {
+                      const status = p.paynl_license_code
+                        ? `linked to ${p.paynl_license_code}`
+                        : 'no Pay.nl license';
+                      return (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.full_name} — {status}
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p className="text-blue-700 dark:text-blue-300">
+                Pre-fills name, address, DOB, role flags from the picked person.
+                You still need to type the actual board member&apos;s name fields if
+                they differ.
+              </p>
+              {duplicateWarning && (
+                <p className="rounded-md border border-amber-300 bg-amber-100 p-2 text-amber-900 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100">
+                  ⚠ {duplicateWarning}
+                </p>
+              )}
             </div>
           )}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
