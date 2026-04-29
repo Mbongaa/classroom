@@ -10,6 +10,7 @@ import {
   type BoardingStatus,
   type PersonLicenseFromList,
 } from '@/lib/paynl-alliance';
+import { maybeEnableSepaDirectDebit } from '@/lib/paynl-directdebit';
 
 /**
  * GET /api/organizations/[id]/merchant/status
@@ -126,7 +127,7 @@ export async function GET(
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .select(
-      'id, name, slug, paynl_merchant_id, paynl_service_id, paynl_boarding_status, kyc_status, donations_active, onboarded_at, platform_fee_bps',
+      'id, name, slug, paynl_merchant_id, paynl_service_id, paynl_boarding_status, paynl_directdebit_status, kyc_status, donations_active, onboarded_at, platform_fee_bps, website_url',
     )
     .eq('id', id)
     .single();
@@ -144,6 +145,7 @@ export async function GET(
     return NextResponse.json({
       merchantId: null,
       serviceId: org.paynl_service_id,
+      directDebitStatus: org.paynl_directdebit_status,
       boardingStatus: null,
       kycStatus: org.kyc_status,
       donationsActive: org.donations_active,
@@ -163,6 +165,7 @@ export async function GET(
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: org.paynl_service_id,
+      directDebitStatus: org.paynl_directdebit_status,
       boardingStatus: org.paynl_boarding_status,
       kycStatus: org.kyc_status,
       donationsActive: org.donations_active,
@@ -247,6 +250,19 @@ export async function GET(
         });
       }
     }
+
+    // Auto-enable SEPA direct debit on the service the first time we see
+    // it. Without this, recurring donations fail with PAY-3000. Idempotent:
+    // skips when status is already 'enabled' or 'failed:*' (admin must
+    // retry explicitly).
+    const ddResult = await maybeEnableSepaDirectDebit(supabaseAdmin, {
+      id,
+      paynl_service_id: (update.paynl_service_id as string | undefined) ?? org.paynl_service_id,
+      paynl_directdebit_status: org.paynl_directdebit_status,
+      website_url: (org as { website_url?: string | null }).website_url,
+      name: org.name,
+    });
+    const directDebitStatus = ddResult.status;
 
     // ---- Sync documents -------------------------------------------------------
     // Fetch existing local persons so we can map license codes to person IDs.
@@ -441,6 +457,7 @@ export async function GET(
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
       serviceId: info.primaryServiceCode ?? org.paynl_service_id,
+      directDebitStatus,
       boardingStatus: info.boardingStatus ?? org.paynl_boarding_status,
       status: info.status,
       payoutStatus: info.payoutStatus,
@@ -483,6 +500,7 @@ export async function GET(
       return NextResponse.json({
         merchantId: org.paynl_merchant_id,
         serviceId: org.paynl_service_id,
+        directDebitStatus: org.paynl_directdebit_status,
         boardingStatus: org.paynl_boarding_status,
         kycStatus: org.kyc_status,
         donationsActive: org.donations_active,

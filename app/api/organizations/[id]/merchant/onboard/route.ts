@@ -15,6 +15,7 @@ import {
   type MerchantInfoDocument,
 } from '@/lib/paynl-alliance';
 import { geocodeAddress } from '@/lib/geocoding';
+import { maybeEnableSepaDirectDebit } from '@/lib/paynl-directdebit';
 
 /**
  * POST /api/organizations/[id]/merchant/onboard
@@ -719,6 +720,20 @@ export async function POST(
           .from('organizations')
           .update(onboardUpdate)
           .eq('id', id);
+      }
+
+      // Auto-enable SEPA direct debit on the freshly issued service so
+      // recurring donations work without a manual portal toggle. No-op
+      // unless paynl_service_id was just set and DD has never been
+      // requested before.
+      if (info.primaryServiceCode) {
+        await maybeEnableSepaDirectDebit(supabaseAdmin, {
+          id,
+          paynl_service_id: info.primaryServiceCode,
+          paynl_directdebit_status: null,
+          website_url: body.websiteUrl ?? null,
+          name: body.tradingName ?? body.legalName,
+        });
       }
     } catch (err) {
       console.error('[Alliance] getMerchantInfo failed', {

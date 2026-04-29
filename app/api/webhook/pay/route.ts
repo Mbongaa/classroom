@@ -140,8 +140,15 @@ export async function GET(request: NextRequest) {
   const search = request.nextUrl.searchParams;
   const token = search.get('token');
   if (!verifyToken(token)) {
-    console.warn('[PayNL Webhook] Rejected GET — bad or missing token', {
+    // Logged at ERROR (not WARN) so log monitors / Datadog page on-call.
+    // Pay.nl convention requires the body to be `TRUE|` even on rejection
+    // so they don't retry — we cannot signal failure via HTTP status.
+    // Treat any sustained spike of these as an attacker probing or a
+    // misconfigured PAYNL_EXCHANGE_SECRET in env.
+    console.error('[PayNL Webhook] SECURITY: Rejected GET — bad or missing token', {
       ip: getClientIp(request.headers),
+      hasSecretConfigured: Boolean(process.env.PAYNL_EXCHANGE_SECRET),
+      tokenPresent: Boolean(token),
     });
     return trueResponse();
   }
@@ -162,8 +169,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const token = request.nextUrl.searchParams.get('token');
   if (!verifyToken(token)) {
-    console.warn('[PayNL Webhook] Rejected POST — bad or missing token', {
+    // See GET handler for rationale on ERROR severity + 200 TRUE response.
+    console.error('[PayNL Webhook] SECURITY: Rejected POST — bad or missing token', {
       ip: getClientIp(request.headers),
+      hasSecretConfigured: Boolean(process.env.PAYNL_EXCHANGE_SECRET),
+      tokenPresent: Boolean(token),
     });
     return trueResponse();
   }
@@ -797,6 +807,13 @@ async function handleDirectDebitCollected(
     return;
   }
 
+  // Schedule the next monthly debit one calendar month from now. Done with
+  // a small JS Date helper instead of Postgres `+ interval '1 month'` so
+  // the value is computed in app code (easier to override under test).
+  const nextDebit = new Date();
+  nextDebit.setUTCMonth(nextDebit.getUTCMonth() + 1);
+  const nextDebitIso = nextDebit.toISOString();
+
   let isFirstCollection = false;
   if (mandateCode) {
     // First collection flips the mandate PENDING → ACTIVE. Replays are
@@ -805,7 +822,11 @@ async function handleDirectDebitCollected(
     const { error: mandateError, count } = await supabase
       .from('mandates')
       .update(
-        { status: 'ACTIVE', first_debit_at: new Date().toISOString() },
+        {
+          status: 'ACTIVE',
+          first_debit_at: new Date().toISOString(),
+          next_debit_at: nextDebitIso,
+        },
         { count: 'exact' },
       )
       .eq('paynl_mandate_id', mandateCode)
@@ -820,6 +841,24 @@ async function handleDirectDebitCollected(
     }
 
     isFirstCollection = (count ?? 0) > 0;
+
+    // For second-and-later collections the PENDING→ACTIVE update above
+    // is a no-op, so advance next_debit_at on the already-ACTIVE row.
+    // Idempotent: running this on a freshly-flipped mandate just rewrites
+    // the same value we set above.
+    if (!isFirstCollection) {
+      const { error: advanceError } = await supabase
+        .from('mandates')
+        .update({ next_debit_at: nextDebitIso })
+        .eq('paynl_mandate_id', mandateCode)
+        .eq('status', 'ACTIVE');
+      if (advanceError) {
+        console.error('[PayNL Webhook] failed to advance next_debit_at', {
+          mandateCode,
+          error: advanceError.message,
+        });
+      }
+    }
   }
 
   console.log('[PayNL Webhook] DirectDebit COLLECTED', {
@@ -1018,13 +1057,37 @@ async function handleRefundCompleted(
 ) {
   const { orderId, amountCents } = event;
 
+  // Defense-in-depth: cap the refund at the original transaction amount
+  // so a malformed (or spoofed-after-secret-rotation) webhook can't
+  // overstate refund_amount. Real Pay.nl webhooks should never exceed
+  // the original — but if they do, log loudly.
+  const { data: original } = await supabase
+    .from('transactions')
+    .select('amount')
+    .eq('paynl_order_id', orderId)
+    .single();
+
+  let cappedAmount: number | null = null;
+  if (typeof amountCents === 'number' && amountCents > 0) {
+    if (original && amountCents > original.amount) {
+      console.warn('[PayNL Webhook] refund amount exceeded original — capping', {
+        orderId,
+        webhookAmount: amountCents,
+        originalAmount: original.amount,
+      });
+      cappedAmount = original.amount;
+    } else {
+      cappedAmount = amountCents;
+    }
+  }
+
   const { data: updatedRows, error, count } = await supabase
     .from('transactions')
     .update(
       {
         status: 'REFUNDED',
         refunded_at: new Date().toISOString(),
-        refund_amount: amountCents || null,
+        refund_amount: cappedAmount,
       },
       { count: 'exact' },
     )
@@ -1042,12 +1105,18 @@ async function handleRefundCompleted(
     return;
   }
 
-  console.log('[PayNL Webhook] Transaction REFUNDED', { orderId, amountCents });
+  console.log('[PayNL Webhook] Transaction REFUNDED', {
+    orderId,
+    webhookAmount: amountCents,
+    persistedAmount: cappedAmount,
+  });
 
   const ctx = await getDonationContext(supabase, orderId);
   if (!ctx) return;
 
-  const refundAmount = amountCents > 0 ? amountCents : ctx.amountCents;
+  // Email uses the persisted (capped) amount so donor / admin emails
+  // never reflect a value that exceeds the original donation.
+  const refundAmount = cappedAmount ?? ctx.amountCents;
   const amount = formatMoney(refundAmount, ctx.currency);
 
   const donorEmail = ctx.donorEmail;

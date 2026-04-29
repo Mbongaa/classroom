@@ -43,7 +43,7 @@
  *                                 per spec: BP, ISO, FI, SP, CPSP.
  */
 
-import { paynlRequest, PayNLError } from './paynl';
+import { getPayNLAuth, paynlRequest, PayNLError } from './paynl';
 
 // ---------------------------------------------------------------------------
 // Activation gate
@@ -1106,6 +1106,98 @@ export async function listLicenses(
       createdAt: (l.createdAt as string | null) ?? null,
     };
   });
+}
+
+// ---------------------------------------------------------------------------
+// Legacy v4 API: Service.enablePaymentOption
+//
+// SEPA direct-debit (and certain other alternative payment methods) cannot
+// be toggled via the v2 REST API used everywhere else in this client; Pay.nl
+// only exposes that toggle on the older form-encoded endpoint at
+// rest-api.pay.nl/v4. Same Basic auth, different host + payload shape.
+// ---------------------------------------------------------------------------
+
+/** Pay.nl payment-method ID for SEPA direct debit (label "Incasso"). */
+export const SEPA_DIRECT_DEBIT_PAYMENT_METHOD_ID = 137;
+
+function getLegacyApiBase(): string {
+  return process.env.PAYNL_LEGACY_API_BASE_URL || 'https://rest-api.pay.nl';
+}
+
+export interface EnablePaymentOptionParams {
+  serviceCode: string;
+  paymentMethodId: number;
+  /**
+   * The "Payment bank info" label shown on the donor's bank statement.
+   * Max ~30 characters per Pay.nl docs. Required for SEPA direct debit.
+   */
+  description: string;
+  /**
+   * Org's terms-and-conditions / contact URL — Pay.nl shows this to donors
+   * during the SEPA mandate flow. Required for SEPA direct debit.
+   */
+  webURL: string;
+}
+
+export interface EnablePaymentOptionResponse {
+  /** True when Pay.nl returned result=1 (request accepted). */
+  ok: boolean;
+  /** Pay.nl's errorId (e.g. "105") on failure, empty on success. */
+  errorId: string;
+  /** Pay.nl's errorMessage on failure, empty on success. */
+  errorMessage: string;
+}
+
+/**
+ * Enable a payment option on a Pay.nl service (sales location). For SEPA
+ * direct debit, this is what flips PAY-3000 ("service does not have
+ * directdebit enabled") into a working mandate flow.
+ *
+ * Returns `{ ok: false, ... }` rather than throwing on Pay.nl-side errors
+ * so callers can persist a `failed:<reason>` state without try/catch.
+ */
+export async function enableServicePaymentOption(
+  params: EnablePaymentOptionParams,
+): Promise<EnablePaymentOptionResponse> {
+  assertAllianceEnabled('enableServicePaymentOption');
+
+  const body = new URLSearchParams();
+  body.set('serviceId', params.serviceCode);
+  body.set('paymentProfileId', String(params.paymentMethodId));
+  body.set('settings[webURL]', params.webURL);
+  body.set('settings[description]', params.description);
+
+  const url = `${getLegacyApiBase()}/v4/Service/enablePaymentOption/json`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: getPayNLAuth(),
+      Accept: 'application/json',
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: body.toString(),
+  });
+
+  const text = await response.text();
+  let parsed: { request?: { result?: string; errorId?: string; errorMessage?: string } } = {};
+  try {
+    parsed = text.length > 0 ? JSON.parse(text) : {};
+  } catch {
+    return {
+      ok: false,
+      errorId: 'parse',
+      errorMessage: `Pay.nl returned non-JSON (${response.status}): ${text.slice(0, 200)}`,
+    };
+  }
+
+  // Legacy API always returns 200 — `request.result` is the truth value.
+  const req = parsed.request ?? {};
+  const ok = req.result === '1';
+  return {
+    ok,
+    errorId: req.errorId ?? '',
+    errorMessage: req.errorMessage ?? '',
+  };
 }
 
 // ---------------------------------------------------------------------------

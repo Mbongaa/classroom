@@ -3,6 +3,11 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { createMandate, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
 import { resolveOrganizationServiceIdForCampaign } from '@/lib/paynl-organization-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
+import { sendEmail } from '@/lib/email/email-service';
+import { formatBillingDate, formatMoney } from '@/lib/email/billing-utils';
+import { buildDonorFrom } from '@/lib/email/donation-utils';
+import { DonorMandateRegisteredEmail } from '@/lib/email/templates/DonorMandateRegisteredEmail';
+import { buildManageUrl, generateManageToken } from '@/lib/donor-manage-token';
 
 /**
  * POST /api/donate/recurring
@@ -202,6 +207,7 @@ export async function POST(request: NextRequest) {
     }
 
     // ---- 6. Persist mandate (NO iban / bic stored) ---------------------
+    const manageToken = generateManageToken();
     const { data: mandateRow, error: insertError } = await supabaseAdmin
       .from('mandates')
       .insert({
@@ -217,8 +223,9 @@ export async function POST(request: NextRequest) {
         stats_extra1: campaign.id,
         stats_extra2: campaign.cause_type || null,
         stats_extra3: campaign.organization_id,
+        manage_token: manageToken,
       })
-      .select('id, paynl_mandate_id')
+      .select('id, paynl_mandate_id, manage_token')
       .single();
 
     if (insertError || !mandateRow) {
@@ -244,7 +251,57 @@ export async function POST(request: NextRequest) {
       sandbox: isSandboxMode(),
     });
 
-    // ---- 7. Return to client -------------------------------------------
+    // ---- 7. Donor confirmation email -----------------------------------
+    // Sent immediately so the donor isn't waiting 3–5 days for the first
+    // collection webhook. SEPA pre-notification rules also require the
+    // donor be told the upcoming debit's date and amount before the first
+    // collection. Failures here MUST NOT fail the request — the mandate
+    // is already registered with Pay.nl.
+    try {
+      const { data: org } = await supabaseAdmin
+        .from('organizations')
+        .select('name')
+        .eq('id', resolved.organizationId)
+        .single();
+
+      const orgName = org?.name || 'the mosque';
+      const ibanLast4 = body.iban.slice(-4);
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bayaan.app';
+      const manageUrl = buildManageUrl(siteUrl, manageToken);
+
+      const result = await sendEmail({
+        to: body.donor_email,
+        from: buildDonorFrom(orgName),
+        subject: `Your ${formatMoney(body.amount, body.currency || 'EUR')}/month donation to ${orgName} is set up`,
+        react: DonorMandateRegisteredEmail({
+          donorName: body.donor_name,
+          mosqueName: orgName,
+          monthlyAmount: formatMoney(body.amount, body.currency || 'EUR'),
+          campaignTitle: campaign.title || 'General donations',
+          firstDebitDate: formatBillingDate(body.process_date),
+          mandateReference: mandateRow.paynl_mandate_id,
+          ibanLast4,
+          manageUrl,
+        }),
+        tags: [
+          { name: 'type', value: 'donor_mandate_registered' },
+          { name: 'organization_id', value: resolved.organizationId },
+        ],
+      });
+      if (result && typeof result === 'object' && 'success' in result && result.success === false) {
+        console.error('[PayNL] donor mandate-registered email failed', {
+          mandateRowId: mandateRow.id,
+          error: (result as { error?: unknown }).error,
+        });
+      }
+    } catch (emailErr) {
+      console.error('[PayNL] donor mandate-registered email threw', {
+        mandateRowId: mandateRow.id,
+        error: emailErr instanceof Error ? emailErr.message : emailErr,
+      });
+    }
+
+    // ---- 8. Return to client -------------------------------------------
     return NextResponse.json({
       mandate_id: mandateRow.id,
       paynl_mandate_id: mandateRow.paynl_mandate_id,

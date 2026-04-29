@@ -70,7 +70,12 @@
       "WebFetch(domain:docs.speechmatics.com)",
       "Bash(pip3 install:*)",
       "Bash(pip3 download:*)",
-      "Bash(which supabase:*)"
+      "Bash(which supabase:*)",
+      "Bash(mkdir -p ~/.npm-global)",
+      "Bash(npm config *)",
+      "Read(//home/hassa/**)",
+      "Bash(echo 'export PATH=\"$HOME/.npm-global/bin:$PATH\"')",
+      "Bash(export PATH=\"$HOME/.npm-global/bin:$PATH\")"
     ],
     "deny": [],
     "ask": []

@@ -4,6 +4,14 @@
     {
       "path": "/api/v2/reaper",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/recurring-debits",
+      "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/reconcile-paynl",
+      "schedule": "0 4 * * *"
     }
   ],
   "redirects": [

@@ -19,8 +19,10 @@ import { PayNLError, cancelMandate, redactPII } from '@/lib/paynl';
  * without doubling up Pay.nl calls.
  *
  * Pay.nl errors → 502. Local DB write errors after a successful Pay.nl
- * cancel are logged loudly but still return 200, because the source of
- * truth has already changed remotely and we want the UI to reflect that.
+ * cancel also → 502 with a clear retry hint: Pay.nl's DELETE is idempotent
+ * (returns 204 even on already-cancelled mandates), so retrying the endpoint
+ * safely re-attempts the local UPDATE. The reconciliation cron is the
+ * fallback if the caller never retries.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -94,20 +96,30 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  // Pay.nl confirmed — flip the local row. We do NOT roll back on error
-  // here: the source of truth (Pay.nl) has already changed, and a stale
-  // local row will get reconciled on the next webhook.
+  // Pay.nl confirmed — flip the local row. If this update fails the local
+  // state diverges from Pay.nl truth, so we surface 502 (NOT 200) and let
+  // the caller retry. Pay.nl's DELETE is idempotent: a retry will short-
+  // circuit on the existing CANCELLED state at Pay.nl and re-attempt the
+  // DB update. Reconciliation cron is the long-term safety net.
   const { error: updateError } = await supabaseAdmin
     .from('mandates')
     .update({ status: 'CANCELLED', updated_at: new Date().toISOString() })
     .eq('id', mandate.id);
 
   if (updateError) {
-    console.error('[PayNL] Mandate cancelled at Pay.nl but local update failed', {
+    console.error('[PayNL] Mandate cancelled at Pay.nl but local UPDATE failed', {
       mandateId: mandate.id,
+      paynlMandateId: mandate.paynl_mandate_id,
       error: updateError.message,
     });
-    // Surface success anyway — the cancellation IS in effect at Pay.nl.
+    return NextResponse.json(
+      {
+        error:
+          'Mandate is cancelled at Pay.nl but the local record could not be ' +
+          'updated. Please retry — the cancellation is permanent regardless.',
+      },
+      { status: 502 },
+    );
   }
 
   console.log('[PayNL] Mandate cancelled', {

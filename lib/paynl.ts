@@ -251,6 +251,11 @@ export interface MandateCreatePayload {
 export interface MandateResponse {
   code: string; // IO-XXXX-XXXX-XXXX
   status?: string;
+  /** Set on the GET /info shape — ISO timestamp of the latest collection,
+   *  or null if Pay.nl has not yet collected on this mandate. */
+  lastDirectDebitDate?: string | null;
+  /** ISO timestamp the mandate was cancelled at Pay.nl, or null. */
+  deletedAt?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -354,6 +359,44 @@ export async function fetchMandateStatus(mandateCode: string): Promise<MandateRe
     `/v2/directdebits/mandates/${encodeURIComponent(mandateCode)}`,
     'GET',
   );
+}
+
+/**
+ * GET /v2/directdebits/{id} — used by the reconciliation job to detect
+ * direct debits that completed at Pay.nl but whose `directdebit.collected`
+ * webhook never reached us (or was lost in transit).
+ */
+export interface DirectDebitStatusResponse {
+  id: string;
+  status?: string;
+  /** ISO timestamp when Pay.nl sent the SEPA file to the bank. */
+  processDate?: string;
+  /** ISO timestamp when funds were actually collected. */
+  collectedAt?: string;
+  /** ISO timestamp when the bank reversed (storno). */
+  reversedAt?: string;
+  amount?: { value: number; currency: string };
+  raw?: unknown;
+}
+export async function fetchDirectDebitStatus(
+  directDebitId: string,
+): Promise<DirectDebitStatusResponse> {
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/directdebits/${encodeURIComponent(directDebitId)}`,
+    'GET',
+  );
+  const root = raw as Record<string, unknown> | null;
+  const dd = (root?.directdebit ?? root?.data ?? root ?? {}) as Record<string, unknown>;
+  return {
+    id: String(dd.id ?? dd.code ?? directDebitId),
+    status: dd.status as string | undefined,
+    processDate: dd.processDate as string | undefined,
+    collectedAt: (dd.collectedAt ?? dd.collectedDate) as string | undefined,
+    reversedAt: (dd.reversedAt ?? dd.reversedDate) as string | undefined,
+    amount: dd.amount as { value: number; currency: string } | undefined,
+    raw,
+  };
 }
 
 /**
