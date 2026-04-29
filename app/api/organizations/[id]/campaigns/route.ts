@@ -12,8 +12,9 @@ import { validateCampaignBody } from './validate';
  *        "Org admins can create campaigns" RLS policy on the table.
  *
  * The donate URL is `/donate/[org-slug]/[campaign-slug]`, so `slug` is the
- * URL-friendly identifier and is GLOBALLY UNIQUE (not per-org). We surface
- * a 409 with a clear message when a slug is already taken.
+ * URL-friendly identifier and is unique PER ORGANIZATION (composite unique
+ * on organization_id, slug). We surface a 409 when a slug is already taken
+ * within the same org.
  *
  * Money fields (transactions) are intentionally NOT touched here — webhook
  * handlers are the only writers of donation state.
@@ -118,10 +119,11 @@ export async function POST(
     .single();
 
   if (error) {
-    // 23505 = unique_violation. The only unique column on campaigns is `slug`.
+    // 23505 = unique_violation. The only unique constraint on campaigns is
+    // the composite (organization_id, slug).
     if ((error as { code?: string }).code === '23505') {
       return NextResponse.json(
-        { error: 'A campaign with this slug already exists. Pick another slug.' },
+        { error: 'A campaign with this slug already exists in this organization. Pick another slug.' },
         { status: 409 },
       );
     }

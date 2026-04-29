@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   if (error) {
     if ((error as { code?: string }).code === '23505') {
       return NextResponse.json(
-        { error: 'A campaign with this slug already exists. Pick another slug.' },
+        { error: 'A campaign with this slug already exists in this organization. Pick another slug.' },
         { status: 409 },
       );
     }

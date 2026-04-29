@@ -68,27 +68,28 @@ export default async function DonationPage({ params, searchParams }: PageProps) 
 
   const supabase = await createClient();
 
-  // Fetch campaign + parent org in parallel.
-  const campaignQuery = supabase
-    .from('campaigns')
-    .select('id, slug, title, description, goal_amount, cause_type, icon, organization_id')
-    .eq('slug', campaignSlug)
-    .eq('is_active', true)
-    .single<CampaignRow>();
-
-  const orgQuery = supabase
+  // Resolve the org first — campaign slugs are unique per organization,
+  // so we need org.id to disambiguate the campaign lookup.
+  const { data: organization } = await supabase
     .from('organizations')
     .select<string, OrganizationRow>('id, name, slug')
     .eq('slug', mosque)
     .eq('donations_active', true)
     .single();
 
-  const [{ data: campaign }, { data: organization }] = await Promise.all([
-    campaignQuery,
-    orgQuery,
-  ]);
+  if (!organization) {
+    notFound();
+  }
 
-  if (!campaign || !organization) {
+  const { data: campaign } = await supabase
+    .from('campaigns')
+    .select('id, slug, title, description, goal_amount, cause_type, icon, organization_id')
+    .eq('organization_id', organization.id)
+    .eq('slug', campaignSlug)
+    .eq('is_active', true)
+    .single<CampaignRow>();
+
+  if (!campaign) {
     notFound();
   }
 

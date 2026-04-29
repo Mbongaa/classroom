@@ -220,6 +220,12 @@ export async function GET(
     if (nextKyc === 'rejected' && org.donations_active) {
       update.donations_active = false;
     }
+    // Backfill the SL-XXXX-XXXX issued by Pay.nl. Without this, donation
+    // routes fall back to the platform-wide PAYNL_SERVICE_ID env var and
+    // money lands on Cyberlife B.V. instead of the org's own merchant.
+    if (info.primaryServiceCode && info.primaryServiceCode !== org.paynl_service_id) {
+      update.paynl_service_id = info.primaryServiceCode;
+    }
 
     if (Object.keys(update).length > 0) {
       const { error: updateError } = await supabaseAdmin
@@ -434,7 +440,7 @@ export async function GET(
 
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
-      serviceId: org.paynl_service_id,
+      serviceId: info.primaryServiceCode ?? org.paynl_service_id,
       boardingStatus: info.boardingStatus ?? org.paynl_boarding_status,
       status: info.status,
       payoutStatus: info.payoutStatus,

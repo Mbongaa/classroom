@@ -576,6 +576,18 @@ export interface MerchantClearingAccount {
   owner?: string;
 }
 
+/**
+ * Pay.nl "service" = sales location (SL-XXXX-XXXX). Each merchant has one or
+ * more, returned under `merchant.services[]` by /v2/merchants/{code}/info.
+ * The active one is what we pass as `serviceId` on order/mandate creation.
+ */
+export interface MerchantService {
+  /** SL-XXXX-XXXX. */
+  code: string;
+  status?: string;
+  name?: string;
+}
+
 export interface MerchantInfoResponse {
   merchantCode: string;
   name?: string;
@@ -600,6 +612,10 @@ export interface MerchantInfoResponse {
   documents: MerchantInfoDocument[];
   /** Full per-person license records (includes data fields + docs). */
   licenses: MerchantInfoLicense[];
+  /** Sales locations (SL-XXXX-XXXX) registered against this merchant. */
+  services: MerchantService[];
+  /** First ACTIVE service.code (or first service.code if none ACTIVE), or null. */
+  primaryServiceCode: string | null;
   /** Raw response kept for forward compatibility / debugging. */
   raw: unknown;
 }
@@ -680,6 +696,22 @@ export async function getMerchantInfo(
     documents.push(d);
   }
 
+  // Parse services (sales locations). Pay.nl nests them under `merchant.services[]`.
+  const servicesRaw =
+    (m.services as unknown[] | undefined) ??
+    (root?.services as unknown[] | undefined) ??
+    [];
+  const services: MerchantService[] = servicesRaw.map((s) => {
+    const so = (s ?? {}) as Record<string, unknown>;
+    return {
+      code: String(so.code ?? ''),
+      status: so.status as string | undefined,
+      name: so.name as string | undefined,
+    };
+  }).filter((s) => s.code.length > 0);
+  const activeService = services.find((s) => s.status === 'ACTIVE');
+  const primaryServiceCode = activeService?.code ?? services[0]?.code ?? null;
+
   // Parse clearingAccounts so the UI can show settlement bank info.
   const clearingRaw =
     (m.clearingAccounts as unknown[] | undefined) ??
@@ -717,6 +749,8 @@ export async function getMerchantInfo(
     clearingAccounts,
     documents,
     licenses,
+    services,
+    primaryServiceCode,
     raw,
   };
 }

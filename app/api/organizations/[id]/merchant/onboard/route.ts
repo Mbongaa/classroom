@@ -703,11 +703,21 @@ export async function POST(
       const info = await getMerchantInfo(merchantResult.merchantCode);
       requiredDocsRemote = info.documents;
 
-      // Persist the latest boarding state (Pay.nl may have advanced it).
+      // Persist the latest boarding state and the SL-XXXX-XXXX service
+      // code Pay.nl issued alongside the merchant. Without paynl_service_id
+      // set, donation routes fall back to the platform env var and money
+      // lands on the wrong merchant.
+      const onboardUpdate: Record<string, unknown> = {};
       if (info.boardingStatus) {
+        onboardUpdate.paynl_boarding_status = info.boardingStatus;
+      }
+      if (info.primaryServiceCode) {
+        onboardUpdate.paynl_service_id = info.primaryServiceCode;
+      }
+      if (Object.keys(onboardUpdate).length > 0) {
         await supabaseAdmin
           .from('organizations')
-          .update({ paynl_boarding_status: info.boardingStatus })
+          .update(onboardUpdate)
           .eq('id', id);
       }
     } catch (err) {
