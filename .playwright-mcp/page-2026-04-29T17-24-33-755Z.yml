@@ -1,0 +1,42 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: Masjid Mawsil
+        - generic [ref=e6]:
+          - text: Powered by
+          - link "Bayaan" [ref=e7] [cursor=pointer]:
+            - /url: https://www.bayaan.app
+    - generic [ref=e8]:
+      - generic [ref=e13]:
+        - generic [ref=e14]:
+          - heading "Become a monthly contributor" [level=1] [ref=e15]
+          - paragraph [ref=e16]: Support Masjid Mawsil with a recurring SEPA direct debit. Cancel anytime.
+        - generic [ref=e17]:
+          - heading "Monthly amount" [level=2] [ref=e18]
+          - generic [ref=e19]:
+            - button "€ 10" [ref=e20] [cursor=pointer]
+            - button "€ 25" [ref=e21] [cursor=pointer]
+            - button "€ 50" [ref=e22] [cursor=pointer]
+            - button "€ 100" [ref=e23] [cursor=pointer]
+            - button "€ 250" [ref=e24] [cursor=pointer]
+            - button "Other" [ref=e25] [cursor=pointer]
+        - generic [ref=e26]:
+          - heading "Your details" [level=2] [ref=e28]
+          - generic [ref=e29]:
+            - generic [ref=e30]:
+              - textbox "Full name" [ref=e31]:
+                - /placeholder: " "
+              - generic: Full name
+            - generic [ref=e32]:
+              - generic [ref=e33]:
+                - textbox "Email address" [ref=e34]:
+                  - /placeholder: " "
+                - generic: Email address
+              - paragraph [ref=e35]: For your donation receipt and mandate confirmation
+      - generic [ref=e37]:
+        - button "Continue" [ref=e38] [cursor=pointer]
+        - generic [ref=e39]:
+          - img [ref=e40]
+          - generic [ref=e44]: Secure payment via Pay.nl · SEPA Direct Debit
+  - alert [ref=e45]

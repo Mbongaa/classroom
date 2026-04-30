@@ -2,19 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🎯 DEFAULT PERSONA: LiveKit Architect
+## 🎯 LiveKit-First Mindset
 
-**CRITICAL**: This is a LiveKit real-time communication project. All operations in this repository MUST use the **`--persona-livekit-architect`** persona by default.
+**CRITICAL**: This is a LiveKit real-time communication project. LiveKit uses event-driven, state-machine architecture (not traditional web patterns); incorrect patterns from generalist approaches have caused system breakages.
 
-The LiveKit Architect persona is required because:
+For ANY LiveKit-related work:
 
-- LiveKit uses event-driven, state-machine architecture (not traditional web patterns)
-- Incorrect patterns from generalist personas have caused system breakages
-- Real-time communication requires specialized WebRTC and LiveKit expertise
-
-**Auto-invoke**: `--persona-livekit-architect` for ALL operations in this repository
-
-Refer to `.claude/agent-routing.md` for detailed routing rules.
+1. Read `.claude/agent-routing.md` for the LiveKit decision hierarchy and exclusive-domain file paths
+2. Read the relevant guidance in `.claude/livekit/` (foundation, patterns, integration points, troubleshooting) BEFORE writing code
+3. Verify all API calls against current LiveKit docs via the `livekit-docs` MCP server (or `context7`) — never implement from memory
+4. Always know which LiveKit SDK version is in use and check for breaking changes
 
 ## Common Development Commands
 
@@ -165,6 +162,17 @@ import { Button } from '@/components/ui/button';
 const { toggle, isEnabled } = useTrackToggle({ source: Track.Source.Microphone });
 return <Button onClick={toggle}>{isEnabled ? 'Mute' : 'Unmute'}</Button>;
 ```
+
+### Design & UI Tooling
+
+User-level Claude Code skills and CLIs are available globally — reach for them proactively on UI/design work in this repo:
+
+- **impeccable** (skill) — design audit, polish, critique. Trigger phrases: "audit", "polish", "critique", "make it bolder/quieter", "improve the layout/typography/spacing of X", or invoke a specific command (`craft`, `audit`, `polish`, `critique`, `clarify`, `distill`, `harden`, `animate`, `colorize`, `typeset`, `layout`, `delight`, `adapt`, `optimize`). Use for the classroom UI, dashboard, recordings, payment, and landing pages.
+- **agent-browser** (CLI + skill) — token-efficient browser automation (~30× less context than Playwright MCP). Use for testing the classroom app at `localhost:3000`, smoke-testing LiveKit flows, screenshots, form interactions. **Verify it handles WebRTC media-permission flows on a real LiveKit room before assuming it can fully replace Playwright MCP for E2E testing.**
+- **skillui** (CLI) — extract design systems (colors, typography, spacing, components) from a URL/repo/local dir into a Claude-readable folder. Useful for matching `bayaan-landing/` aesthetic across new pages, or seeding a redesign from a reference site.
+- **rtk** (Bash hook) — auto-compresses output of `git`, `pnpm`, `next`, `tsc`, `vitest`, `prettier`, `lint`, etc. Fires invisibly via PreToolUse hook; no action needed. Available meta commands: `rtk gain` (savings stats), `rtk cc-economics` (Claude Code spend vs savings).
+
+Existing MCP servers still relevant: `magic` (21st.dev components), `shadcn` (component generation), `livekit-docs` (current LiveKit API docs), `gitnexus` (codebase knowledge graph), `context7` (library docs).
 
 ### LiveKit Implementation Patterns
 

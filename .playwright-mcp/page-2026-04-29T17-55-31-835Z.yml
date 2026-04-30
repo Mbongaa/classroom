@@ -1,0 +1,65 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - heading "Masjid Mawsil" [level=1] [ref=e6]
+      - paragraph [ref=e7]:
+        - text: Powered by
+        - link "Bayaan" [ref=e8] [cursor=pointer]:
+          - /url: https://www.bayaan.app
+    - generic [ref=e9]:
+      - generic [ref=e10]:
+        - button "Become a monthly supporter Recurring SEPA direct debit. Cancel anytime." [ref=e11] [cursor=pointer]:
+          - generic [ref=e16]:
+            - paragraph [ref=e17]: Become a monthly supporter
+            - paragraph [ref=e18]: Recurring SEPA direct debit. Cancel anytime.
+          - img [ref=e19]
+        - heading "Choose a cause" [level=2] [ref=e21]
+        - radiogroup "Choose a cause" [ref=e22]:
+          - radio "Sadaqah" [checked] [ref=e23] [cursor=pointer]:
+            - generic [ref=e27]: Sadaqah
+            - img [ref=e29]
+          - radio "zakat" [ref=e31] [cursor=pointer]:
+            - generic [ref=e34]: zakat
+            - img [ref=e36]
+          - radio "Dawrah Student € 285 € 500" [ref=e38] [cursor=pointer]:
+            - generic [ref=e41]: Dawrah Student
+            - generic [ref=e42]:
+              - paragraph [ref=e43]: € 285
+              - generic [ref=e47]: € 500
+          - radio "Dawrah Donaties sadaqah € 0 € 3.000" [ref=e48] [cursor=pointer]:
+            - generic [ref=e50]:
+              - generic [ref=e51]: Dawrah Donaties
+              - generic [ref=e52]: sadaqah
+            - generic [ref=e53]:
+              - paragraph [ref=e54]: € 0
+              - generic [ref=e57]: € 3.000
+          - radio "New Mosque (Belgium) sadaqah € 0 € 10.000" [ref=e58] [cursor=pointer]:
+            - generic [ref=e60]:
+              - generic [ref=e61]: New Mosque (Belgium)
+              - generic [ref=e62]: sadaqah
+            - generic [ref=e63]:
+              - paragraph [ref=e64]: € 0
+              - generic [ref=e67]: € 10.000
+          - radio "Ramadan eid 2026 sadaqah € 0 € 30.000" [ref=e68] [cursor=pointer]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: Ramadan eid 2026
+              - generic [ref=e72]: sadaqah
+            - generic [ref=e73]:
+              - paragraph [ref=e74]: € 0
+              - generic [ref=e77]: € 30.000
+          - radio "Domain Migration Test - DELETE ME general Temporary campaign for verifying Pay.nl webhook after bayaan.app migration. Safe to delete. € 10 € 500" [ref=e78] [cursor=pointer]:
+            - generic [ref=e80]:
+              - generic [ref=e81]: Domain Migration Test - DELETE ME
+              - generic [ref=e82]: general
+              - paragraph [ref=e83]: Temporary campaign for verifying Pay.nl webhook after bayaan.app migration. Safe to delete.
+            - generic [ref=e84]:
+              - paragraph [ref=e85]: € 10
+              - generic [ref=e89]: € 500
+      - generic [ref=e91]:
+        - heading "Sadaqah" [level=2] [ref=e93]
+        - button "One-time donation Scan the QR code with your phone to donate" [ref=e94] [cursor=pointer]:
+          - generic [ref=e99]:
+            - paragraph [ref=e100]: One-time donation
+            - paragraph [ref=e101]: Scan the QR code with your phone to donate
+          - img [ref=e102]
+  - alert [ref=e111]

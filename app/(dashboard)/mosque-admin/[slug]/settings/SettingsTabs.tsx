@@ -3302,14 +3302,6 @@ function MerchantStatusCard({
                 <p className="mt-1 font-mono text-sm">{serviceId}</p>
               </div>
             )}
-            <div>
-              <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                {t('platformFee')}
-              </p>
-              <p className="mt-1 text-sm">
-                {(organization.platform_fee_bps / 100).toFixed(2)}%
-              </p>
-            </div>
             {organization.onboarded_at && (
               <div>
                 <p className="text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400">

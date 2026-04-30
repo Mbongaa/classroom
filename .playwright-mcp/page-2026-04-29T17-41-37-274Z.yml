@@ -1,0 +1,28 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: Masjid Mawsil
+      - generic [ref=e6]:
+        - text: Powered by
+        - link "Bayaan" [ref=e7] [cursor=pointer]:
+          - /url: https://www.bayaan.app
+  - generic [ref=e8]:
+    - generic [ref=e10]:
+      - heading "zakat" [level=1] [ref=e15]
+      - generic [ref=e16]:
+        - heading "Donation amount" [level=2] [ref=e17]
+        - group "Donation amount" [ref=e18]:
+          - button "€ 5" [ref=e19] [cursor=pointer]
+          - button "€ 10" [ref=e20] [cursor=pointer]
+          - button "€ 25" [pressed] [ref=e21] [cursor=pointer]
+          - button "€ 50" [ref=e22] [cursor=pointer]
+          - button "€ 100" [ref=e23] [cursor=pointer]
+          - button "Other" [ref=e24] [cursor=pointer]
+      - generic [ref=e25]:
+        - heading "Payment method" [level=2] [ref=e27]
+        - generic [ref=e29]:
+          - button "Pay with iDEAL or Wero" [ref=e30] [cursor=pointer]
+          - button "Pay with credit or debit card" [ref=e31] [cursor=pointer]
+    - generic [ref=e38]:
+      - img [ref=e39]
+      - generic [ref=e43]: Secure payment via Pay.nl

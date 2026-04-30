@@ -1,0 +1,82 @@
+[     558ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3000/donate/masjid-mawsil/zakat/mandate:0
+[    1004ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[    1366ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1401ms] [LOG] [Fast Refresh] done in 35ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1587ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1643ms] [LOG] [Fast Refresh] done in 57ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1651ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1692ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1718ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1755ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1789ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1838ms] [LOG] [Fast Refresh] done in 49ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1892ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1946ms] [LOG] [Fast Refresh] done in 54ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1980ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2041ms] [LOG] [Fast Refresh] done in 61ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2062ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2093ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2113ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2149ms] [LOG] [Fast Refresh] done in 36ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2168ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2270ms] [LOG] [Fast Refresh] done in 102ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2297ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2329ms] [LOG] [Fast Refresh] done in 33ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2810ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2958ms] [LOG] [Fast Refresh] done in 148ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2968ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2973ms] [LOG] [Fast Refresh] done in 5ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2978ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3041ms] [LOG] [Fast Refresh] done in 64ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    3047ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3051ms] [LOG] [Fast Refresh] done in 4ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    3059ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3108ms] [LOG] [Fast Refresh] done in 48ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    3114ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3126ms] [LOG] [Fast Refresh] done in 12ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    3191ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3212ms] [LOG] [Fast Refresh] done in 21ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    7725ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    7762ms] [LOG] [Fast Refresh] done in 37ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   63712ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   64678ms] [ERROR] ./app/donate/[mosque]/[campaign]/mandate/MandateRegistration.tsx:342:6
+Parsing ecmascript source code failed
+  340 |     // h-[100svh] (not min-h) because globals.css sets html/body to overflow:hidden + touch-action:none
+  341 |     // for LiveKit. Page-level scroll is disabled app-wide; this layout creates its own inner scroll container.
+> 342 |     <div className="flex h-[100svh] flex-col bg-white dark:bg-black">
+      |      ^^^
+  343 |       {/* ── Header ── */}
+  344 |       <header className="flex-shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+  345 |         <div className="mx-auto flex max-w-lg items-center justify-between">
+
+Unexpected token `div`. Expected jsx identifier @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[   72294ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   72336ms] [ERROR] ./app/donate/[mosque]/[campaign]/mandate/MandateRegistration.tsx:342:6
+Parsing ecmascript source code failed
+  340 |     // h-[100svh] (not min-h) because globals.css sets html/body to overflow:hidden + touch-action:none
+  341 |     // for LiveKit. Page-level scroll is disabled app-wide; this layout creates its own inner scroll container.
+> 342 |     <div className="flex h-[100svh] flex-col bg-white dark:bg-black">
+      |      ^^^
+  343 |       {/* ── Header ── */}
+  344 |       <header className="flex-shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+  345 |         <div className="mx-auto flex max-w-lg items-center justify-between">
+
+Unexpected token `div`. Expected jsx identifier @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[   72388ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   72921ms] [LOG] [Fast Refresh] done in 493ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   72938ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   72964ms] [LOG] [Fast Refresh] done in 25ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   72981ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73008ms] [LOG] [Fast Refresh] done in 26ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   73025ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73047ms] [LOG] [Fast Refresh] done in 22ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   73062ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73641ms] [LOG] [Fast Refresh] done in 579ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   73856ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73887ms] [LOG] [Fast Refresh] done in 32ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   73923ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73947ms] [LOG] [Fast Refresh] done in 23ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   73963ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   73986ms] [LOG] [Fast Refresh] done in 24ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   74002ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   74140ms] [LOG] [Fast Refresh] done in 138ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560

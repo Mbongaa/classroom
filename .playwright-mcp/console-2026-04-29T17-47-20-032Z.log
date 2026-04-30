@@ -1,0 +1,26 @@
+[    6898ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3000/donate/masjid-mawsil:0
+[    7098ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[    7329ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    7625ms] [LOG] [Fast Refresh] done in 296ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   10387ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   10435ms] [LOG] [Fast Refresh] done in 47ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   32658ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   32699ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   35172ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   35211ms] [LOG] [Fast Refresh] done in 39ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  254103ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  254157ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  254203ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  255202ms] [LOG] [Fast Refresh] done in 931ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  279418ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  280188ms] [LOG] [Fast Refresh] done in 693ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  311997ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  312740ms] [LOG] [Fast Refresh] done in 680ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  320613ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  320673ms] [LOG] [Fast Refresh] done in 61ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  320700ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  321291ms] [LOG] [Fast Refresh] done in 555ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  328089ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  328130ms] [LOG] [Fast Refresh] done in 40ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  328157ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  328696ms] [LOG] [Fast Refresh] done in 508ms @ http://172.24.112.1:3000/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560

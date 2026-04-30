@@ -337,7 +337,9 @@ export function MandateRegistration({
   const showIbanError = ibanTouched && !ibanValidation.valid && ibanRaw.trim().length > 0;
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-white dark:bg-black">
+    // h-[100svh] (not min-h) because globals.css sets html/body to overflow:hidden + touch-action:none
+    // for LiveKit. Page-level scroll is disabled app-wide; this layout creates its own inner scroll container.
+    <div className="flex h-[100svh] flex-col bg-white dark:bg-black">
       {/* ── Header ── */}
       <header className="flex-shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
         <div className="mx-auto flex max-w-lg items-center justify-between">
@@ -356,119 +358,119 @@ export function MandateRegistration({
         </div>
       </header>
 
-      {/* ══════════════════════════════════════════════════════════════ */}
-      {/*  TOP HALF — Campaign summary + Amount picker (always visible) */}
-      {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-shrink-0 flex-col items-center justify-center overflow-y-auto px-4 py-4" style={{ height: '46%' }}>
-        <div className="w-full max-w-lg">
-          {/* Supporter info */}
-          <div className="text-center">
-            <div className="mb-2 -mx-[5%]" style={{ aspectRatio: '392 / 132', width: '110%' }}>
-              <DotLottiePlayer src="/lottie/brown-beads.lottie" />
-            </div>
-            <h1 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
-              Become a monthly contributor
-            </h1>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-              Support {orgName} with a recurring SEPA direct debit — cancel anytime
-            </p>
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        {/* Inner scrollable area. touch-pan-y overrides body's touch-action:none so iOS scrolls. */}
+        <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain">
+          {/* Full-bleed Lottie — animation traverses the full viewport width */}
+          <div
+            aria-hidden="true"
+            className="mx-auto w-full max-w-lg"
+            style={{ aspectRatio: '392 / 132' }}
+          >
+            <DotLottiePlayer src="/lottie/brown-beads.lottie" />
           </div>
 
-          {/* Amount picker */}
-          <div className="mt-4">
-            <h2 className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-              Monthly amount
-            </h2>
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              {PRESET_AMOUNTS.map((value) => (
+          {/* Padded content */}
+          <div className="px-4 pb-6 sm:px-6 sm:pb-8">
+            <div className="mx-auto w-full max-w-lg space-y-6 sm:space-y-7">
+            {/* Heading */}
+            <section className="text-center">
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
+                Become a monthly contributor
+              </h1>
+              <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+                Support {orgName} with a recurring SEPA direct debit. Cancel anytime.
+              </p>
+            </section>
+
+            {/* Amount picker */}
+            <section>
+              <h2 className="mb-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                Monthly amount
+              </h2>
+              <div className="grid grid-cols-3 gap-2">
+                {PRESET_AMOUNTS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => {
+                      setSelectedPreset(value);
+                      setCustomAmount('');
+                    }}
+                    className={cn(
+                      'h-12 rounded-xl border-2 text-sm font-semibold transition-all',
+                      selectedPreset === value
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
+                    )}
+                  >
+                    {formatEuroWhole(value)}
+                  </button>
+                ))}
                 <button
-                  key={value}
                   type="button"
-                  onClick={() => {
-                    setSelectedPreset(value);
-                    setCustomAmount('');
-                  }}
+                  onClick={() => setSelectedPreset('custom')}
                   className={cn(
-                    'h-10 rounded-lg border-2 text-xs font-semibold transition-all sm:h-12 sm:rounded-xl sm:text-sm',
-                    selectedPreset === value
+                    'h-12 rounded-xl border-2 text-sm font-semibold transition-all',
+                    selectedPreset === 'custom'
                       ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
                   )}
                 >
-                  {formatEuroWhole(value)}
+                  Other
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setSelectedPreset('custom')}
-                className={cn(
-                  'h-10 rounded-lg border-2 text-xs font-semibold transition-all sm:h-12 sm:rounded-xl sm:text-sm',
-                  selectedPreset === 'custom'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
-                )}
-              >
-                Other
-              </button>
-            </div>
-
-            {selectedPreset === 'custom' && (
-              <div className="relative mt-2">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
-                  &euro;
-                </span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  min="1"
-                  placeholder="0.00"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  className={cn(
-                    'h-11 w-full rounded-lg border-2 border-slate-200 bg-white pl-8 pr-4 text-sm font-semibold text-slate-900 outline-none transition-all sm:h-12 sm:rounded-xl',
-                    'placeholder:text-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10',
-                    'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/10',
-                  )}
-                  autoFocus
-                />
               </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════════════════════════════ */}
-      {/*  BOTTOM HALF — Stepper: details → bank details                */}
-      {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="flex min-h-0 flex-1 flex-col border-t border-slate-100 dark:border-slate-800">
-        <div className="mx-auto flex w-full min-h-0 max-w-lg flex-1 flex-col px-4 py-3">
-          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-
-            {/* Back arrow + step title */}
-            <div className="mb-3 flex items-center gap-2">
-              {step > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => { setStep(0); setErrorMessage(null); }}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                  aria-label="Go back"
-                >
-                  <IconChevronLeft className="h-5 w-5" />
-                </button>
-              ) : (
-                <div className="w-8" />
+              {selectedPreset === 'custom' && (
+                <div className="relative mt-2.5">
+                  <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">
+                    &euro;
+                  </span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="1"
+                    placeholder="0.00"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    aria-label="Custom monthly amount in euros"
+                    className={cn(
+                      'h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-8 pr-4 text-sm font-semibold text-slate-900 outline-none transition-all',
+                      'placeholder:text-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10',
+                      'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/10',
+                    )}
+                    autoFocus
+                  />
+                </div>
               )}
-              <h2 className="flex-1 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                {step === 0 ? 'Your details' : 'Bank details'}
-              </h2>
-              <div className="w-8" />
-            </div>
+            </section>
 
-            {/* ── Step 0: Donor details ── */}
-            {step === 0 && (
-              <div className="animate-in fade-in duration-200">
-                <div className="space-y-3">
+            {/* Stepper section */}
+            <section className="border-t border-slate-100 pt-5 dark:border-slate-800">
+              {/* Back arrow + step title */}
+              <div className="mb-4 flex items-center gap-2">
+                {step > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => { setStep(0); setErrorMessage(null); }}
+                    className="-ml-2 flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    aria-label="Go back"
+                  >
+                    <IconChevronLeft className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <div className="w-10" />
+                )}
+                <h2 className="flex-1 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {step === 0 ? 'Your details' : 'Bank details'}
+                </h2>
+                <div className="w-10" />
+              </div>
+
+              {/* ── Step 0: Donor details ── */}
+              {step === 0 && (
+                <div className="space-y-3 animate-in fade-in duration-200">
                   <FloatingLabelInput
                     id="donor_name"
                     label="Full name"
@@ -488,148 +490,148 @@ export function MandateRegistration({
                       onChange={(e) => setDonorEmail(e.target.value)}
                       required
                     />
-                    <p className="mt-1 pl-1 text-[11px] text-slate-400">
+                    <p className="mt-1.5 pl-1 text-[11px] text-slate-400">
                       For your donation receipt and mandate confirmation
                     </p>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* ── Step 1: Bank details + mandate ── */}
-            {step === 1 && (
-              <div className="min-h-0 flex-1 animate-in fade-in slide-in-from-right-4 duration-200 overflow-y-auto">
-                <p className="mb-3 text-xs text-slate-400">
-                  Your IBAN is sent directly to Pay.nl and is not stored by Bayaan.
-                </p>
+              {/* ── Step 1: Bank details + mandate ── */}
+              {step === 1 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-200">
+                  <p className="mb-3 text-xs text-slate-400">
+                    Your IBAN is sent directly to Pay.nl and is not stored by Bayaan.
+                  </p>
 
-                <div className="space-y-3">
-                  {/* IBAN field */}
-                  <div>
-                    <div className="relative">
-                      <FloatingLabelInput
-                        id="iban"
-                        label="IBAN"
-                        type="text"
-                        autoComplete="off"
-                        spellCheck={false}
-                        value={ibanRaw}
-                        onChange={(e) => handleIbanChange(e.target.value)}
-                        onBlur={handleIbanBlur}
-                        className={cn(
-                          'pr-16',
-                          showIbanSuccess &&
-                            'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/10',
-                          showIbanError &&
-                            'border-red-400 focus:border-red-400 focus:ring-red-400/10',
-                        )}
-                        required
-                      />
-                      {/* Right-side indicator: bank logo + check, or error icon */}
-                      {ibanTouched && ibanRaw.trim().length > 0 && (
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-                          {ibanValidation.valid ? (
-                            <>
-                              {ibanValidation.bankIssuerId ? (
-                                <Image
-                                  src={`/images/paynl/issuers/${ibanValidation.bankIssuerId}.svg`}
-                                  alt={ibanValidation.bankName || ''}
-                                  width={24}
-                                  height={24}
-                                  className="h-6 w-6 rounded"
-                                />
-                              ) : ibanValidation.bankName ? (
-                                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                                  {ibanValidation.bankName}
-                                </span>
-                              ) : null}
-                              <IconCheck className="h-5 w-5 text-emerald-500" />
-                            </>
-                          ) : (
-                            <IconAlertCircle className="h-5 w-5 text-red-400" />
+                  <div className="space-y-3">
+                    {/* IBAN field */}
+                    <div>
+                      <div className="relative">
+                        <FloatingLabelInput
+                          id="iban"
+                          label="IBAN"
+                          type="text"
+                          autoComplete="off"
+                          spellCheck={false}
+                          value={ibanRaw}
+                          onChange={(e) => handleIbanChange(e.target.value)}
+                          onBlur={handleIbanBlur}
+                          className={cn(
+                            'pr-16',
+                            showIbanSuccess &&
+                              'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-500/10',
+                            showIbanError &&
+                              'border-red-400 focus:border-red-400 focus:ring-red-400/10',
                           )}
-                        </div>
+                          required
+                        />
+                        {/* Right-side indicator: bank logo + check, or error icon */}
+                        {ibanTouched && ibanRaw.trim().length > 0 && (
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                            {ibanValidation.valid ? (
+                              <>
+                                {ibanValidation.bankIssuerId ? (
+                                  <Image
+                                    src={`/images/paynl/issuers/${ibanValidation.bankIssuerId}.svg`}
+                                    alt={ibanValidation.bankName || ''}
+                                    width={24}
+                                    height={24}
+                                    className="h-6 w-6 rounded"
+                                  />
+                                ) : ibanValidation.bankName ? (
+                                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                    {ibanValidation.bankName}
+                                  </span>
+                                ) : null}
+                                <IconCheck className="h-5 w-5 text-emerald-500" />
+                              </>
+                            ) : (
+                              <IconAlertCircle className="h-5 w-5 text-red-400" />
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* IBAN error message */}
+                      {showIbanError && ibanValidation.error && (
+                        <p className="mt-1.5 pl-1 text-xs text-red-500">{ibanValidation.error}</p>
                       )}
                     </div>
 
-                    {/* IBAN error message */}
-                    {showIbanError && ibanValidation.error && (
-                      <p className="mt-1 pl-1 text-xs text-red-500">{ibanValidation.error}</p>
-                    )}
+                    {/* Account holder */}
+                    <FloatingLabelInput
+                      id="iban_owner"
+                      label="Name on bank account"
+                      type="text"
+                      autoComplete="name"
+                      value={ibanOwner}
+                      onChange={(e) => setIbanOwner(e.target.value)}
+                      required
+                    />
                   </div>
 
-                  {/* Account holder */}
-                  <FloatingLabelInput
-                    id="iban_owner"
-                    label="Name on bank account"
-                    type="text"
-                    autoComplete="name"
-                    value={ibanOwner}
-                    onChange={(e) => setIbanOwner(e.target.value)}
-                    required
-                  />
+                  {/* SEPA mandate agreement */}
+                  <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3.5 dark:border-slate-800 dark:bg-slate-900">
+                    <label className="flex cursor-pointer items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={agreedToMandate}
+                        onChange={(e) => setAgreedToMandate(e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-600"
+                      />
+                      <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                        I authorise this SEPA Direct Debit mandate for{' '}
+                        {displayAmount || 'the selected amount'}/month to{' '}
+                        <strong>{orgName}</strong>.
+                      </span>
+                    </label>
+                    <p className="mt-2.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
+                      By signing this mandate, you authorise <strong>{orgName}</strong> to
+                      send instructions to your bank to debit your account, and your bank
+                      to debit your account in accordance with those instructions. You are
+                      entitled to a refund within 8 weeks from the date of any debit.
+                    </p>
+                  </div>
                 </div>
+              )}
 
-                {/* SEPA mandate agreement */}
-                <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
-                  <label className="flex cursor-pointer items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={agreedToMandate}
-                      onChange={(e) => setAgreedToMandate(e.target.checked)}
-                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500 dark:border-slate-600"
-                    />
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                      I authorise this SEPA Direct Debit mandate for{' '}
-                      {displayAmount || 'the selected amount'}/month to{' '}
-                      <strong>{orgName}</strong>.
-                    </span>
-                  </label>
-                  <p className="mt-2.5 text-[11px] leading-relaxed text-slate-500 dark:text-slate-400">
-                    By signing this mandate, you authorise <strong>{orgName}</strong> to
-                    send instructions to your bank to debit your account, and your bank
-                    to debit your account in accordance with those instructions. You are
-                    entitled to a refund within 8 weeks from the date of any debit.
-                  </p>
+              {/* Error */}
+              {errorMessage && (
+                <div
+                  className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400"
+                  role="alert"
+                >
+                  {errorMessage}
                 </div>
-              </div>
-            )}
+              )}
+            </section>
+          </div>
+        </div>
+        {/* /scrollable area */}
+        </div>
 
-            {/* Spacer — only on step 0 to push button to bottom */}
-            {step === 0 && <div className="flex-1" />}
-
-            {/* Error */}
-            {errorMessage && (
-              <div
-                className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400"
-                role="alert"
-              >
-                {errorMessage}
-              </div>
-            )}
-
-            {/* Step 0: Continue button */}
-            {step === 0 && (
+        {/* CTA bar — flex-shrink-0 sibling, naturally pinned to bottom of viewport */}
+        <div className="flex-shrink-0 border-t border-slate-100 bg-white px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] dark:border-slate-800 dark:bg-black">
+          <div className="mx-auto max-w-lg">
+            {step === 0 ? (
               <button
                 type="button"
                 onClick={handleContinue}
                 className={cn(
-                  'mt-3 flex h-12 w-full flex-shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
+                  'flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
                   'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98]',
                   'dark:bg-emerald-500 dark:hover:bg-emerald-600',
                 )}
               >
                 Continue
               </button>
-            )}
-
-            {/* Step 1: Submit button */}
-            {step === 1 && (
+            ) : (
               <button
                 type="submit"
                 disabled={submitting}
                 className={cn(
-                  'mt-3 flex h-12 w-full flex-shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
+                  'flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
                   'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98]',
                   'dark:bg-emerald-500 dark:hover:bg-emerald-600',
                   'disabled:pointer-events-none disabled:opacity-60',
@@ -638,15 +640,13 @@ export function MandateRegistration({
                 {submitting ? <IconLoader2 className="h-5 w-5 animate-spin" /> : ctaLabel}
               </button>
             )}
-
-            {/* Trust footer */}
-            <div className="mt-2 flex flex-shrink-0 items-center justify-center gap-1.5 pb-[env(safe-area-inset-bottom)] text-[11px] text-slate-400">
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
               <IconLock className="h-3.5 w-3.5" />
               <span>Secure payment via Pay.nl &middot; SEPA Direct Debit</span>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

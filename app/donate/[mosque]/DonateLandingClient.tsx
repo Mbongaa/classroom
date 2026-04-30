@@ -273,22 +273,26 @@ export function DonateLandingClient({
               disabled={creatingSession}
               className="mb-6 flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
             >
-              <div className="shrink-0">
+              <div aria-hidden="true" className="shrink-0">
                 <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={72} />
               </div>
               <div className="flex-1">
                 <p className="text-xl font-semibold sm:text-2xl">Become a monthly supporter</p>
                 <p className="text-base text-slate-500 dark:text-slate-400">
-                  Recurring SEPA direct debit — cancel anytime
+                  Recurring SEPA direct debit. Cancel anytime.
                 </p>
               </div>
               <IconChevronRight className="h-6 w-6 shrink-0 text-slate-400" />
             </button>
 
-            <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
+            <h2 id="cause-list-label" className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Choose a cause
             </h2>
-            <div className="overflow-hidden rounded-xl border border-[rgba(128,128,128,0.15)]">
+            <div
+              role="radiogroup"
+              aria-labelledby="cause-list-label"
+              className="overflow-hidden rounded-xl border border-[rgba(128,128,128,0.15)]"
+            >
               {campaigns.map((campaign, i) => {
                 const isSelected = selected?.id === campaign.id;
                 const isLast = i === campaigns.length - 1;
@@ -307,6 +311,8 @@ export function DonateLandingClient({
                   <button
                     key={campaign.id}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     onClick={() => setSelected(campaign)}
                     className={`flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${
                       isSelected
@@ -316,6 +322,7 @@ export function DonateLandingClient({
                   >
                     {/* Selection indicator */}
                     <div
+                      aria-hidden="true"
                       className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                         isSelected
                           ? 'border-black bg-black dark:border-white dark:bg-white'
@@ -327,16 +334,14 @@ export function DonateLandingClient({
                       )}
                     </div>
 
-                    {/* Campaign info */}
+                    {/* Campaign info — title on its own line, pill below to avoid wrap conflicts */}
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-semibold">{campaign.title}</span>
-                        {campaign.cause_type && (
-                          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                            {campaign.cause_type}
-                          </span>
-                        )}
-                      </div>
+                      <span className="block font-semibold">{campaign.title}</span>
+                      {campaign.cause_type && (
+                        <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                          {campaign.cause_type}
+                        </span>
+                      )}
                       {campaign.description && (
                         <p className="mt-0.5 truncate text-sm text-slate-500 dark:text-slate-400">
                           {campaign.description}
@@ -368,7 +373,7 @@ export function DonateLandingClient({
                           {formatEuro(campaign.raised_cents)}
                         </p>
                       ) : (
-                        <IconChevronRight className="h-4 w-4 text-slate-400" />
+                        <IconChevronRight aria-hidden="true" className="h-4 w-4 text-slate-400" />
                       )}
                     </div>
                   </button>
@@ -377,12 +382,39 @@ export function DonateLandingClient({
             </div>
           </div>
 
-          {/* ---- Right pane: payment options ---- */}
-          <div className="flex flex-1 items-center justify-center p-6 md:p-10 md:overflow-y-auto">
+          {/* ---- Right pane: payment options ----
+              Top-aligned (mx-auto, not m-auto) so the One-time donation card lines up
+              horizontally with the "Become a monthly supporter" card on the left pane.
+              Padding matches the left pane (p-6) for consistent inner offset. */}
+          <div className="flex flex-1 flex-col p-6 md:overflow-y-auto">
             {selected ? (
-              <div className="w-full max-w-sm">
+              <div className="mx-auto w-full max-w-sm">
+                {/* Payment CTA — top of right pane so it aligns horizontally with the
+                    "Become a monthly supporter" card on the left. The campaign recap below
+                    becomes the "what you're donating to" context. */}
+                <button
+                  type="button"
+                  onClick={() => openQrOverlay(selected!.slug, 'one-time')}
+                  disabled={creatingSession}
+                  className="flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
+                >
+                  <div aria-hidden="true" className="shrink-0">
+                    <LottieIcon src="/lottie/qr-code.json" size={88} className="dark:hidden" />
+                    <LottieIcon src="/lottie/qr-code-white.json" size={88} className="hidden dark:block" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xl font-semibold sm:text-2xl">
+                      {creatingSession ? 'Preparing...' : 'One-time donation'}
+                    </p>
+                    <p className="text-base text-slate-500 dark:text-slate-400">
+                      Scan the QR code with your phone to donate
+                    </p>
+                  </div>
+                  <IconChevronRight aria-hidden="true" className="h-6 w-6 shrink-0 text-slate-400" />
+                </button>
+
                 {/* Selected campaign recap */}
-                <div className="mb-8 text-center">
+                <div className="mt-6 text-center">
                   {selected.cause_type && (
                     <span className="mb-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                       {selected.cause_type}
@@ -407,41 +439,17 @@ export function DonateLandingClient({
                           {formatEuro(selected.raised_cents)}
                         </span>{' '}
                         <span className="text-slate-500 dark:text-slate-400">
-                          of {formatEuro(selected.goal_amount!)} · {pct}%
+                          of {formatEuro(selected.goal_amount!)} &middot; {pct}%
                         </span>
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Payment CTA */}
-                <div className="space-y-4">
-                  <button
-                    type="button"
-                    onClick={() => openQrOverlay(selected!.slug, 'one-time')}
-                    disabled={creatingSession}
-                    className="flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
-                  >
-                    <div className="shrink-0">
-                      <LottieIcon src="/lottie/qr-code.json" size={88} className="dark:hidden" />
-                      <LottieIcon src="/lottie/qr-code-white.json" size={88} className="hidden dark:block" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-xl font-semibold sm:text-2xl">
-                        {creatingSession ? 'Preparing…' : 'One-time donation'}
-                      </p>
-                      <p className="text-base text-slate-500 dark:text-slate-400">
-                        Scan the QR code with your phone to donate
-                      </p>
-                    </div>
-                    <IconChevronRight className="h-6 w-6 shrink-0 text-slate-400" />
-                  </button>
-                </div>
-
-                {/* Campaign icon animation */}
+                {/* Campaign icon animation — sized for landscape iPad fit */}
                 {selectedIconEntry && (
-                  <div className="-mx-6 mt-8 flex justify-center md:-mx-10">
-                    <LottieIcon src={selectedIconEntry.file} size={360} />
+                  <div aria-hidden="true" className="mt-6 flex justify-center">
+                    <LottieIcon src={selectedIconEntry.file} size={220} />
                   </div>
                 )}
 
@@ -451,12 +459,12 @@ export function DonateLandingClient({
                   onClick={() => setSelected(null)}
                   className="mt-6 block w-full text-center text-sm text-slate-500 underline-offset-4 hover:underline dark:text-slate-400 md:hidden"
                 >
-                  ← Choose a different cause
+                  &larr; Choose a different cause
                 </button>
               </div>
             ) : (
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+              <div className="mx-auto mt-12 text-center">
+                <div aria-hidden="true" className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                   <IconHeartHandshake className="h-8 w-8 text-slate-400" />
                 </div>
                 <p className="text-lg font-medium">Select a campaign</p>
@@ -469,14 +477,22 @@ export function DonateLandingClient({
         </div>
       )}
 
-      {/* ---- Bottom Lottie progress — driven by selected campaign % ---- */}
-      <div className="shrink-0 w-screen overflow-hidden" style={{ height: 60 }}>
+      {/* Bottom Lottie progress — full-bleed traversal animation that advances with the selected
+          campaign's raised %. Visible band is 40px; the animation is rendered at 80px so its
+          bottom 50% sits below the viewport edge (clipped by the wrapper's overflow-hidden).
+          Effect: the progress mark peeks up from the bottom of the screen.
+
+          layout={{ fit: 'cover', align: [0, 0] }} forces the animation to fill the canvas width
+          (no centering letterbox margins) and aligns to the top-left so the visible 40px band is
+          the top of the animation. Default 'contain' was leaving ~100px gap on each side. */}
+      <div aria-hidden="true" className="shrink-0 w-full overflow-hidden" style={{ height: 40 }}>
         <DotLottieReact
           src="/lottie/donation-progress.lottie"
           autoplay={false}
           loop={false}
           dotLottieRefCallback={dotLottieRefCallback}
-          style={{ width: '100vw', height: 120 }}
+          layout={{ fit: 'cover', align: [0, 0] }}
+          style={{ width: '100%', height: 80 }}
         />
       </div>
 

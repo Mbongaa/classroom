@@ -308,14 +308,16 @@ export function DonationCheckout({
   if (displayAmount) ctaLabel += ` ${displayAmount}`;
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-white dark:bg-black">
-      {/* ── Header ── */}
+    // h-[100svh] (not min-h) because globals.css sets html/body to overflow:hidden + touch-action:none
+    // for LiveKit. Page-level scroll is disabled app-wide; this layout creates its own inner scroll container.
+    <div className="flex h-[100svh] flex-col bg-white dark:bg-black">
+      {/* Header */}
       <header className="flex-shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
         <div className="mx-auto flex max-w-lg items-center justify-between">
           <span className="text-sm font-semibold text-slate-900 dark:text-white">
             {orgName}
           </span>
-          <span className="text-[11px] text-slate-400">
+          <span className="text-[11px] text-slate-500 dark:text-slate-400">
             Powered by{' '}
             <a href="https://www.bayaan.app" className="underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300">
               Bayaan
@@ -324,288 +326,284 @@ export function DonationCheckout({
         </div>
       </header>
 
-      {/* ══════════════════════════════════════════════════════════════ */}
-      {/*  TOP HALF — Campaign summary + Amount picker (always visible) */}
-      {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="flex flex-shrink-0 flex-col items-center justify-center overflow-y-auto px-4 py-4" style={{ height: '46%' }}>
-        <div className="w-full max-w-lg">
-          {/* Campaign info */}
-          <div className="text-center">
-            {iconEntry && (
-              <div className="mx-auto mb-2 flex flex-1 items-center justify-center">
-                <LottieIcon src={iconEntry.file} className="aspect-square w-full max-w-[40vw]" />
-              </div>
-            )}
-            <h1 className="text-lg font-bold text-slate-900 dark:text-white sm:text-xl">
-              {campaign.title}
-            </h1>
-            {campaign.description && (
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 sm:text-sm">
-                {campaign.description}
-              </p>
-            )}
-            {hasGoal && (
-              <div className="mt-2.5">
-                <div className="mx-auto h-1.5 max-w-xs overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                  <div className="h-full rounded-full bg-[#30f2cf] transition-all" style={{ width: `${pct}%` }} />
+      <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+        {/* Inner scrollable area. touch-pan-y overrides body's touch-action:none so iOS scrolls. */}
+        <div className="min-h-0 flex-1 touch-pan-y overflow-y-auto overscroll-contain">
+          <div className="mx-auto w-full max-w-lg px-4 pb-6 pt-4 sm:px-6 sm:pb-8 sm:pt-6">
+            {/* Campaign summary */}
+            <section className="text-center">
+              {iconEntry && (
+                <div aria-hidden="true" className="mx-auto mb-3 flex items-center justify-center">
+                  <LottieIcon src={iconEntry.file} className="aspect-square w-full max-w-[140px] sm:max-w-[180px]" />
                 </div>
-                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                  <span className="font-semibold text-slate-700 dark:text-slate-200">{formatEuro(campaign.raised_cents)}</span>
-                  {' '}raised of {formatEuro(campaign.goal_amount!)} goal
+              )}
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl">
+                {campaign.title}
+              </h1>
+              {campaign.description && (
+                <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">
+                  {campaign.description}
                 </p>
-              </div>
-            )}
-          </div>
+              )}
+              {hasGoal && (
+                <div className="mt-3">
+                  <div className="mx-auto h-1.5 max-w-xs overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div className="h-full rounded-full bg-[#30f2cf] transition-all" style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">{formatEuro(campaign.raised_cents)}</span>
+                    {' '}raised of {formatEuro(campaign.goal_amount!)} goal
+                  </p>
+                </div>
+              )}
+            </section>
 
-          {/* Amount picker */}
-          <div className="mt-4">
-            <h2 className="mb-2 text-xs font-medium text-slate-500 dark:text-slate-400">
-              {isRecurring ? 'Monthly amount' : 'Donation amount'}
-            </h2>
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-              {PRESET_AMOUNTS.map((value) => (
+            {/* Amount picker */}
+            <section className="mt-6">
+              <h2 className="mb-2.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                Donation amount
+              </h2>
+              <div className="grid grid-cols-3 gap-2" role="group" aria-label="Donation amount">
+                {PRESET_AMOUNTS.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => { setSelectedPreset(value); setCustomAmount(''); }}
+                    aria-pressed={selectedPreset === value}
+                    className={cn(
+                      'h-12 rounded-xl border-2 text-sm font-semibold transition-all',
+                      selectedPreset === value
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
+                    )}
+                  >
+                    {formatEuroWhole(value)}
+                  </button>
+                ))}
                 <button
-                  key={value}
                   type="button"
-                  onClick={() => { setSelectedPreset(value); setCustomAmount(''); }}
+                  onClick={() => setSelectedPreset('custom')}
+                  aria-pressed={selectedPreset === 'custom'}
                   className={cn(
-                    'h-10 rounded-lg border-2 text-xs font-semibold transition-all sm:h-12 sm:rounded-xl sm:text-sm',
-                    selectedPreset === value
+                    'h-12 rounded-xl border-2 text-sm font-semibold transition-all',
+                    selectedPreset === 'custom'
                       ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
                       : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
                   )}
                 >
-                  {formatEuroWhole(value)}
+                  Other
                 </button>
-              ))}
-              <button
-                type="button"
-                onClick={() => setSelectedPreset('custom')}
-                className={cn(
-                  'h-10 rounded-lg border-2 text-xs font-semibold transition-all sm:h-12 sm:rounded-xl sm:text-sm',
-                  selectedPreset === 'custom'
-                    ? 'border-emerald-600 bg-emerald-50 text-emerald-700 dark:border-emerald-400 dark:bg-emerald-950/40 dark:text-emerald-300'
-                    : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200',
-                )}
-              >
-                Other
-              </button>
-            </div>
-
-            {selectedPreset === 'custom' && (
-              <div className="relative mt-2">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400">&euro;</span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="0.01"
-                  min="1"
-                  placeholder="0.00"
-                  value={customAmount}
-                  onChange={(e) => setCustomAmount(e.target.value)}
-                  className={cn(
-                    'h-11 w-full rounded-lg border-2 border-slate-200 bg-white pl-8 pr-4 text-sm font-semibold text-slate-900 outline-none transition-all sm:h-12 sm:rounded-xl',
-                    'placeholder:text-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10',
-                    'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/10',
-                  )}
-                  autoFocus
-                />
               </div>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* ══════════════════════════════════════════════════════════════ */}
-      {/*  BOTTOM HALF — Stepper: payment method → details              */}
-      {/* ══════════════════════════════════════════════════════════════ */}
-      <div className="flex min-h-0 flex-1 flex-col border-t border-slate-100 dark:border-slate-800">
-        <div className="mx-auto flex w-full min-h-0 max-w-lg flex-1 flex-col px-4 py-3">
-          <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
-
-            {/* Back arrow + step title */}
-            <div className="mb-3 flex items-center gap-2">
-              {step > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Card skips bank step, so back from details goes to method
-                    const prev = step === 2 && paymentMethod === 'card' ? 0 : step - 1;
-                    if (prev === 0) setPaymentMethod(null);
-                    setStep(prev);
-                    setErrorMessage(null);
-                  }}
-                  className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
-                  aria-label="Go back"
-                >
-                  <IconChevronLeft className="h-5 w-5" />
-                </button>
-              ) : (
-                <div className="w-8" />
-              )}
-              <h2 className="flex-1 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
-                {!isRecurring && step === 0 && 'Payment method'}
-                {!isRecurring && step === 1 && 'Choose your bank'}
-                {!isRecurring && step === 2 && 'Your details'}
-                {isRecurring && 'Your details'}
-              </h2>
-              <div className="w-8" />
-            </div>
-
-            {/* ─�� Step 0 (one-time): Choose payment method ── */}
-            {!isRecurring && step === 0 && (
-              <div className="animate-in fade-in duration-200">
-                <div className="grid grid-cols-2 gap-2.5">
-                  {/* iDEAL tile */}
-                  <button
-                    type="button"
-                    onClick={selectIdeal}
+              {selectedPreset === 'custom' && (
+                <div className="relative mt-2.5">
+                  <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-500">&euro;</span>
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    min="1"
+                    placeholder="0.00"
+                    value={customAmount}
+                    onChange={(e) => setCustomAmount(e.target.value)}
+                    aria-label="Custom donation amount in euros"
                     className={cn(
-                      'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
-                      paymentMethod === 'ideal'
-                        ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
+                      'h-12 w-full rounded-xl border-2 border-slate-200 bg-white pl-8 pr-4 text-sm font-semibold text-slate-900 outline-none transition-all',
+                      'placeholder:text-slate-300 focus:border-emerald-600 focus:ring-4 focus:ring-emerald-600/10',
+                      'dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:placeholder:text-slate-600 dark:focus:border-emerald-400 dark:focus:ring-emerald-400/10',
                     )}
-                  >
-                    <Image
-                      src="/images/paynl/payment_methods/1.svg"
-                      alt="iDEAL | Wero"
-                      width={100}
-                      height={100}
-                      className="h-[100px] w-[100px] rounded-lg object-contain"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.display = 'none';
-                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                      }}
-                    />
-                    <IconBuildingBank className="hidden h-16 w-16 text-[#CC0066]" />
-                  </button>
-
-                  {/* Card tile */}
-                  <button
-                    type="button"
-                    onClick={selectCard}
-                    className={cn(
-                      'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
-                      paymentMethod === 'card'
-                        ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
-                        : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
-                    )}
-                  >
-                    <LottieIcon src="/lottie/credit-card.lottie" size={100} loop={false} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ── Step 1 (one-time, iDEAL): Choose your bank ── */}
-            {!isRecurring && step === 1 && (
-              <div className="min-h-0 flex-1 animate-in fade-in slide-in-from-right-4 duration-200">
-                {loadingIssuers ? (
-                  <div className="flex items-center justify-center py-6">
-                    <IconLoader2 className="h-5 w-5 animate-spin text-slate-400" />
-                    <span className="ml-2 text-sm text-slate-400">Loading banks…</span>
-                  </div>
-                ) : (
-                  <div className="h-full overflow-y-auto rounded-xl border-2 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
-                    {idealIssuers.map((issuer, idx) => {
-                      const isSelected = selectedIssuerId === issuer.id;
-                      return (
-                        <button
-                          key={issuer.id}
-                          type="button"
-                          onClick={() => selectBank(issuer.id)}
-                          className={cn(
-                            'flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors',
-                            idx !== 0 && 'border-t border-slate-100 dark:border-slate-800',
-                            isSelected ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
-                          )}
-                        >
-                          <Image
-                            src={`/images/paynl/issuers/${issuer.id}.svg`}
-                            alt={issuer.name}
-                            width={32}
-                            height={32}
-                            className="h-8 w-8 flex-shrink-0 rounded-md"
-                          />
-                          <span className={cn(
-                            'flex-1 text-sm font-medium',
-                            isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200',
-                          )}>
-                            {issuer.name}
-                          </span>
-                          {isSelected && (
-                            <IconCheck className="h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* ── Final step: Donor details ── */}
-            {step === lastStep && (
-              <div className="animate-in fade-in slide-in-from-right-4 duration-200">
-                <div className="space-y-3">
-                  <FloatingLabelInput
-                    id="donor_name"
-                    label="Full name"
-                    type="text"
-                    autoComplete="name"
-                    value={donorName}
-                    onChange={(e) => setDonorName(e.target.value)}
-                    required
+                    autoFocus
                   />
-                  <div>
+                </div>
+              )}
+            </section>
+
+            {/* Stepper section */}
+            <section className="mt-6 border-t border-slate-100 pt-5 dark:border-slate-800">
+              {/* Back arrow + step title */}
+              <div className="mb-4 flex items-center gap-2">
+                {step > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Card skips bank step, so back from details goes to method
+                      const prev = step === 2 && paymentMethod === 'card' ? 0 : step - 1;
+                      if (prev === 0) setPaymentMethod(null);
+                      setStep(prev);
+                      setErrorMessage(null);
+                    }}
+                    className="-ml-2 flex h-10 w-10 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                    aria-label="Go back"
+                  >
+                    <IconChevronLeft className="h-5 w-5" />
+                  </button>
+                ) : (
+                  <div className="w-10" />
+                )}
+                <h2 className="flex-1 text-center text-sm font-medium text-slate-700 dark:text-slate-300">
+                  {step === 0 && 'Payment method'}
+                  {step === 1 && 'Choose your bank'}
+                  {step === 2 && 'Your details'}
+                </h2>
+                <div className="w-10" />
+              </div>
+
+              {/* Step 0: Choose payment method */}
+              {step === 0 && (
+                <div className="animate-in fade-in duration-200">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    {/* iDEAL tile */}
+                    <button
+                      type="button"
+                      onClick={selectIdeal}
+                      aria-label="Pay with iDEAL or Wero"
+                      aria-pressed={paymentMethod === 'ideal'}
+                      className={cn(
+                        'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
+                        paymentMethod === 'ideal'
+                          ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
+                          : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
+                      )}
+                    >
+                      <Image
+                        src="/images/paynl/payment_methods/1.svg"
+                        alt=""
+                        width={100}
+                        height={100}
+                        className="h-[100px] w-[100px] rounded-lg object-contain"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none';
+                          (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                      <IconBuildingBank aria-hidden="true" className="hidden h-16 w-16 text-[#CC0066]" />
+                    </button>
+
+                    {/* Card tile */}
+                    <button
+                      type="button"
+                      onClick={selectCard}
+                      aria-label="Pay with credit or debit card"
+                      aria-pressed={paymentMethod === 'card'}
+                      className={cn(
+                        'flex items-center justify-center rounded-xl border-2 p-2 transition-all',
+                        paymentMethod === 'card'
+                          ? 'border-emerald-600 bg-emerald-50 dark:border-emerald-400 dark:bg-emerald-950/40'
+                          : 'border-slate-200 bg-white hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:hover:border-slate-600',
+                      )}
+                    >
+                      <span aria-hidden="true">
+                        <LottieIcon src="/lottie/credit-card.lottie" size={100} loop={false} />
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Step 1: Choose your bank */}
+              {step === 1 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-200">
+                  {loadingIssuers ? (
+                    <div className="flex items-center justify-center py-6">
+                      <IconLoader2 className="h-5 w-5 animate-spin text-slate-500" />
+                      <span className="ml-2 text-sm text-slate-500">Loading banks...</span>
+                    </div>
+                  ) : (
+                    <div
+                      role="radiogroup"
+                      aria-label="Select your bank"
+                      className="rounded-xl border-2 border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900"
+                    >
+                      {idealIssuers.map((issuer, idx) => {
+                        const isSelected = selectedIssuerId === issuer.id;
+                        return (
+                          <button
+                            key={issuer.id}
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            onClick={() => selectBank(issuer.id)}
+                            className={cn(
+                              'flex w-full items-center gap-3 px-3.5 py-3 text-left transition-colors',
+                              idx !== 0 && 'border-t border-slate-100 dark:border-slate-800',
+                              isSelected ? 'bg-emerald-50 dark:bg-emerald-950/30' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50',
+                            )}
+                          >
+                            <Image
+                              src={`/images/paynl/issuers/${issuer.id}.svg`}
+                              alt=""
+                              width={32}
+                              height={32}
+                              className="h-8 w-8 flex-shrink-0 rounded-md"
+                            />
+                            <span className={cn(
+                              'flex-1 text-sm font-medium',
+                              isSelected ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-700 dark:text-slate-200',
+                            )}>
+                              {issuer.name}
+                            </span>
+                            {isSelected && (
+                              <IconCheck aria-hidden="true" className="h-5 w-5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step 2: Donor details */}
+              {step === 2 && (
+                <div className="animate-in fade-in slide-in-from-right-4 duration-200">
+                  <div className="space-y-3">
                     <FloatingLabelInput
-                      id="donor_email"
-                      label="Email address"
-                      type="email"
-                      autoComplete="email"
-                      value={donorEmail}
-                      onChange={(e) => setDonorEmail(e.target.value)}
+                      id="donor_name"
+                      label="Full name"
+                      type="text"
+                      autoComplete="name"
+                      value={donorName}
+                      onChange={(e) => setDonorName(e.target.value)}
                       required
                     />
-                    <p className="mt-1 pl-1 text-[11px] text-slate-400">For your donation receipt</p>
-                  </div>
-                </div>
-
-                {/* SEPA fields (recurring) */}
-                {isRecurring && (
-                  <div className="mt-4">
-                    <h3 className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Bank details</h3>
-                    <p className="mb-2 text-xs text-slate-400">
-                      For SEPA direct debit. Your IBAN is sent to Pay.nl and is not stored by Bayaan.
-                    </p>
-                    <div className="space-y-3">
-                      <FloatingLabelInput id="iban_owner" label="Name on account" type="text" value={ibanOwner} onChange={(e) => setIbanOwner(e.target.value)} required />
-                      <FloatingLabelInput id="iban" label="IBAN" type="text" autoComplete="off" value={iban} onChange={(e) => setIban(e.target.value)} required />
-                      <FloatingLabelInput id="bic" label="BIC" type="text" autoComplete="off" value={bic} onChange={(e) => setBic(e.target.value)} required />
+                    <div>
+                      <FloatingLabelInput
+                        id="donor_email"
+                        label="Email address"
+                        type="email"
+                        autoComplete="email"
+                        value={donorEmail}
+                        onChange={(e) => setDonorEmail(e.target.value)}
+                        required
+                      />
+                      <p className="mt-1.5 pl-1 text-xs text-slate-500 dark:text-slate-400">
+                        For your donation receipt
+                      </p>
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
-            {/* Spacer — only when bank list isn't filling the space */}
-            {!(step === 1 && !isRecurring) && <div className="flex-1" />}
+              {/* Error */}
+              {errorMessage && (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400" role="alert">
+                  {errorMessage}
+                </div>
+              )}
+            </section>
+          </div>
+        </div>
+        {/* /scrollable area */}
 
-            {/* Error */}
-            {errorMessage && (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400" role="alert">
-                {errorMessage}
-              </div>
-            )}
-
-            {/* Submit — only on final step */}
-            {step === lastStep && (
+        {/* CTA bar - flex-shrink-0 sibling, naturally pinned to bottom */}
+        <div className="flex-shrink-0 border-t border-slate-100 bg-white px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] dark:border-slate-800 dark:bg-black">
+          <div className="mx-auto max-w-lg">
+            {step === lastStep ? (
               <button
                 type="submit"
                 disabled={submitting}
                 className={cn(
-                  'mt-3 flex h-12 w-full flex-shrink-0 items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
+                  'flex h-12 w-full items-center justify-center gap-2 rounded-xl text-sm font-semibold text-white transition-all sm:h-14 sm:text-base',
                   'bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98]',
                   'dark:bg-emerald-500 dark:hover:bg-emerald-600',
                   'disabled:pointer-events-none disabled:opacity-60',
@@ -613,16 +611,17 @@ export function DonationCheckout({
               >
                 {submitting ? <IconLoader2 className="h-5 w-5 animate-spin" /> : ctaLabel}
               </button>
+            ) : (
+              // Earlier steps auto-advance on selection - keep slot for layout stability
+              <div className="h-12 sm:h-14" aria-hidden="true" />
             )}
-
-            {/* Trust footer */}
-            <div className="mt-2 flex flex-shrink-0 items-center justify-center gap-1.5 pb-[env(safe-area-inset-bottom)] text-[11px] text-slate-400">
+            <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400">
               <IconLock className="h-3.5 w-3.5" />
               <span>Secure payment via Pay.nl</span>
             </div>
-          </form>
+          </div>
         </div>
-      </div>
+      </form>
     </div>
   );
 }

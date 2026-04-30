@@ -423,10 +423,6 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
                         <code>{organization.paynl_merchant_id}</code>
                       </p>
                     )}
-                    <p>
-                      <span className="text-slate-500 dark:text-slate-400">{t('platformFeeLabel')}</span>{' '}
-                      {(organization.platform_fee_bps / 100).toFixed(2)}%
-                    </p>
                   </>
                 ) : (
                   <p className="text-slate-600 dark:text-slate-300">
