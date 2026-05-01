@@ -977,6 +977,8 @@ function VideoConferenceComponent(props: {
               sessionId={sessionId}
               orgSlug={props.orgSlug}
               orgName={props.orgName}
+              transcriptionApiUrl="/api/v2/transcriptions"
+              translationApiUrl="/api/v2/translations"
             />
           ) : isSpeech ? (
             <SpeechClientImpl
@@ -986,6 +988,8 @@ function VideoConferenceComponent(props: {
               sessionId={sessionId}
               orgSlug={props.orgSlug}
               orgName={props.orgName}
+              transcriptionApiUrl="/api/v2/transcriptions"
+              translationApiUrl="/api/v2/translations"
             />
           ) : (
             <CustomVideoConference

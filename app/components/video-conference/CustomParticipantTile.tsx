@@ -339,6 +339,9 @@ export function CustomParticipantTile({
         {/* Video/Placeholder */}
         {isVideoEnabled && videoTrack ? (
           <VideoTrack
+            // Forces a fresh attach when restartTrack swaps the underlying MediaStreamTrack
+            // (e.g. teacher switching front/back camera mid-khutba).
+            key={videoTrack.mediaStreamTrack?.id ?? trackRef.publication?.trackSid}
             trackRef={trackRef}
             className={clsx("absolute inset-0 w-full h-full", isFullscreenMode ? "object-contain" : "object-cover")}
           />
@@ -675,12 +678,18 @@ export function CustomParticipantTile({
   );
 }
 
-// Memoize component for performance optimization
+// `setActiveMediaDevice` calls `restartTrack`, which swaps the inner MediaStreamTrack
+// while keeping the publication and trackSid. Comparing on trackSid alone makes the
+// teacher's self-view freeze on the stopped stream — include the underlying
+// MediaStreamTrack id and mute state so a device switch forces a re-render.
 export default React.memo(CustomParticipantTile, (prevProps, nextProps) => {
-  // Only re-render if essential props change
   return (
     prevProps.trackRef.participant.identity === nextProps.trackRef.participant.identity &&
     prevProps.trackRef.publication?.trackSid === nextProps.trackRef.publication?.trackSid &&
+    prevProps.trackRef.publication?.track?.mediaStreamTrack?.id ===
+      nextProps.trackRef.publication?.track?.mediaStreamTrack?.id &&
+    prevProps.trackRef.publication?.isMuted === nextProps.trackRef.publication?.isMuted &&
+    prevProps.trackRef.publication?.isSubscribed === nextProps.trackRef.publication?.isSubscribed &&
     prevProps.showSpeakingIndicator === nextProps.showSpeakingIndicator &&
     prevProps.showConnectionQuality === nextProps.showConnectionQuality &&
     prevProps.className === nextProps.className &&

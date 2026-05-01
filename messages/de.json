@@ -811,5 +811,206 @@
         "updateFailed": "Sprache konnte nicht aktualisiert werden"
       }
     }
+  },
+  "marketing": {
+    "nav": {
+      "primaryAria": "Primary",
+      "mobileAria": "Mobile",
+      "signIn": "Sign in",
+      "getStarted": "Get started",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "links": {
+        "howItWorks": "How it works",
+        "features": "Features",
+        "useCases": "Use cases",
+        "pricing": "Pricing"
+      }
+    },
+    "hero": {
+      "eyebrow": "Live in 12 mosques across NL & BE",
+      "headline": {
+        "line1": "Translation that travels",
+        "line2": "with the sermon."
+      },
+      "lead": "Bayaan listens to the imam in real time and delivers the meaning to every listener in the language they think in. No headsets to hand out, no translators to schedule, no waiting.",
+      "ctaPrimary": "Start free",
+      "ctaSecondary": "See how it works",
+      "stats": {
+        "mosques": {
+          "label": "Mosques",
+          "value": "12+"
+        },
+        "languages": {
+          "label": "Languages",
+          "value": "50+"
+        },
+        "latency": {
+          "label": "Latency",
+          "value": "≈2.5s"
+        }
+      }
+    },
+    "trust": {
+      "ariaLabel": "Communities using Bayaan",
+      "label": "Trusted by communities in"
+    },
+    "howItWorks": {
+      "eyebrow": "How it works",
+      "title": "From the minbar to every phone in the room.",
+      "lead": "Three steps. The imam doesn't change a thing about how they teach.",
+      "steps": {
+        "create": {
+          "title": "Create a room",
+          "body": "Open Bayaan in your browser, give the room a name like 'Friday Khutbah', and choose which languages you want to offer. Done in under a minute."
+        },
+        "share": {
+          "title": "Share the link",
+          "body": "Display a QR code on the wall, post it in your community group, or print it on a flyer. Listeners join with a tap, no app to install."
+        },
+        "translate": {
+          "title": "Speak naturally",
+          "body": "The imam speaks in Arabic. Listeners watch the meaning land in real time, in the language they chose. You see it, hear it, and can recall it later."
+        }
+      }
+    },
+    "features": {
+      "eyebrow": "Built for sermon",
+      "title": "What's inside Bayaan.",
+      "lead": "Everything we ship is shaped by what imams and learners told us they actually needed during the khutbah, the dars, the youth night.",
+      "items": {
+        "languages": {
+          "title": "50+ languages, one tap to switch.",
+          "body": "Listeners pick their language at any moment and the meaning continues from where it was. We support every major language used by Muslim communities in Europe and beyond — and we're adding more on request."
+        },
+        "realtime": {
+          "title": "Real-time, not next-paragraph.",
+          "body": "Translations land in roughly two and a half seconds. Slow enough to be coherent. Fast enough to feel present in the room."
+        },
+        "classroom": {
+          "title": "Classroom roles built in.",
+          "body": "Teacher and student modes, raise-hand, mute controls, persistent room codes for recurring classes. The same engine works for a tafsir circle of twelve as for a Friday gathering of three hundred."
+        },
+        "recordings": {
+          "title": "Every session, archived.",
+          "body": "Audio, transcript, and translations are saved to your dashboard. Search them later. Share a clip. Build a library your community can return to."
+        },
+        "privacy": {
+          "title": "Hosted in the EU.",
+          "body": "Your sessions stay in EU regions. We don't sell data, we don't profile listeners, and we don't ask for more than the room code."
+        },
+        "publicDisplay": {
+          "title": "Public display mode.",
+          "body": "A single screen at the back of the prayer hall, large type, no chrome. Walk in late and pick up the meaning instantly."
+        }
+      }
+    },
+    "useCases": {
+      "eyebrow": "Where it fits",
+      "title": "One platform, many gatherings.",
+      "lead": "We started with the Friday khutbah. The same tool now carries lessons, community nights, and outreach.",
+      "cases": {
+        "khutbah": {
+          "title": "Friday khutbah",
+          "body": "Worshippers who don't speak Arabic follow every word the imam says. Visitors and new Muslims hear the meaning without anyone whispering in their ear."
+        },
+        "lessons": {
+          "title": "Tafsir & dars",
+          "body": "Recurring lessons get persistent room codes. Students who missed a session catch up on the recording with the transcript and translation side by side."
+        },
+        "community": {
+          "title": "Community events",
+          "body": "Iftar talks, youth nights, conferences. Multilingual audiences leave with the same understanding instead of polite confusion."
+        },
+        "classes": {
+          "title": "Islamic classes",
+          "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
+        }
+      }
+    },
+    "pricing": {
+      "eyebrow": "Pricing",
+      "title": "Honest pricing for honest work.",
+      "lead": "Pick a plan that fits the size of your community. Switch any time. Cancel any time.",
+      "badge": "Most chosen",
+      "cta": {
+        "start": "Start free trial",
+        "contact": "Talk to us"
+      },
+      "tiers": {
+        "starter": {
+          "name": "Starter",
+          "price": "€99",
+          "period": "/ month",
+          "summary": "For a single mosque or class running weekly.",
+          "features": {
+            "rooms": "1 persistent room",
+            "languages": "All 50+ languages",
+            "recordings": "20 hours of recordings / month",
+            "support": "Email support"
+          }
+        },
+        "pro": {
+          "name": "Professional",
+          "price": "€199",
+          "period": "/ month",
+          "summary": "For active communities with multiple imams or recurring classes.",
+          "features": {
+            "rooms": "5 persistent rooms",
+            "languages": "All 50+ languages",
+            "recordings": "Unlimited recordings",
+            "analytics": "Listener analytics",
+            "publicDisplay": "Public display mode",
+            "support": "Priority support"
+          }
+        },
+        "enterprise": {
+          "name": "Enterprise",
+          "price": "Custom",
+          "period": "",
+          "summary": "For federations, networks, and large institutions.",
+          "features": {
+            "unlimited": "Unlimited rooms and listeners",
+            "sso": "SSO and provisioning",
+            "sla": "Uptime SLA",
+            "custom": "Custom languages on request",
+            "support": "Dedicated success manager"
+          }
+        }
+      }
+    },
+    "cta": {
+      "title": "Your khutbah deserves to be understood.",
+      "lead": "Set up your first room in five minutes. The next jumu'ah carries further than the last one.",
+      "points": {
+        "noCard": "No credit card to start",
+        "instant": "Live in five minutes",
+        "setup": "We'll help you onboard your team"
+      },
+      "ctaPrimary": "Start free",
+      "ctaSecondary": "Talk to us"
+    },
+    "footer": {
+      "tagline": "Real-time sermon and classroom translation, hosted in the EU. Built so the meaning never has to wait for the message.",
+      "copyright": "All rights reserved.",
+      "madeWith": "Made with care for the ummah.",
+      "groups": {
+        "product": "Product",
+        "community": "Community",
+        "company": "Company"
+      },
+      "links": {
+        "features": "Features",
+        "howItWorks": "How it works",
+        "pricing": "Pricing",
+        "login": "Sign in",
+        "useCases": "Use cases",
+        "contact": "Contact us",
+        "donate": "Support our work",
+        "email": "hello@bayaan.ai",
+        "privacy": "Privacy",
+        "terms": "Terms"
+      }
+    }
   }
 }

@@ -74,8 +74,11 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
     if (isSpeech) {
       setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
     } else {
-      // Default to classroom mode (v2 always requires a mode)
-      setClassroomInfo({ role: role || 'teacher', pin: pin || null, mode: 'classroom' });
+      // Default to student when no role param is present. Teachers always
+      // arrive with `role=teacher` via /v2/t/[code]; anyone else hitting
+      // /v2/rooms/[code] directly is safer joining listen-only than as a
+      // publishing teacher (which doubles agent STT load on live mosques).
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
     }
   }, []);
 
@@ -154,7 +157,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
       setPreJoinChoices(values);
 
       const mode = classroomInfo?.mode || 'classroom';
-      const role = classroomInfo?.role || 'teacher';
+      const role = classroomInfo?.role || 'student';
 
       try {
         const response = await fetch('/api/v2/connect', {

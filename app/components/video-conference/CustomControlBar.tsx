@@ -180,9 +180,18 @@ export function CustomControlBar({
           </Button>
           <Select
             value={activeMicId}
-            onValueChange={(id) => {
-              setActiveMic(id);
-              try { localStorage.setItem(LS_AUDIO_DEVICE_KEY, id); } catch {}
+            onValueChange={async (id) => {
+              const previousId = activeMicId;
+              try {
+                await setActiveMic(id);
+                try { localStorage.setItem(LS_AUDIO_DEVICE_KEY, id); } catch {}
+              } catch (err) {
+                console.error('[ControlBar] Failed to switch microphone:', err);
+                if (previousId && previousId !== id) {
+                  setActiveMic(previousId).catch(() => {});
+                }
+                alert('Could not switch microphone. The previous device is still active.');
+              }
             }}
           >
             <SelectTrigger
@@ -230,9 +239,18 @@ export function CustomControlBar({
           </Button>
           <Select
             value={activeCameraId}
-            onValueChange={(id) => {
-              setActiveCamera(id);
-              try { localStorage.setItem(LS_VIDEO_DEVICE_KEY, id); } catch {}
+            onValueChange={async (id) => {
+              const previousId = activeCameraId;
+              try {
+                await setActiveCamera(id);
+                try { localStorage.setItem(LS_VIDEO_DEVICE_KEY, id); } catch {}
+              } catch (err) {
+                console.error('[ControlBar] Failed to switch camera:', err);
+                if (previousId && previousId !== id) {
+                  setActiveCamera(previousId).catch(() => {});
+                }
+                alert('Could not switch camera. The previous device is still active.');
+              }
             }}
           >
             <SelectTrigger

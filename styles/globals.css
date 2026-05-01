@@ -309,6 +309,219 @@ h2 a {
   }
 }
 
+/* ────────────────────────────────────────────────────────────────────────
+   Marketing landing page theme
+   Scoped to [data-mkt-root]; overrides apply when present anywhere in body.
+   Light-first warm cream + emerald + gold. Avoids leaking into product UI.
+   ──────────────────────────────────────────────────────────────────────── */
+
+[data-mkt-root] {
+  --mkt-bg: oklch(0.97 0.01 90);
+  --mkt-bg-elev: oklch(0.99 0.005 90);
+  --mkt-bg-sunken: oklch(0.93 0.012 85);
+  --mkt-fg: oklch(0.22 0.012 200);
+  --mkt-fg-muted: oklch(0.46 0.015 200);
+  --mkt-fg-subtle: oklch(0.62 0.012 200);
+  --mkt-brand: oklch(0.40 0.10 165);
+  --mkt-brand-deep: oklch(0.30 0.09 170);
+  --mkt-brand-soft: oklch(0.92 0.04 165);
+  --mkt-accent: oklch(0.78 0.12 80);
+  --mkt-accent-deep: oklch(0.66 0.13 75);
+  --mkt-border: oklch(0.88 0.012 90);
+  --mkt-border-strong: oklch(0.78 0.015 90);
+  --mkt-success: oklch(0.62 0.13 155);
+  --mkt-shadow-color: 30 30% 12%;
+
+  /* Preview frame stays dark; product surface */
+  --mkt-preview-bg: oklch(0.16 0.015 200);
+  --mkt-preview-elev: oklch(0.21 0.018 200);
+  --mkt-preview-fg: oklch(0.96 0.005 200);
+  --mkt-preview-fg-muted: oklch(0.72 0.012 200);
+  --mkt-preview-border: oklch(0.30 0.020 200);
+  --mkt-preview-brand: oklch(0.62 0.13 165);
+}
+
+/* Dark variant: keep emerald + gold relationships, deepen base */
+.dark [data-mkt-root],
+[data-mkt-root][data-mkt-dark] {
+  --mkt-bg: oklch(0.16 0.015 200);
+  --mkt-bg-elev: oklch(0.21 0.018 200);
+  --mkt-bg-sunken: oklch(0.12 0.012 200);
+  --mkt-fg: oklch(0.96 0.005 200);
+  --mkt-fg-muted: oklch(0.72 0.012 200);
+  --mkt-fg-subtle: oklch(0.55 0.014 200);
+  --mkt-brand: oklch(0.62 0.13 165);
+  --mkt-brand-deep: oklch(0.50 0.11 165);
+  --mkt-brand-soft: oklch(0.28 0.07 165);
+  --mkt-accent: oklch(0.82 0.13 80);
+  --mkt-border: oklch(0.30 0.020 200);
+  --mkt-border-strong: oklch(0.40 0.025 200);
+}
+
+/* Allow scroll on marketing page despite global html/body overflow:hidden.
+   Modern browsers; falls back to non-scrolling on older ones (acceptable). */
+html:has([data-mkt-root]),
+body:has([data-mkt-root]) {
+  overflow: auto !important;
+  touch-action: auto !important;
+  height: auto !important;
+  min-height: 100svh;
+}
+
+[data-mkt-root] {
+  font-family: var(--font-poppins), 'Poppins', system-ui, -apple-system, sans-serif;
+  background: var(--mkt-bg);
+  color: var(--mkt-fg);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+[data-mkt-root] ::selection {
+  background: var(--mkt-brand-soft);
+  color: var(--mkt-brand-deep);
+}
+
+/* Marketing utility classes — only used inside [data-mkt-root] */
+.mkt-container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+@media (min-width: 768px) {
+  .mkt-container { padding-inline: 2rem; }
+}
+@media (min-width: 1280px) {
+  .mkt-container { padding-inline: 3rem; }
+}
+
+.mkt-section {
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.mkt-eyebrow {
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--mkt-brand);
+}
+
+.mkt-h1 {
+  font-size: clamp(2.5rem, 6vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.04;
+  color: var(--mkt-fg);
+}
+
+.mkt-h2 {
+  font-size: clamp(1.875rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.10;
+  color: var(--mkt-fg);
+}
+
+.mkt-h3 {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--mkt-fg);
+}
+
+.mkt-lead {
+  font-size: clamp(1.0625rem, 1.4vw, 1.25rem);
+  line-height: 1.55;
+  color: var(--mkt-fg-muted);
+  max-width: 38rem;
+}
+
+.mkt-card {
+  background: var(--mkt-bg-elev);
+  border: 1px solid var(--mkt-border);
+  border-radius: 1rem;
+  padding: clamp(1.25rem, 2vw, 1.75rem);
+  transition: border-color 200ms cubic-bezier(0.22, 1, 0.36, 1),
+              transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+.mkt-card:hover {
+  border-color: var(--mkt-border-strong);
+  transform: translateY(-2px);
+}
+
+.mkt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 999px;
+  background: var(--mkt-brand-soft);
+  color: var(--mkt-brand-deep);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.mkt-pill-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--mkt-brand);
+  box-shadow: 0 0 0 0 var(--mkt-brand);
+  animation: mkt-pulse 2.4s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+}
+
+@keyframes mkt-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.40 0.10 165 / 0.4); }
+  60%      { box-shadow: 0 0 0 8px oklch(0.40 0.10 165 / 0); }
+}
+
+@keyframes mkt-fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mkt-speaking-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50%      { transform: scale(1.08); opacity: 0.85; }
+}
+
+@keyframes mkt-ticker-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Subtle dotted backdrop, lower opacity than typical "Islamic pattern" — */
+/* not the cliched crescent/8-pointed-star reflex. */
+.mkt-grain {
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    oklch(0.40 0.10 165 / 0.05) 1px,
+    transparent 0
+  );
+  background-size: 22px 22px;
+}
+
+.mkt-link {
+  color: var(--mkt-brand);
+  font-weight: 500;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in oklch, var(--mkt-brand) 30%, transparent);
+  transition: border-color 180ms ease-out, color 180ms ease-out;
+}
+.mkt-link:hover {
+  color: var(--mkt-brand-deep);
+  border-bottom-color: var(--mkt-brand);
+}
+
+.mkt-focus-ring:focus-visible {
+  outline: 2px solid var(--mkt-brand);
+  outline-offset: 3px;
+  border-radius: 8px;
+}
+
 /* Disable LiveKit's default local camera mirror/flip */
 [data-lk-facing-mode=user] .lk-participant-media-video[data-lk-local-participant=true][data-lk-source=camera] {
   transform: none !important;
@@ -321,6 +534,8 @@ h2 a {
   --lk-bg3: #141414 !important; /* Slightly lighter for hover states */
   --lk-bg4: #1f1f1f !important; /* Even lighter for active states */
   --lk-bg5: #2a2a2a !important; /* Lightest dark gray */
+  --lk-background: #000000 !important; /* SpeechClient container bg */
+  --lk-background-2: #0a0a0a !important; /* mainVideoSection bg */
   --lk-control-bg: #0a0a0a !important; /* Control background */
   --lk-control-hover-bg: #141414 !important; /* Control hover */
   --lk-control-active-bg: #1f1f1f !important; /* Control active */
@@ -337,6 +552,8 @@ h2 a {
   --lk-bg3: #f0f0f0 !important; /* Lighter gray for hover states */
   --lk-bg4: #e5e5e5 !important; /* Gray for active states */
   --lk-bg5: #d0d0d0 !important; /* Darker gray */
+  --lk-background: #ffffff !important; /* SpeechClient container bg */
+  --lk-background-2: #f5f5f5 !important; /* mainVideoSection bg */
   --lk-control-bg: #f5f5f5 !important; /* Control background */
   --lk-control-hover-bg: #ebebeb !important; /* Control hover */
   --lk-control-active-bg: #e0e0e0 !important; /* Control active */
@@ -346,6 +563,59 @@ h2 a {
   --lk-speaking-border: black !important; /* Black speaking indicator for light mode */
   --lk-speaking-thickness: 8px !important; /* Thicker for light mode visibility */
   --lk-shadow: rgba(0, 0, 0, 0.3) !important; /* Black shadow for light mode */
+}
+
+/* Marketing surface in light mode: blend the student-view preview into the
+   warm cream marketing palette instead of LiveKit's default pure-white. Scoped
+   to [data-mkt-root] so the dashboard / actual product UI keeps standard light. */
+.light [data-mkt-root] [data-lk-theme="default"] {
+  --lk-bg: oklch(0.97 0.01 90) !important;            /* matches --mkt-bg */
+  --lk-bg2: oklch(0.99 0.005 90) !important;          /* slightly elevated */
+  --lk-bg3: oklch(0.93 0.012 85) !important;          /* card hover, control bg */
+  --lk-bg4: oklch(0.88 0.018 82) !important;          /* latest card, active */
+  --lk-bg5: oklch(0.82 0.020 80) !important;
+  --lk-background: oklch(0.97 0.01 90) !important;    /* speechContainer */
+  --lk-background-2: oklch(0.97 0.01 90) !important;  /* mainVideoSection — match base so no frame shows behind the camera */
+  --lk-control-bg: oklch(0.95 0.012 88) !important;
+  --lk-control-hover-bg: oklch(0.93 0.012 85) !important;
+  --lk-control-active-bg: oklch(0.88 0.018 82) !important;
+  --lk-control-active-hover-bg: oklch(0.82 0.020 80) !important;
+  --lk-text1: oklch(0.22 0.012 200) !important;       /* matches --mkt-fg */
+  --lk-text2: oklch(0.46 0.015 200) !important;
+  --lk-text-muted: oklch(0.62 0.012 200) !important;
+  --lk-border: oklch(0.88 0.012 90) !important;
+  --lk-speaking-border: oklch(0.22 0.012 200) !important; /* slate, not green */
+  --lk-shadow: oklch(0.20 0.02 200 / 0.18) !important;
+}
+
+/* Translation cards: previous cards blend into the cream surface (no fill);
+   the latest card gets a slightly elevated surface with a subtle shadow so it
+   reads as the active line. */
+.light [data-mkt-root] [class*="translationItem"]:not([class*="latest"]) {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+}
+.light [data-mkt-root] [class*="translationItem"][class*="latest"] {
+  background: oklch(0.99 0.005 90) !important;
+  border: 1px solid oklch(0.88 0.012 90) !important;
+  box-shadow: 0 2px 8px oklch(0.20 0.02 200 / 0.06) !important;
+}
+
+/* Agent badge: production uses Apple-system green (#34c759) which clashes with
+   the cream marketing surface. In light marketing mode we use a neutral
+   ink-on-cream chip; the inactive (red) badge is left alone since it conveys
+   real warning state. */
+.light [data-mkt-root] [class*="agentBadgeActive"] {
+  background: oklch(0.93 0.012 85) !important;
+  color: oklch(0.22 0.012 200) !important;
+}
+
+/* Empty-state Lottie: the .lottie file is authored for dark backgrounds
+   (white-ish art). On the cream light surface it disappears. brightness(0)
+   collapses every visible pixel to pure black so the animation reads against
+   light backgrounds. Only targets light mode — dark mode keeps the original. */
+.light [data-mkt-root] [class*="emptyIcon"] {
+  filter: brightness(0);
 }
 
 /* Light mode chat override - force white background and theme-responsive text */

@@ -36,7 +36,9 @@ export default function TranscriptionSaver({
   roomName: _roomName,
   sessionStartTime,
   sessionId,
-  apiUrl = '/api/transcriptions',
+  // Default to v2 — same reasoning as SpeechTranslationPanel: the legacy
+  // endpoint silently 404s v2 sessions and starves the reaper's activity check.
+  apiUrl = '/api/v2/transcriptions',
 }: TranscriptionSaverProps) {
   const room = useRoomContext();
 

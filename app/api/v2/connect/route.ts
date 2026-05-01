@@ -74,8 +74,16 @@ export async function POST(request: NextRequest) {
 
       if (profile) {
         organizationId = profile.organization_id;
-        if (profile.role === 'teacher' || profile.role === 'admin') {
+        // Honor whatever role the client requested. Promoting every admin to
+        // teacher caused superadmins spectating live mosque sessions to join as
+        // a second publishing teacher — doubling the agent's STT pipeline and
+        // letting the spectator's mic noise leak into the imam's transcript.
+        // Admins still get whatever permissions the request asks for; if they
+        // want to teach they explicitly request role=teacher.
+        if (profile.role === 'teacher') {
           userRole = 'teacher';
+        } else if (profile.role === 'admin') {
+          userRole = requestedRole;
         } else {
           userRole = 'student';
         }
@@ -165,7 +173,9 @@ export async function POST(request: NextRequest) {
         }
 
         if (hasAgent) {
-          // Agent alive → reuse. DUPLICATE_IDENTITY kicks the ghost.
+          // Agent alive → reuse. Identities now carry a per-connect suffix,
+          // so multiple devices for the same teacher coexist instead of
+          // kicking each other.
           console.log(`[V2 Connect] Reusing room with agent for ${roomCode} (session: ${session.id})`);
         } else {
           // Room alive but agent gone → explicitly dispatch a new agent to the existing room

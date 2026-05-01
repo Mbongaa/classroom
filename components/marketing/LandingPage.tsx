@@ -1,202 +1,48 @@
 'use client';
 
-import Link from 'next/link';
-import { ThemeToggleButton } from '@/components/ui/theme-toggle';
-import { Button } from '@/components/ui/moving-border';
+import { useEffect } from 'react';
+import { useTheme } from 'next-themes';
+import { MarketingNavigation } from '@/components/marketing/shared/MarketingNavigation';
+import { MarketingFooter } from '@/components/marketing/shared/MarketingFooter';
+import { TrustStrip } from '@/components/marketing/sections/TrustStrip';
+import { HeroWrapper } from '@/components/marketing/wrappers/HeroWrapper';
+import { HowItWorksWrapper } from '@/components/marketing/wrappers/HowItWorksWrapper';
+import { FeaturesWrapper } from '@/components/marketing/wrappers/FeaturesWrapper';
+import { UseCasesWrapper } from '@/components/marketing/wrappers/UseCasesWrapper';
+import { PricingWrapper } from '@/components/marketing/wrappers/PricingWrapper';
+import { CTAWrapper } from '@/components/marketing/wrappers/CTAWrapper';
 
 export function MarketingLandingPage() {
+  const { theme, setTheme } = useTheme();
+
+  // Marketing-only default: light. Other routes keep next-themes' defaultTheme="dark".
+  // Once the user toggles, we respect that choice (it's persisted in localStorage).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem('theme');
+    if (!stored || stored === 'dark') {
+      // No stored preference (first visit) OR app-level dark default carried over
+      // from another route — flip to light for the marketing surface.
+      setTheme('light');
+    }
+    // We intentionally only run this on mount. If the user toggles while on this
+    // page, the toggle owns the choice from there forward.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <div
-      style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
-      data-lk-theme="default"
-    >
-      {/* Header */}
-      <header
-        style={{
-          height: '64px',
-          background: 'var(--lk-bg, #000000)',
-          borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '0 24px',
-          flexShrink: 0,
-        }}
-      >
-        <span
-          style={{
-            fontSize: '24px',
-            fontWeight: 700,
-            color: 'var(--foreground)',
-            letterSpacing: '-0.03rem',
-          }}
-        >
-          bayaan.ai
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/login">
-            <Button
-              as="button"
-              borderRadius="1.75rem"
-              containerClassName="h-10"
-              className="bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-sm font-medium px-6"
-              duration={3000}
-            >
-              Sign In
-            </Button>
-          </Link>
-          <Link href="/signup">
-            <Button
-              as="button"
-              borderRadius="1.75rem"
-              containerClassName="h-10"
-              className="bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-sm font-medium px-6"
-              duration={3000}
-            >
-              Get Started
-            </Button>
-          </Link>
-          <ThemeToggleButton start="top-right" />
-        </div>
-      </header>
-
-      {/* Hero Section */}
-      <main
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '48px 24px',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ maxWidth: '800px' }}>
-          <h1
-            style={{
-              fontSize: '56px',
-              fontWeight: 800,
-              marginBottom: '24px',
-              color: 'var(--foreground)',
-              lineHeight: 1.2,
-            }}
-          >
-            Real-Time Translation
-            <br />
-            for Modern Classrooms
-          </h1>
-          <p
-            style={{
-              fontSize: '20px',
-              marginBottom: '40px',
-              color: 'var(--lk-fg2)',
-              lineHeight: 1.6,
-            }}
-          >
-            Connect teachers and students across language barriers with live video conferencing and
-            real-time translation. Perfect for multilingual education.
-          </p>
-          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link href="/signup">
-              <Button
-                as="button"
-                borderRadius="1.75rem"
-                containerClassName="h-14"
-                className="bg-[#f1f2f4] dark:bg-[#111418] text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium px-8"
-                duration={3000}
-              >
-                Start Free Trial
-              </Button>
-            </Link>
-            <Link href="/login">
-              <Button
-                as="button"
-                borderRadius="1.75rem"
-                containerClassName="h-14"
-                className="bg-transparent text-gray-900 dark:text-white border-[#4b5563] text-lg font-medium px-8"
-                duration={3000}
-              >
-                Sign In to Dashboard
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Features */}
-        <div
-          style={{
-            marginTop: '80px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '32px',
-            maxWidth: '1200px',
-            width: '100%',
-          }}
-        >
-          {[
-            {
-              title: 'Live Video Conferencing',
-              description: 'High-quality video and audio powered by LiveKit',
-            },
-            {
-              title: 'Real-Time Translation',
-              description: 'Break language barriers with instant translation',
-            },
-            {
-              title: 'Classroom Management',
-              description: 'Teacher controls, student permissions, and more',
-            },
-            {
-              title: 'Persistent Rooms',
-              description: 'Create reusable room codes for recurring classes',
-            },
-          ].map((feature) => (
-            <div
-              key={feature.title}
-              style={{
-                padding: '24px',
-                borderRadius: '8px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(128, 128, 128, 0.2)',
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: '20px',
-                  fontWeight: 600,
-                  marginBottom: '8px',
-                  color: 'var(--foreground)',
-                }}
-              >
-                {feature.title}
-              </h3>
-              <p
-                style={{
-                  fontSize: '14px',
-                  color: 'var(--lk-fg2)',
-                  lineHeight: 1.5,
-                }}
-              >
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
+    <div data-mkt-root className="min-h-screen">
+      <MarketingNavigation />
+      <main>
+        <HeroWrapper />
+        <TrustStrip />
+        <HowItWorksWrapper />
+        <FeaturesWrapper />
+        <UseCasesWrapper />
+        <PricingWrapper />
+        <CTAWrapper />
       </main>
-
-      {/* Footer */}
-      <footer
-        style={{
-          padding: '24px',
-          borderTop: '1px solid rgba(128, 128, 128, 0.2)',
-          textAlign: 'center',
-          color: 'var(--lk-fg2)',
-          fontSize: '14px',
-        }}
-      >
-        <p>&copy; 2025 Bayaan Classroom. All rights reserved.</p>
-      </footer>
+      <MarketingFooter />
     </div>
   );
 }

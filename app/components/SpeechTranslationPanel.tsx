@@ -54,7 +54,10 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   onFullscreenToggle,
   showVideo = true,
   onVideoToggle,
-  translationApiUrl = '/api/recordings/translations',
+  // Default to v2 — the v1 endpoint queries the legacy `sessions` table
+  // and 404s for every v2 session id, which silently blocks DB writes and
+  // eventually trips the reaper's 30-min inactivity kick.
+  translationApiUrl = '/api/v2/translations',
   onResizePointerDown,
   controlBar,
   participantCount,

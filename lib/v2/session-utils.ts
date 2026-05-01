@@ -170,13 +170,22 @@ export function buildDeterministicIdentity(
   const shortId = classroomId.slice(0, 6);
 
   switch (role) {
-    case 'teacher':
+    case 'teacher': {
+      // Per-connect suffix prevents DUPLICATE_IDENTITY kicks when a single
+      // teacher account is logged in from multiple devices (e.g. mosque
+      // projection screen + imam's laptop). Without it, each new connect
+      // boots the previous one and the room enters a connect-disconnect loop.
+      // Trade-off: a genuinely stale ghost lingers until LiveKit's empty
+      // timeout reaps it — same trade-off students already accept.
+      const teacherSuffix = simpleHash(
+        `${opts.userId || opts.name || 'teacher'}:${Date.now()}`,
+      ).slice(0, 4);
       if (opts.userId) {
-        return `teacher:${shortId}:${opts.userId.slice(0, 6)}`;
+        return `teacher:${shortId}:${opts.userId.slice(0, 6)}:${teacherSuffix}`;
       }
-      // Anonymous teacher - hash from name
       const nameHash = simpleHash(opts.name || 'teacher').slice(0, 8);
-      return `teacher:${shortId}:${nameHash}`;
+      return `teacher:${shortId}:${nameHash}:${teacherSuffix}`;
+    }
 
     case 'student': {
       const safeName = (opts.name || 'student').replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 20);
