@@ -146,7 +146,6 @@ export function MarketingStudentView({
                 <MarketingTeacherTile
                   videoSrc="/marketing/camera-preview.mp4"
                   name="Sheikh Ahmad"
-                  badge="Imam"
                   className={styles.teacherTile}
                   onTimeUpdate={handleVideoTime}
                 />
