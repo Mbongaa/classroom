@@ -535,7 +535,7 @@ body:has([data-mkt-root]) {
   --lk-bg4: #1f1f1f !important; /* Even lighter for active states */
   --lk-bg5: #2a2a2a !important; /* Lightest dark gray */
   --lk-background: #000000 !important; /* SpeechClient container bg */
-  --lk-background-2: #0a0a0a !important; /* mainVideoSection bg */
+  --lk-background-2: #000000 !important; /* mainVideoSection — match base so no frame shows behind the camera */
   --lk-control-bg: #0a0a0a !important; /* Control background */
   --lk-control-hover-bg: #141414 !important; /* Control hover */
   --lk-control-active-bg: #1f1f1f !important; /* Control active */
@@ -553,7 +553,7 @@ body:has([data-mkt-root]) {
   --lk-bg4: #e5e5e5 !important; /* Gray for active states */
   --lk-bg5: #d0d0d0 !important; /* Darker gray */
   --lk-background: #ffffff !important; /* SpeechClient container bg */
-  --lk-background-2: #f5f5f5 !important; /* mainVideoSection bg */
+  --lk-background-2: #ffffff !important; /* mainVideoSection — match base so no frame shows behind the camera */
   --lk-control-bg: #f5f5f5 !important; /* Control background */
   --lk-control-hover-bg: #ebebeb !important; /* Control hover */
   --lk-control-active-bg: #e0e0e0 !important; /* Control active */
