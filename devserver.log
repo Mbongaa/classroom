@@ -642,3 +642,6 @@ Warning: useLayoutEffect does nothing on the server, because its effect cannot b
  ✓ Compiled in 947ms (1194 modules)
  ✓ Compiled in 864ms (1194 modules)
  ✓ Compiled in 769ms (1194 modules)
+ ✓ Compiled in 2.1s (2912 modules)
+ ✓ Compiled in 894ms (1194 modules)
+ ✓ Compiled in 2.5s (2912 modules)

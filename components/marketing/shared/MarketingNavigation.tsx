@@ -39,17 +39,18 @@ export function MarketingNavigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Mobile menu open: trap focus, close on Esc + browser-back, lock scroll,
-  // restore focus to the trigger on close.
+  // Mobile menu open: trap focus, close on Esc, lock body scroll, restore
+  // focus to the trigger on close. Deliberately NOT wiring browser-back to
+  // close the menu — the pushState/popstate trick fights Next's <Link>
+  // navigation: tapping a menu link triggers our cleanup before Next's
+  // route push lands, so a `history.back()` in the cleanup pops the user
+  // back instead of letting them advance to the destination. Escape + the
+  // X button + link clicks already cover every reasonable close path.
   useEffect(() => {
     if (!open) return;
 
     const dialog = dialogRef.current;
     const previousFocus = document.activeElement as HTMLElement | null;
-
-    // Push a history entry so the browser back button closes the menu.
-    const stateMarker = { mktMenu: true } as const;
-    window.history.pushState(stateMarker, '');
 
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -72,10 +73,7 @@ export function MarketingNavigation() {
       }
     };
 
-    const onPopState = () => setOpen(false);
-
     document.addEventListener('keydown', onKey);
-    window.addEventListener('popstate', onPopState);
     document.body.style.overflow = 'hidden';
 
     // Move focus to the first menu item next tick (after the dialog renders).
@@ -87,13 +85,8 @@ export function MarketingNavigation() {
 
     return () => {
       document.removeEventListener('keydown', onKey);
-      window.removeEventListener('popstate', onPopState);
       document.body.style.overflow = '';
       window.clearTimeout(id);
-      // Pop the marker we pushed if it's still on top of the stack.
-      if (window.history.state && (window.history.state as { mktMenu?: boolean }).mktMenu) {
-        window.history.back();
-      }
       // Restore focus to the trigger so keyboard users return to context.
       previousFocus?.focus?.();
     };
