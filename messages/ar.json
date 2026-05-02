@@ -829,13 +829,13 @@
       }
     },
     "hero": {
-      "eyebrow": "متاح في 12 مسجداً عبر هولندا وبلجيكا",
+      "eyebrow": "يبثّ مباشرةً في 12 مسجداً في هولندا وبلجيكا",
       "headline": {
-        "line1": "الترجمة التي تواكب",
-        "line2": "الخطبة في حينها."
+        "line1": "من المنبر",
+        "line2": "إلى كلّ هاتف."
       },
-      "lead": "يستمع بيان إلى الإمام مباشرة ويوصل المعنى إلى كل مستمع باللغة التي يفكر بها. لا سماعات تُوزَّع، ولا مترجمين يُحضَّرون، ولا انتظار.",
-      "ctaPrimary": "ابدأ مجاناً",
+      "lead": "تستمع بيان إلى الإمام لحظياً وتُوصل المعنى إلى كلّ مستمع بلغته الخاصّة، في ثوانٍ معدودة.",
+      "ctaPrimary": "ابدأ مجّاناً",
       "ctaSecondary": "شاهد كيف يعمل",
       "stats": {
         "mosques": {
@@ -850,6 +850,11 @@
           "label": "زمن الترجمة",
           "value": "≈2.5ث"
         }
+      },
+      "benefits": {
+        "inclusive": "شامل للجميع",
+        "multiLanguage": "متعدّد اللغات",
+        "realTime": "لحظيّ"
       }
     },
     "trust": {
@@ -857,28 +862,48 @@
       "label": "موثوق به في"
     },
     "howItWorks": {
-      "eyebrow": "How it works",
-      "title": "From the minbar to every phone in the room.",
-      "lead": "Three steps. The imam doesn't change a thing about how they teach.",
+      "eyebrow": "كيف يعمل",
+      "title": "من المنبر إلى كلّ هاتف في القاعة.",
+      "lead": "ثلاث خطوات. لا يغيّر الإمام شيئاً في طريقة تدريسه.",
       "steps": {
         "create": {
-          "title": "Create a room",
-          "body": "Open Bayaan in your browser, give the room a name like 'Friday Khutbah', and choose which languages you want to offer. Done in under a minute."
+          "title": "أنشئ غرفة",
+          "body": "افتح بيان في متصفّحك، أعطِ الغرفة اسماً مثل «خطبة الجمعة»، واختر اللغات التي تريد تقديمها."
         },
         "share": {
-          "title": "Share the link",
-          "body": "Display a QR code on the wall, post it in your community group, or print it on a flyer. Listeners join with a tap, no app to install."
+          "title": "شارك الرابط",
+          "body": "اعرض رمز QR على الجدار، أو انشره في مجموعة جماعتك، أو اطبعه على نشرة."
         },
         "translate": {
-          "title": "Speak naturally",
-          "body": "The imam speaks in Arabic. Listeners watch the meaning land in real time, in the language they chose. You see it, hear it, and can recall it later."
+          "title": "تحدّث بطبيعتك",
+          "body": "يتحدّث الإمام بالعربيّة. ويرى المستمعون المعنى يصلهم لحظياً بلغتهم الخاصّة."
+        },
+        "account": {
+          "label": "خطوة",
+          "title": "أنشئ حساب مسجدك",
+          "body": "سجّل خلال دقائق وأعدّ ملفّ مسجدك مع إعدادات الغرف"
+        },
+        "room": {
+          "label": "خطوة",
+          "title": "أنشئ غرفة",
+          "body": "أعدّ الغرفة التي تستمع إلى خطبتك وتترجمها لحظياً"
+        },
+        "golive": {
+          "label": "خطوة",
+          "title": "اضغط زر البثّ المباشر",
+          "body": "ابدأ البثّ بنقرة واحدة. تُترجَم خطبتك فوراً"
+        },
+        "display": {
+          "label": "خطوة",
+          "title": "افتح شاشة العرض",
+          "body": "افتح شاشة العرض العامّة المرئيّة لكلّ زوّار المسجد"
         }
       }
     },
     "features": {
-      "eyebrow": "لوحة تحكم متكاملة",
-      "title": "التبرعات والخصم المباشر، تلقائياً",
-      "lead": "اجمع دعم مجتمعك دون عبء إداري — مدفوعات مدمجة، تفويضات SEPA متكررة، وتشغيل دفعات تلقائي.",
+      "eyebrow": "لوحة قيادة قويّة",
+      "title": "التبرّعات والخصم المباشر، على الطيّار الآلي",
+      "lead": "اجمع الدعم من جماعتك دون عبء الإدارة — مدفوعات مدمجة، تفويضات SEPA متكرّرة، ودُفعات تلقائيّة.",
       "tabs": {
         "overview": "نظرة عامة",
         "rooms": "الغرف",
@@ -919,34 +944,66 @@
       }
     },
     "useCases": {
-      "eyebrow": "Where it fits",
-      "title": "One platform, many gatherings.",
-      "lead": "We started with the Friday khutbah. The same tool now carries lessons, community nights, and outreach.",
+      "eyebrow": "فرص للدعوة",
+      "title": "حوّل كلّ لقاء",
+      "lead": "بدأنا بخطبة الجمعة. الأداة ذاتها تحمل الآن الدروس وأمسيات الجماعة والصفوف والفعاليّات.",
       "cases": {
         "khutbah": {
           "title": "Friday khutbah",
-          "body": "Worshippers who don't speak Arabic follow every word the imam says. Visitors and new Muslims hear the meaning without anyone whispering in their ear."
+          "body": "يَتبع المصلّون غير الناطقين بالعربيّة كلّ كلمة يقولها الإمام. ويشعر الزائرون والشباب بأنّهم جزءٌ من الجماعة، لا مستبعَدين.",
+          "tag": "دعوة أساسيّة",
+          "chips": [
+            "ترجمة حيّة",
+            "غرف متعدّدة",
+            "تسجيل"
+          ]
         },
         "lessons": {
-          "title": "Tafsir & dars",
-          "body": "Recurring lessons get persistent room codes. Students who missed a session catch up on the recording with the transcript and translation side by side."
+          "title": "دروس أسبوعيّة",
+          "body": "تحصل الدروس المتكرّرة على رموز غرف ثابتة. ومن فاتته جلسة يستدركها عبر النصوص المؤرشَفة."
         },
         "community": {
-          "title": "Community events",
-          "body": "Iftar talks, youth nights, conferences. Multilingual audiences leave with the same understanding instead of polite confusion."
+          "title": "فعاليّات الجماعة",
+          "body": "حديث الإفطار، أمسيات الشباب، المؤتمرات. يخرج الحضور متعدّدو اللغات بالرسالة ذاتها.",
+          "tag": "وحدة",
+          "chips": [
+            "فعاليّات",
+            "لغات",
+            "ضيوف"
+          ]
         },
         "classes": {
-          "title": "Islamic classes",
-          "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
+          "title": "الفصول الدراسيّة",
+          "body": "يرى المعلّمون من اتّصل، ويكتمون الغرفة بنقرة، ويُمرّرون الميكروفون إلى طالب بضغطة."
+        },
+        "education": {
+          "tag": "علم",
+          "title": "تعليم إسلامي",
+          "body": "اجعل دروس القرآن وعلوم الحديث في متناول كلّ طالب علم.",
+          "chips": [
+            "تفاعليّ",
+            "مواد دراسيّة",
+            "أسئلة وأجوبة"
+          ]
+        },
+        "dawah": {
+          "tag": "توسّع",
+          "title": "برامج الدعوة",
+          "body": "وسّع تواصلك مع غير الناطقين بالعربيّة. ليبلغ الإسلام كلّ قلب.",
+          "chips": [
+            "جمهور عامّ",
+            "محتدّون",
+            "أسئلة وأجوبة"
+          ]
         }
       }
     },
     "contact": {
       "eyebrow": "تواصل معنا",
-      "title": "لنُحضر بيان إلى مسجدكم",
-      "lead": "أخبرنا عن مجتمعكم وسنتواصل معكم خلال يوم عمل واحد.",
+      "title": "لنُحضر بيان إلى مسجدك",
+      "lead": "حدّثنا عن جماعتك وسنردّ خلال يوم عمل واحد.",
       "directTitle": "تواصل مباشر",
-      "directBody": "للشراكات أو الأسعار المخصصة أو لطلب عرض حي — راسلنا وسنرد عليكم بسرعة.",
+      "directBody": "للشراكات أو الأسعار المخصّصة أو لحجز عرض حيّ — راسلنا وسنردّ بسرعة.",
       "email": "support@bayaan.ai",
       "phone": "+31 6 28718008",
       "city": "أيندهوفن، هولندا",
@@ -965,11 +1022,11 @@
     },
     "pricing": {
       "eyebrow": "Pricing",
-      "title": "Honest pricing for honest work.",
-      "lead": "Pick a plan that fits the size of your community. Switch any time. Cancel any time.",
+      "title": "تسعير صادق لعمل صادق.",
+      "lead": "اختر الخطّة التي تناسب حجم جماعتك. بدّل في أي وقت. ألغِ في أي وقت.",
       "badge": "Most chosen",
       "cta": {
-        "start": "Start free trial",
+        "start": "ابدأ تجربة مجّانيّة",
         "contact": "Talk to us"
       },
       "tiers": {
@@ -977,53 +1034,84 @@
           "name": "Starter",
           "price": "€99",
           "period": "/ month",
-          "summary": "For a single mosque or class running weekly.",
-          "features": {
-            "rooms": "1 persistent room",
-            "languages": "All 50+ languages",
-            "recordings": "20 hours of recordings / month",
-            "support": "Email support"
-          }
+          "summary": "لمسجد واحد أو صفّ يعمل أسبوعياً.",
+          "features": [
+            "غرفة ترجمة واحدة",
+            "دعم خطبة الجمعة",
+            "تحليلات أساسيّة",
+            "دعم عبر البريد الإلكتروني",
+            "وصول من الجوّال"
+          ],
+          "hourRate": "€7",
+          "hours": "8 ساعات"
         },
         "pro": {
           "name": "Professional",
           "price": "€199",
           "period": "/ month",
-          "summary": "For active communities with multiple imams or recurring classes.",
-          "features": {
-            "rooms": "5 persistent rooms",
-            "languages": "All 50+ languages",
-            "recordings": "Unlimited recordings",
-            "analytics": "Listener analytics",
-            "publicDisplay": "Public display mode",
-            "support": "Priority support"
-          }
+          "summary": "لجماعات نشطة بعدّة أئمّة أو دروس متكرّرة.",
+          "features": [
+            "5 غرف ترجمة",
+            "تحليلات متقدّمة",
+            "دعم بأولويّة",
+            "شاشات عرض عامّة",
+            "تسجيل الجلسات",
+            "تصدير وأرشفة"
+          ],
+          "hourRate": "€5",
+          "hours": "20 ساعة"
         },
         "enterprise": {
           "name": "Enterprise",
           "price": "Custom",
           "period": "",
-          "summary": "For federations, networks, and large institutions.",
-          "features": {
-            "unlimited": "Unlimited rooms and listeners",
-            "sso": "SSO and provisioning",
-            "sla": "Uptime SLA",
-            "custom": "Custom languages on request",
-            "support": "Dedicated success manager"
-          }
+          "summary": "للاتّحادات والشبكات والمؤسّسات الكبرى.",
+          "features": [
+            "غرف غير محدودة",
+            "تكاملات مخصّصة",
+            "دعم مُخصّص",
+            "نشر على البنية التحتيّة الخاصّة",
+            "تدريب مشمول",
+            "وصول إلى الـ API",
+            "علامة بيضاء"
+          ],
+          "hourRate": "حسب الطلب",
+          "hours": "غير محدودة"
+        }
+      },
+      "perHour": "في الساعة",
+      "monthlyAllowance": "الحصّة الشهريّة",
+      "guarantee": "ضمان استرداد المال خلال 30 يوماً · بدون رسوم إعداد",
+      "zakat": "مؤهّل لأموال الزكاة ضمن فئتي التعليم الإسلامي والدعوة",
+      "callouts": {
+        "transparent": {
+          "title": "تسعير شفّاف",
+          "body": "لا رسوم خفيّة. ادفع فقط ما تستخدمه."
+        },
+        "instant": {
+          "title": "تفعيل فوري",
+          "body": "ابدأ بالترجمة خلال دقائق من التسجيل."
+        },
+        "streaming": {
+          "title": "بثّ مباشر",
+          "body": "تكامل مباشر مع YouTube Live (خطّة Pro)."
         }
       }
     },
     "cta": {
-      "title": "خطبتك تستحق أن تُفهم.",
-      "lead": "أنشئ غرفتك الأولى في خمس دقائق. ستصل خطبة الجمعة القادمة أبعد من سابقتها.",
+      "title": "هل أنت جاهز لتوسيع نطاق دعوتك؟",
+      "lead": "انضمّ إلى مساجد حول العالم لجعل المعرفة الإسلاميّة في متناول الجميع",
       "points": {
         "noCard": "بدون بطاقة ائتمان",
         "instant": "جاهز في خمس دقائق",
         "setup": "نساعدك في تجهيز فريقك"
       },
       "ctaPrimary": "ابدأ مجاناً",
-      "ctaSecondary": "تواصل معنا"
+      "ctaSecondary": "تواصل معنا",
+      "blessing": {
+        "arabic": "بارك الله فيكم",
+        "translation": "بارك الله فيكم"
+      }
     },
     "footer": {
       "tagline": "ترجمة فورية للخطب والدروس، مستضافة في الاتحاد الأوروبي. صُمِّمت كي لا ينتظر المعنى الكلمة.",
@@ -1032,7 +1120,9 @@
       "groups": {
         "product": "المنتج",
         "community": "المجتمع",
-        "company": "الشركة"
+        "company": "الشركة",
+        "mosques": "للمساجد",
+        "legal": "الشؤون القانونيّة"
       },
       "links": {
         "features": "الميزات",
@@ -1044,7 +1134,77 @@
         "donate": "ادعم عملنا",
         "email": "support@bayaan.ai",
         "privacy": "الخصوصية",
-        "terms": "الشروط"
+        "terms": "الشروط",
+        "demo": "اطلب عرضاً توضيحياً",
+        "api": "الوصول إلى الـ API",
+        "stories": "قصص نجاح",
+        "resources": "موارد",
+        "support": "الدعم",
+        "about": "من نحن",
+        "careers": "الوظائف",
+        "blog": "المدوّنة",
+        "security": "الأمن",
+        "compliance": "الامتثال"
+      },
+      "contact": {
+        "email": "support@bayaan.ai",
+        "phone": "+31 6 28718008",
+        "city": "آيندهوفن، هولندا"
+      }
+    },
+    "anecdote": {
+      "eyebrow": "لماذا وُجدت بيان",
+      "title": "من الإحباط إلى الإلهام",
+      "cta": "انضمّ إلى مهمّتنا",
+      "acts": {
+        "challenge": {
+          "label": "التحدّي",
+          "body": "حين كنت طفلاً، كان والدي يأخذني إلى خطبة الجمعة كلّ أسبوع. كنت طفلاً قَلِقاً مفرط الحركة، يصعب عليّ الجلوس ساعة كاملة، خاصّةً حين لا أفهم تماماً ما يُقال."
+        },
+        "realization": {
+          "label": "الإدراك",
+          "body": "مع أنّ العربيّة كانت لغة بيتنا، كانت مفرداتي محدودة، وكانت فصحى الخطيب الفصيحة تبدو عالماً آخر. كنت أتململ وأَشرَد، وأحياناً، أعترف، أُزعج والدي. لو كان هناك شيء كبيان آنذاك، بترجمة حيّة أمام عيني، لربّما أصغيتُ بانتباه أكبر وارتبطتُ بعمق أعمق."
+        },
+        "universal": {
+          "label": "حاجة عالميّة",
+          "body": "وهذا ليس فقط لغير الناطقين بالعربيّة. كثير من الناطقين بالعربيّة، خاصّةً الأجيال الشابّة أو من يتكلّمون لهجة فقط، يجدون صعوبة مع الفصحى أيضاً. هذه الأداة تَجسر تلك الفجوة، وتساعد الناطقين وغير الناطقين بالعربيّة على الاقتراب من لغة القرآن."
+        },
+        "vision": {
+          "label": "الرؤية",
+          "body": "رأيتُ كيف صار أبناء عمومتي في بلدنا يتقنون الإنجليزيّة بمجرّد مشاهدة أفلام إنجليزيّة بترجمة عربيّة. مع بيان، إن شاء الله، يمكننا عكس ذلك، فيستوعب الناس العربيّة الفصحى وهم يتابعون الخطبة بترجمة حيّة واضحة."
+        }
+      }
+    },
+    "verse": {
+      "arabic": "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ",
+      "translation": "وما أرسلناك إلّا رحمةً للعالمين.",
+      "citation": "القرآن 21:107"
+    },
+    "testimonials": {
+      "title": "مساجد تزدهر مع بيان",
+      "lead": "شاهد كيف توسّع مساجد حول العالم دعوتها وتوحّد مجتمعاتها",
+      "items": {
+        "ahmad": {
+          "quote": "لقد غيّرت بيان صلوات الجمعة عندنا. شبابنا غير الناطقين بالعربيّة باتوا متفاعلين أخيراً ويفهمون الخطبة. هذه دعوة حقيقيّة تتحقّق.",
+          "outcome": "ارتفاع تفاعل الشباب بنسبة 300٪",
+          "name": "الشيخ أحمد حسن",
+          "role": "إمام مسجد النور",
+          "location": "رورموند، هولندا"
+        },
+        "mamdouh": {
+          "quote": "بصفتنا مجتمعاً متنوّعاً يضمّ أكثر من 15 جنسيّة، تَجسر بيان فوارقنا اللغويّة بأناقة. لقد قوّى ذلك روابطنا ووسّع نطاق دعوتنا بشكل ملحوظ.",
+          "outcome": "توحيد أكثر من 15 جنسيّة",
+          "name": "الشيخ ممدوح",
+          "role": "مدير الجالية",
+          "location": "آيندهوفن، هولندا"
+        },
+        "yusuf": {
+          "quote": "بساطة الإعداد أذهلتنا. خلال دقائق، أصبح كبار السنّ في جماعتنا يطّلعون على الترجمات على هواتفهم. تقنيّة تخدم الإيمان بأكمل وجه.",
+          "outcome": "إعداد في أقل من 10 دقائق",
+          "name": "الأخ يوسف إبراهيم",
+          "role": "مدير المسجد",
+          "location": "ماسايك، بلجيكا"
+        }
       }
     }
   }

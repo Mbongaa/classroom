@@ -19,6 +19,8 @@ interface MarketingTeacherTileProps {
   name: string;
   className?: string;
   onTimeUpdate?: (time: number) => void;
+  isStreamMuted?: boolean;
+  onToggleStreamMute?: () => void;
 }
 
 /**
@@ -34,9 +36,13 @@ export function MarketingTeacherTile({
   name,
   className = '',
   onTimeUpdate,
+  isStreamMuted: isStreamMutedProp,
+  onToggleStreamMute,
 }: MarketingTeacherTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [isStreamMuted, setIsStreamMuted] = useState(true);
+  const [internalMuted, setInternalMuted] = useState(true);
+  const isControlled = isStreamMutedProp !== undefined;
+  const isStreamMuted = isControlled ? isStreamMutedProp : internalMuted;
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Static stand-ins for the hooks
@@ -62,10 +68,11 @@ export function MarketingTeacherTile({
   }, [onTimeUpdate]);
 
   const toggleStreamMute = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    v.muted = !isStreamMuted;
-    setIsStreamMuted(!isStreamMuted);
+    if (onToggleStreamMute) {
+      onToggleStreamMute();
+      return;
+    }
+    setInternalMuted((m) => !m);
   };
 
   return (

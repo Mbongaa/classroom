@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Volume2, VolumeOff } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 import styles from '@/app/components/SpeechTranslationPanel.module.css';
 
@@ -14,6 +16,8 @@ interface MarketingTranslationPanelProps {
   segments: MarketingSegment[];
   targetLanguage?: string;
   variant?: 'desktop' | 'mobile';
+  isStreamMuted?: boolean;
+  onToggleStreamMute?: () => void;
 }
 
 const languageLabels: Record<string, string> = {
@@ -32,6 +36,8 @@ export function MarketingTranslationPanel({
   segments,
   targetLanguage = 'en',
   variant = 'desktop',
+  isStreamMuted,
+  onToggleStreamMute,
 }: MarketingTranslationPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(variant === 'mobile' ? 22 : 50);
@@ -83,9 +89,82 @@ export function MarketingTranslationPanel({
 
       <div className={styles.bottomBar}>
         <div className={styles.bottomBarLeft}>
-          {segments.length > 0 && (
-            <span className={styles.messageCountBadge}>{segments.length}</span>
-          )}
+          {onToggleStreamMute &&
+            (isStreamMuted ? (
+              <div className="relative inline-flex">
+                {[0, 1].map((i) => (
+                  <motion.span
+                    key={i}
+                    aria-hidden
+                    initial={{ scale: 1, opacity: 0 }}
+                    animate={{ scale: 2.4, opacity: [0.55, 0] }}
+                    transition={{
+                      duration: 2,
+                      delay: i * 1,
+                      repeat: Infinity,
+                      ease: 'easeOut',
+                    }}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      borderRadius: 9999,
+                      backgroundColor: 'var(--mkt-accent, #ff4d4d)',
+                      pointerEvents: 'none',
+                      transformOrigin: 'center',
+                      willChange: 'transform, opacity',
+                    }}
+                  />
+                ))}
+                <button
+                  type="button"
+                  onClick={onToggleStreamMute}
+                  aria-label="Unmute audio"
+                  title="Tap to hear the audio"
+                  style={{
+                    position: 'relative',
+                    zIndex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '8px 14px',
+                    borderRadius: 9999,
+                    backgroundColor: 'var(--mkt-accent, #ff4d4d)',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 600,
+                    boxShadow: '0 2px 8px rgba(255, 77, 77, 0.45)',
+                  }}
+                >
+                  <VolumeOff style={{ width: 16, height: 16 }} />
+                  Tap to hear
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onToggleStreamMute}
+                aria-label="Mute audio"
+                title="Mute"
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '8px 14px',
+                  borderRadius: 9999,
+                  backgroundColor: 'rgba(0,0,0,0.5)',
+                  color: 'white',
+                  border: 'none',
+                  cursor: 'pointer',
+                  fontSize: 13,
+                  fontWeight: 500,
+                }}
+              >
+                <Volume2 style={{ width: 16, height: 16 }} />
+                Mute
+              </button>
+            ))}
         </div>
         <div className={styles.bottomBarRight}>
           <div className={styles.fontControls}>

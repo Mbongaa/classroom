@@ -830,12 +830,12 @@
     "hero": {
       "eyebrow": "Live in 12 moskeeën in Nederland en België",
       "headline": {
-        "line1": "Vertaling die meereist",
-        "line2": "met de preek."
+        "line1": "Van de minbar",
+        "line2": "naar elke telefoon."
       },
-      "lead": "Bayaan luistert real-time naar de imam en brengt de betekenis naar elke luisteraar in de taal waarin die denkt. Geen koptelefoons uitdelen, geen tolken inplannen, geen wachten.",
+      "lead": "Bayaan luistert in real-time naar de imam en levert de betekenis aan elke luisteraar in zijn eigen taal — in slechts enkele seconden.",
       "ctaPrimary": "Begin gratis",
-      "ctaSecondary": "Bekijk hoe het werkt",
+      "ctaSecondary": "Zo werkt het",
       "stats": {
         "mosques": {
           "label": "Moskeeën",
@@ -849,6 +849,11 @@
           "label": "Vertraging",
           "value": "≈2,5s"
         }
+      },
+      "benefits": {
+        "inclusive": "inclusief",
+        "multiLanguage": "meertalig",
+        "realTime": "realtime"
       }
     },
     "trust": {
@@ -856,28 +861,48 @@
       "label": "Vertrouwd door gemeenschappen in"
     },
     "howItWorks": {
-      "eyebrow": "How it works",
-      "title": "From the minbar to every phone in the room.",
-      "lead": "Three steps. The imam doesn't change a thing about how they teach.",
+      "eyebrow": "Hoe het werkt",
+      "title": "Van de minbar naar elke telefoon in de zaal.",
+      "lead": "Drie stappen. De imam verandert niets aan zijn manier van preken.",
       "steps": {
         "create": {
-          "title": "Create a room",
-          "body": "Open Bayaan in your browser, give the room a name like 'Friday Khutbah', and choose which languages you want to offer. Done in under a minute."
+          "title": "Maak een ruimte aan",
+          "body": "Open Bayaan in je browser, geef de ruimte een naam zoals “Vrijdagskhutba” en kies de talen die je wilt aanbieden."
         },
         "share": {
-          "title": "Share the link",
-          "body": "Display a QR code on the wall, post it in your community group, or print it on a flyer. Listeners join with a tap, no app to install."
+          "title": "Deel de link",
+          "body": "Toon een QR-code aan de muur, plaats hem in je gemeenschapsgroep of druk hem op een handout."
         },
         "translate": {
-          "title": "Speak naturally",
-          "body": "The imam speaks in Arabic. Listeners watch the meaning land in real time, in the language they chose. You see it, hear it, and can recall it later."
+          "title": "Spreek natuurlijk",
+          "body": "De imam spreekt in het Arabisch. Luisteraars zien de betekenis in real-time verschijnen, in hun eigen taal."
+        },
+        "account": {
+          "label": "STAP",
+          "title": "maak een moskee-account aan",
+          "body": "meld je in enkele minuten aan en stel je moskeeprofiel in met ruimteconfiguraties"
+        },
+        "room": {
+          "label": "STAP",
+          "title": "maak een ruimte aan",
+          "body": "stel de ruimte in die naar je preek luistert en deze realtime vertaalt"
+        },
+        "golive": {
+          "label": "STAP",
+          "title": "druk op Ga Live",
+          "body": "start met uitzenden met één klik. je preek wordt direct vertaald"
+        },
+        "display": {
+          "label": "STAP",
+          "title": "open het scherm",
+          "body": "open het publieke scherm dat zichtbaar is voor alle moskeebezoekers"
         }
       }
     },
     "features": {
-      "eyebrow": "Krachtig dashboard",
-      "title": "Donaties en incasso's, op de automatische piloot",
-      "lead": "Verzamel steun van uw gemeenschap zonder de administratieve last — ingebouwde betalingen, doorlopende SEPA-machtigingen en geautomatiseerde batches.",
+      "eyebrow": "krachtig dashboard",
+      "title": "donaties en automatische incasso’s, op de automatische piloot",
+      "lead": "verzamel steun van je gemeenschap zonder de administratieve last — ingebouwde betalingen, terugkerende SEPA-machtigingen en automatische batches.",
       "tabs": {
         "overview": "overzicht",
         "rooms": "ruimtes",
@@ -918,34 +943,66 @@
       }
     },
     "useCases": {
-      "eyebrow": "Where it fits",
-      "title": "One platform, many gatherings.",
-      "lead": "We started with the Friday khutbah. The same tool now carries lessons, community nights, and outreach.",
+      "eyebrow": "kansen voor dawah",
+      "title": "verander elke bijeenkomst",
+      "lead": "We begonnen met de vrijdagskhutba. Hetzelfde gereedschap draagt nu lessen, gemeenschapsavonden, klassen en evenementen.",
       "cases": {
         "khutbah": {
           "title": "Friday khutbah",
-          "body": "Worshippers who don't speak Arabic follow every word the imam says. Visitors and new Muslims hear the meaning without anyone whispering in their ear."
+          "body": "Aanbidders die geen Arabisch spreken volgen elk woord van de imam. Bezoekers en jongeren voelen zich opgenomen, niet buitengesloten.",
+          "tag": "kerndawah",
+          "chips": [
+            "live vertaling",
+            "meerdere ruimtes",
+            "opname"
+          ]
         },
         "lessons": {
-          "title": "Tafsir & dars",
-          "body": "Recurring lessons get persistent room codes. Students who missed a session catch up on the recording with the transcript and translation side by side."
+          "title": "Wekelijkse lessen",
+          "body": "Terugkerende lessen krijgen vaste ruimtecodes. Studenten die een sessie misten, halen die op met de gearchiveerde transcripties."
         },
         "community": {
-          "title": "Community events",
-          "body": "Iftar talks, youth nights, conferences. Multilingual audiences leave with the same understanding instead of polite confusion."
+          "title": "Gemeenschapsevenementen",
+          "body": "Iftarpraatjes, jongerenavonden, conferenties. Meertalige aanwezigen vertrekken met dezelfde boodschap.",
+          "tag": "eenheid",
+          "chips": [
+            "evenementen",
+            "talen",
+            "gasten"
+          ]
         },
         "classes": {
-          "title": "Islamic classes",
-          "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
+          "title": "Klaslokalen",
+          "body": "Docenten zien wie verbonden is, dempen de ruimte met één tik en geven de microfoon door aan een student met één klik."
+        },
+        "education": {
+          "tag": "kennis",
+          "title": "islamitisch onderwijs",
+          "body": "maak Qur’an-lessen en hadithstudies toegankelijk voor iedere zoeker naar kennis.",
+          "chips": [
+            "interactief",
+            "lesmateriaal",
+            "vragen & antwoorden"
+          ]
+        },
+        "dawah": {
+          "tag": "uitbreiding",
+          "title": "dawahprogramma’s",
+          "body": "breid je bereik uit naar niet-Arabisch sprekenden. laat de islam ieder hart bereiken.",
+          "chips": [
+            "publiek",
+            "bekeerlingen",
+            "vragen & antwoorden"
+          ]
         }
       }
     },
     "contact": {
-      "eyebrow": "Neem contact op",
-      "title": "Breng Bayaan naar uw moskee",
-      "lead": "Vertel ons over uw gemeenschap en we nemen binnen één werkdag contact op.",
+      "eyebrow": "neem contact op",
+      "title": "breng bayaan naar jouw moskee",
+      "lead": "vertel ons over je gemeenschap en we nemen binnen één werkdag contact op.",
       "directTitle": "Direct contact",
-      "directBody": "Voor partnerschappen, op maat gemaakte prijzen of een live demo — laat van u horen en we reageren snel.",
+      "directBody": "Voor partnerschappen, op maat gemaakte prijzen of een live demo — laat van je horen en we reageren snel.",
       "email": "support@bayaan.ai",
       "phone": "+31 6 28718008",
       "city": "Eindhoven, Nederland",
@@ -964,11 +1021,11 @@
     },
     "pricing": {
       "eyebrow": "Pricing",
-      "title": "Honest pricing for honest work.",
-      "lead": "Pick a plan that fits the size of your community. Switch any time. Cancel any time.",
+      "title": "Eerlijke prijzen voor eerlijk werk.",
+      "lead": "Kies een plan dat past bij de omvang van je gemeenschap. Wissel op elk moment. Annuleer op elk moment.",
       "badge": "Most chosen",
       "cta": {
-        "start": "Start free trial",
+        "start": "Begin een gratis proefperiode",
         "contact": "Talk to us"
       },
       "tiers": {
@@ -976,53 +1033,84 @@
           "name": "Starter",
           "price": "€99",
           "period": "/ month",
-          "summary": "For a single mosque or class running weekly.",
-          "features": {
-            "rooms": "1 persistent room",
-            "languages": "All 50+ languages",
-            "recordings": "20 hours of recordings / month",
-            "support": "Email support"
-          }
+          "summary": "Voor een enkele moskee of klas die wekelijks draait.",
+          "features": [
+            "1 vertaalruimte",
+            "ondersteuning vrijdagskhutba",
+            "basisanalyse",
+            "e-mailondersteuning",
+            "mobiele toegang"
+          ],
+          "hourRate": "€7",
+          "hours": "8 uur"
         },
         "pro": {
           "name": "Professional",
           "price": "€199",
           "period": "/ month",
-          "summary": "For active communities with multiple imams or recurring classes.",
-          "features": {
-            "rooms": "5 persistent rooms",
-            "languages": "All 50+ languages",
-            "recordings": "Unlimited recordings",
-            "analytics": "Listener analytics",
-            "publicDisplay": "Public display mode",
-            "support": "Priority support"
-          }
+          "summary": "Voor actieve gemeenschappen met meerdere imams of terugkerende lessen.",
+          "features": [
+            "5 vertaalruimtes",
+            "geavanceerde analyses",
+            "prioriteitsondersteuning",
+            "publieke schermen",
+            "sessie-opnames",
+            "export & archief"
+          ],
+          "hourRate": "€5",
+          "hours": "20 uur"
         },
         "enterprise": {
           "name": "Enterprise",
           "price": "Custom",
           "period": "",
-          "summary": "For federations, networks, and large institutions.",
-          "features": {
-            "unlimited": "Unlimited rooms and listeners",
-            "sso": "SSO and provisioning",
-            "sla": "Uptime SLA",
-            "custom": "Custom languages on request",
-            "support": "Dedicated success manager"
-          }
+          "summary": "Voor federaties, netwerken en grote instellingen.",
+          "features": [
+            "onbeperkte ruimtes",
+            "aangepaste integraties",
+            "speciale ondersteuning",
+            "on-premise optie",
+            "training inbegrepen",
+            "api-toegang",
+            "white labeling"
+          ],
+          "hourRate": "op maat",
+          "hours": "onbeperkt"
+        }
+      },
+      "perHour": "per uur",
+      "monthlyAllowance": "Maandelijks tegoed",
+      "guarantee": "30 dagen geld-terug-garantie · geen installatiekosten",
+      "zakat": "in aanmerking voor zakatfondsen onder islamitisch onderwijs en dawahcategorieën",
+      "callouts": {
+        "transparent": {
+          "title": "transparante prijzen",
+          "body": "geen verborgen kosten. betaal alleen voor wat je gebruikt."
+        },
+        "instant": {
+          "title": "directe activering",
+          "body": "begin met vertalen binnen enkele minuten na aanmelden."
+        },
+        "streaming": {
+          "title": "live streaming",
+          "body": "directe integratie met youtube live (pro-plan)."
         }
       }
     },
     "cta": {
-      "title": "Jouw khutbah verdient het om begrepen te worden.",
-      "lead": "Zet je eerste ruimte op in vijf minuten. De volgende jumuah reikt verder dan de vorige.",
+      "title": "klaar om je dawah-bereik uit te breiden?",
+      "lead": "sluit je aan bij moskeeën wereldwijd om islamitische kennis voor iedereen toegankelijk te maken",
       "points": {
         "noCard": "Geen creditcard nodig",
         "instant": "Live in vijf minuten",
         "setup": "We helpen je team op weg"
       },
       "ctaPrimary": "Begin gratis",
-      "ctaSecondary": "Praat met ons"
+      "ctaSecondary": "Praat met ons",
+      "blessing": {
+        "arabic": "بارك الله فيكم",
+        "translation": "moge Allah jullie zegenen"
+      }
     },
     "footer": {
       "tagline": "Real-time vertaling voor preken en lessen, gehost in de EU. Gemaakt zodat de betekenis nooit hoeft te wachten op het woord.",
@@ -1031,7 +1119,9 @@
       "groups": {
         "product": "Product",
         "community": "Gemeenschap",
-        "company": "Bedrijf"
+        "company": "Bedrijf",
+        "mosques": "voor moskeeën",
+        "legal": "juridisch"
       },
       "links": {
         "features": "Mogelijkheden",
@@ -1043,7 +1133,77 @@
         "donate": "Steun ons werk",
         "email": "support@bayaan.ai",
         "privacy": "Privacy",
-        "terms": "Voorwaarden"
+        "terms": "Voorwaarden",
+        "demo": "demo aanvragen",
+        "api": "api-toegang",
+        "stories": "succesverhalen",
+        "resources": "bronnen",
+        "support": "ondersteuning",
+        "about": "over ons",
+        "careers": "vacatures",
+        "blog": "blog",
+        "security": "beveiliging",
+        "compliance": "compliance"
+      },
+      "contact": {
+        "email": "support@bayaan.ai",
+        "phone": "+31 6 28718008",
+        "city": "Eindhoven, Nederland"
+      }
+    },
+    "anecdote": {
+      "eyebrow": "waarom bayaan bestaat",
+      "title": "van frustratie naar inspiratie",
+      "cta": "Doe mee met onze missie",
+      "acts": {
+        "challenge": {
+          "label": "DE UITDAGING",
+          "body": "Als kind nam mijn vader me elke week mee naar de vrijdagskhutba. Ik was een rusteloos, hyperactief kind. Het soort dat het bijna onmogelijk vond om een uur stil te zitten, vooral wanneer ik niet volledig begreep wat er werd gezegd."
+        },
+        "realization": {
+          "label": "HET BESEF",
+          "body": "Hoewel Arabisch de taal van ons huis was, was mijn woordenschat beperkt en voelde de welsprekende fusha van de khatib als een andere wereld. Ik friemelde, droomde weg en, ik geef het toe, irriteerde mijn vader soms. Als zoiets als Bayaan toen had bestaan, met live vertalingen recht voor mijn ogen, had ik misschien aandachtiger geluisterd en me dieper verbonden gevoeld."
+        },
+        "universal": {
+          "label": "UNIVERSELE BEHOEFTE",
+          "body": "En dit is niet alleen voor niet-Arabisch sprekenden. Veel Arabisch sprekenden, vooral jongere generaties of mensen die alleen een dialect spreken, hebben ook moeite met fusha. Deze tool overbrugt die kloof en helpt zowel Arabisch als niet-Arabisch sprekenden dichter bij de taal van de Qur’an te komen."
+        },
+        "vision": {
+          "label": "DE VISIE",
+          "body": "Ik heb gezien hoe mijn neven thuis vloeiend Engels werden door simpelweg Engelse films met Arabische ondertiteling te kijken. Met Bayaan, in sha’Allah, kunnen we dat omkeren, zodat mensen fusha-Arabisch oppikken terwijl ze de khutba volgen met heldere, live ondertiteling."
+        }
+      }
+    },
+    "verse": {
+      "arabic": "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ",
+      "translation": "en Wij hebben jou [o Mohammed] slechts gezonden als een genade voor de werelden.",
+      "citation": "Qur’an 21:107"
+    },
+    "testimonials": {
+      "title": "moskeeën die opbloeien met bayaan",
+      "lead": "zie hoe moskeeën wereldwijd hun dawah uitbreiden en hun gemeenschappen verenigen",
+      "items": {
+        "ahmad": {
+          "quote": "Bayaan heeft onze vrijdaggebeden getransformeerd. Onze niet-Arabisch sprekende jongeren zijn eindelijk betrokken en begrijpen de khutba. Dit is echte Dawah in actie.",
+          "outcome": "Betrokkenheid van jongeren met 300% gestegen",
+          "name": "Sjeik Ahmad Hassan",
+          "role": "Imam, Masjid Al-Noor",
+          "location": "Roermond, Nederland"
+        },
+        "mamdouh": {
+          "quote": "Als diverse gemeenschap met meer dan 15 nationaliteiten overbrugt Bayaan onze taalbarrières prachtig. Het heeft onze banden versterkt en ons bereik aanzienlijk vergroot.",
+          "outcome": "15+ nationaliteiten verenigd",
+          "name": "Sjeik Mamdouh",
+          "role": "Gemeenschapsdirecteur",
+          "location": "Eindhoven, Nederland"
+        },
+        "yusuf": {
+          "quote": "De eenvoud van de installatie verbaasde ons. Binnen enkele minuten konden onze oudere gemeenschapsleden vertalingen op hun telefoons bekijken. Technologie die het geloof perfect dient.",
+          "outcome": "Geïnstalleerd in minder dan 10 minuten",
+          "name": "Broeder Yusuf Ibrahim",
+          "role": "Moskeebeheerder",
+          "location": "Maaseik, België"
+        }
       }
     }
   }

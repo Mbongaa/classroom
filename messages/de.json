@@ -821,21 +821,21 @@
       "openMenu": "Open menu",
       "closeMenu": "Close menu",
       "links": {
-        "howItWorks": "How it works",
+        "howItWorks": "So funktioniert es",
         "features": "Features",
         "useCases": "Use cases",
         "contact": "Contact"
       }
     },
     "hero": {
-      "eyebrow": "Live in 12 mosques across NL & BE",
+      "eyebrow": "Live in 12 Moscheen in NL und BE",
       "headline": {
-        "line1": "Translation that travels",
-        "line2": "with the sermon."
+        "line1": "Von der Minbar",
+        "line2": "auf jedes Telefon."
       },
-      "lead": "Bayaan listens to the imam in real time and delivers the meaning to every listener in the language they think in. No headsets to hand out, no translators to schedule, no waiting.",
-      "ctaPrimary": "Start free",
-      "ctaSecondary": "See how it works",
+      "lead": "Bayaan hört dem Imam in Echtzeit zu und liefert die Bedeutung an jeden Zuhörer in seiner eigenen Sprache — in nur wenigen Sekunden.",
+      "ctaPrimary": "Kostenlos starten",
+      "ctaSecondary": "So funktioniert es",
       "stats": {
         "mosques": {
           "label": "Mosques",
@@ -849,35 +849,60 @@
           "label": "Latency",
           "value": "≈2.5s"
         }
+      },
+      "benefits": {
+        "inclusive": "inklusiv",
+        "multiLanguage": "mehrsprachig",
+        "realTime": "echtzeit"
       }
     },
     "trust": {
-      "ariaLabel": "Communities using Bayaan",
+      "ariaLabel": "Gemeinschaften, die Bayaan nutzen",
       "label": "Trusted by communities in"
     },
     "howItWorks": {
-      "eyebrow": "How it works",
-      "title": "From the minbar to every phone in the room.",
-      "lead": "Three steps. The imam doesn't change a thing about how they teach.",
+      "eyebrow": "So funktioniert es",
+      "title": "Von der Minbar auf jedes Telefon im Raum.",
+      "lead": "Drei Schritte. Der Imam ändert nichts an seiner Art zu predigen.",
       "steps": {
         "create": {
-          "title": "Create a room",
-          "body": "Open Bayaan in your browser, give the room a name like 'Friday Khutbah', and choose which languages you want to offer. Done in under a minute."
+          "title": "Erstelle einen Raum",
+          "body": "Öffne Bayaan im Browser, gib dem Raum einen Namen wie „Freitags-Khutba“ und wähle die Sprachen, die du anbieten möchtest."
         },
         "share": {
-          "title": "Share the link",
-          "body": "Display a QR code on the wall, post it in your community group, or print it on a flyer. Listeners join with a tap, no app to install."
+          "title": "Teile den Link",
+          "body": "Zeige einen QR-Code an der Wand, poste ihn in der Gemeinschaftsgruppe oder drucke ihn auf ein Handout."
         },
         "translate": {
-          "title": "Speak naturally",
-          "body": "The imam speaks in Arabic. Listeners watch the meaning land in real time, in the language they chose. You see it, hear it, and can recall it later."
+          "title": "Sprich natürlich",
+          "body": "Der Imam spricht auf Arabisch. Zuhörer sehen die Bedeutung in Echtzeit erscheinen, in ihrer eigenen Sprache."
+        },
+        "account": {
+          "label": "SCHRITT",
+          "title": "erstelle dein moschee-konto",
+          "body": "melde dich in wenigen minuten an und richte dein moschee-profil mit raumkonfigurationen ein"
+        },
+        "room": {
+          "label": "SCHRITT",
+          "title": "raum erstellen",
+          "body": "richte den raum ein, der deiner predigt zuhört und sie in echtzeit übersetzt"
+        },
+        "golive": {
+          "label": "SCHRITT",
+          "title": "drücke Go Live",
+          "body": "starte die übertragung mit einem klick. deine predigt wird sofort übersetzt"
+        },
+        "display": {
+          "label": "SCHRITT",
+          "title": "öffne das display",
+          "body": "öffne das öffentliche display, das für alle moscheebesucher sichtbar ist"
         }
       }
     },
     "features": {
-      "eyebrow": "Leistungsstarkes Dashboard",
-      "title": "Spenden und Lastschriften — vollautomatisch",
-      "lead": "Unterstützung der Gemeinde sammeln, ohne den Verwaltungsaufwand — eingebaute Zahlungen, wiederkehrende SEPA-Mandate und automatisierte Stapelläufe.",
+      "eyebrow": "leistungsstarkes dashboard",
+      "title": "spenden und lastschriften, auf autopilot",
+      "lead": "sammle unterstützung von deiner gemeinschaft ohne den verwaltungsaufwand — eingebaute zahlungen, wiederkehrende SEPA-mandate und automatische batches.",
       "tabs": {
         "overview": "Übersicht",
         "rooms": "Räume",
@@ -918,34 +943,66 @@
       }
     },
     "useCases": {
-      "eyebrow": "Where it fits",
-      "title": "One platform, many gatherings.",
-      "lead": "We started with the Friday khutbah. The same tool now carries lessons, community nights, and outreach.",
+      "eyebrow": "chancen für dawah",
+      "title": "verwandle jede zusammenkunft",
+      "lead": "Wir begannen mit der Freitags-Khutba. Dasselbe Werkzeug trägt nun Lektionen, Gemeinschaftsabende, Klassen und Veranstaltungen.",
       "cases": {
         "khutbah": {
           "title": "Friday khutbah",
-          "body": "Worshippers who don't speak Arabic follow every word the imam says. Visitors and new Muslims hear the meaning without anyone whispering in their ear."
+          "body": "Gläubige, die kein Arabisch sprechen, folgen jedem Wort des Imams. Gäste und Jugendliche fühlen sich einbezogen, nicht ausgeschlossen.",
+          "tag": "kerndawah",
+          "chips": [
+            "live-übersetzung",
+            "mehrere räume",
+            "aufnahme"
+          ]
         },
         "lessons": {
-          "title": "Tafsir & dars",
-          "body": "Recurring lessons get persistent room codes. Students who missed a session catch up on the recording with the transcript and translation side by side."
+          "title": "Wöchentliche Lektionen",
+          "body": "Wiederkehrende Lektionen erhalten feste Raumcodes. Wer eine Sitzung verpasst hat, kann sie über das archivierte Transkript nachholen."
         },
         "community": {
-          "title": "Community events",
-          "body": "Iftar talks, youth nights, conferences. Multilingual audiences leave with the same understanding instead of polite confusion."
+          "title": "Gemeinschaftsveranstaltungen",
+          "body": "Iftar-Gespräche, Jugendabende, Konferenzen. Mehrsprachige Teilnehmer gehen mit derselben Botschaft.",
+          "tag": "einheit",
+          "chips": [
+            "veranstaltungen",
+            "sprachen",
+            "gäste"
+          ]
         },
         "classes": {
-          "title": "Islamic classes",
-          "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
+          "title": "Klassenzimmer",
+          "body": "Lehrkräfte sehen, wer verbunden ist, schalten den Raum mit einem Tipp stumm und reichen das Mikrofon mit einem Klick an einen Schüler weiter."
+        },
+        "education": {
+          "tag": "wissen",
+          "title": "islamische bildung",
+          "body": "mache qur’an-unterricht und hadith-studien für jeden suchenden zugänglich.",
+          "chips": [
+            "interaktiv",
+            "lernmaterial",
+            "q&a"
+          ]
+        },
+        "dawah": {
+          "tag": "erweiterung",
+          "title": "dawah-programme",
+          "body": "erweitere deine reichweite zu nicht-arabischsprechern. lass den islam jedes herz erreichen.",
+          "chips": [
+            "öffentlich",
+            "konvertiten",
+            "q&a"
+          ]
         }
       }
     },
     "contact": {
-      "eyebrow": "Kontakt aufnehmen",
-      "title": "Lassen Sie uns Bayaan in Ihre Moschee bringen",
-      "lead": "Erzählen Sie uns von Ihrer Gemeinde — wir melden uns innerhalb eines Werktags.",
+      "eyebrow": "kontakt aufnehmen",
+      "title": "bringen wir bayaan in deine moschee",
+      "lead": "erzähl uns von deiner gemeinschaft und wir melden uns innerhalb eines werktages.",
       "directTitle": "Direkter Kontakt",
-      "directBody": "Für Partnerschaften, individuelle Preise oder eine Live-Demo — schreiben Sie uns und wir antworten zeitnah.",
+      "directBody": "Für Partnerschaften, individuelle Preise oder eine Live-Demo — schreib uns und wir melden uns schnell zurück.",
       "email": "support@bayaan.ai",
       "phone": "+31 6 28718008",
       "city": "Eindhoven, Niederlande",
@@ -964,11 +1021,11 @@
     },
     "pricing": {
       "eyebrow": "Pricing",
-      "title": "Honest pricing for honest work.",
-      "lead": "Pick a plan that fits the size of your community. Switch any time. Cancel any time.",
+      "title": "Ehrliche Preise für ehrliche Arbeit.",
+      "lead": "Wähle einen Plan passend zur Größe deiner Gemeinschaft. Jederzeit wechseln. Jederzeit kündigen.",
       "badge": "Most chosen",
       "cta": {
-        "start": "Start free trial",
+        "start": "Kostenlose Testphase starten",
         "contact": "Talk to us"
       },
       "tiers": {
@@ -976,53 +1033,84 @@
           "name": "Starter",
           "price": "€99",
           "period": "/ month",
-          "summary": "For a single mosque or class running weekly.",
-          "features": {
-            "rooms": "1 persistent room",
-            "languages": "All 50+ languages",
-            "recordings": "20 hours of recordings / month",
-            "support": "Email support"
-          }
+          "summary": "Für eine einzelne Moschee oder Klasse mit wöchentlichem Betrieb.",
+          "features": [
+            "1 übersetzungsraum",
+            "unterstützung der freitags-khutba",
+            "basis-analysen",
+            "e-mail-support",
+            "mobiler zugriff"
+          ],
+          "hourRate": "€7",
+          "hours": "8 stunden"
         },
         "pro": {
           "name": "Professional",
           "price": "€199",
           "period": "/ month",
-          "summary": "For active communities with multiple imams or recurring classes.",
-          "features": {
-            "rooms": "5 persistent rooms",
-            "languages": "All 50+ languages",
-            "recordings": "Unlimited recordings",
-            "analytics": "Listener analytics",
-            "publicDisplay": "Public display mode",
-            "support": "Priority support"
-          }
+          "summary": "Für aktive Gemeinschaften mit mehreren Imamen oder wiederkehrenden Klassen.",
+          "features": [
+            "5 übersetzungsräume",
+            "erweiterte analysen",
+            "priorisierter support",
+            "öffentliche bildschirme",
+            "sitzungs-aufzeichnung",
+            "export & archiv"
+          ],
+          "hourRate": "€5",
+          "hours": "20 stunden"
         },
         "enterprise": {
           "name": "Enterprise",
           "price": "Custom",
           "period": "",
-          "summary": "For federations, networks, and large institutions.",
-          "features": {
-            "unlimited": "Unlimited rooms and listeners",
-            "sso": "SSO and provisioning",
-            "sla": "Uptime SLA",
-            "custom": "Custom languages on request",
-            "support": "Dedicated success manager"
-          }
+          "summary": "Für Föderationen, Netzwerke und große Institutionen.",
+          "features": [
+            "unbegrenzte räume",
+            "individuelle integrationen",
+            "dedizierter support",
+            "on-premise-option",
+            "schulung inklusive",
+            "api-zugang",
+            "white labeling"
+          ],
+          "hourRate": "individuell",
+          "hours": "unbegrenzt"
+        }
+      },
+      "perHour": "pro stunde",
+      "monthlyAllowance": "Monatliches Kontingent",
+      "guarantee": "30 Tage Geld-zurück-Garantie · keine Einrichtungsgebühren",
+      "zakat": "für Zakatmittel unter den Kategorien islamische Bildung und Dawah berechtigt",
+      "callouts": {
+        "transparent": {
+          "title": "transparente preise",
+          "body": "keine versteckten gebühren. zahle nur, was du nutzt."
+        },
+        "instant": {
+          "title": "sofortige aktivierung",
+          "body": "beginne mit dem übersetzen innerhalb weniger minuten nach der anmeldung."
+        },
+        "streaming": {
+          "title": "live-streaming",
+          "body": "direkte integration mit youtube live (pro-plan)."
         }
       }
     },
     "cta": {
-      "title": "Your khutbah deserves to be understood.",
-      "lead": "Set up your first room in five minutes. The next jumu'ah carries further than the last one.",
+      "title": "bereit, deine dawah-reichweite zu erweitern?",
+      "lead": "schließe dich moscheen weltweit an, um islamisches wissen für alle zugänglich zu machen",
       "points": {
         "noCard": "No credit card to start",
         "instant": "Live in five minutes",
         "setup": "We'll help you onboard your team"
       },
       "ctaPrimary": "Start free",
-      "ctaSecondary": "Talk to us"
+      "ctaSecondary": "Talk to us",
+      "blessing": {
+        "arabic": "بارك الله فيكم",
+        "translation": "möge Allah euch segnen"
+      }
     },
     "footer": {
       "tagline": "Real-time sermon and classroom translation, hosted in the EU. Built so the meaning never has to wait for the message.",
@@ -1031,7 +1119,9 @@
       "groups": {
         "product": "Product",
         "community": "Community",
-        "company": "Company"
+        "company": "Company",
+        "mosques": "für moscheen",
+        "legal": "rechtliches"
       },
       "links": {
         "features": "Features",
@@ -1043,7 +1133,77 @@
         "donate": "Support our work",
         "email": "support@bayaan.ai",
         "privacy": "Privacy",
-        "terms": "Terms"
+        "terms": "Terms",
+        "demo": "demo anfragen",
+        "api": "api-zugang",
+        "stories": "erfolgsgeschichten",
+        "resources": "ressourcen",
+        "support": "support",
+        "about": "über uns",
+        "careers": "karriere",
+        "blog": "blog",
+        "security": "sicherheit",
+        "compliance": "compliance"
+      },
+      "contact": {
+        "email": "support@bayaan.ai",
+        "phone": "+31 6 28718008",
+        "city": "Eindhoven, Niederlande"
+      }
+    },
+    "anecdote": {
+      "eyebrow": "warum bayaan existiert",
+      "title": "von frustration zu inspiration",
+      "cta": "Mach mit bei unserer Mission",
+      "acts": {
+        "challenge": {
+          "label": "DIE HERAUSFORDERUNG",
+          "body": "Als Kind nahm mein Vater mich jede Woche zur Freitags-Khutba mit. Ich war ein rastloses, hyperaktives Kind. Eines, das es fast unmöglich fand, eine Stunde lang stillzusitzen, besonders wenn ich nicht ganz verstand, was gesagt wurde."
+        },
+        "realization": {
+          "label": "DIE ERKENNTNIS",
+          "body": "Obwohl Arabisch zu Hause gesprochen wurde, war mein Wortschatz begrenzt und das eloquente Fusha des Khatibs fühlte sich wie eine andere Welt an. Ich zappelte, träumte vor mich hin und nervte, ich gebe es zu, manchmal meinen Vater. Hätte es damals so etwas wie Bayaan gegeben, mit Live-Übersetzungen direkt vor mir, hätte ich vielleicht aufmerksamer zugehört und mich tiefer verbunden gefühlt."
+        },
+        "universal": {
+          "label": "EIN UNIVERSELLES BEDÜRFNIS",
+          "body": "Und das gilt nicht nur für Nicht-Arabischsprecher. Viele Arabischsprecher, vor allem jüngere Generationen oder solche, die nur einen Dialekt sprechen, tun sich auch mit Fusha schwer. Dieses Werkzeug überbrückt diese Lücke und hilft sowohl Arabisch- als auch Nicht-Arabischsprechern, der Sprache des Qur’an näherzukommen."
+        },
+        "vision": {
+          "label": "DIE VISION",
+          "body": "Ich habe gesehen, wie meine Cousins zu Hause fließend Englisch lernten, einfach indem sie englische Filme mit arabischen Untertiteln schauten. Mit Bayaan, in scha’Allah, können wir das umkehren und Menschen dabei helfen, Fusha-Arabisch aufzunehmen, während sie der Khutba mit klaren Live-Untertiteln folgen."
+        }
+      }
+    },
+    "verse": {
+      "arabic": "وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ",
+      "translation": "und wir haben dich [o Muhammad] nur als barmherzigkeit für die welten gesandt.",
+      "citation": "Qur’an 21:107"
+    },
+    "testimonials": {
+      "title": "moscheen, die mit bayaan aufblühen",
+      "lead": "sieh, wie moscheen weltweit ihre dawah ausbauen und ihre gemeinschaften vereinen",
+      "items": {
+        "ahmad": {
+          "quote": "Bayaan hat unsere Freitagsgebete verändert. Unsere nicht-arabischsprachigen Jugendlichen sind endlich eingebunden und verstehen die Khutba. Das ist echte Dawah in Aktion.",
+          "outcome": "Engagement der Jugend um 300% gestiegen",
+          "name": "Scheich Ahmad Hassan",
+          "role": "Imam, Masjid Al-Noor",
+          "location": "Roermond, Niederlande"
+        },
+        "mamdouh": {
+          "quote": "Als vielfältige Gemeinschaft mit über 15 Nationalitäten überbrückt Bayaan unsere Sprachbarrieren wunderbar. Es hat unsere Bindungen gestärkt und unsere Reichweite deutlich erweitert.",
+          "outcome": "Mehr als 15 Nationalitäten vereint",
+          "name": "Scheich Mamdouh",
+          "role": "Gemeinschaftsleiter",
+          "location": "Eindhoven, Niederlande"
+        },
+        "yusuf": {
+          "quote": "Die Einfachheit der Einrichtung hat uns überrascht. Innerhalb weniger Minuten konnten unsere älteren Gemeindemitglieder Übersetzungen auf ihren Telefonen aufrufen. Technologie im perfekten Dienst des Glaubens.",
+          "outcome": "Einrichtung in unter 10 Minuten",
+          "name": "Bruder Yusuf Ibrahim",
+          "role": "Moschee-Verwalter",
+          "location": "Maaseik, Belgien"
+        }
       }
     }
   }

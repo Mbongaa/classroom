@@ -5,6 +5,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SketchButton, StickyTag } from '@/components/marketing/sketch';
+import { SketchLocaleToggle } from '@/components/marketing/shared/SketchLocaleToggle';
 
 const navLinks = [
   { href: '#how-it-works', key: 'howItWorks' },
@@ -153,6 +154,7 @@ export function MarketingNavigation() {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          <SketchLocaleToggle compact />
           <Link
             href="/login"
             className="mkt-focus-ring mkt-link"
@@ -276,8 +278,9 @@ export function MarketingNavigation() {
               style={{ borderTop: '2px dashed var(--mkt-border)' }}
             />
 
-            {/* Account actions */}
+            {/* Account actions + language */}
             <div className="mt-8 flex flex-col items-start gap-5">
+              <SketchLocaleToggle compact={false} align="left" />
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}

@@ -22,8 +22,11 @@ export function MarketingStudentView({
   fillParent = false,
 }: MarketingStudentViewProps) {
   const [segments, setSegments] = useState<MarketingSegment[]>([]);
+  const [isStreamMuted, setIsStreamMuted] = useState(true);
   const videoTimeRef = useRef(0);
   const processedRef = useRef<Set<number>>(new Set());
+
+  const toggleStreamMute = () => setIsStreamMuted((m) => !m);
 
   const handleVideoTime = (time: number) => {
     if (videoTimeRef.current > 50 && time < 5) {
@@ -124,6 +127,8 @@ export function MarketingStudentView({
               segments={segments}
               targetLanguage="en"
               variant={variant}
+              isStreamMuted={isStreamMuted}
+              onToggleStreamMute={toggleStreamMute}
             />
           </div>
 
@@ -147,6 +152,8 @@ export function MarketingStudentView({
                   name="Sheikh Mamdouh"
                   className={styles.teacherTile}
                   onTimeUpdate={handleVideoTime}
+                  isStreamMuted={isStreamMuted}
+                  onToggleStreamMute={toggleStreamMute}
                 />
               </div>
             </div>
