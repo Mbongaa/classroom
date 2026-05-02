@@ -21,7 +21,7 @@ export default function HowItWorks() {
   return (
     <section id="how-it-works" className="mkt-section">
       <div className="mkt-container">
-        <div className="max-w-2xl">
+        <div className="mx-auto max-w-2xl text-center md:mx-0 md:text-left">
           <StickyTag rotate={-2} tone="postit">
             {t('eyebrow')}
           </StickyTag>
@@ -38,7 +38,7 @@ export default function HowItWorks() {
               }}
             />
           </h2>
-          <p className="mkt-lead mt-6">{t('lead')}</p>
+          <p className="mkt-lead mt-6 mx-auto md:mx-0">{t('lead')}</p>
         </div>
 
         <ol

@@ -19,10 +19,14 @@ export default function Anecdote() {
     <section
       id="story"
       className="mkt-section relative overflow-hidden"
-      style={{ background: 'var(--mkt-bg-sunken)' }}
+      style={{
+        backgroundColor: 'var(--mkt-bg-sunken)',
+        backgroundImage: 'radial-gradient(var(--mkt-border-soft) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
     >
       <div className="mkt-container relative">
-        <div className="max-w-2xl">
+        <div className="mx-auto max-w-2xl text-center md:mx-0 md:text-left">
           <StickyTag rotate={2} tone="paper">
             {t('eyebrow')}
           </StickyTag>
@@ -34,19 +38,26 @@ export default function Anecdote() {
           </h2>
         </div>
 
-        {/* Corkboard of sticky-note acts. Asymmetric layout breaks the grid. */}
-        <div className="mt-16 grid gap-10 md:mt-24 md:grid-cols-12 md:gap-x-8 md:gap-y-16">
+        {/* Corkboard of sticky-note acts. Cards overlap onto each other so the
+           wall reads as one stack, not four spaced rows. */}
+        <div className="mt-12 grid gap-8 md:mt-16 md:grid-cols-12 md:gap-x-8 md:gap-y-0">
           {acts.map((act, i) => {
-            // Asymmetric placement: alternate column position + width
+            // Asymmetric placement + per-card negative margin (md+ only) to
+            // pull each later card up onto the one above. Mobile stacks
+            // naturally with the gap-8 above.
             const placement = [
-              'md:col-span-7 md:col-start-1', // act 1: left, wide
-              'md:col-span-6 md:col-start-7', // act 2: right, medium
-              'md:col-span-6 md:col-start-2', // act 3: left-of-center
-              'md:col-span-7 md:col-start-6', // act 4: right, wide
+              'md:col-span-7 md:col-start-1',                 // act 1: left, wide
+              'md:col-span-6 md:col-start-7 md:-mt-6',        // act 2: right, slight kiss
+              'md:col-span-6 md:col-start-2 md:-mt-10',       // act 3: leans up, doesn't cover act 2 body
+              'md:col-span-7 md:col-start-6 md:-mt-8',        // act 4: right, gentle lap
             ][i];
 
             return (
-              <div key={act.key} className={placement}>
+              <div
+                key={act.key}
+                className={placement}
+                style={{ zIndex: i + 10, position: 'relative' }}
+              >
                 <SketchCard
                   tone={act.tone}
                   decoration={act.decoration}
@@ -97,7 +108,7 @@ export default function Anecdote() {
         </div>
 
         {/* Closing CTA — handwritten link, not a banner */}
-        <div className="mt-20 flex">
+        <div className="mt-16 flex">
           <Link
             href="/signup"
             className="mkt-focus-ring inline-flex items-center gap-2 group"

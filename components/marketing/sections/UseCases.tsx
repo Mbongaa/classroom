@@ -46,17 +46,21 @@ export default function UseCases() {
     <section
       id="use-cases"
       className="mkt-section"
-      style={{ background: 'var(--mkt-bg-sunken)' }}
+      style={{
+        backgroundColor: 'var(--mkt-bg-sunken)',
+        backgroundImage: 'radial-gradient(var(--mkt-border-soft) 1px, transparent 1px)',
+        backgroundSize: '24px 24px',
+      }}
     >
       <div className="mkt-container">
         <div className="grid items-end gap-8 md:grid-cols-2 md:gap-12">
-          <div>
+          <div className="text-center md:text-left">
             <StickyTag rotate={-2} tone="paper">
               {t('eyebrow')}
             </StickyTag>
             <h2 className="mkt-h2 mt-6">{t('title')}</h2>
           </div>
-          <p className="mkt-lead">{t('lead')}</p>
+          <p className="mkt-lead text-center md:text-left mx-auto md:mx-0">{t('lead')}</p>
         </div>
 
         <div className="mt-16 grid gap-8 md:grid-cols-2 md:gap-10">

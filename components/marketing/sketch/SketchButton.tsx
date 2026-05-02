@@ -31,8 +31,9 @@ type ButtonAsLink = CommonProps &
 
 export type SketchButtonProps = ButtonAsButton | ButtonAsLink;
 
-// Wobbly border-radius generated once per mount per button so each button has
-// its own slightly different shape — reinforces the hand-drawn impression.
+// Wobbly border-radius derived from a stable seed so each button keeps its
+// own slightly different shape across re-renders AND matches between the
+// server-rendered HTML and the hydrated client tree.
 function wobblyRadius(seed: number) {
   const rand = (i: number) => {
     const x = Math.sin(seed * 9.9 + i * 3.7) * 10000;
@@ -43,6 +44,14 @@ function wobblyRadius(seed: number) {
   const c = 55 + rand(3) * 35;
   const d = 45 + rand(4) * 30;
   return `${a}% ${b}% ${c}% ${d}% / ${b}% ${a}% ${d}% ${c}%`;
+}
+
+function hashString(str: string): number {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h * 31 + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
 }
 
 const variantStyles: Record<Variant, React.CSSProperties> = {
@@ -77,8 +86,11 @@ export function SketchButton(props: SketchButtonProps) {
     ...rest
   } = props;
 
-  // Stable per-button-render seed
-  const seed = React.useRef(Math.floor(Math.random() * 1000)).current;
+  // Stable per-instance seed derived from useId so server and client both
+  // produce the same radius (no hydration mismatch). Each button on the
+  // page still gets its own shape because useId is unique per instance.
+  const id = React.useId();
+  const seed = React.useMemo(() => hashString(id), [id]);
   const radius = React.useMemo(() => wobblyRadius(seed), [seed]);
 
   const isInverse = variant === 'inverse';

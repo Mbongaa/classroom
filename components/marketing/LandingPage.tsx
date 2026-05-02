@@ -10,6 +10,7 @@ import { FeaturesWrapper } from '@/components/marketing/wrappers/FeaturesWrapper
 import { UseCasesWrapper } from '@/components/marketing/wrappers/UseCasesWrapper';
 import { TestimonialsWrapper } from '@/components/marketing/wrappers/TestimonialsWrapper';
 import { ContactWrapper } from '@/components/marketing/wrappers/ContactWrapper';
+import { InTheRoomWrapper } from '@/components/marketing/wrappers/InTheRoomWrapper';
 import { CTAWrapper } from '@/components/marketing/wrappers/CTAWrapper';
 
 export function MarketingLandingPage() {
@@ -37,6 +38,7 @@ export function MarketingLandingPage() {
         <HeroWrapper />
         <HowItWorksWrapper />
         <AnecdoteWrapper />
+        <InTheRoomWrapper />
         <ContactWrapper />
         <FeaturesWrapper />
         <UseCasesWrapper />
