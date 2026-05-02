@@ -64,7 +64,9 @@ export default function Anecdote() {
                       fontFamily: 'var(--mkt-font-body)',
                       fontSize: '0.85rem',
                       letterSpacing: '0.2em',
-                      color: 'var(--mkt-accent)',
+                      // accent-deep (~4.5:1 on cream) instead of accent (3.6:1)
+                      // so small uppercase labels meet WCAG AA contrast.
+                      color: 'var(--mkt-accent-deep)',
                       textTransform: 'uppercase',
                       fontWeight: 400,
                     }}

@@ -100,7 +100,10 @@ export default function CTA() {
                 href="mailto:support@bayaan.ai"
                 size="md"
                 variant="ghost"
-                className="!border-[3px] !border-[#fdfbf7]/50"
+                style={{
+                  border: '3px solid rgba(253, 251, 247, 0.5)',
+                  color: 'var(--mkt-bg-elev)',
+                }}
               >
                 {t('ctaSecondary')}
               </SketchButton>

@@ -3,11 +3,19 @@ import '@livekit/components-styles';
 import '@livekit/components-styles/prefabs';
 import type { Metadata, Viewport } from 'next';
 import { Poppins, Kalam, Patrick_Hand } from 'next/font/google';
+import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { getDirection, type Locale } from '@/i18n/config';
 import { ToasterProvider } from './components/ToasterProvider';
 import { Providers } from './providers';
+
+// Routes whose surface uses the sketch design system (marketing landing +
+// auth pages). On these routes we render <html class="mkt-active"> server
+// side so the cream paper bg and body-scroll unlock are in place before
+// React hydrates. Prevents a first-paint dark flash on slow connections
+// and on browsers where `:has()` isn't supported.
+const MARKETING_ROUTES = new Set(['/', '/login', '/signup', '/forgot-password', '/reset-password']);
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -70,14 +78,39 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
   const dir = getDirection(locale);
 
+  // Read the pathname header set by middleware (lib/supabase/middleware.ts).
+  // Static export / cases where the header isn't present fall back to no
+  // class — the client-side useEffect in MarketingLandingPage / AuthShell
+  // will still apply the class as a backstop.
+  const headerStore = await headers();
+  const pathname = headerStore.get('x-pathname') ?? '';
+  const isMarketingSurface = MARKETING_ROUTES.has(pathname);
+
   return (
     <html
       lang={locale}
       dir={dir}
-      className={`${poppins.variable} ${kalam.variable} ${patrickHand.variable}`}
+      className={[
+        poppins.variable,
+        kalam.variable,
+        patrickHand.variable,
+        isMarketingSurface ? 'mkt-active' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       suppressHydrationWarning
     >
       <body data-lk-theme="default" className={poppins.className}>
+        {/* No-flash backstop: in environments where the middleware header
+            isn't available (static export, edge cases) this script applies
+            the `mkt-active` class synchronously before first paint based on
+            pathname. Idempotent with the SSR class above. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var p=location.pathname;var r={'/':1,'/login':1,'/signup':1,'/forgot-password':1,'/reset-password':1};if(r[p])document.documentElement.classList.add('mkt-active');}catch(e){}})();",
+          }}
+        />
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>
             <ToasterProvider />

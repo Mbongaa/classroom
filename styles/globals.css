@@ -125,11 +125,14 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-html {
+/* Default html bg is black for the LiveKit room / dashboard surfaces. The
+   marketing + auth surfaces opt out via `html.mkt-active` (set both server
+   side via middleware header AND client side as a backstop). */
+html:not(.mkt-active) {
   background-color: #000000;
 }
 
-html.light {
+html:not(.mkt-active).light {
   background-color: #ffffff;
 }
 
@@ -332,8 +335,11 @@ h2 a {
   --mkt-accent-soft: #ffe5e5;
   --mkt-secondary: #2d5da1;      /* blue ballpoint */
   --mkt-secondary-soft: #d8e3f3;
-  --mkt-postit: #fff9c4;         /* post-it yellow */
+  --mkt-postit: #fff9c4;          /* post-it yellow */
   --mkt-postit-deep: #ffe97a;
+  --mkt-postit-blue: #c8e3f5;     /* blue post-it */
+  --mkt-postit-green: #d4ecd0;    /* green post-it */
+  --mkt-postit-pink: #ffe0e0;     /* pink post-it */
 
   /* Borders */
   --mkt-border: #2d2d2d;          /* pencil lead */
@@ -717,7 +723,7 @@ html.mkt-active body {
   padding: 24px;
   overflow: hidden;
   background: var(--mkt-bg);
-  background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+  background-image: radial-gradient(var(--mkt-border-soft) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -1193,7 +1199,7 @@ html.mkt-active body {
   width: 56px;
   height: 56px;
   border: 3px solid var(--mkt-border);
-  background: #d4ecd0;
+  background: var(--mkt-postit-green);
   border-radius: 48% 52% 49% 51% / 50% 48% 52% 50%;
   display: flex;
   align-items: center;

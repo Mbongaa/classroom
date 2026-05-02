@@ -22,6 +22,10 @@ export async function updateSession(request: NextRequest) {
   // header is treated as authoritative by route handlers.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete('x-supabase-user-id');
+  // Expose the pathname to server components so the root layout can decide
+  // whether to render with the marketing/auth surface class on <html>
+  // before first paint (kills the dark flash on Android).
+  requestHeaders.set('x-pathname', request.nextUrl.pathname);
 
   let supabaseResponse = NextResponse.next({
     request: { headers: requestHeaders },

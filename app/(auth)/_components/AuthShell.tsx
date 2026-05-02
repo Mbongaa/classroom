@@ -177,7 +177,7 @@ function LeftPane({ mode }: { mode: Mode }) {
           </div>
           <span
             className="auth-mock-tag"
-            style={{ background: '#c8e3f5' }}
+            style={{ background: 'var(--mkt-postit-blue)' }}
           >
             EN
           </span>
@@ -194,7 +194,13 @@ function LeftPane({ mode }: { mode: Mode }) {
             <span
               key={l}
               style={{
-                background: ['#fff9c4', '#c8e3f5', '#d4ecd0', '#ffe0e0', '#fdfbf7'][i],
+                background: [
+                  'var(--mkt-postit)',
+                  'var(--mkt-postit-blue)',
+                  'var(--mkt-postit-green)',
+                  'var(--mkt-postit-pink)',
+                  'var(--mkt-bg)',
+                ][i],
               }}
             >
               {l}
@@ -222,7 +228,7 @@ function LeftPane({ mode }: { mode: Mode }) {
           transform: 'rotate(6deg)',
           fontSize: 14,
           maxWidth: 170,
-          background: '#d4ecd0',
+          background: 'var(--mkt-postit-green)',
           border: '2.5px solid var(--mkt-border)',
           padding: '10px 14px',
           fontFamily: 'var(--mkt-font-display)',

@@ -10,16 +10,22 @@ type CommonProps = {
   variant?: Variant;
   size?: Size;
   className?: string;
+  /**
+   * Extra inline styles merged on top of the component defaults. Useful for
+   * one-off overrides (e.g. a ghost button on a colored CTA background that
+   * needs a translucent paper-cream border).
+   */
+  style?: React.CSSProperties;
   children: React.ReactNode;
 };
 
 type ButtonAsButton = CommonProps &
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'style'> & {
     href?: undefined;
   };
 
 type ButtonAsLink = CommonProps &
-  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> & {
+  Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'href' | 'style'> & {
     href: string;
   };
 
