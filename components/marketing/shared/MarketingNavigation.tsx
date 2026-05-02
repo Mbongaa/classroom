@@ -10,7 +10,7 @@ const navLinks = [
   { href: '#how-it-works', key: 'howItWorks' },
   { href: '#features', key: 'features' },
   { href: '#use-cases', key: 'useCases' },
-  { href: '#pricing', key: 'pricing' },
+  { href: '#contact', key: 'contact' },
 ] as const;
 
 export function MarketingNavigation() {

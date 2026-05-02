@@ -1,14 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CalendarHeart, BookOpenText, Megaphone, GraduationCap } from 'lucide-react';
+import { CalendarHeart, BookOpenText, Heart, Megaphone } from 'lucide-react';
 
 const cases = [
   { key: 'khutbah', icon: CalendarHeart },
-  { key: 'lessons', icon: BookOpenText },
-  { key: 'community', icon: Megaphone },
-  { key: 'classes', icon: GraduationCap },
-];
+  { key: 'education', icon: BookOpenText },
+  { key: 'community', icon: Heart },
+  { key: 'dawah', icon: Megaphone },
+] as const;
 
 export default function UseCases() {
   const t = useTranslations('marketing.useCases');
@@ -24,10 +24,11 @@ export default function UseCases() {
           <p className="mkt-lead">{t('lead')}</p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-2">
+        <div className="mt-14 grid gap-5 md:grid-cols-2 md:gap-6">
           {cases.map((c, i) => {
             const Icon = c.icon;
             const isFeatured = i === 0;
+            const chips = t.raw(`cases.${c.key}.chips`) as string[];
             return (
               <article
                 key={c.key}
@@ -36,38 +37,96 @@ export default function UseCases() {
                   isFeatured
                     ? {
                         background: 'var(--mkt-brand-deep)',
-                        color: 'var(--mkt-bg-elev)',
+                        color: 'oklch(0.96 0.02 165)',
                         borderColor: 'var(--mkt-brand-deep)',
                         minHeight: 280,
                       }
-                    : { minHeight: 220 }
+                    : { minHeight: 240 }
                 }
               >
-                <div
-                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
-                  style={
-                    isFeatured
-                      ? { background: 'oklch(0.50 0.10 165)', color: 'var(--mkt-bg)' }
-                      : { background: 'var(--mkt-brand-soft)', color: 'var(--mkt-brand-deep)' }
-                  }
-                >
-                  <Icon size={22} aria-hidden />
+                {/* Header row: icon + tag chip */}
+                <div className="flex items-start justify-between gap-3">
+                  <div
+                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
+                    style={
+                      isFeatured
+                        ? {
+                            background: 'oklch(0.50 0.10 165)',
+                            color: 'oklch(0.99 0.005 165)',
+                          }
+                        : {
+                            background: 'var(--mkt-brand-soft)',
+                            color: 'var(--mkt-brand-deep)',
+                          }
+                    }
+                  >
+                    <Icon size={22} aria-hidden />
+                  </div>
+                  <span
+                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase"
+                    style={
+                      isFeatured
+                        ? {
+                            background: 'oklch(0.50 0.10 165 / 0.55)',
+                            color: 'oklch(0.99 0.005 165)',
+                            letterSpacing: '0.12em',
+                          }
+                        : {
+                            background: 'oklch(0.95 0.04 80)',
+                            color: 'var(--mkt-accent-deep)',
+                            letterSpacing: '0.12em',
+                          }
+                    }
+                  >
+                    {t(`cases.${c.key}.tag`)}
+                  </span>
                 </div>
+
                 <h3
-                  className="mkt-h3"
-                  style={isFeatured ? { color: 'var(--mkt-bg-elev)' } : undefined}
+                  className="mkt-h3 mt-5"
+                  style={isFeatured ? { color: 'oklch(0.99 0.005 165)' } : undefined}
                 >
                   {t(`cases.${c.key}.title`)}
                 </h3>
                 <p
                   className="mt-2 leading-relaxed"
                   style={{
-                    color: isFeatured ? 'oklch(0.92 0.04 165)' : 'var(--mkt-fg-muted)',
+                    color: isFeatured
+                      ? 'oklch(0.92 0.04 165)'
+                      : 'var(--mkt-fg-muted)',
                     fontSize: '0.95rem',
                   }}
                 >
                   {t(`cases.${c.key}.body`)}
                 </p>
+
+                {/* Chips */}
+                <ul className="mt-auto flex flex-wrap gap-2 pt-6">
+                  {chips.map((chip) => (
+                    <li
+                      key={chip}
+                      className="rounded-full px-2.5 py-1"
+                      style={
+                        isFeatured
+                          ? {
+                              background: 'oklch(0.30 0.09 170)',
+                              color: 'oklch(0.92 0.04 165)',
+                              fontSize: '0.74rem',
+                              fontWeight: 500,
+                            }
+                          : {
+                              background: 'var(--mkt-bg-sunken)',
+                              color: 'var(--mkt-fg-muted)',
+                              fontSize: '0.74rem',
+                              fontWeight: 500,
+                              border: '1px solid var(--mkt-border)',
+                            }
+                      }
+                    >
+                      {chip}
+                    </li>
+                  ))}
+                </ul>
               </article>
             );
           })}

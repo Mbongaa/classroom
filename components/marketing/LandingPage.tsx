@@ -7,26 +7,25 @@ import { MarketingFooter } from '@/components/marketing/shared/MarketingFooter';
 import { TrustStrip } from '@/components/marketing/sections/TrustStrip';
 import { HeroWrapper } from '@/components/marketing/wrappers/HeroWrapper';
 import { HowItWorksWrapper } from '@/components/marketing/wrappers/HowItWorksWrapper';
+import { AnecdoteWrapper } from '@/components/marketing/wrappers/AnecdoteWrapper';
 import { FeaturesWrapper } from '@/components/marketing/wrappers/FeaturesWrapper';
 import { UseCasesWrapper } from '@/components/marketing/wrappers/UseCasesWrapper';
-import { PricingWrapper } from '@/components/marketing/wrappers/PricingWrapper';
+import { TestimonialsWrapper } from '@/components/marketing/wrappers/TestimonialsWrapper';
+import { ContactWrapper } from '@/components/marketing/wrappers/ContactWrapper';
 import { CTAWrapper } from '@/components/marketing/wrappers/CTAWrapper';
 
 export function MarketingLandingPage() {
   const { theme, setTheme } = useTheme();
 
-  // Marketing-only default: light. Other routes keep next-themes' defaultTheme="dark".
-  // Once the user toggles, we respect that choice (it's persisted in localStorage).
+  // Marketing-only default: light on first visit. Once the user explicitly chooses
+  // a theme via the toggle, that choice is respected (including dark).
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const stored = window.localStorage.getItem('theme');
-    if (!stored || stored === 'dark') {
-      // No stored preference (first visit) OR app-level dark default carried over
-      // from another route — flip to light for the marketing surface.
+    if (!stored) {
+      // First visit — no stored preference. Default to light.
       setTheme('light');
     }
-    // We intentionally only run this on mount. If the user toggles while on this
-    // page, the toggle owns the choice from there forward.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -37,9 +36,11 @@ export function MarketingLandingPage() {
         <HeroWrapper />
         <TrustStrip />
         <HowItWorksWrapper />
+        <AnecdoteWrapper />
         <FeaturesWrapper />
         <UseCasesWrapper />
-        <PricingWrapper />
+        <TestimonialsWrapper />
+        <ContactWrapper />
         <CTAWrapper />
       </main>
       <MarketingFooter />

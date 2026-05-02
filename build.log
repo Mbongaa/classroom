@@ -1,0 +1,207 @@
+
+> livekit-meet@0.2.0 build C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 15.2.8
+   - Environments: .env.local
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom\public\sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ○ (pwa) Custom runtimeCaching array found, using it instead of the default one.
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ⚠ Compiled with warnings
+
+/_next/static/chunks/54b9f56f.3a40c0db25812c6a.js is 5.9 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+   Linting and checking validity of types ...
+
+./app/(dashboard)/dashboard/prompts/page.tsx
+43:6  Warning: React Hook useEffect has a missing dependency: 'fetchTemplates'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(dashboard)/dashboard/recordings/page.tsx
+84:6  Warning: React Hook useEffect has a missing dependency: 't'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/RecordingDownloadDialog.tsx
+97:6  Warning: React Hook useEffect has missing dependencies: 'recording' and 'translationLanguage'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/SpeechTranslationPanel.tsx
+413:6  Warning: React Hook useEffect has a missing dependency: 'translationApiUrl'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+   Generating static pages (0/71) ...
+   Generating static pages (17/71) 
+   Generating static pages (35/71) 
+   Generating static pages (53/71) 
+ ✓ Generating static pages (71/71)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                                     Size  First Load JS
+┌ ƒ /                                                                        5.14 kB         177 kB
+├ ƒ /_not-found                                                              1.02 kB         106 kB
+├ ƒ /api/appointments/book                                                     389 B         105 kB
+├ ƒ /api/auth/callback                                                         389 B         105 kB
+├ ƒ /api/auth/confirm                                                          389 B         105 kB
+├ ƒ /api/auth/email-hook                                                       352 B         118 kB
+├ ƒ /api/auth/signout                                                          389 B         105 kB
+├ ƒ /api/classrooms                                                            389 B         105 kB
+├ ƒ /api/classrooms/[roomCode]                                                 389 B         105 kB
+├ ƒ /api/classrooms/[roomCode]/prompt                                          389 B         105 kB
+├ ƒ /api/connection-details                                                    389 B         105 kB
+├ ƒ /api/cron/reconcile-paynl                                                  389 B         105 kB
+├ ƒ /api/cron/recurring-debits                                                 389 B         105 kB
+├ ƒ /api/donate/ideal-issuers                                                  389 B         105 kB
+├ ƒ /api/donate/manage/[token]                                                 353 B         118 kB
+├ ƒ /api/donate/manage/[token]/cancel                                          352 B         118 kB
+├ ƒ /api/donate/one-time                                                       389 B         105 kB
+├ ƒ /api/donate/recurring                                                      352 B         118 kB
+├ ƒ /api/kiosk-sessions                                                        389 B         105 kB
+├ ƒ /api/kiosk-sessions/[id]/scanned                                           389 B         105 kB
+├ ƒ /api/mandates/[mandate_id]/debit                                           389 B         105 kB
+├ ƒ /api/me                                                                    389 B         105 kB
+├ ƒ /api/organizations/[id]/appointment-offerings                              389 B         105 kB
+├ ƒ /api/organizations/[id]/appointment-offerings/[offeringId]                 389 B         105 kB
+├ ƒ /api/organizations/[id]/appointment-offerings/[offeringId]/availability    389 B         105 kB
+├ ƒ /api/organizations/[id]/appointment-offerings/reorder                      389 B         105 kB
+├ ƒ /api/organizations/[id]/appointments                                       389 B         105 kB
+├ ƒ /api/organizations/[id]/campaigns                                          389 B         105 kB
+├ ƒ /api/organizations/[id]/campaigns/[campaignId]                             389 B         105 kB
+├ ƒ /api/organizations/[id]/campaigns/reorder                                  389 B         105 kB
+├ ƒ /api/organizations/[id]/donation-settings                                  389 B         105 kB
+├ ƒ /api/organizations/[id]/mandates                                           389 B         105 kB
+├ ƒ /api/organizations/[id]/mandates/[mandateId]/cancel                        389 B         105 kB
+├ ƒ /api/organizations/[id]/mandates/[mandateId]/debit                         389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/agreement/download                        389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/clearing                                  389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/documents                                 389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/license                                   389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/onboard                                   389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/persons                                   389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/sign-agreement                            389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/stats                                     389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/status                                    389 B         105 kB
+├ ƒ /api/organizations/[id]/merchant/submit-for-review                         389 B         105 kB
+├ ƒ /api/organizations/[id]/products                                           389 B         105 kB
+├ ƒ /api/organizations/[id]/products/[productId]                               389 B         105 kB
+├ ƒ /api/organizations/[id]/products/reorder                                   389 B         105 kB
+├ ƒ /api/organizations/[id]/transactions/[transactionId]/refund                389 B         105 kB
+├ ƒ /api/prompts                                                               389 B         105 kB
+├ ƒ /api/prompts/[id]                                                          389 B         105 kB
+├ ƒ /api/public/appointment-offerings/[offeringId]/availability-summary        389 B         105 kB
+├ ƒ /api/public/appointment-offerings/[offeringId]/slots                       389 B         105 kB
+├ ƒ /api/record/start                                                          389 B         105 kB
+├ ƒ /api/record/stop                                                           389 B         105 kB
+├ ƒ /api/recordings                                                            389 B         105 kB
+├ ƒ /api/recordings/[recordingId]                                              389 B         105 kB
+├ ƒ /api/recordings/[recordingId]/download/transcription                       389 B         105 kB
+├ ƒ /api/recordings/[recordingId]/download/translation                         389 B         105 kB
+├ ƒ /api/recordings/[recordingId]/languages                                    389 B         105 kB
+├ ƒ /api/recordings/[recordingId]/learning-content                             389 B         105 kB
+├ ƒ /api/recordings/[recordingId]/translate-transcript                         389 B         105 kB
+├ ƒ /api/recordings/translations                                               389 B         105 kB
+├ ƒ /api/remove-participant                                                    389 B         105 kB
+├ ƒ /api/rooms                                                                 389 B         105 kB
+├ ƒ /api/rooms/[roomCode]                                                      389 B         105 kB
+├ ƒ /api/rooms/[roomCode]/metadata                                             389 B         105 kB
+├ ƒ /api/rooms/create                                                          389 B         105 kB
+├ ƒ /api/sessions                                                              389 B         105 kB
+├ ƒ /api/sessions/[sessionId]/download/transcription                           389 B         105 kB
+├ ƒ /api/sessions/[sessionId]/download/translation                             389 B         105 kB
+├ ƒ /api/sessions/[sessionId]/languages                                        389 B         105 kB
+├ ƒ /api/sessions/[sessionId]/learning-content                                 389 B         105 kB
+├ ƒ /api/sessions/create                                                       389 B         105 kB
+├ ƒ /api/sessions/end                                                          389 B         105 kB
+├ ƒ /api/stripe/create-checkout-session                                        389 B         105 kB
+├ ƒ /api/stripe/create-portal-session                                          389 B         105 kB
+├ ƒ /api/superadmin/organizations                                              389 B         105 kB
+├ ƒ /api/superadmin/organizations/[id]                                         389 B         105 kB
+├ ƒ /api/superadmin/organizations/geocode                                      389 B         105 kB
+├ ƒ /api/superadmin/organizations/locations                                    389 B         105 kB
+├ ƒ /api/superadmin/sessions                                                   389 B         105 kB
+├ ƒ /api/superadmin/sessions/close                                             389 B         105 kB
+├ ƒ /api/superadmin/stats                                                      389 B         105 kB
+├ ƒ /api/test-classroom                                                        389 B         105 kB
+├ ƒ /api/transcriptions                                                        389 B         105 kB
+├ ƒ /api/translate-question                                                    389 B         105 kB
+├ ƒ /api/translation-prompts/[id]                                              389 B         105 kB
+├ ƒ /api/update-student-permission                                             389 B         105 kB
+├ ƒ /api/v2/connect                                                            389 B         105 kB
+├ ƒ /api/v2/dispatch-agent                                                     389 B         105 kB
+├ ƒ /api/v2/reaper                                                             389 B         105 kB
+├ ƒ /api/v2/refresh-token                                                      389 B         105 kB
+├ ƒ /api/v2/transcriptions                                                     389 B         105 kB
+├ ƒ /api/v2/translations                                                       389 B         105 kB
+├ ƒ /api/v2/webhooks/livekit                                                   389 B         105 kB
+├ ƒ /api/webhook/pay                                                           353 B         118 kB
+├ ƒ /api/webhooks/livekit-egress                                               389 B         105 kB
+├ ƒ /api/webhooks/stripe                                                       352 B         118 kB
+├ ƒ /auth/auth-code-error                                                      244 B         160 kB
+├ ƒ /book/[mosque]                                                           30.5 kB         149 kB
+├ ƒ /book/[mosque]/thank-you                                                   227 B         108 kB
+├ ƒ /custom                                                                  1.39 kB         314 kB
+├ ƒ /dashboard                                                               7.09 kB         180 kB
+├ ƒ /dashboard/billing                                                       1.67 kB         122 kB
+├ ƒ /dashboard/profile                                                       6.55 kB         177 kB
+├ ƒ /dashboard/prompts                                                       8.55 kB         166 kB
+├ ƒ /dashboard/recordings                                                    5.43 kB         225 kB
+├ ƒ /dashboard/recordings/[recordingId]                                      6.54 kB         321 kB
+├ ƒ /dashboard/rooms                                                         2.46 kB         216 kB
+├ ƒ /donate/[mosque]                                                         4.89 kB         162 kB
+├ ƒ /donate/[mosque]/[campaign]                                              5.75 kB         127 kB
+├ ƒ /donate/[mosque]/[campaign]/mandate                                      6.46 kB         127 kB
+├ ƒ /donate/[mosque]/thank-you                                               2.18 kB         110 kB
+├ ƒ /donate/manage/[token]                                                   3.92 kB         117 kB
+├ ƒ /forgot-password                                                         4.65 kB         164 kB
+├ ƒ /learn/[recordingId]                                                     1.55 kB         331 kB
+├ ƒ /learn/session/[sessionId]                                               1.43 kB         330 kB
+├ ƒ /login                                                                   4.95 kB         164 kB
+├ ƒ /manage-rooms                                                              389 B         105 kB
+├ ƒ /mosque-admin/[slug]                                                      1.7 kB         118 kB
+├ ƒ /mosque-admin/[slug]/appointments                                        11.5 kB         150 kB
+├ ƒ /mosque-admin/[slug]/campaigns                                            7.5 kB         157 kB
+├ ƒ /mosque-admin/[slug]/members                                             4.64 kB         152 kB
+├ ƒ /mosque-admin/[slug]/products                                             6.8 kB         157 kB
+├ ƒ /mosque-admin/[slug]/settings                                            26.1 kB         188 kB
+├ ƒ /mosque-admin/[slug]/transactions                                        4.64 kB         133 kB
+├ ƒ /onboarding/[slug]                                                       9.76 kB         160 kB
+├ ƒ /org/[orgSlug]                                                             389 B         105 kB
+├ ƒ /reset-password                                                          4.59 kB         164 kB
+├ ƒ /rooms/[roomName]                                                        9.61 kB         499 kB
+├ ƒ /s/[roomName]                                                              389 B         105 kB
+├ ƒ /signup                                                                  6.73 kB         166 kB
+├ ƒ /signup/canceled                                                         2.25 kB         157 kB
+├ ƒ /signup/success                                                           1.8 kB         107 kB
+├ ƒ /speech-s/[roomName]                                                       389 B         105 kB
+├ ƒ /speech-t/[roomName]                                                       389 B         105 kB
+├ ƒ /superadmin                                                              2.91 kB         161 kB
+├ ƒ /superadmin/map                                                          5.24 kB         163 kB
+├ ƒ /superadmin/organizations                                                8.95 kB         203 kB
+├ ƒ /superadmin/sessions                                                     3.82 kB         208 kB
+├ ƒ /t/[roomName]                                                              389 B         105 kB
+├ ƒ /test-classroom                                                          2.32 kB         115 kB
+├ ƒ /thank-you                                                               2.16 kB         107 kB
+├ ƒ /v2                                                                      2.28 kB         203 kB
+├ ƒ /v2/rooms/[roomCode]                                                     3.89 kB         493 kB
+├ ƒ /v2/s/[roomCode]                                                           389 B         105 kB
+├ ƒ /v2/speech-s/[roomCode]                                                    389 B         105 kB
+├ ƒ /v2/speech-t/[roomCode]                                                    389 B         105 kB
+└ ƒ /v2/t/[roomCode]                                                           389 B         105 kB
++ First Load JS shared by all                                                 105 kB
+  ├ chunks/2077-2fe9d4f671339700.js                                          48.7 kB
+  ├ chunks/c89ebc3b-86576bf0cf527516.js                                      53.3 kB
+  └ other shared chunks (total)                                              3.01 kB
+
+
+ƒ Middleware                                                                 69.7 kB
+
+ƒ  (Dynamic)  server-rendered on demand
+

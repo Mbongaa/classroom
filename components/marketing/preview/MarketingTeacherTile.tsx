@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import clsx from 'clsx';
+import { motion } from 'framer-motion';
 import {
   Mic,
   MicOff,
@@ -113,19 +114,61 @@ export function MarketingTeacherTile({
 
             <div className="flex items-center gap-2">
               {/* Stream mute toggle */}
-              <button
-                type="button"
-                className="p-1.5 rounded-full pointer-events-auto"
-                style={{ backgroundColor: isStreamMuted ? '#ef4444' : 'rgba(0,0,0,0.5)' }}
-                title={isStreamMuted ? 'Unmute stream' : 'Mute stream'}
-                onClick={toggleStreamMute}
-              >
-                {isStreamMuted ? (
-                  <VolumeOff className="w-3.5 h-3.5 text-white" />
-                ) : (
+              {isStreamMuted ? (
+                <div
+                  className="relative pointer-events-auto"
+                  style={{ display: 'inline-flex' }}
+                >
+                  {[0, 1].map((i) => (
+                    <motion.span
+                      key={i}
+                      aria-hidden
+                      initial={{ scale: 1, opacity: 0 }}
+                      animate={{ scale: 2.4, opacity: [0.55, 0] }}
+                      transition={{
+                        duration: 2,
+                        delay: i * 1,
+                        repeat: Infinity,
+                        ease: 'easeOut',
+                      }}
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        borderRadius: 9999,
+                        backgroundColor: '#ef4444',
+                        pointerEvents: 'none',
+                        transformOrigin: 'center',
+                        willChange: 'transform, opacity',
+                      }}
+                    />
+                  ))}
+                  <button
+                    type="button"
+                    className="relative p-1.5 rounded-full"
+                    title="Tap to hear the audio"
+                    aria-label="Unmute audio"
+                    onClick={toggleStreamMute}
+                    style={{
+                      backgroundColor: '#ef4444',
+                      border: 'none',
+                      cursor: 'pointer',
+                      zIndex: 1,
+                    }}
+                  >
+                    <VolumeOff className="w-3.5 h-3.5 text-white" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="p-1.5 rounded-full pointer-events-auto"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
+                  title="Mute stream"
+                  onClick={toggleStreamMute}
+                >
                   <Volume2 className="w-3.5 h-3.5 text-white" />
-                )}
-              </button>
+                </button>
+              )}
 
               {/* Fullscreen toggle (presentation only — appears on hover) */}
               <button

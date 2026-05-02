@@ -824,7 +824,7 @@
         "howItWorks": "How it works",
         "features": "Features",
         "useCases": "Use cases",
-        "pricing": "Pricing"
+        "contact": "Contact"
       }
     },
     "hero": {
@@ -875,33 +875,45 @@
       }
     },
     "features": {
-      "eyebrow": "Built for sermon",
-      "title": "What's inside Bayaan.",
-      "lead": "Everything we ship is shaped by what imams and learners told us they actually needed during the khutbah, the dars, the youth night.",
+      "eyebrow": "Tableau de bord puissant",
+      "title": "Dons et prélèvements automatiques",
+      "lead": "Collectez le soutien de votre communauté sans la charge administrative — paiements intégrés, mandats SEPA récurrents et lots de prélèvement automatisés.",
+      "tabs": {
+        "overview": "Aperçu",
+        "rooms": "Salles",
+        "donations": "Dons",
+        "mandates": "Mandats"
+      },
       "items": {
-        "languages": {
-          "title": "50+ languages, one tap to switch.",
-          "body": "Listeners pick their language at any moment and the meaning continues from where it was. We support every major language used by Muslim communities in Europe and beyond — and we're adding more on request."
+        "payments": {
+          "title": "Système de paiement intégré",
+          "body": "Dons ponctuels et récurrents via iDEAL, carte et virement. Les fonds arrivent directement sur le compte de la mosquée."
         },
-        "realtime": {
-          "title": "Real-time, not next-paragraph.",
-          "body": "Translations land in roughly two and a half seconds. Slow enough to be coherent. Fast enough to feel present in the room."
+        "sepa": {
+          "title": "Prélèvements SEPA automatiques",
+          "body": "Les membres signent un mandat numérique une fois. Les contributions mensuelles sont prélevées automatiquement — sans rappels, sans tableurs."
         },
-        "classroom": {
-          "title": "Classroom roles built in.",
-          "body": "Teacher and student modes, raise-hand, mute controls, persistent room codes for recurring classes. The same engine works for a tafsir circle of twelve as for a Friday gathering of three hundred."
+        "batches": {
+          "title": "Lots de prélèvement programmés",
+          "body": "Le système planifie, valide et envoie les lots SEPA à temps. Les échecs sont automatiquement retentés, avec piste d'audit complète."
+        }
+      },
+      "stats": {
+        "transcription": {
+          "value": "50+",
+          "label": "langues de transcription"
         },
-        "recordings": {
-          "title": "Every session, archived.",
-          "body": "Audio, transcript, and translations are saved to your dashboard. Search them later. Share a clip. Build a library your community can return to."
+        "translation": {
+          "value": "Illimité",
+          "label": "langues de traduction"
         },
-        "privacy": {
-          "title": "Hosted in the EU.",
-          "body": "Your sessions stay in EU regions. We don't sell data, we don't profile listeners, and we don't ask for more than the room code."
+        "accuracy": {
+          "value": "≥95%",
+          "label": "précision"
         },
-        "publicDisplay": {
-          "title": "Public display mode.",
-          "body": "A single screen at the back of the prayer hall, large type, no chrome. Walk in late and pick up the meaning instantly."
+        "latency": {
+          "value": "~2,5s",
+          "label": "latence de traduction"
         }
       }
     },
@@ -927,6 +939,28 @@
           "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
         }
       }
+    },
+    "contact": {
+      "eyebrow": "Nous contacter",
+      "title": "Apportons Bayaan à votre mosquée",
+      "lead": "Parlez-nous de votre communauté et nous reviendrons vers vous sous un jour ouvré.",
+      "directTitle": "Contact direct",
+      "directBody": "Pour des partenariats, une tarification sur mesure ou une démo en direct — écrivez-nous et nous répondrons rapidement.",
+      "email": "support@bayaan.ai",
+      "phone": "+31 6 28718008",
+      "city": "Eindhoven, Pays-Bas",
+      "responseTime": "Nous répondons généralement sous un jour ouvré, in shaa Allah.",
+      "fields": {
+        "name": "Votre nom",
+        "organization": "Mosquée ou organisation",
+        "email": "E-mail",
+        "message": "Comment pouvons-nous vous aider ?"
+      },
+      "submit": "Envoyer le message",
+      "sending": "Envoi…",
+      "successMessage": "Jazak Allahu khayran — votre message est en route. Nous reviendrons vers vous sous peu.",
+      "errorMessage": "Une erreur est survenue lors de l'envoi. Veuillez réessayer ou nous écrire directement.",
+      "privacyNote": "Nous n'utilisons vos coordonnées que pour répondre à ce message."
     },
     "pricing": {
       "eyebrow": "Pricing",
@@ -1007,7 +1041,7 @@
         "useCases": "Use cases",
         "contact": "Contact us",
         "donate": "Support our work",
-        "email": "hello@bayaan.ai",
+        "email": "support@bayaan.ai",
         "privacy": "Privacy",
         "terms": "Terms"
       }

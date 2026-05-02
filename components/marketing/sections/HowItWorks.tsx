@@ -1,13 +1,14 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CalendarPlus, Share2, Languages } from 'lucide-react';
+import { UserPlus, Plus, Radio, Monitor } from 'lucide-react';
 
 const steps = [
-  { key: 'create', icon: CalendarPlus },
-  { key: 'share', icon: Share2 },
-  { key: 'translate', icon: Languages },
-];
+  { key: 'account', icon: UserPlus },
+  { key: 'room', icon: Plus },
+  { key: 'golive', icon: Radio },
+  { key: 'display', icon: Monitor },
+] as const;
 
 export default function HowItWorks() {
   const t = useTranslations('marketing.howItWorks');
@@ -21,35 +22,53 @@ export default function HowItWorks() {
           <p className="mkt-lead mt-4">{t('lead')}</p>
         </div>
 
-        <ol className="mt-14 grid gap-8 md:grid-cols-3 md:gap-10">
+        <ol
+          className="relative mt-16 grid gap-x-10 gap-y-14 md:grid-cols-2 md:gap-y-20 lg:grid-cols-4"
+          aria-label="Setup steps"
+        >
+          {/* Connecting timeline rail (desktop only, behind step circles) */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-0 right-0 top-7 hidden h-px lg:block"
+            style={{
+              background:
+                'linear-gradient(to right, transparent 0, var(--mkt-border-strong) 8%, var(--mkt-border-strong) 92%, transparent 100%)',
+            }}
+          />
+
           {steps.map((step, i) => {
             const Icon = step.icon;
             return (
               <li key={step.key} className="relative flex flex-col">
-                <div
-                  className="flex h-14 w-14 items-center justify-center rounded-2xl"
-                  style={{
-                    background: 'var(--mkt-brand-soft)',
-                    color: 'var(--mkt-brand-deep)',
-                  }}
-                >
-                  <Icon size={26} aria-hidden />
-                </div>
-
-                <div className="mt-6 flex items-baseline gap-3">
+                {/* Step number badge — sits ON the rail */}
+                <div className="relative flex items-center gap-3">
+                  <div
+                    className="relative z-10 flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      background: 'var(--mkt-bg)',
+                      border: '1px solid var(--mkt-border-strong)',
+                      boxShadow: '0 2px 8px oklch(0.20 0.02 200 / 0.06)',
+                    }}
+                  >
+                    <Icon
+                      size={22}
+                      aria-hidden
+                      style={{ color: 'var(--mkt-brand)' }}
+                    />
+                  </div>
                   <span
                     className="font-semibold tabular-nums"
                     style={{
                       color: 'var(--mkt-fg-subtle)',
-                      fontSize: '0.95rem',
-                      letterSpacing: '0.02em',
+                      fontSize: '0.78rem',
+                      letterSpacing: '0.18em',
                     }}
                   >
-                    {String(i + 1).padStart(2, '0')}
+                    {t(`steps.${step.key}.label`)} {String(i + 1).padStart(2, '0')}
                   </span>
-                  <h3 className="mkt-h3">{t(`steps.${step.key}.title`)}</h3>
                 </div>
 
+                <h3 className="mkt-h3 mt-5">{t(`steps.${step.key}.title`)}</h3>
                 <p
                   className="mt-3 leading-relaxed"
                   style={{ color: 'var(--mkt-fg-muted)', fontSize: '0.98rem' }}

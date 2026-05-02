@@ -123,7 +123,6 @@ export function MarketingStudentView({
             <MarketingTranslationPanel
               segments={segments}
               targetLanguage="en"
-              participantCount={12}
               variant={variant}
             />
           </div>
@@ -145,7 +144,7 @@ export function MarketingStudentView({
               <div className={styles.teacherVideo} style={{ aspectRatio: 'auto' }}>
                 <MarketingTeacherTile
                   videoSrc="/marketing/camera-preview.mp4"
-                  name="Sheikh Ahmad"
+                  name="Sheikh Mamdouh"
                   className={styles.teacherTile}
                   onTimeUpdate={handleVideoTime}
                 />

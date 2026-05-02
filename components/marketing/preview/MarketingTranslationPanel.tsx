@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { Languages, Volume2, VolumeX, Maximize2, Minimize2 } from 'lucide-react';
-import { BotIcon } from '@/components/ui/bot';
 import { LottieIcon } from '@/components/lottie-icon';
 import styles from '@/app/components/SpeechTranslationPanel.module.css';
 
@@ -15,7 +13,6 @@ export interface MarketingSegment {
 interface MarketingTranslationPanelProps {
   segments: MarketingSegment[];
   targetLanguage?: string;
-  participantCount?: number;
   variant?: 'desktop' | 'mobile';
 }
 
@@ -34,13 +31,10 @@ const FONT_STEP = 4;
 export function MarketingTranslationPanel({
   segments,
   targetLanguage = 'en',
-  participantCount = 12,
   variant = 'desktop',
 }: MarketingTranslationPanelProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [fontSize, setFontSize] = useState(variant === 'mobile' ? 18 : 50);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isFs, setIsFs] = useState(false);
+  const [fontSize, setFontSize] = useState(variant === 'mobile' ? 22 : 50);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -51,28 +45,8 @@ export function MarketingTranslationPanel({
   return (
     <div className={styles.container}>
       <div className={styles.topBar}>
-        <div className={styles.topBarLeft}>
-          <Languages className={styles.bottomBarIcon} size={18} />
-          <span className={styles.bottomBarTitle}>Live Translation</span>
-        </div>
-        <div className={styles.topBarRight}>
-          <span className={styles.participantBadge} title={`${participantCount} participants`}>
-            {participantCount}
-          </span>
-          <span className={styles.languageBadge}>
-            {languageLabels[targetLanguage] ?? targetLanguage.toUpperCase()}
-          </span>
-          <div
-            className={`${styles.agentBadge} ${styles.agentBadgeActive}`}
-            title="1 agent in room"
-          >
-            <BotIcon size={12} />
-            <span>1</span>
-          </div>
-          <div className={styles.liveIndicator} title="Live">
-            <span className={styles.liveDot}></span>
-          </div>
-        </div>
+        <div className={styles.topBarLeft} />
+        <div className={styles.topBarRight} />
       </div>
 
       <div className={styles.translationList} ref={scrollRef}>
@@ -109,16 +83,6 @@ export function MarketingTranslationPanel({
 
       <div className={styles.bottomBar}>
         <div className={styles.bottomBarLeft}>
-          <button
-            type="button"
-            onClick={() => setIsMuted((v) => !v)}
-            className={`${styles.muteButton} ${isMuted ? styles.muteButtonActive : ''}`}
-            title={isMuted ? 'Unmute audio' : 'Mute audio'}
-            aria-label={isMuted ? 'Unmute teacher audio' : 'Mute teacher audio'}
-          >
-            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-            <span>{isMuted ? 'Muted' : 'Mute'}</span>
-          </button>
           {segments.length > 0 && (
             <span className={styles.messageCountBadge}>{segments.length}</span>
           )}
@@ -142,14 +106,6 @@ export function MarketingTranslationPanel({
               title="Increase font size"
             >
               A+
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsFs((v) => !v)}
-              className={styles.fontButton}
-              title={isFs ? 'Exit presentation mode' : 'Presentation mode'}
-            >
-              {isFs ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </button>
           </div>
         </div>

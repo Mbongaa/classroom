@@ -341,21 +341,25 @@ h2 a {
   --mkt-preview-brand: oklch(0.62 0.13 165);
 }
 
-/* Dark variant: keep emerald + gold relationships, deepen base */
+/* Dark variant: matches the dashboard aesthetic — near-pure black neutrals
+   with the smallest cool tint toward the brand hue (so we don't violate the
+   "no #000" rule). Brand emerald + gold relationships are preserved for CTAs
+   and accents; only the surface and structure go flat. */
 .dark [data-mkt-root],
 [data-mkt-root][data-mkt-dark] {
-  --mkt-bg: oklch(0.16 0.015 200);
-  --mkt-bg-elev: oklch(0.21 0.018 200);
-  --mkt-bg-sunken: oklch(0.12 0.012 200);
-  --mkt-fg: oklch(0.96 0.005 200);
-  --mkt-fg-muted: oklch(0.72 0.012 200);
-  --mkt-fg-subtle: oklch(0.55 0.014 200);
-  --mkt-brand: oklch(0.62 0.13 165);
-  --mkt-brand-deep: oklch(0.50 0.11 165);
-  --mkt-brand-soft: oklch(0.28 0.07 165);
-  --mkt-accent: oklch(0.82 0.13 80);
-  --mkt-border: oklch(0.30 0.020 200);
-  --mkt-border-strong: oklch(0.40 0.025 200);
+  --mkt-bg: oklch(0.05 0.004 200);
+  --mkt-bg-elev: oklch(0.12 0.005 200);
+  --mkt-bg-sunken: oklch(0.02 0.003 200);
+  --mkt-fg: oklch(0.98 0.003 200);
+  --mkt-fg-muted: oklch(0.72 0.005 200);
+  --mkt-fg-subtle: oklch(0.52 0.005 200);
+  --mkt-brand: oklch(0.68 0.14 165);
+  --mkt-brand-deep: oklch(0.54 0.12 165);
+  --mkt-brand-soft: oklch(0.20 0.05 165);
+  --mkt-accent: oklch(0.85 0.13 80);
+  --mkt-accent-deep: oklch(0.74 0.14 78);
+  --mkt-border: oklch(0.18 0.005 200);
+  --mkt-border-strong: oklch(0.28 0.008 200);
 }
 
 /* Allow scroll on marketing page despite global html/body overflow:hidden.

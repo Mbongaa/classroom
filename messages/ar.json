@@ -825,7 +825,7 @@
         "howItWorks": "كيف يعمل",
         "features": "الميزات",
         "useCases": "الاستخدامات",
-        "pricing": "الأسعار"
+        "contact": "تواصل معنا"
       }
     },
     "hero": {
@@ -876,33 +876,45 @@
       }
     },
     "features": {
-      "eyebrow": "Built for sermon",
-      "title": "What's inside Bayaan.",
-      "lead": "Everything we ship is shaped by what imams and learners told us they actually needed during the khutbah, the dars, the youth night.",
+      "eyebrow": "لوحة تحكم متكاملة",
+      "title": "التبرعات والخصم المباشر، تلقائياً",
+      "lead": "اجمع دعم مجتمعك دون عبء إداري — مدفوعات مدمجة، تفويضات SEPA متكررة، وتشغيل دفعات تلقائي.",
+      "tabs": {
+        "overview": "نظرة عامة",
+        "rooms": "الغرف",
+        "donations": "التبرعات",
+        "mandates": "التفويضات"
+      },
       "items": {
-        "languages": {
-          "title": "50+ languages, one tap to switch.",
-          "body": "Listeners pick their language at any moment and the meaning continues from where it was. We support every major language used by Muslim communities in Europe and beyond — and we're adding more on request."
+        "payments": {
+          "title": "نظام دفع مدمج",
+          "body": "تبرعات لمرة واحدة ومتكررة عبر iDEAL والبطاقات والتحويل البنكي. الأموال تصل مباشرة إلى حساب المسجد."
         },
-        "realtime": {
-          "title": "Real-time, not next-paragraph.",
-          "body": "Translations land in roughly two and a half seconds. Slow enough to be coherent. Fast enough to feel present in the room."
+        "sepa": {
+          "title": "خصم SEPA المباشر التلقائي",
+          "body": "يوقّع الأعضاء تفويضاً رقمياً مرة واحدة. تُجمع المساهمات الشهرية تلقائياً — دون تذكيرات أو جداول بيانات."
         },
-        "classroom": {
-          "title": "Classroom roles built in.",
-          "body": "Teacher and student modes, raise-hand, mute controls, persistent room codes for recurring classes. The same engine works for a tafsir circle of twelve as for a Friday gathering of three hundred."
+        "batches": {
+          "title": "دفعات خصم مجدولة",
+          "body": "يقوم النظام بجدولة دفعات SEPA والتحقق منها وإرسالها في وقتها. تتم إعادة محاولة المحاولات الفاشلة تلقائياً مع سجل تدقيق كامل."
+        }
+      },
+      "stats": {
+        "transcription": {
+          "value": "+50",
+          "label": "لغة نسخ"
         },
-        "recordings": {
-          "title": "Every session, archived.",
-          "body": "Audio, transcript, and translations are saved to your dashboard. Search them later. Share a clip. Build a library your community can return to."
+        "translation": {
+          "value": "غير محدود",
+          "label": "لغة ترجمة"
         },
-        "privacy": {
-          "title": "Hosted in the EU.",
-          "body": "Your sessions stay in EU regions. We don't sell data, we don't profile listeners, and we don't ask for more than the room code."
+        "accuracy": {
+          "value": "≥95٪",
+          "label": "دقة"
         },
-        "publicDisplay": {
-          "title": "Public display mode.",
-          "body": "A single screen at the back of the prayer hall, large type, no chrome. Walk in late and pick up the meaning instantly."
+        "latency": {
+          "value": "~2.5s",
+          "label": "زمن الترجمة"
         }
       }
     },
@@ -928,6 +940,28 @@
           "body": "Teachers see who's connected, mute the room with a single tap, and pass the mic when a student wants to ask. The room is theirs."
         }
       }
+    },
+    "contact": {
+      "eyebrow": "تواصل معنا",
+      "title": "لنُحضر بيان إلى مسجدكم",
+      "lead": "أخبرنا عن مجتمعكم وسنتواصل معكم خلال يوم عمل واحد.",
+      "directTitle": "تواصل مباشر",
+      "directBody": "للشراكات أو الأسعار المخصصة أو لطلب عرض حي — راسلنا وسنرد عليكم بسرعة.",
+      "email": "support@bayaan.ai",
+      "phone": "+31 6 28718008",
+      "city": "أيندهوفن، هولندا",
+      "responseTime": "نرد عادةً خلال يوم عمل واحد، إن شاء الله.",
+      "fields": {
+        "name": "الاسم",
+        "organization": "المسجد أو المنظمة",
+        "email": "البريد الإلكتروني",
+        "message": "كيف يمكننا المساعدة؟"
+      },
+      "submit": "إرسال الرسالة",
+      "sending": "جارٍ الإرسال…",
+      "successMessage": "جزاكم الله خيراً — رسالتكم في طريقها إلينا، وسنتواصل معكم قريباً.",
+      "errorMessage": "حدث خطأ أثناء الإرسال. يُرجى المحاولة مرة أخرى أو مراسلتنا مباشرةً.",
+      "privacyNote": "نستخدم بياناتكم فقط للرد على هذه الرسالة."
     },
     "pricing": {
       "eyebrow": "Pricing",
@@ -1008,7 +1042,7 @@
         "useCases": "الاستخدامات",
         "contact": "تواصل معنا",
         "donate": "ادعم عملنا",
-        "email": "hello@bayaan.ai",
+        "email": "support@bayaan.ai",
         "privacy": "الخصوصية",
         "terms": "الشروط"
       }

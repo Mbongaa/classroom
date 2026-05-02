@@ -23,13 +23,29 @@ Calm, dignified, technical when it matters, warm when it doesn't. We respect the
 
 Arabic phrases are sacred when used (Allah ﷻ, Quranic citation italics). They are NOT decoration — never use them as ornament.
 
+## Narrative source of truth
+
+The live https://www.bayaan.ai page is the **canonical story arc** — copy, sequencing, and emotional rhythm. We replicate its narrative exactly. We do **not** replicate its visual execution (sparse, broken layout, missing render).
+
+**Section arc, top to bottom (post-hero):**
+
+1. **How Bayaan Works** — 4 numbered steps: account → room → Go Live → launch display. Eyebrow "simple setup process".
+2. **From Frustration to Inspiration** — personal anecdote in 4 acts: THE CHALLENGE / THE REALIZATION / UNIVERSAL NEED / THE VISION. This is the emotional spine of the page.
+3. **Powerful Dashboard Features** — tabbed dashboard preview (overview / room mgmt / session history / analytics) + 5 feature cards + 4 stats (50+ langs / unlimited / ≥95% / ~2.5s).
+4. **Dawah Opportunities** — 4 use-case cards: friday khutbah / islamic education / community events / dawah programs.
+5. **Quranic Verse Pause** — وَمَا أَرْسَلْنَاكَ إِلَّا رَحْمَةً لِّلْعَالَمِينَ (Quran 21:107). A breath, not a section break.
+6. **Mosques Thriving with Bayaan** — 3 testimonials (Sheikh Ahmad Hassan / Sheikh Mamdouh / Brother Yusuf Ibrahim) with city + outcome metric.
+7. **Pricing** — Starter €99 / Professional €199 (most popular) / Enterprise custom. Footer line: "eligible for zakat funds under islamic education and dawah categories".
+8. **Final CTA** — "ready to expand your dawah reach?" + "get started today" + "book a demo" + بارك الله فيكم.
+9. **Footer** — bayaan + tagline + contact + product/for-mosques/company/legal columns.
+
 ## Anti-references
 
-- The outdated live https://www.bayaan.ai (sparse, broken hero, 2024 mockup). NOT what we're building toward.
 - Generic SaaS landing pages (gradient text headlines, three-card feature grids, testimonial carousels with stock photos).
 - "Tech for mosques" projects that feel like crypto landing pages with a mosque skin.
 - Glassmorphism, neon-on-black, animated emoji confetti, hero-metric "+50% efficiency" templates.
 - Islamic-cliché reflexes: 8-pointed-star backgrounds, crescent moon icons, calligraphy as decorative texture, gold gradient text.
+- The bayaan.ai visual execution itself (sparse layout, blank scroll regions, broken section render). Its words yes, its layout no.
 
 ## Strategic principles
 

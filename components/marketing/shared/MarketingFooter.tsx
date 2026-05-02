@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 const linkGroups = [
@@ -8,25 +9,35 @@ const linkGroups = [
     titleKey: 'product',
     links: [
       { href: '#features', key: 'features' },
-      { href: '#how-it-works', key: 'howItWorks' },
-      { href: '#pricing', key: 'pricing' },
-      { href: '/login', key: 'login' },
+      { href: '#contact', key: 'contact' },
+      { href: 'mailto:support@bayaan.ai?subject=Demo%20request', key: 'demo' },
+      { href: 'mailto:support@bayaan.ai?subject=API%20access', key: 'api' },
     ],
   },
   {
-    titleKey: 'community',
+    titleKey: 'mosques',
     links: [
       { href: '#use-cases', key: 'useCases' },
-      { href: 'mailto:hello@bayaan.ai', key: 'contact' },
-      { href: '/donate', key: 'donate' },
+      { href: '#testimonials', key: 'stories' },
+      { href: 'mailto:support@bayaan.ai?subject=Resources', key: 'resources' },
+      { href: 'mailto:support@bayaan.ai?subject=Support', key: 'support' },
     ],
   },
   {
     titleKey: 'company',
     links: [
-      { href: 'mailto:hello@bayaan.ai', key: 'email' },
+      { href: '#story', key: 'about' },
+      { href: 'mailto:support@bayaan.ai?subject=Careers', key: 'careers' },
+      { href: '#contact', key: 'contact' },
+    ],
+  },
+  {
+    titleKey: 'legal',
+    links: [
       { href: '/legal/privacy', key: 'privacy' },
       { href: '/legal/terms', key: 'terms' },
+      { href: '/legal/security', key: 'security' },
+      { href: '/legal/compliance', key: 'compliance' },
     ],
   },
 ] as const;
@@ -44,24 +55,94 @@ export function MarketingFooter() {
         color: 'var(--mkt-fg-muted)',
       }}
     >
-      <div className="mkt-container py-14">
-        <div className="grid gap-12 md:grid-cols-[minmax(0,_1.4fr)_minmax(0,_2fr)]">
+      <div className="mkt-container py-16">
+        {/* Top row: brand + tagline + contact, then 4 link columns */}
+        <div className="grid gap-12 md:grid-cols-[minmax(0,_1.4fr)_minmax(0,_2fr)] md:gap-14">
+          {/* Brand block */}
           <div>
-            <span
-              className="text-[22px] font-bold tracking-tight"
-              style={{ color: 'var(--mkt-fg)', letterSpacing: '-0.03em' }}
+            <div className="flex items-center gap-2.5">
+              <span
+                aria-hidden
+                className="flex h-9 w-9 items-center justify-center rounded-xl font-bold"
+                style={{
+                  background: 'var(--mkt-brand)',
+                  color: 'oklch(0.99 0.005 165)',
+                  fontSize: '1.125rem',
+                  letterSpacing: '-0.02em',
+                }}
+              >
+                B
+              </span>
+              <span
+                className="font-bold tracking-tight"
+                style={{
+                  color: 'var(--mkt-fg)',
+                  fontSize: '1.5rem',
+                  letterSpacing: '-0.03em',
+                }}
+              >
+                bayaan
+              </span>
+            </div>
+            <p
+              className="mt-5 max-w-sm leading-relaxed"
+              style={{
+                color: 'var(--mkt-fg-muted)',
+                fontSize: '0.92rem',
+              }}
             >
-              bayaan<span style={{ color: 'var(--mkt-brand)' }}>.ai</span>
-            </span>
-            <p className="mt-4 max-w-sm text-[14px] leading-relaxed">{t('tagline')}</p>
+              {t('tagline')}
+            </p>
+
+            {/* Contact strip */}
+            <ul className="mt-7 space-y-3">
+              <li className="flex items-center gap-2.5 text-[14px]">
+                <Mail
+                  size={14}
+                  aria-hidden
+                  style={{ color: 'var(--mkt-brand)' }}
+                />
+                <a
+                  href={`mailto:${t('contact.email')}`}
+                  className="mkt-focus-ring transition-colors"
+                  style={{ color: 'var(--mkt-fg)' }}
+                >
+                  {t('contact.email')}
+                </a>
+              </li>
+              <li className="flex items-center gap-2.5 text-[14px]">
+                <Phone
+                  size={14}
+                  aria-hidden
+                  style={{ color: 'var(--mkt-brand)' }}
+                />
+                <span style={{ color: 'var(--mkt-fg-muted)' }}>
+                  {t('contact.phone')}
+                </span>
+              </li>
+              <li className="flex items-center gap-2.5 text-[14px]">
+                <MapPin
+                  size={14}
+                  aria-hidden
+                  style={{ color: 'var(--mkt-brand)' }}
+                />
+                <span style={{ color: 'var(--mkt-fg-muted)' }}>
+                  {t('contact.city')}
+                </span>
+              </li>
+            </ul>
           </div>
 
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-3">
+          {/* 4 link columns */}
+          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             {linkGroups.map((group) => (
               <div key={group.titleKey}>
                 <h3
-                  className="text-[12px] font-semibold uppercase tracking-wider"
-                  style={{ color: 'var(--mkt-fg)' }}
+                  className="text-[11px] font-bold uppercase"
+                  style={{
+                    color: 'var(--mkt-fg)',
+                    letterSpacing: '0.18em',
+                  }}
                 >
                   {t(`groups.${group.titleKey}`)}
                 </h3>
@@ -70,7 +151,7 @@ export function MarketingFooter() {
                     <li key={link.key}>
                       <Link
                         href={link.href}
-                        className="mkt-focus-ring text-[14px] transition-colors"
+                        className="mkt-focus-ring text-[14px] transition-colors hover:underline"
                         style={{ color: 'var(--mkt-fg-muted)' }}
                       >
                         {t(`links.${link.key}`)}
@@ -84,10 +165,12 @@ export function MarketingFooter() {
         </div>
 
         <div
-          className="mt-12 flex flex-col items-start justify-between gap-3 border-t pt-6 text-[13px] md:flex-row md:items-center"
+          className="mt-14 flex flex-col items-start justify-between gap-3 border-t pt-6 text-[13px] md:flex-row md:items-center"
           style={{ borderColor: 'var(--mkt-border)' }}
         >
-          <p>© {year} bayaan.ai. {t('copyright')}</p>
+          <p>
+            © {year} bayaan. {t('copyright')}
+          </p>
           <p style={{ color: 'var(--mkt-fg-subtle)' }}>{t('madeWith')}</p>
         </div>
       </div>
