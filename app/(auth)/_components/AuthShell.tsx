@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -26,6 +27,17 @@ interface AuthShellProps {
  */
 export function AuthShell({ mode, children }: AuthShellProps) {
   const router = useRouter();
+
+  // Same body-scroll + paper-bg fix as the marketing landing — see
+  // MarketingLandingPage for rationale (Android Chrome <105 lacks `:has()`
+  // so we apply the unlock via a JS class instead).
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.add('mkt-active');
+    return () => {
+      root.classList.remove('mkt-active');
+    };
+  }, []);
 
   const switchMode = (next: Mode) => {
     if (next === mode) return;

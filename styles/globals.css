@@ -369,14 +369,27 @@ h2 a {
   color-scheme: light;
 }
 
-/* Allow scroll on marketing page despite global html/body overflow:hidden.
-   Modern browsers; falls back to non-scrolling on older ones (acceptable). */
+/* Allow scroll on the marketing page. Two selectors: a JS-applied
+   `html.mkt-active` class (works on every browser, including older Android
+   Chrome that lacks `:has()` support), and the modern `:has()` rule as a
+   progressive enhancement when the JS hasn't yet hydrated. */
+html.mkt-active,
+html.mkt-active body,
 html:has([data-mkt-root]),
 body:has([data-mkt-root]) {
   overflow: auto !important;
   touch-action: auto !important;
   height: auto !important;
   min-height: 100svh;
+}
+
+/* Force the marketing surface paper bg on html + body when active so the
+   dashboard's dark `--background` can't bleed through behind the marketing
+   root if it ever fails to fully cover the viewport. */
+html.mkt-active,
+html.mkt-active body {
+  background: #fdfbf7 !important;
+  color-scheme: light;
 }
 
 [data-mkt-root] {
