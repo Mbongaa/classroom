@@ -1,6 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { updateSession } from '@/lib/supabase/middleware';
 
+// Inlined here (rather than imported from `@/i18n/config`) so the edge
+// middleware bundle stays minimal and doesn't trip the Next.js Turbopack
+// "Cannot redefine property: __import_unsupported" runtime error from
+// pulling app code into the edge runtime. Must stay in sync with
+// `i18n/config.ts`.
+const LOCALE_COOKIE_NAME = 'NEXT_LOCALE';
+
 /**
  * Next.js Middleware for Supabase Session Management and App Shell Support
  *
@@ -14,6 +21,13 @@ import { updateSession } from '@/lib/supabase/middleware';
  *   `{orgSlug}.bayaan.app/donate/...` rewrites transparently to
  *   `/donate/{orgSlug}/...` so the existing donate routes serve the
  *   content. The rewritten URL is never visible to the visitor.
+ *
+ * Two-domain routing (bayaan.ai + bayaan.app):
+ *   The marketing landing (and only the landing) lives at bayaan.ai. Every
+ *   product surface — auth, dashboard, classrooms, donate, manage rooms,
+ *   superadmin — lives at bayaan.app. The middleware redirects between the
+ *   two so a request that lands on the wrong host is bounced to the right
+ *   one. Localhost / Vercel preview hosts fall through unchanged.
  *
  * The middleware is configured to run on all routes except:
  * - Static files (_next/static)
@@ -31,11 +45,24 @@ import { updateSession } from '@/lib/supabase/middleware';
  */
 const SUBDOMAIN_RE = /^([a-z0-9][a-z0-9-]{0,58}[a-z0-9])\.bayaan\.app$/;
 
-export async function middleware(request: NextRequest) {
-  // ---- Subdomain → /donate rewrite ------------------------------------
-  const host = request.headers.get('host')?.toLowerCase() || '';
-  const subdomainMatch = host.match(SUBDOMAIN_RE);
+const MARKETING_HOST = (process.env.NEXT_PUBLIC_MARKETING_HOST || 'bayaan.ai').toLowerCase();
+const APP_HOST = (process.env.NEXT_PUBLIC_APP_HOST || 'bayaan.app').toLowerCase();
 
+/**
+ * Paths that belong on the marketing host. Everything else (auth, dashboard,
+ * rooms, donate, manage-rooms, superadmin, ...) belongs on the app host.
+ */
+const MARKETING_PATHS: ReadonlySet<string> = new Set(['/']);
+
+function stripWww(host: string): string {
+  return host.replace(/^www\./, '').split(':')[0];
+}
+
+export async function middleware(request: NextRequest) {
+  const host = request.headers.get('host')?.toLowerCase() || '';
+
+  // ---- Subdomain → /donate rewrite (org slug subdomains) ---------------
+  const subdomainMatch = host.match(SUBDOMAIN_RE);
   if (subdomainMatch && subdomainMatch[1] !== 'www') {
     const orgSlug = subdomainMatch[1];
     const pathname = request.nextUrl.pathname;
@@ -53,6 +80,44 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone();
       url.pathname = `/donate/${orgSlug}${rest}`;
       return NextResponse.rewrite(url);
+    }
+  }
+
+  // ---- Two-domain routing: bayaan.ai (marketing) vs bayaan.app (app) ---
+  // Skip API and Next internals — they should serve on whichever host the
+  // request hits, no redirect bounce. Auth pages ARE host-routed: if the
+  // OTP confirm or recovery link ever lands on the marketing host, we want
+  // to bounce to the app host so cookies scope correctly.
+  const path = request.nextUrl.pathname;
+  const isApiOrInternal = path.startsWith('/api') || path.startsWith('/_next');
+
+  if (!isApiOrInternal) {
+    const cleanHost = stripWww(host);
+    const isMarketingHost = cleanHost === MARKETING_HOST;
+    const isAppHost = cleanHost === APP_HOST;
+    const isMarketingPath = MARKETING_PATHS.has(path);
+
+    if (isMarketingHost && !isMarketingPath) {
+      // Anything that isn't the landing on bayaan.ai → bounce to bayaan.app
+      // with the same path + query preserved. 308 keeps method/body if any.
+      // Forward the locale picked on the marketing host as a query param
+      // so the app host can persist it (cookies don't cross TLDs).
+      const url = request.nextUrl.clone();
+      url.host = APP_HOST;
+      url.protocol = 'https:';
+      const localeCookie = request.cookies.get(LOCALE_COOKIE_NAME)?.value;
+      if (localeCookie && !url.searchParams.has('locale')) {
+        url.searchParams.set('locale', localeCookie);
+      }
+      return NextResponse.redirect(url, 308);
+    }
+
+    if (isAppHost && isMarketingPath) {
+      // Marketing path landed on the app host → bounce to marketing host.
+      const url = request.nextUrl.clone();
+      url.host = MARKETING_HOST;
+      url.protocol = 'https:';
+      return NextResponse.redirect(url, 308);
     }
   }
 

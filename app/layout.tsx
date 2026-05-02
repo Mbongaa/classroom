@@ -39,23 +39,63 @@ const patrickHand = Patrick_Hand({
   display: 'swap',
 });
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bayaan.ai';
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Bayaan.ai | Real-Time Speech Translation for Classrooms',
+    default:
+      'Bayaan.ai — Real-time speech translation for classrooms, sermons & conferences',
     template: '%s | Bayaan.ai',
   },
   description:
-    'Bayaan.ai provides real-time speech translation for classrooms, enabling multilingual learning experiences with live transcription and translation.',
+    'Bayaan.ai delivers real-time speech translation and live captions for classrooms, sermons, and conferences. 50+ languages, ~2.5s latency, no installs for listeners.',
+  applicationName: 'Bayaan.ai',
+  keywords: [
+    'real-time translation',
+    'live translation',
+    'speech translation',
+    'sermon translation',
+    'classroom translation',
+    'conference translation',
+    'live captions',
+    'multilingual streaming',
+    'Arabic translation',
+    'mosque translation',
+    'dawah technology',
+  ],
+  authors: [{ name: 'Bayaan.ai' }],
+  creator: 'Bayaan.ai',
+  publisher: 'Bayaan.ai',
+  alternates: {
+    canonical: '/',
+  },
   twitter: {
     card: 'summary_large_image',
+    title:
+      'Bayaan.ai — Real-time speech translation for classrooms, sermons & conferences',
+    description:
+      'Real-time speech translation with live captions in 50+ languages. Built for classrooms, sermons, and conferences.',
   },
   openGraph: {
+    type: 'website',
     siteName: 'Bayaan.ai',
+    title:
+      'Bayaan.ai — Real-time speech translation for classrooms, sermons & conferences',
+    description:
+      'Real-time speech translation with live captions in 50+ languages. Built for classrooms, sermons, and conferences.',
+    url: '/',
+    locale: 'en_US',
   },
-  icons: {
-    icon: {
-      rel: 'icon',
-      url: '/favicon.ico',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+      'max-video-preview': -1,
     },
   },
   manifest: '/manifest.json',

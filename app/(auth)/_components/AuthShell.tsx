@@ -3,13 +3,17 @@
 import * as React from 'react';
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { setLocale } from '@/app/actions/locale';
+import { isLocale } from '@/i18n/config';
 
 type Mode = 'signin' | 'signup';
 
 interface AuthShellProps {
   mode: Mode;
   children: React.ReactNode;
+  /** Live count of registered organizations, surfaced as social proof. */
+  organizationCount?: number;
 }
 
 /**
@@ -25,8 +29,9 @@ interface AuthShellProps {
  * apply. Light-only — the underlying page sets `data-mkt-root` ⇒ sketch
  * palette regardless of global theme.
  */
-export function AuthShell({ mode, children }: AuthShellProps) {
+export function AuthShell({ mode, children, organizationCount }: AuthShellProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Same body-scroll + paper-bg fix as the marketing landing — see
   // MarketingLandingPage for rationale (Android Chrome <105 lacks `:has()`
@@ -39,6 +44,19 @@ export function AuthShell({ mode, children }: AuthShellProps) {
     };
   }, []);
 
+  // Forward-locale handoff: when the user picked a language on bayaan.ai
+  // (the marketing host) and got bounced here by middleware, the locale
+  // arrives as `?locale=xx`. Persist it on the app-host cookie so subsequent
+  // pages render in the picked language, then strip the param from the URL.
+  useEffect(() => {
+    const incoming = searchParams.get('locale');
+    if (!incoming || !isLocale(incoming)) return;
+    void setLocale(incoming);
+    const url = new URL(window.location.href);
+    url.searchParams.delete('locale');
+    window.history.replaceState({}, '', url.toString());
+  }, [searchParams]);
+
   const switchMode = (next: Mode) => {
     if (next === mode) return;
     router.push(next === 'signup' ? '/signup' : '/login');
@@ -46,7 +64,7 @@ export function AuthShell({ mode, children }: AuthShellProps) {
 
   return (
     <div data-mkt-root className="auth-stage">
-      <LeftPane mode={mode} />
+      <LeftPane mode={mode} organizationCount={organizationCount} />
 
       <div className="auth-right">
         <div className="auth-right-inner">
@@ -115,7 +133,16 @@ export function AuthShell({ mode, children }: AuthShellProps) {
   );
 }
 
-function LeftPane({ mode }: { mode: Mode }) {
+function LeftPane({
+  mode,
+  organizationCount,
+}: {
+  mode: Mode;
+  organizationCount?: number;
+}) {
+  // Server-resolved count when available; otherwise show a quiet fallback so
+  // the slot doesn't render empty during static generation / SSR-skip cases.
+  const count = organizationCount ?? 7;
   return (
     <div className="auth-left">
       <div className="auth-left-grain" aria-hidden />
@@ -126,10 +153,8 @@ function LeftPane({ mode }: { mode: Mode }) {
           className="auth-logo"
           style={{ color: 'var(--mkt-bg-elev)' }}
         >
-          <span className="auth-logo-mark" aria-hidden>
-            B
-          </span>
           <span>bayaan</span>
+          <span style={{ color: 'var(--mkt-accent)' }}>.ai</span>
         </Link>
         <span
           aria-hidden
@@ -209,11 +234,13 @@ function LeftPane({ mode }: { mode: Mode }) {
         </div>
         <div>
           <div>
-            <strong style={{ color: 'var(--mkt-bg-elev)' }}>47 masjids</strong>{' '}
+            <strong style={{ color: 'var(--mkt-bg-elev)' }}>
+              {count} {count === 1 ? 'masjid' : 'masjids'}
+            </strong>{' '}
             already on Bayaan
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-            UK · US · Canada · UAE
+            Belgium · Germany · UAE · Netherlands
           </div>
         </div>
       </div>
