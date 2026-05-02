@@ -912,45 +912,26 @@
       "cta": "Join Our Mission"
     },
     "features": {
-      "eyebrow": "what bayaan brings",
-      "title": "connect your mosque to every visitor.",
-      "lead": "live translation, donations, and monthly members. one place to keep your community close, in any language.",
-      "stats": {
-        "transcription": {
-          "value": "50+",
-          "label": "transcription languages"
-        },
-        "translation": {
-          "value": "Unlimited",
-          "label": "translation languages"
-        },
-        "accuracy": {
-          "value": "≥95%",
-          "label": "accuracy rate"
-        },
-        "latency": {
-          "value": "~2.5s",
-          "label": "translation latency"
-        }
-      },
+      "eyebrow": "more than translation",
+      "title": "donations, members, one calm dashboard.",
+      "lead": "the same screen that streams the khutbah handles the giving afterwards. iDeal, cards, SEPA — settled straight into your mosque’s account.",
       "tabs": {
-        "translation": "translation",
-        "donations": "donations",
-        "members": "members",
-        "reach": "reach"
+        "donations": "one-time donations",
+        "mandates": "SEPA incassos",
+        "recurring": "automatic incassos"
       },
       "items": {
-        "translation": {
-          "title": "live translation, every language",
-          "body": "real-time captions in 50+ languages turn the khutbah into something every visitor can follow. no app, no setup, no headsets."
-        },
         "donations": {
           "title": "donations, frictionless",
-          "body": "ideal, cards, and bank transfer in one place. visitors give in seconds and the funds settle straight to your mosque’s account."
+          "body": "iDeal, cards, and bank transfer in one place. visitors give in seconds and the funds settle straight to your mosque’s account, no middleman."
         },
         "members": {
-          "title": "monthly members, on autopilot",
-          "body": "visitors sign one digital mandate and stay close every month. bayaan handles the sepa collection, retries, and audit trail."
+          "title": "monthly members on autopilot",
+          "body": "one digital SEPA mandate keeps a visitor giving every month. bayaan handles the collection, retries, and audit trail."
+        },
+        "translation": {
+          "title": "live translation, included",
+          "body": "every donation page sits next to the khutbah stream. one mosque, one platform, one login."
         }
       }
     },

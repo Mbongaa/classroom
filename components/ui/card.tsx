@@ -7,7 +7,13 @@ const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElemen
     <div
       ref={ref}
       className={cn(
-        'rounded-lg border border-[rgba(128,128,128,0.3)] bg-white dark:bg-black text-black dark:text-white shadow-sm',
+        // Use semantic Shadcn tokens so the card follows the resolved theme via
+        // CSS variables (`--card` / `--card-foreground`), not the `.dark` class
+        // ancestry. The previous `bg-white dark:bg-black` pattern broke during
+        // the hydration window between marketing→dashboard navigation, when
+        // `<html>` momentarily lacks the `.dark` class but globals.css already
+        // forces the page bg to black — leading to white cards on a dark page.
+        'rounded-lg border border-border bg-card text-card-foreground shadow-sm',
         className,
       )}
       {...props}

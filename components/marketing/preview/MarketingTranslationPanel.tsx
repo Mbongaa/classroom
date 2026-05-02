@@ -82,15 +82,43 @@ export function MarketingTranslationPanel({
 
       <div className={styles.translationList} ref={scrollRef}>
         {segments.length === 0 ? (
-          <div className={styles.emptyState}>
-            <div className={styles.emptyIcon}>
-              <LottieIcon src="/lottie/translate-icon.lottie" size={400} />
+          <div
+            className={styles.emptyState}
+            style={
+              variant === 'mobile'
+                ? { padding: '16px 16px 20px', gap: 0 }
+                : undefined
+            }
+          >
+            <div
+              className={styles.emptyIcon}
+              style={variant === 'mobile' ? { marginBottom: 8 } : undefined}
+            >
+              <LottieIcon
+                src="/lottie/translate-icon.lottie"
+                size={variant === 'mobile' ? 160 : 400}
+              />
             </div>
-            <div className={styles.emptyTitle}>Waiting for Translation</div>
-            <div className={styles.emptyDescription}>
+            <div
+              className={styles.emptyTitle}
+              style={variant === 'mobile' ? { fontSize: 15, marginBottom: 4 } : undefined}
+            >
+              Waiting for Translation
+            </div>
+            <div
+              className={styles.emptyDescription}
+              style={
+                variant === 'mobile'
+                  ? { fontSize: 12, marginBottom: 12, maxWidth: 220, lineHeight: 1.4 }
+                  : undefined
+              }
+            >
               Translations will appear here as the speaker talks
             </div>
-            <div className={styles.languageIndicator}>
+            <div
+              className={styles.languageIndicator}
+              style={variant === 'mobile' ? { padding: '6px 12px', fontSize: 11 } : undefined}
+            >
               <span className={styles.languageLabel}>Translating to</span>
               <span>{languageLabels[lang] ?? lang.toUpperCase()}</span>
             </div>
@@ -116,7 +144,11 @@ export function MarketingTranslationPanel({
       </div>
 
       <div className={styles.bottomBar}>
-        <div className={styles.bottomBarLeft}>
+        <div className={styles.bottomBarLeft} />
+        <div
+          className={styles.bottomBarRight}
+          style={{ display: 'flex', alignItems: 'center', gap: 10 }}
+        >
           {onToggleStreamMute &&
             (isStreamMuted ? (
               <div className="relative inline-flex">
@@ -193,8 +225,6 @@ export function MarketingTranslationPanel({
                 Mute
               </button>
             ))}
-        </div>
-        <div className={styles.bottomBarRight}>
           <div className={styles.fontControls}>
             <button
               type="button"

@@ -900,45 +900,26 @@
       }
     },
     "features": {
-      "eyebrow": "was bayaan bringt",
-      "title": "verbinde deine moschee mit jedem besucher.",
-      "lead": "live-übersetzung, spenden und monatliche mitglieder. ein ort, um deine gemeinschaft nah zu halten, in jeder sprache.",
-      "stats": {
-        "transcription": {
-          "value": "50+",
-          "label": "Transkriptionssprachen"
-        },
-        "translation": {
-          "value": "Unbegrenzt",
-          "label": "Übersetzungssprachen"
-        },
-        "accuracy": {
-          "value": "≥95%",
-          "label": "Genauigkeit"
-        },
-        "latency": {
-          "value": "~2,5s",
-          "label": "Übersetzungslatenz"
-        }
-      },
+      "eyebrow": "mehr als übersetzung",
+      "title": "spenden, mitglieder, ein ruhiges dashboard.",
+      "lead": "derselbe bildschirm, der die khutba überträgt, übernimmt danach das geben. iDeal, kartenzahlung, SEPA — direkt aufs konto der moschee.",
       "tabs": {
-        "translation": "übersetzung",
-        "donations": "spenden",
-        "members": "mitglieder",
-        "reach": "reichweite"
+        "donations": "einmalspenden",
+        "mandates": "SEPA-lastschriften",
+        "recurring": "automatische lastschriften"
       },
       "items": {
-        "translation": {
-          "title": "live-übersetzung, in jeder sprache",
-          "body": "echtzeit-untertitel in 50+ sprachen machen die khutba für jeden besucher zugänglich. keine app, keine einrichtung, keine headsets."
-        },
         "donations": {
           "title": "spenden, ohne aufwand",
-          "body": "ideal, kartenzahlung und überweisung an einem ort. besucher spenden in sekunden, das geld geht direkt aufs konto der moschee."
+          "body": "iDeal, kartenzahlung und überweisung an einem ort. besucher spenden in sekunden, das geld geht direkt aufs konto der moschee, ohne mittelmann."
         },
         "members": {
-          "title": "monatliche mitglieder, auf autopilot",
-          "body": "besucher unterschreiben einmal eine digitale ermächtigung und bleiben jeden monat dabei. bayaan kümmert sich um SEPA-einzug, wiederholungen und audit-trail."
+          "title": "monatsmitglieder auf autopilot",
+          "body": "eine digitale SEPA-ermächtigung hält einen besucher jeden monat dabei. bayaan kümmert sich um einzug, wiederholungen und audit-trail."
+        },
+        "translation": {
+          "title": "live-übersetzung, inklusive",
+          "body": "jede spendenseite steht neben dem khutba-livestream. eine moschee, eine plattform, ein login."
         }
       }
     },

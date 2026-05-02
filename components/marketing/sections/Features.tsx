@@ -6,47 +6,70 @@ import {
   Languages,
   HandCoins,
   Repeat,
-  Globe2,
+  FileSignature,
   Lock,
-  Heart,
 } from 'lucide-react';
 import {
   SketchCard,
   StickyTag,
-  OrganicBlob,
   PaperUnderline,
 } from '@/components/marketing/sketch';
+import { PhoneMockup } from '@/components/marketing/sections/in-the-room/PhoneMockup';
 
-// Each tab represents a connection point bayaan creates between the mosque
-// and its visitors — not a dashboard view. The order goes: language reach,
-// one-off support, recurring members, audience growth.
+// Donation-led ordering. Three tabs walk through how money moves through
+// bayaan: a one-off iDeal/card donation, the SEPA mandate the donor signs,
+// and the monthly auto-collection that runs after.
 const tabs = [
-  { id: 'translation', icon: Languages },
   { id: 'donations', icon: HandCoins },
-  { id: 'members', icon: Repeat },
-  { id: 'reach', icon: Globe2 },
+  { id: 'mandates', icon: FileSignature },
+  { id: 'recurring', icon: Repeat },
 ] as const;
+
+// Each tab gets its own preview surface — donations and mandates show the
+// real donor flow on a phone; recurring shows a screenshot of the mosque-admin
+// members dashboard where the automatic SEPA collection runs.
+type PreviewConfig =
+  | { kind: 'phone'; src: string; alt: string }
+  | { kind: 'dashboard-image'; src: string; alt: string };
+
+const PREVIEW_BY_TAB: Record<typeof tabs[number]['id'], PreviewConfig> = {
+  donations: {
+    kind: 'phone',
+    src: '/marketing/sadaqah-alabraar.mp4',
+    alt: 'Donor giving a one-time sadaqah on their phone',
+  },
+  mandates: {
+    kind: 'phone',
+    src: '/marketing/mandaat-alabraar.mp4',
+    alt: 'Donor signing a SEPA mandate on their phone',
+  },
+  recurring: {
+    kind: 'dashboard-image',
+    src: '/marketing/automatic-incassos.png',
+    alt: 'Mosque admin members dashboard listing recurring donors with active SEPA mandates',
+  },
+};
 
 const featureItems = [
   {
-    key: 'translation',
-    icon: Languages,
-    tone: 'paper' as const,
+    key: 'donations',
+    icon: HandCoins,
+    tone: 'postit' as const,
     rotate: -1.5,
     decoration: 'tape' as const,
     span: 'lg:col-span-2',
   },
   {
-    key: 'donations',
-    icon: HandCoins,
-    tone: 'postit' as const,
+    key: 'members',
+    icon: Repeat,
+    tone: 'paper' as const,
     rotate: 1.8,
     decoration: 'tack' as const,
     span: 'lg:col-span-1',
   },
   {
-    key: 'members',
-    icon: Heart,
+    key: 'translation',
+    icon: Languages,
     tone: 'paper' as const,
     rotate: -1,
     decoration: 'tack-blue' as const,
@@ -54,16 +77,9 @@ const featureItems = [
   },
 ] as const;
 
-const stats = [
-  { key: 'transcription', variant: 1 },
-  { key: 'translation', variant: 2 },
-  { key: 'accuracy', variant: 3 },
-  { key: 'latency', variant: 4 },
-] as const;
-
 export default function Features() {
   const t = useTranslations('marketing.features');
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]['id']>('translation');
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]['id']>('donations');
 
   return (
     <section id="features" className="mkt-section">
@@ -124,108 +140,12 @@ export default function Features() {
           })}
         </div>
 
-        {/* Polaroid dashboard preview — taped to the page */}
-        <div
-          className="relative mx-auto mt-10"
-          style={{ maxWidth: '1080px', transform: 'rotate(-0.6deg)' }}
-        >
-          {/* Tape strips */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute"
-            style={{
-              top: -14,
-              left: 60,
-              transform: 'rotate(-7deg)',
-              width: 96,
-              height: 24,
-              background: 'rgba(80, 80, 80, 0.18)',
-              border: '1px solid rgba(45, 45, 45, 0.18)',
-              borderRadius: 2,
-              zIndex: 2,
-            }}
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute"
-            style={{
-              top: -14,
-              right: 60,
-              transform: 'rotate(6deg)',
-              width: 96,
-              height: 24,
-              background: 'rgba(80, 80, 80, 0.18)',
-              border: '1px solid rgba(45, 45, 45, 0.18)',
-              borderRadius: 2,
-              zIndex: 2,
-            }}
-          />
-
-          <div
-            style={{
-              background: 'var(--mkt-bg-elev)',
-              border: '3px solid var(--mkt-border)',
-              borderRadius: 'var(--mkt-wobbly-md)',
-              boxShadow: '8px 8px 0 0 var(--mkt-border)',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Browser chrome — sketched */}
-            <div
-              className="flex items-center gap-2 px-4 py-3"
-              style={{
-                background: 'var(--mkt-bg-sunken)',
-                borderBottom: '2px solid var(--mkt-border)',
-              }}
-            >
-              <div className="flex gap-1.5">
-                <span
-                  className="h-3 w-3"
-                  style={{
-                    background: 'var(--mkt-accent)',
-                    border: '1.5px solid var(--mkt-border)',
-                    borderRadius: '50% 45% 50% 45%',
-                  }}
-                />
-                <span
-                  className="h-3 w-3"
-                  style={{
-                    background: 'var(--mkt-postit-deep)',
-                    border: '1.5px solid var(--mkt-border)',
-                    borderRadius: '45% 50% 45% 50%',
-                  }}
-                />
-                <span
-                  className="h-3 w-3"
-                  style={{
-                    background: 'var(--mkt-secondary)',
-                    border: '1.5px solid var(--mkt-border)',
-                    borderRadius: '50% 50% 45% 50%',
-                  }}
-                />
-              </div>
-              <div className="flex flex-1 justify-center">
-                <div
-                  className="flex items-center gap-1.5 px-3 py-1"
-                  style={{
-                    background: 'var(--mkt-bg-elev)',
-                    fontFamily: 'var(--mkt-font-body)',
-                    fontSize: '0.85rem',
-                    color: 'var(--mkt-fg-subtle)',
-                    border: '1.5px solid var(--mkt-border)',
-                    borderRadius: '14px 4px 12px 6px / 6px 14px 4px 12px',
-                  }}
-                >
-                  <Lock size={12} strokeWidth={2.6} aria-hidden />
-                  <span>bayaan.app/{activeTab}</span>
-                </div>
-              </div>
-              <span className="w-10" />
-            </div>
-
-            <DashboardSkeleton activeTab={activeTab} />
-          </div>
-        </div>
+        {/* Tab preview surface — phone floats free, dashboard sits in a polaroid frame */}
+        {PREVIEW_BY_TAB[activeTab].kind === 'phone' ? (
+          <PhoneTabPreview activeTab={activeTab} />
+        ) : (
+          <DashboardTabPreview activeTab={activeTab} />
+        )}
 
         {/* Asymmetric bento feature cards */}
         <div className="mt-20 grid gap-7 lg:grid-cols-4">
@@ -275,149 +195,148 @@ export default function Features() {
           })}
         </div>
 
-        {/* Stats — organic blobs, not the hero-metric template */}
-        <div className="mt-20 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
-          {stats.map((s, i) => (
-            <OrganicBlob
-              key={s.key}
-              variant={s.variant}
-              // Aspect ratio only forced on md+ where we have room for it.
-              // On mobile the blob hugs its content (Kalam stat + label).
-              className="flex-col text-center md:aspect-square"
-              style={{
-                padding: '1.25rem',
-                transform: `rotate(${[-2, 1.5, -1, 2][i]}deg)`,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: 'var(--mkt-font-display)',
-                  fontWeight: 700,
-                  color: 'var(--mkt-fg)',
-                  fontSize: 'clamp(1.6rem, 3.2vw, 2.4rem)',
-                  lineHeight: 1.05,
-                }}
-              >
-                {t(`stats.${s.key}.value`)}
-              </div>
-              <div
-                className="mt-2"
-                style={{
-                  fontFamily: 'var(--mkt-font-body)',
-                  color: 'var(--mkt-fg-muted)',
-                  fontSize: '0.95rem',
-                  lineHeight: 1.3,
-                }}
-              >
-                {t(`stats.${s.key}.label`)}
-              </div>
-            </OrganicBlob>
-          ))}
-        </div>
       </div>
     </section>
   );
 }
 
-function DashboardSkeleton({ activeTab }: { activeTab: string }) {
+type TabId = typeof tabs[number]['id'];
+
+function PhoneTabPreview({ activeTab }: { activeTab: TabId }) {
+  const cfg = PREVIEW_BY_TAB[activeTab];
+  if (cfg.kind !== 'phone') return null;
+  return (
+    <div key={activeTab} className="mt-12 flex justify-center">
+      <div style={{ width: 'min(360px, 86vw)' }}>
+        <PhoneMockup
+          screenshot={cfg.src}
+          alt={cfg.alt}
+          rotate={-1.5}
+          showSideButtons
+        />
+      </div>
+    </div>
+  );
+}
+
+function DashboardTabPreview({ activeTab }: { activeTab: TabId }) {
+  const cfg = PREVIEW_BY_TAB[activeTab];
+  if (cfg.kind !== 'dashboard-image') return null;
   return (
     <div
       key={activeTab}
-      className="grid gap-4 p-5 md:grid-cols-[200px_1fr] md:p-7"
-      style={{
-        background: 'var(--mkt-bg-elev)',
-        minHeight: 360,
-      }}
+      className="relative mx-auto mt-10"
+      style={{ maxWidth: '1080px', transform: 'rotate(-0.6deg)' }}
     >
-      {/* Sidebar */}
-      <aside
-        className="hidden flex-col gap-2 p-3 md:flex"
+      {/* Tape strips */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute"
         style={{
-          background: 'var(--mkt-bg-sunken)',
-          border: '2px solid var(--mkt-border)',
+          top: -14,
+          left: 60,
+          transform: 'rotate(-7deg)',
+          width: 96,
+          height: 24,
+          background: 'rgba(80, 80, 80, 0.18)',
+          border: '1px solid rgba(45, 45, 45, 0.18)',
+          borderRadius: 2,
+          zIndex: 2,
+        }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute"
+        style={{
+          top: -14,
+          right: 60,
+          transform: 'rotate(6deg)',
+          width: 96,
+          height: 24,
+          background: 'rgba(80, 80, 80, 0.18)',
+          border: '1px solid rgba(45, 45, 45, 0.18)',
+          borderRadius: 2,
+          zIndex: 2,
+        }}
+      />
+
+      <div
+        style={{
+          background: 'var(--mkt-bg-elev)',
+          border: '3px solid var(--mkt-border)',
           borderRadius: 'var(--mkt-wobbly-md)',
+          boxShadow: '8px 8px 0 0 var(--mkt-border)',
+          overflow: 'hidden',
         }}
       >
-        {[0.85, 0.55, 0.7, 0.45, 0.6, 0.5].map((w, i) => (
-          <div
-            key={i}
-            className="h-3"
-            style={{
-              width: `${w * 100}%`,
-              background:
-                i === 0 ? 'var(--mkt-accent)' : 'var(--mkt-border-soft)',
-              borderRadius: '8px 2px 8px 2px',
-            }}
+        <BrowserChrome activeTab={activeTab} />
+        <div style={{ background: '#0a0a0a', display: 'block', lineHeight: 0 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={cfg.src}
+            alt={cfg.alt}
+            loading="lazy"
+            style={{ width: '100%', height: 'auto', display: 'block' }}
           />
-        ))}
-      </aside>
-
-      {/* Main */}
-      <div className="flex flex-col gap-4">
-        {/* Stat row */}
-        <div className="grid grid-cols-3 gap-3">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="p-4"
-              style={{
-                background: 'var(--mkt-bg)',
-                border: '2px solid var(--mkt-border)',
-                borderRadius: 'var(--mkt-wobbly-md)',
-                boxShadow: '3px 3px 0 0 var(--mkt-border)',
-                transform: `rotate(${[-1, 0.5, -0.5][i]}deg)`,
-              }}
-            >
-              <div
-                className="h-2.5"
-                style={{
-                  width: '40%',
-                  background: 'var(--mkt-border-soft)',
-                  borderRadius: 6,
-                }}
-              />
-              <div
-                className="mt-3 h-6"
-                style={{
-                  width: '60%',
-                  background: i === 1 ? 'var(--mkt-postit)' : 'var(--mkt-accent-soft)',
-                  border: '1.5px solid var(--mkt-border)',
-                  borderRadius: '10px 3px 12px 4px',
-                }}
-              />
-            </div>
-          ))}
-        </div>
-        {/* Chart placeholder — bars with hand-drawn variance */}
-        <div
-          className="flex-1 p-4"
-          style={{
-            background: 'var(--mkt-bg)',
-            border: '2px solid var(--mkt-border)',
-            borderRadius: 'var(--mkt-wobbly-md)',
-            minHeight: 180,
-            display: 'flex',
-            alignItems: 'flex-end',
-            gap: 8,
-          }}
-        >
-          {[0.4, 0.7, 0.55, 0.85, 0.65, 0.9, 0.75, 0.5, 0.95, 0.7, 0.6, 0.8].map(
-            (h, i) => (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: `${h * 100}%`,
-                  background:
-                    i % 3 === 0 ? 'var(--mkt-accent)' : 'var(--mkt-postit)',
-                  border: '1.5px solid var(--mkt-border)',
-                  borderRadius: '6px 3px 0 0',
-                }}
-              />
-            ),
-          )}
         </div>
       </div>
     </div>
   );
 }
+
+function BrowserChrome({ activeTab }: { activeTab: TabId }) {
+  return (
+    <div
+      className="flex items-center gap-2 px-4 py-3"
+      style={{
+        background: 'var(--mkt-bg-sunken)',
+        borderBottom: '2px solid var(--mkt-border)',
+      }}
+    >
+      <div className="flex gap-1.5">
+        <span
+          className="h-3 w-3"
+          style={{
+            background: 'var(--mkt-accent)',
+            border: '1.5px solid var(--mkt-border)',
+            borderRadius: '50% 45% 50% 45%',
+          }}
+        />
+        <span
+          className="h-3 w-3"
+          style={{
+            background: 'var(--mkt-postit-deep)',
+            border: '1.5px solid var(--mkt-border)',
+            borderRadius: '45% 50% 45% 50%',
+          }}
+        />
+        <span
+          className="h-3 w-3"
+          style={{
+            background: 'var(--mkt-secondary)',
+            border: '1.5px solid var(--mkt-border)',
+            borderRadius: '50% 50% 45% 50%',
+          }}
+        />
+      </div>
+      <div className="flex flex-1 justify-center">
+        <div
+          className="flex items-center gap-1.5 px-3 py-1"
+          style={{
+            background: 'var(--mkt-bg-elev)',
+            fontFamily: 'var(--mkt-font-body)',
+            fontSize: '0.85rem',
+            color: 'var(--mkt-fg-subtle)',
+            border: '1.5px solid var(--mkt-border)',
+            borderRadius: '14px 4px 12px 6px / 6px 14px 4px 12px',
+          }}
+        >
+          <Lock size={12} strokeWidth={2.6} aria-hidden />
+          <span>bayaan.app/{activeTab}</span>
+        </div>
+      </div>
+      <span className="w-10" />
+    </div>
+  );
+}
+

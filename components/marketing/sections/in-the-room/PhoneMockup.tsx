@@ -3,8 +3,11 @@
 import * as React from 'react';
 import { Paperclip } from './Paperclip';
 
+const VIDEO_RE = /\.(mp4|webm|mov)$/i;
+
 interface PhoneMockupProps {
-  /** Path to a portrait screenshot (jpg/png/webp). Image fills the screen. */
+  /** Path to a portrait screenshot (jpg/png/webp) or video (mp4/webm/mov).
+   * Detected by extension; video sources autoplay muted+looping. */
   screenshot: string;
   /** Alt text — describe what's visible on screen. */
   alt: string;
@@ -83,19 +86,39 @@ export function PhoneMockup({
             aspectRatio: '9 / 19.5',
           }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={screenshot}
-            alt={alt}
-            style={{
-              position: 'absolute',
-              inset: 0,
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              display: 'block',
-            }}
-          />
+          {VIDEO_RE.test(screenshot) ? (
+            <video
+              src={screenshot}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label={alt}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={screenshot}
+              alt={alt}
+              style={{
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          )}
 
           {/* Side-button hints — purely visual, sit outside the screen */}
           {showSideButtons && (

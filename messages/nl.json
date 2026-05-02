@@ -900,45 +900,26 @@
       }
     },
     "features": {
-      "eyebrow": "wat bayaan brengt",
-      "title": "verbind je moskee met elke bezoeker.",
-      "lead": "live vertaling, donaties en maandelijkse leden. één plek om je gemeenschap dichtbij te houden, in elke taal.",
-      "stats": {
-        "transcription": {
-          "value": "50+",
-          "label": "transcriptietalen"
-        },
-        "translation": {
-          "value": "Onbeperkt",
-          "label": "vertaaltalen"
-        },
-        "accuracy": {
-          "value": "≥95%",
-          "label": "nauwkeurigheid"
-        },
-        "latency": {
-          "value": "~2,5s",
-          "label": "vertaallatentie"
-        }
-      },
+      "eyebrow": "meer dan vertaling",
+      "title": "donaties, leden, één rustig dashboard.",
+      "lead": "hetzelfde scherm dat de khutba uitzendt regelt erna ook het geven. iDeal, kaart, SEPA — direct op de rekening van je moskee.",
       "tabs": {
-        "translation": "vertaling",
-        "donations": "donaties",
-        "members": "leden",
-        "reach": "bereik"
+        "donations": "eenmalige donaties",
+        "mandates": "SEPA-incasso's",
+        "recurring": "automatische incasso's"
       },
       "items": {
-        "translation": {
-          "title": "live vertaling, in elke taal",
-          "body": "realtime ondertiteling in 50+ talen maakt de khutba toegankelijk voor elke bezoeker. geen app, geen installatie, geen headsets."
-        },
         "donations": {
-          "title": "donaties, zonder gedoe",
-          "body": "ideal, kaarten en overschrijving op één plek. bezoekers geven in seconden en het geld komt direct op de rekening van je moskee."
+          "title": "donaties zonder gedoe",
+          "body": "iDeal, kaart en overschrijving op één plek. bezoekers geven in seconden en het geld komt direct op de rekening van je moskee, geen tussenpartij."
         },
         "members": {
-          "title": "maandelijkse leden, op de automatische piloot",
-          "body": "bezoekers tekenen één digitale machtiging en blijven elke maand verbonden. bayaan regelt de SEPA-incasso, herhaalpogingen en audit trail."
+          "title": "maandleden op de automatische piloot",
+          "body": "één digitale SEPA-machtiging houdt een bezoeker elke maand verbonden. bayaan regelt de incasso, herhaalpogingen en audit trail."
+        },
+        "translation": {
+          "title": "live vertaling, inbegrepen",
+          "body": "elke donatiepagina staat naast de livestream van de khutba. één moskee, één platform, één login."
         }
       }
     },

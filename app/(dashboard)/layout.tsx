@@ -64,7 +64,16 @@ export default async function DashboardGroupLayout({
   return (
     <UserProviderWrapper>
       <Suspense fallback={<DashboardSkeleton />}>
-        <SidebarProvider defaultOpen={defaultOpen}>
+        {/* `dark` on the SidebarProvider wrapper forces both Tailwind's `dark:`
+            variant and Shadcn's `--card` / `--background` / `--sidebar` CSS-var
+            overrides for the entire dashboard subtree — so cards, inputs,
+            dialogs stay consistent with the dark page bg even during the
+            SSR→hydration window after navigating from the light marketing/auth
+            surfaces (where next-themes hasn't yet re-stamped `.dark` onto
+            <html>). globals.css already forces html bg to #000 for non-mkt
+            routes, so this just keeps the contents in sync. Applied via
+            className so we don't add an extra layout wrapper. */}
+        <SidebarProvider defaultOpen={defaultOpen} className="dark">
           <AppSidebar />
           <SidebarInset>
             {actingAs ? <ImpersonationBanner actingAs={actingAs} /> : null}
