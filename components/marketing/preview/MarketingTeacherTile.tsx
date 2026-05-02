@@ -305,9 +305,9 @@ function UnmuteCueArrow() {
             (166, 160). The line ends 16px above that so the arrowhead
             doesn't overlap the button artwork. */}
         <path
-          d="M 130 0 Q 20 50, 70 110 Q 130 170, 166 144"
+          d="M 110 -20 Q 20 40, 90 90 Q 160 130, 166 144"
           stroke="var(--mkt-border, #2d2d2d)"
-          strokeWidth="3"
+          strokeWidth="3.5"
           strokeLinecap="round"
           fill="none"
           pathLength="1"
@@ -318,12 +318,13 @@ function UnmuteCueArrow() {
               'mkt-arrow-draw 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1s forwards',
           }}
         />
-        {/* Arrowhead — V-shape opening upward so the arrow visually points
-            DOWN at the button. Fades in after the slithering line lands. */}
+        {/* Arrowhead — pointier V (60° opening) that clearly reads as an
+            arrow. Fans up-left + up-right from the tip so the whole shape
+            visually points DOWN at the unmute button below. */}
         <path
-          d="M 166 144 L 158 134 M 166 144 L 174 134"
+          d="M 166 144 L 156 122 M 166 144 L 178 124"
           stroke="var(--mkt-border, #2d2d2d)"
-          strokeWidth="3"
+          strokeWidth="3.5"
           strokeLinecap="round"
           fill="none"
           style={{

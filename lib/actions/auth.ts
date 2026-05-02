@@ -72,27 +72,30 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   const password = formData.get('password') as string;
   const fullName = formData.get('fullName') as string;
   const orgName = formData.get('orgName') as string;
-  const orgSlug = formData.get('orgSlug') as string;
+  // Slug is auto-derived from orgName when not provided. The signup UI no
+  // longer surfaces it as a separate field; this keeps backward compat with
+  // any caller that still sends it.
+  const rawSlug = formData.get('orgSlug') as string | null;
+  const orgSlug = (rawSlug && rawSlug.trim()) || slugify(orgName ?? '');
   const addressStreet = (formData.get('addressStreet') as string | null)?.trim() ?? '';
   const addressHouseNumber = (formData.get('addressHouseNumber') as string | null)?.trim() ?? '';
   const addressPostalCode = (formData.get('addressPostalCode') as string | null)?.trim() ?? '';
   const addressCity = (formData.get('addressCity') as string | null)?.trim() ?? '';
   const addressCountry = (formData.get('addressCountry') as string | null)?.trim().toUpperCase() ?? '';
-  const plan = (formData.get('plan') as PlanType) || 'pro';
+  // Plan defaults to 'beta' (free) — the new signup UI no longer surfaces
+  // a plan picker. Pro signups continue to work via the explicit form field.
+  const plan = (formData.get('plan') as PlanType) || 'beta';
 
-  if (
-    !email ||
-    !password ||
-    !fullName ||
-    !orgName ||
-    !orgSlug ||
-    !addressStreet ||
-    !addressHouseNumber ||
-    !addressPostalCode ||
-    !addressCity ||
-    addressCountry.length !== 2
-  ) {
+  if (!email || !password || !fullName || !orgName || !orgSlug) {
     return { success: false, error: 'All fields are required' };
+  }
+
+  // Address is collected during onboarding now, not at signup. If any address
+  // field is provided, the country code must still be a valid 2-letter ISO.
+  const hasAddress =
+    addressStreet || addressHouseNumber || addressPostalCode || addressCity;
+  if (hasAddress && addressCountry.length !== 2) {
+    return { success: false, error: 'Country must be a 2-letter code' };
   }
 
   // Validate plan
@@ -137,11 +140,12 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
       slug: orgSlug,
       subscription_status: isBeta ? 'active' : 'incomplete',
       subscription_tier: 'free',
-      address_street: addressStreet,
-      address_house_number: addressHouseNumber,
-      address_postal_code: addressPostalCode,
-      city: addressCity,
-      country: addressCountry,
+      // Address fields are optional now — collected later in onboarding.
+      address_street: addressStreet || null,
+      address_house_number: addressHouseNumber || null,
+      address_postal_code: addressPostalCode || null,
+      city: addressCity || null,
+      country: addressCountry || null,
     })
     .select()
     .single();
@@ -152,7 +156,9 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
 
   // Geocode the address so the mosque shows up on the superadmin map.
   // Fire-and-forget: signup must not fail if Nominatim is slow or down.
+  // Skipped entirely when no address was provided at signup.
   void (async () => {
+    if (!hasAddress) return;
     const coords = await geocodeAddress({
       street: addressStreet,
       houseNumber: addressHouseNumber,

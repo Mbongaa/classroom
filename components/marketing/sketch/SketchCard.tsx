@@ -61,9 +61,9 @@ export function SketchCard({
     .filter(Boolean)
     .join(' ');
 
-  // We intentionally type loosely here; Tag is a valid intrinsic element.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const Component = Tag as any;
+  // Tag is a valid intrinsic element name; cast to a generic React component
+  // type so JSX accepts arbitrary HTML attributes without `any`.
+  const Component = Tag as React.ElementType;
 
   return (
     <Component
