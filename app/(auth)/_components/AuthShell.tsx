@@ -154,7 +154,7 @@ function LeftPane({ mode }: { mode: Mode }) {
           in <span className="auth-marker-yellow">every language</span>.
         </h1>
         <p className="auth-left-lead">
-          Live captions for jummah — no app, no setup.{' '}
+          Live captions for jummah. No app, no setup.{' '}
           {mode === 'signup'
             ? 'Sign up and run your first translated jummah this Friday.'
             : 'Welcome back, sign in to manage your masjid.'}
@@ -250,7 +250,7 @@ function LeftPane({ mode }: { mode: Mode }) {
             border: '1px dashed rgba(0,0,0,0.3)',
           }}
         />
-        ✨ &ldquo;Setup took 6 min. Six!&rdquo; — <em>Br. Tariq</em>
+        ✨ &ldquo;Setup took 6 min. Six!&rdquo; <em>· Br. Tariq</em>
       </div>
     </div>
   );

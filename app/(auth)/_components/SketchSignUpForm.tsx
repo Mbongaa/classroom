@@ -274,7 +274,7 @@ export function SketchSignUpForm() {
       </button>
 
       <div className="auth-submit-helper">
-        <span className="marker">Free during beta</span> — no credit card required.
+        <span className="marker">Free during beta</span>. No credit card required.
       </div>
 
       <div className="auth-footer-link">

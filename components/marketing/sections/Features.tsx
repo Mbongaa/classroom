@@ -279,7 +279,9 @@ export default function Features() {
             <OrganicBlob
               key={s.key}
               variant={s.variant}
-              className="aspect-square flex-col text-center"
+              // Aspect ratio only forced on md+ where we have room for it.
+              // On mobile the blob hugs its content (Kalam stat + label).
+              className="flex-col text-center md:aspect-square"
               style={{
                 padding: '1.25rem',
                 transform: `rotate(${[-2, 1.5, -1, 2][i]}deg)`,
