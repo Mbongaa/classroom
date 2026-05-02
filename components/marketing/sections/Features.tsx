@@ -97,6 +97,7 @@ export default function Features() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
+                aria-pressed={active}
                 className="mkt-focus-ring inline-flex items-center gap-2 transition-transform duration-100"
                 style={{
                   background: active ? 'var(--mkt-accent)' : 'var(--mkt-bg-elev)',
@@ -108,7 +109,9 @@ export default function Features() {
                     : '4px 4px 0 0 var(--mkt-border)',
                   fontFamily: 'var(--mkt-font-body)',
                   fontSize: '1rem',
-                  padding: '0.55rem 1.1rem',
+                  // Min finger target per WCAG 2.5.5 (44×44).
+                  minHeight: 44,
+                  padding: '0.75rem 1.25rem',
                   transform: active ? 'translate(2px, 2px)' : 'rotate(-0.6deg)',
                 }}
               >

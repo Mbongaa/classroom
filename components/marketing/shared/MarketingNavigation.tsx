@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Menu, X, ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SketchButton, StickyTag } from '@/components/marketing/sketch';
@@ -27,6 +27,9 @@ export function MarketingNavigation() {
   const t = useTranslations('marketing.nav');
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const dialogTitleId = useId();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,14 +38,63 @@ export function MarketingNavigation() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // Mobile menu open: trap focus, close on Esc + browser-back, lock scroll,
+  // restore focus to the trigger on close.
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+
+    const dialog = dialogRef.current;
+    const previousFocus = document.activeElement as HTMLElement | null;
+
+    // Push a history entry so the browser back button closes the menu.
+    const stateMarker = { mktMenu: true } as const;
+    window.history.pushState(stateMarker, '');
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      if (e.key !== 'Tab' || !dialog) return;
+      const focusables = dialog.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+
+    const onPopState = () => setOpen(false);
+
     document.addEventListener('keydown', onKey);
+    window.addEventListener('popstate', onPopState);
     document.body.style.overflow = 'hidden';
+
+    // Move focus to the first menu item next tick (after the dialog renders).
+    const id = window.setTimeout(() => {
+      dialog
+        ?.querySelector<HTMLElement>('a[href], button:not([disabled])')
+        ?.focus();
+    }, 0);
+
     return () => {
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('popstate', onPopState);
       document.body.style.overflow = '';
+      window.clearTimeout(id);
+      // Pop the marker we pushed if it's still on top of the stack.
+      if (window.history.state && (window.history.state as { mktMenu?: boolean }).mktMenu) {
+        window.history.back();
+      }
+      // Restore focus to the trigger so keyboard users return to context.
+      previousFocus?.focus?.();
     };
   }, [open]);
 
@@ -120,8 +172,10 @@ export function MarketingNavigation() {
         <div className="flex items-center gap-1 md:hidden" style={{ zIndex: 50 }}>
           <button
             type="button"
+            ref={triggerRef}
             aria-label={open ? t('closeMenu') : t('openMenu')}
             aria-expanded={open}
+            aria-controls={dialogTitleId}
             onClick={() => setOpen((v) => !v)}
             className="mkt-focus-ring flex h-11 w-11 items-center justify-center"
             style={{
@@ -142,6 +196,7 @@ export function MarketingNavigation() {
       {/* Mobile menu — full-screen sticky-note overlay */}
       {open && (
         <div
+          ref={dialogRef}
           className="md:hidden fixed inset-0"
           style={{
             // Sit above the page but below the header's button so the X stays
@@ -149,13 +204,14 @@ export function MarketingNavigation() {
             zIndex: 45,
             top: 64,
             background: 'var(--mkt-bg)',
-            backgroundImage: 'radial-gradient(#e5e0d8 1px, transparent 1px)',
+            backgroundImage: 'radial-gradient(var(--mkt-border-soft) 1px, transparent 1px)',
             backgroundSize: '24px 24px',
             animation: 'mkt-menu-in 220ms cubic-bezier(0.22, 1, 0.36, 1)',
             overflowY: 'auto',
           }}
           role="dialog"
-          aria-label={t('mobileAria')}
+          aria-modal="true"
+          aria-labelledby={dialogTitleId}
         >
           <div
             className="flex flex-col gap-2 px-6 pt-10 pb-12"
@@ -163,7 +219,7 @@ export function MarketingNavigation() {
           >
             {/* Header tag */}
             <StickyTag rotate={-3} tone="postit">
-              menu
+              <span id={dialogTitleId}>menu</span>
             </StickyTag>
 
             {/* Nav links as tilted sticky-note cards */}

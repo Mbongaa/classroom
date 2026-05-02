@@ -398,10 +398,13 @@ html.mkt-active body {
   color: var(--mkt-fg);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  /* Notebook paper grain — radial dots at 24px tile per spec. */
-  background-image: radial-gradient(#e5e0d8 1px, transparent 1px);
+  /* Notebook paper grain — radial dots at 24px tile. Background scrolls with
+     the content (no `background-attachment: fixed`) so iOS Safari + older
+     Android Chrome don't repaint the layer every scroll frame. The dot tile
+     is small enough that scroll-with-content is visually indistinguishable
+     from a fixed grain. */
+  background-image: radial-gradient(var(--mkt-border-soft) 1px, transparent 1px);
   background-size: 24px 24px;
-  background-attachment: fixed;
 }
 
 [data-mkt-root] h1,
@@ -928,9 +931,11 @@ html.mkt-active body {
 }
 .auth-tab {
   flex: 1;
+  /* min-height meets WCAG 2.5.5 Target Size (Enhanced) — 44×44px finger target. */
+  min-height: 48px;
   background: var(--mkt-border-soft);
   border: 2.5px solid var(--mkt-border);
-  padding: 10px 8px;
+  padding: 14px 12px;
   font-family: var(--mkt-font-display);
   font-weight: 700;
   font-size: 17px;
