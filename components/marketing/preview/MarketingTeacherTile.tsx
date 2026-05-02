@@ -98,6 +98,11 @@ export function MarketingTeacherTile({
         </video>
       ) : null}
 
+      {/* Hand-drawn cue arrow pointing at the unmute button. Only visible
+          while muted; slithers in 1s after mount with a stroke-draw animation,
+          then the arrowhead fades in. */}
+      {isStreamMuted && <UnmuteCueArrow />}
+
       {/* Overlay layer */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Top Bar */}
@@ -232,7 +237,11 @@ export function MarketingTeacherTile({
               </button>
             </div>
 
-            {/* Speaking indicator (audio visualization) */}
+            {/* Speaking indicator (audio visualization). Inside the marketing
+                surface --mkt-border is defined and takes precedence so the
+                bars match the translation-card pencil border. Outside it
+                (production view) the fallback chain keeps the existing
+                --lk-text1 → white behavior intact. */}
             {isSpeaking && (
               <div className="flex gap-0.5">
                 {[0, 1, 2].map((i) => (
@@ -240,7 +249,7 @@ export function MarketingTeacherTile({
                     key={i}
                     className="w-1 h-3 rounded-full animate-pulse"
                     style={{
-                      backgroundColor: 'var(--lk-text1, white)',
+                      backgroundColor: 'var(--mkt-border, var(--lk-text1, white))',
                       animationDelay: `${i * 100}ms`,
                     }}
                   />
@@ -250,6 +259,79 @@ export function MarketingTeacherTile({
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Hand-drawn curved arrow that slithers DOWN from above the viewport top
+ * (off-screen, above the marketing header), through the header, and ends
+ * pointing DOWN at the unmute button in the top-right of the tile.
+ *
+ * Uses `position: fixed` with a negative `top` so the path origin sits
+ * genuinely above the viewport edge. Mobile-only — on desktop the layout
+ * + larger viewport make this cue unnecessary and the geometry would not
+ * align cleanly.
+ *
+ * `pathLength="1"` normalizes the path so stroke-dashoffset animates
+ * proportionally regardless of actual path length.
+ */
+function UnmuteCueArrow() {
+  return (
+    <div
+      aria-hidden
+      className="pointer-events-none md:hidden"
+      style={{
+        position: 'fixed',
+        top: -56,
+        right: 0,
+        width: 200,
+        height: 250,
+        zIndex: 50,
+      }}
+    >
+      <svg
+        width="200"
+        height="250"
+        viewBox="0 0 200 250"
+        fill="none"
+        style={{ overflow: 'visible' }}
+      >
+        {/* Slithering line: starts off-screen above the header (SVG y < 56
+            is above viewport because container top:-56), travels in two
+            S-curves through the header and into the hero, ends just above
+            the unmute button. The button center on a 390-wide mobile
+            viewport sits at roughly viewport (356, 104), which maps to SVG
+            (166, 160). The line ends 16px above that so the arrowhead
+            doesn't overlap the button artwork. */}
+        <path
+          d="M 130 0 Q 20 50, 70 110 Q 130 170, 166 144"
+          stroke="var(--mkt-border, #2d2d2d)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          fill="none"
+          pathLength="1"
+          style={{
+            strokeDasharray: 1,
+            strokeDashoffset: 1,
+            animation:
+              'mkt-arrow-draw 1400ms cubic-bezier(0.22, 1, 0.36, 1) 1s forwards',
+          }}
+        />
+        {/* Arrowhead — V-shape opening upward so the arrow visually points
+            DOWN at the button. Fades in after the slithering line lands. */}
+        <path
+          d="M 166 144 L 158 134 M 166 144 L 174 134"
+          stroke="var(--mkt-border, #2d2d2d)"
+          strokeWidth="3"
+          strokeLinecap="round"
+          fill="none"
+          style={{
+            opacity: 0,
+            animation: 'mkt-arrowhead-show 220ms ease-out 2.35s forwards',
+          }}
+        />
+      </svg>
     </div>
   );
 }

@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { ThemeToggleButton } from '@/components/ui/theme-toggle';
+import { SketchButton, StickyTag } from '@/components/marketing/sketch';
 
 const navLinks = [
   { href: '#how-it-works', key: 'howItWorks' },
@@ -12,6 +12,16 @@ const navLinks = [
   { href: '#use-cases', key: 'useCases' },
   { href: '#contact', key: 'contact' },
 ] as const;
+
+// Each mobile menu link is a sticky note with deliberate variety: alternate
+// rotation, alternate alignment, alternate paper / post-it tone. The grid
+// breaks; the ink stays consistent.
+const mobileLinkStyle = [
+  { rotate: -2.5, align: 'self-start', tone: 'paper' as const },
+  { rotate: 2, align: 'self-end', tone: 'postit' as const },
+  { rotate: -1.5, align: 'self-start', tone: 'postit' as const },
+  { rotate: 2.5, align: 'self-end', tone: 'paper' as const },
+];
 
 export function MarketingNavigation() {
   const t = useTranslations('marketing.nav');
@@ -40,12 +50,12 @@ export function MarketingNavigation() {
     <header
       className="sticky top-0 z-40"
       style={{
-        background: scrolled ? 'oklch(0.97 0.01 90 / 0.85)' : 'var(--mkt-bg)',
-        backdropFilter: scrolled ? 'saturate(140%) blur(10px)' : 'none',
-        WebkitBackdropFilter: scrolled ? 'saturate(140%) blur(10px)' : 'none',
+        background: scrolled ? 'rgba(253, 251, 247, 0.92)' : 'transparent',
+        backdropFilter: scrolled ? 'saturate(140%) blur(8px)' : 'none',
+        WebkitBackdropFilter: scrolled ? 'saturate(140%) blur(8px)' : 'none',
         borderBottom: scrolled
-          ? '1px solid var(--mkt-border)'
-          : '1px solid transparent',
+          ? '2px dashed var(--mkt-border)'
+          : '2px dashed transparent',
         transition: 'background 200ms ease, border-color 200ms ease',
         color: 'var(--mkt-fg)',
       }}
@@ -56,110 +66,184 @@ export function MarketingNavigation() {
       >
         <Link
           href="/"
-          className="mkt-focus-ring text-[20px] font-bold tracking-tight"
-          style={{ color: 'var(--mkt-fg)', letterSpacing: '-0.03em' }}
+          className="mkt-focus-ring inline-flex items-baseline gap-0.5"
+          style={{
+            fontFamily: 'var(--mkt-font-display)',
+            color: 'var(--mkt-fg)',
+            fontSize: '1.6rem',
+            fontWeight: 700,
+            letterSpacing: 0,
+            lineHeight: 1,
+          }}
         >
-          bayaan<span style={{ color: 'var(--mkt-brand)' }}>.ai</span>
+          <span>bayaan</span>
+          <span style={{ color: 'var(--mkt-accent)' }}>.ai</span>
         </Link>
 
-        <nav className="hidden items-center gap-7 md:flex" aria-label={t('primaryAria')}>
+        <nav
+          className="hidden items-center gap-7 md:flex"
+          aria-label={t('primaryAria')}
+        >
           {navLinks.map((link) => (
             <Link
               key={link.key}
               href={link.href}
-              className="mkt-focus-ring text-[14px] font-medium transition-colors"
-              style={{ color: 'var(--mkt-fg-muted)' }}
+              className="mkt-focus-ring mkt-link"
+              style={{
+                fontFamily: 'var(--mkt-font-body)',
+                fontSize: '1.05rem',
+                color: 'var(--mkt-fg)',
+              }}
             >
               {t(`links.${link.key}`)}
             </Link>
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center gap-3 md:flex">
           <Link
             href="/login"
-            className="mkt-focus-ring inline-flex h-9 items-center justify-center rounded-full px-4 text-[14px] font-medium"
-            style={{ color: 'currentColor' }}
+            className="mkt-focus-ring mkt-link"
+            style={{
+              fontFamily: 'var(--mkt-font-body)',
+              fontSize: '1.05rem',
+              color: 'var(--mkt-fg)',
+            }}
           >
             {t('signIn')}
           </Link>
-          <Link
-            href="/signup"
-            className="mkt-focus-ring inline-flex h-9 items-center justify-center rounded-full px-5 text-[14px] font-semibold"
-            style={{
-              background: 'var(--mkt-brand)',
-              color: 'oklch(0.99 0.005 165)',
-            }}
-          >
+          <SketchButton href="/signup" size="md">
             {t('getStarted')}
-          </Link>
-          <ThemeToggleButton start="top-right" className="ml-1 size-9" />
+          </SketchButton>
         </div>
 
-        <div className="flex items-center gap-1 md:hidden">
-          <ThemeToggleButton start="top-right" className="size-9" />
+        <div className="flex items-center gap-1 md:hidden" style={{ zIndex: 50 }}>
           <button
             type="button"
             aria-label={open ? t('closeMenu') : t('openMenu')}
             aria-expanded={open}
             onClick={() => setOpen((v) => !v)}
-            className="mkt-focus-ring flex h-10 w-10 items-center justify-center rounded-full"
-            style={{ color: 'currentColor' }}
+            className="mkt-focus-ring flex h-11 w-11 items-center justify-center"
+            style={{
+              color: 'var(--mkt-fg)',
+              background: 'var(--mkt-bg-elev)',
+              border: '2px solid var(--mkt-border)',
+              borderRadius: 'var(--mkt-wobbly-md)',
+              boxShadow: '3px 3px 0 0 var(--mkt-border)',
+              position: 'relative',
+              zIndex: 60,
+            }}
           >
-            {open ? <X size={20} /> : <Menu size={20} />}
+            {open ? <X size={20} strokeWidth={2.6} /> : <Menu size={20} strokeWidth={2.6} />}
           </button>
         </div>
       </div>
 
+      {/* Mobile menu — full-screen sticky-note overlay */}
       {open && (
         <div
-          className="md:hidden"
+          className="md:hidden fixed inset-0"
           style={{
+            // Sit above the page but below the header's button so the X stays
+            // tappable.
+            zIndex: 45,
+            top: 64,
             background: 'var(--mkt-bg)',
-            borderTop: '1px solid var(--mkt-border)',
+            backgroundImage: 'radial-gradient(#e5e0d8 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+            animation: 'mkt-menu-in 220ms cubic-bezier(0.22, 1, 0.36, 1)',
+            overflowY: 'auto',
           }}
+          role="dialog"
+          aria-label={t('mobileAria')}
         >
-          <nav
-            className="flex w-full flex-col gap-1 py-4"
-            style={{ paddingInline: 'clamp(1.25rem, 3vw, 2.5rem)' }}
-            aria-label={t('mobileAria')}
+          <div
+            className="flex flex-col gap-2 px-6 pt-10 pb-12"
+            style={{ minHeight: '100%' }}
           >
-            {navLinks.map((link) => (
-              <Link
-                key={link.key}
-                href={link.href}
-                onClick={() => setOpen(false)}
-                className="mkt-focus-ring rounded-lg px-3 py-3 text-[16px] font-medium"
-                style={{ color: 'var(--mkt-fg)' }}
-              >
-                {t(`links.${link.key}`)}
-              </Link>
-            ))}
-            <div className="mt-3 flex flex-col gap-2 border-t pt-4" style={{ borderColor: 'var(--mkt-border)' }}>
+            {/* Header tag */}
+            <StickyTag rotate={-3} tone="postit">
+              menu
+            </StickyTag>
+
+            {/* Nav links as tilted sticky-note cards */}
+            <nav
+              className="mt-8 flex flex-col gap-5"
+              aria-label={t('mobileAria')}
+            >
+              {navLinks.map((link, i) => {
+                const variant = mobileLinkStyle[i % mobileLinkStyle.length];
+                const bg =
+                  variant.tone === 'postit'
+                    ? 'var(--mkt-postit)'
+                    : 'var(--mkt-bg-elev)';
+                return (
+                  <Link
+                    key={link.key}
+                    href={link.href}
+                    onClick={() => setOpen(false)}
+                    className={`mkt-focus-ring relative inline-flex items-center justify-between gap-4 ${variant.align}`}
+                    style={{
+                      width: '78%',
+                      maxWidth: 320,
+                      background: bg,
+                      color: 'var(--mkt-fg)',
+                      border: '2.5px solid var(--mkt-border)',
+                      borderRadius: 'var(--mkt-wobbly)',
+                      boxShadow: '5px 5px 0 0 var(--mkt-border)',
+                      padding: '1rem 1.25rem',
+                      fontFamily: 'var(--mkt-font-display)',
+                      fontSize: '1.6rem',
+                      fontWeight: 700,
+                      lineHeight: 1.1,
+                      textDecoration: 'none',
+                      transform: `rotate(${variant.rotate}deg)`,
+                      transition: 'transform 100ms cubic-bezier(0.22, 1, 0.36, 1)',
+                    }}
+                  >
+                    <span>{t(`links.${link.key}`)}</span>
+                    <ArrowRight
+                      size={20}
+                      strokeWidth={2.6}
+                      aria-hidden
+                      style={{ color: 'var(--mkt-accent)', flexShrink: 0 }}
+                    />
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Divider */}
+            <div
+              aria-hidden
+              className="mt-10"
+              style={{ borderTop: '2px dashed var(--mkt-border)' }}
+            />
+
+            {/* Account actions */}
+            <div className="mt-8 flex flex-col items-start gap-5">
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}
-                className="mkt-focus-ring inline-flex h-11 items-center justify-center rounded-full text-[14px] font-medium"
+                className="mkt-focus-ring mkt-link"
                 style={{
+                  fontFamily: 'var(--mkt-font-body)',
+                  fontSize: '1.15rem',
                   color: 'var(--mkt-fg)',
-                  border: '1px solid var(--mkt-border-strong)',
                 }}
               >
                 {t('signIn')}
               </Link>
-              <Link
+              <SketchButton
                 href="/signup"
+                size="lg"
                 onClick={() => setOpen(false)}
-                className="mkt-focus-ring inline-flex h-11 items-center justify-center rounded-full text-[14px] font-semibold"
-                style={{
-                  background: 'var(--mkt-brand)',
-                  color: 'oklch(0.99 0.005 165)',
-                }}
               >
                 {t('getStarted')}
-              </Link>
+                <ArrowRight size={18} strokeWidth={2.6} aria-hidden />
+              </SketchButton>
             </div>
-          </nav>
+          </div>
         </div>
       )}
     </header>

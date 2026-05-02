@@ -1,8 +1,8 @@
 'use client';
 
-import Link from 'next/link';
 import { ArrowRight, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { SketchButton } from '@/components/marketing/sketch';
 
 const points = ['noCard', 'instant', 'setup'] as const;
 
@@ -10,50 +10,53 @@ export default function CTA() {
   const t = useTranslations('marketing.cta');
 
   return (
-    <section
-      className="mkt-section"
-      style={{
-        paddingTop: 'clamp(4rem, 8vw, 7rem)',
-        paddingBottom: 'clamp(4rem, 8vw, 7rem)',
-      }}
-    >
+    <section className="mkt-section">
       <div className="mkt-container">
         <div
-          className="relative overflow-hidden rounded-3xl"
+          className="relative overflow-hidden"
           style={{
-            background:
-              'linear-gradient(135deg, var(--mkt-brand-deep), var(--mkt-brand))',
-            color: 'oklch(0.96 0.02 165)',
+            background: 'var(--mkt-accent)',
+            color: 'var(--mkt-bg-elev)',
             padding: 'clamp(2.75rem, 5vw, 4.5rem)',
+            border: '3px solid var(--mkt-border)',
+            borderRadius: 'var(--mkt-wobbly)',
+            boxShadow: 'var(--mkt-shadow-card-strong)',
+            transform: 'rotate(-0.5deg)',
           }}
         >
-          {/* Soft radial accents — gold in upper-left, deeper green in lower-right */}
+          {/* Subtle paper-texture overlay so the red doesn't read flat */}
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 opacity-30"
             style={{
-              background:
-                'radial-gradient(circle at 18% 22%, oklch(0.78 0.12 80 / 0.45), transparent 55%), radial-gradient(circle at 82% 78%, oklch(0.30 0.09 170 / 0.7), transparent 60%)',
+              backgroundImage:
+                'radial-gradient(circle at 1px 1px, rgba(0,0,0,0.18) 1px, transparent 0)',
+              backgroundSize: '20px 20px',
             }}
           />
 
           <div className="relative grid items-center gap-10 md:grid-cols-[minmax(0,_1.45fr)_minmax(0,_1fr)] md:gap-14">
             <div>
               <h2
-                className="mkt-h2"
                 style={{
-                  color: 'oklch(0.99 0.005 165)',
-                  fontSize: 'clamp(1.875rem, 4.5vw, 3.25rem)',
+                  fontFamily: 'var(--mkt-font-display)',
+                  color: 'var(--mkt-bg-elev)',
+                  fontSize: 'clamp(2rem, 5vw, 3.75rem)',
+                  fontWeight: 700,
+                  lineHeight: 1.05,
                 }}
               >
                 {t('title')}
               </h2>
               <p
-                className="mt-4 leading-relaxed"
+                className="mt-5"
                 style={{
-                  color: 'oklch(0.92 0.04 165)',
-                  fontSize: '1.0625rem',
-                  maxWidth: '32rem',
+                  fontFamily: 'var(--mkt-font-body)',
+                  color: 'var(--mkt-bg-elev)',
+                  opacity: 0.95,
+                  fontSize: '1.2rem',
+                  lineHeight: 1.55,
+                  maxWidth: '34rem',
                 }}
               >
                 {t('lead')}
@@ -63,18 +66,24 @@ export default function CTA() {
                 {points.map((p) => (
                   <li
                     key={p}
-                    className="flex items-center gap-2 text-[14.5px]"
+                    className="flex items-center gap-2"
+                    style={{
+                      fontFamily: 'var(--mkt-font-body)',
+                      fontSize: '1.05rem',
+                    }}
                   >
                     <span
-                      className="flex h-5 w-5 items-center justify-center rounded-full"
+                      className="flex h-6 w-6 flex-shrink-0 items-center justify-center"
                       style={{
-                        background: 'oklch(0.50 0.11 165)',
-                        color: 'oklch(0.99 0.005 165)',
+                        background: 'var(--mkt-bg-elev)',
+                        color: 'var(--mkt-accent)',
+                        border: '2px solid var(--mkt-border)',
+                        borderRadius: 'var(--mkt-wobbly-blob-2)',
                       }}
                     >
-                      <Check size={12} aria-hidden />
+                      <Check size={13} strokeWidth={3} aria-hidden />
                     </span>
-                    <span style={{ color: 'oklch(0.92 0.04 165)' }}>
+                    <span style={{ color: 'var(--mkt-bg-elev)' }}>
                       {t(`points.${p}`)}
                     </span>
                   </li>
@@ -82,62 +91,20 @@ export default function CTA() {
               </ul>
             </div>
 
-            <div className="flex flex-col gap-3 md:items-end">
-              <Link
-                href="/signup"
-                className="mkt-focus-ring inline-flex h-12 items-center justify-center rounded-full px-7 text-[15px] font-semibold"
-                style={{
-                  background: 'oklch(0.99 0.005 165)',
-                  color: 'var(--mkt-brand-deep)',
-                }}
-              >
+            <div className="flex flex-col gap-4 md:items-end">
+              <SketchButton href="/signup" size="lg" variant="primary">
                 {t('ctaPrimary')}
-                <ArrowRight size={16} className="ml-2" aria-hidden />
-              </Link>
-              <Link
+                <ArrowRight size={18} strokeWidth={2.6} aria-hidden />
+              </SketchButton>
+              <SketchButton
                 href="mailto:support@bayaan.ai"
-                className="mkt-focus-ring inline-flex h-12 items-center justify-center rounded-full px-6 text-[14.5px] font-medium"
-                style={{
-                  color: 'oklch(0.96 0.02 165)',
-                  border: '1px solid oklch(0.50 0.11 165)',
-                }}
+                size="md"
+                variant="ghost"
+                className="!border-[3px] !border-[#fdfbf7]/50"
               >
                 {t('ctaSecondary')}
-              </Link>
+              </SketchButton>
             </div>
-          </div>
-
-          {/* Closing baraka — Arabic + transliteration. Centered, soft. */}
-          <div
-            className="relative mt-12 border-t pt-8 text-center"
-            style={{
-              borderColor: 'oklch(0.50 0.11 165 / 0.4)',
-            }}
-          >
-            <p
-              lang="ar"
-              dir="rtl"
-              className="font-arabic"
-              style={{
-                fontFamily: "'Noto Sans Arabic', system-ui, sans-serif",
-                color: 'oklch(0.99 0.005 165)',
-                fontSize: 'clamp(1.25rem, 2.4vw, 1.75rem)',
-                fontWeight: 500,
-                letterSpacing: '0.01em',
-              }}
-            >
-              {t('blessing.arabic')}
-            </p>
-            <p
-              className="mt-2"
-              style={{
-                color: 'oklch(0.85 0.05 165)',
-                fontSize: '0.9rem',
-                fontStyle: 'italic',
-              }}
-            >
-              {t('blessing.translation')}
-            </p>
           </div>
         </div>
       </div>

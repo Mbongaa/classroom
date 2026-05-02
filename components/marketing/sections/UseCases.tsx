@@ -2,132 +2,150 @@
 
 import { useTranslations } from 'next-intl';
 import { CalendarHeart, BookOpenText, Heart, Megaphone } from 'lucide-react';
+import {
+  SketchCard,
+  StickyTag,
+  ScribbleCircle,
+} from '@/components/marketing/sketch';
 
 const cases = [
-  { key: 'khutbah', icon: CalendarHeart },
-  { key: 'education', icon: BookOpenText },
-  { key: 'community', icon: Heart },
-  { key: 'dawah', icon: Megaphone },
+  {
+    key: 'khutbah',
+    icon: CalendarHeart,
+    rotate: -1.8,
+    decoration: 'tape' as const,
+    tone: 'paper' as const,
+  },
+  {
+    key: 'education',
+    icon: BookOpenText,
+    rotate: 1.5,
+    decoration: 'tack' as const,
+    tone: 'postit' as const,
+  },
+  {
+    key: 'community',
+    icon: Heart,
+    rotate: -1.2,
+    decoration: 'tack-blue' as const,
+    tone: 'paper' as const,
+  },
+  {
+    key: 'dawah',
+    icon: Megaphone,
+    rotate: 2,
+    decoration: 'tape-double' as const,
+    tone: 'paper' as const,
+  },
 ] as const;
 
 export default function UseCases() {
   const t = useTranslations('marketing.useCases');
 
   return (
-    <section id="use-cases" className="mkt-section">
+    <section
+      id="use-cases"
+      className="mkt-section"
+      style={{ background: 'var(--mkt-bg-sunken)' }}
+    >
       <div className="mkt-container">
         <div className="grid items-end gap-8 md:grid-cols-2 md:gap-12">
           <div>
-            <span className="mkt-eyebrow">{t('eyebrow')}</span>
-            <h2 className="mkt-h2 mt-3">{t('title')}</h2>
+            <StickyTag rotate={-2} tone="paper">
+              {t('eyebrow')}
+            </StickyTag>
+            <h2 className="mkt-h2 mt-6">{t('title')}</h2>
           </div>
           <p className="mkt-lead">{t('lead')}</p>
         </div>
 
-        <div className="mt-14 grid gap-5 md:grid-cols-2 md:gap-6">
-          {cases.map((c, i) => {
+        <div className="mt-16 grid gap-8 md:grid-cols-2 md:gap-10">
+          {cases.map((c) => {
             const Icon = c.icon;
-            const isFeatured = i === 0;
             const chips = t.raw(`cases.${c.key}.chips`) as string[];
             return (
-              <article
+              <SketchCard
                 key={c.key}
-                className="mkt-card flex flex-col"
-                style={
-                  isFeatured
-                    ? {
-                        background: 'var(--mkt-brand-deep)',
-                        color: 'oklch(0.96 0.02 165)',
-                        borderColor: 'var(--mkt-brand-deep)',
-                        minHeight: 280,
-                      }
-                    : { minHeight: 240 }
-                }
+                tone={c.tone}
+                decoration={c.decoration}
+                rotate={c.rotate}
+                hoverJiggle
+                radiusVariant={c.tone === 'postit' ? 'b' : 'a'}
+                style={{
+                  paddingTop: c.decoration === 'tack' || c.decoration === 'tack-blue' ? '2.5rem' : undefined,
+                  minHeight: 280,
+                }}
               >
-                {/* Header row: icon + tag chip */}
-                <div className="flex items-start justify-between gap-3">
-                  <div
-                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl"
-                    style={
-                      isFeatured
-                        ? {
-                            background: 'oklch(0.50 0.10 165)',
-                            color: 'oklch(0.99 0.005 165)',
-                          }
-                        : {
-                            background: 'var(--mkt-brand-soft)',
-                            color: 'var(--mkt-brand-deep)',
-                          }
-                    }
-                  >
-                    <Icon size={22} aria-hidden />
+                <div className="flex items-start justify-between gap-4">
+                  {/* Icon enclosed in a hand-drawn scribble ring */}
+                  <div className="relative flex h-16 w-16 flex-shrink-0 items-center justify-center">
+                    <ScribbleCircle
+                      size={64}
+                      color="var(--mkt-fg)"
+                      strokeWidth={2.4}
+                      style={{ position: 'absolute', inset: 0 }}
+                    />
+                    <Icon
+                      size={26}
+                      strokeWidth={2.6}
+                      aria-hidden
+                      style={{ color: 'var(--mkt-fg)', position: 'relative' }}
+                    />
                   </div>
                   <span
-                    className="rounded-full px-3 py-1 text-[11px] font-semibold uppercase"
-                    style={
-                      isFeatured
-                        ? {
-                            background: 'oklch(0.50 0.10 165 / 0.55)',
-                            color: 'oklch(0.99 0.005 165)',
-                            letterSpacing: '0.12em',
-                          }
-                        : {
-                            background: 'oklch(0.95 0.04 80)',
-                            color: 'var(--mkt-accent-deep)',
-                            letterSpacing: '0.12em',
-                          }
-                    }
+                    style={{
+                      fontFamily: 'var(--mkt-font-body)',
+                      fontSize: '0.85rem',
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                      background: 'var(--mkt-accent)',
+                      color: 'var(--mkt-bg-elev)',
+                      padding: '0.3rem 0.75rem',
+                      border: '2px solid var(--mkt-border)',
+                      borderRadius: '14px 4px 12px 6px / 6px 14px 4px 12px',
+                      transform: 'rotate(2deg)',
+                      boxShadow: '2px 2px 0 0 var(--mkt-border)',
+                    }}
                   >
                     {t(`cases.${c.key}.tag`)}
                   </span>
                 </div>
 
-                <h3
-                  className="mkt-h3 mt-5"
-                  style={isFeatured ? { color: 'oklch(0.99 0.005 165)' } : undefined}
-                >
+                <h3 className="mkt-h3 mt-6" style={{ fontSize: '1.55rem' }}>
                   {t(`cases.${c.key}.title`)}
                 </h3>
                 <p
-                  className="mt-2 leading-relaxed"
+                  className="mt-3"
                   style={{
-                    color: isFeatured
-                      ? 'oklch(0.92 0.04 165)'
-                      : 'var(--mkt-fg-muted)',
-                    fontSize: '0.95rem',
+                    fontFamily: 'var(--mkt-font-body)',
+                    color: 'var(--mkt-fg-muted)',
+                    fontSize: '1.05rem',
+                    lineHeight: 1.6,
                   }}
                 >
                   {t(`cases.${c.key}.body`)}
                 </p>
 
-                {/* Chips */}
-                <ul className="mt-auto flex flex-wrap gap-2 pt-6">
-                  {chips.map((chip) => (
+                <ul className="mt-6 flex flex-wrap gap-2 pt-2">
+                  {chips.map((chip, i) => (
                     <li
                       key={chip}
-                      className="rounded-full px-2.5 py-1"
-                      style={
-                        isFeatured
-                          ? {
-                              background: 'oklch(0.30 0.09 170)',
-                              color: 'oklch(0.92 0.04 165)',
-                              fontSize: '0.74rem',
-                              fontWeight: 500,
-                            }
-                          : {
-                              background: 'var(--mkt-bg-sunken)',
-                              color: 'var(--mkt-fg-muted)',
-                              fontSize: '0.74rem',
-                              fontWeight: 500,
-                              border: '1px solid var(--mkt-border)',
-                            }
-                      }
+                      style={{
+                        fontFamily: 'var(--mkt-font-body)',
+                        fontSize: '0.9rem',
+                        background: 'var(--mkt-bg-elev)',
+                        color: 'var(--mkt-fg)',
+                        padding: '0.3rem 0.75rem',
+                        border: '1.5px solid var(--mkt-border)',
+                        borderRadius: 'var(--mkt-wobbly-pill)',
+                        transform: `rotate(${[-1, 1, -0.5][i % 3]}deg)`,
+                      }}
                     >
                       {chip}
                     </li>
                   ))}
                 </ul>
-              </article>
+              </SketchCard>
             );
           })}
         </div>

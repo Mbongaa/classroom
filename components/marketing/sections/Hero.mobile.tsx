@@ -11,7 +11,7 @@ export default function HeroMobile() {
         height: 'calc(100svh - 64px)',
         display: 'flex',
         flexDirection: 'column',
-        background: '#000',
+        background: 'transparent',
       }}
     >
       <MarketingStudentView variant="mobile" fillParent />

@@ -1,11 +1,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
+import { StickyTag } from '@/components/marketing/sketch';
 
 const items = [
-  { key: 'ahmad' },
-  { key: 'mamdouh' },
-  { key: 'yusuf' },
+  { key: 'ahmad', rotate: -1.8, tone: 'paper' as const, initialBg: 'var(--mkt-postit)' },
+  { key: 'mamdouh', rotate: 1.5, tone: 'paper' as const, initialBg: 'var(--mkt-accent-soft)' },
+  { key: 'yusuf', rotate: -1, tone: 'paper' as const, initialBg: 'var(--mkt-secondary-soft)' },
 ] as const;
 
 export default function Testimonials() {
@@ -15,87 +16,122 @@ export default function Testimonials() {
     <section id="testimonials" className="mkt-section">
       <div className="mkt-container">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mkt-h2">{t('title')}</h2>
-          <p className="mkt-lead mt-4 mx-auto" style={{ marginInline: 'auto' }}>
+          <StickyTag rotate={2} tone="postit">
+            kind words
+          </StickyTag>
+          <h2 className="mkt-h2 mt-6">{t('title')}</h2>
+          <p className="mkt-lead mt-6 mx-auto" style={{ marginInline: 'auto' }}>
             {t('lead')}
           </p>
         </div>
 
-        <div className="mt-16 grid gap-6 md:grid-cols-3 md:gap-7">
+        <div className="mt-20 grid gap-10 md:grid-cols-3 md:gap-7">
           {items.map((item, i) => {
-            const isFeatured = i === 1;
+            const initial = (t(`items.${item.key}.name`) || '?')
+              .replace(/[^a-zA-Z؀-ۿ]/g, '')
+              .charAt(0)
+              .toUpperCase();
             return (
               <article
                 key={item.key}
-                className="mkt-card relative flex flex-col"
-                style={
-                  isFeatured
-                    ? {
-                        background: 'var(--mkt-bg-elev)',
-                        borderColor: 'var(--mkt-brand)',
-                        borderWidth: 1.5,
-                        // Lift the middle card visually
-                        transform: 'translateY(-8px)',
-                        boxShadow:
-                          '0 1px 1px oklch(0.20 0.02 200 / 0.04), 0 12px 32px oklch(0.20 0.02 200 / 0.10)',
-                      }
-                    : undefined
-                }
+                className="relative flex flex-col"
+                style={{
+                  transform: `rotate(${item.rotate}deg)`,
+                  marginTop: i === 1 ? '-1.5rem' : 0,
+                }}
               >
-                {/* Quotation mark ornament */}
-                <span
-                  aria-hidden
-                  className="select-none"
-                  style={{
-                    fontFamily: 'Poppins, system-ui, sans-serif',
-                    fontSize: '4rem',
-                    lineHeight: 0.6,
-                    fontWeight: 800,
-                    color: 'var(--mkt-brand-soft)',
-                    marginBottom: '0.5rem',
-                  }}
-                >
-                  “
-                </span>
-
-                {/* The quote */}
-                <p
-                  className="leading-relaxed"
-                  style={{
-                    color: 'var(--mkt-fg)',
-                    fontSize: '1rem',
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {t(`items.${item.key}.quote`)}
-                </p>
-
-                {/* Attribution — fixed to bottom of card */}
+                {/* Speech bubble */}
                 <div
-                  className="mt-7 border-t pt-5"
-                  style={{ borderColor: 'var(--mkt-border)' }}
+                  className="relative"
+                  style={{
+                    background: 'var(--mkt-bg-elev)',
+                    border: '2.5px solid var(--mkt-border)',
+                    borderRadius: 'var(--mkt-wobbly)',
+                    boxShadow: '6px 6px 0 0 var(--mkt-border)',
+                    padding: 'clamp(1.5rem, 2.4vw, 2rem)',
+                  }}
                 >
-                  <div
-                    className="font-semibold"
+                  <p
                     style={{
+                      fontFamily: 'var(--mkt-font-body)',
                       color: 'var(--mkt-fg)',
-                      fontSize: '0.95rem',
-                      letterSpacing: '-0.01em',
+                      fontSize: '1.1rem',
+                      lineHeight: 1.65,
                     }}
                   >
-                    {t(`items.${item.key}.name`)}
-                  </div>
-                  <div
-                    className="mt-0.5"
-                    style={{ color: 'var(--mkt-fg-muted)', fontSize: '0.85rem' }}
+                    “{t(`items.${item.key}.quote`)}”
+                  </p>
+
+                  {/* Speech bubble tail — geometric triangle made of two
+                      borders. Sits below the bubble pointing at the avatar. */}
+                  <span
+                    aria-hidden
+                    className="absolute"
+                    style={{
+                      bottom: -22,
+                      left: 36,
+                      width: 0,
+                      height: 0,
+                      borderLeft: '20px solid transparent',
+                      borderRight: '8px solid transparent',
+                      borderTop: '24px solid var(--mkt-border)',
+                    }}
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute"
+                    style={{
+                      bottom: -19,
+                      left: 39,
+                      width: 0,
+                      height: 0,
+                      borderLeft: '16px solid transparent',
+                      borderRight: '6px solid transparent',
+                      borderTop: '20px solid var(--mkt-bg-elev)',
+                    }}
+                  />
+                </div>
+
+                {/* Attribution row — avatar circle + name */}
+                <div className="mt-9 flex items-center gap-3 pl-4">
+                  <span
+                    aria-hidden
+                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center"
+                    style={{
+                      background: item.initialBg,
+                      color: 'var(--mkt-fg)',
+                      fontFamily: 'var(--mkt-font-display)',
+                      fontSize: '1.4rem',
+                      fontWeight: 700,
+                      border: '2.5px solid var(--mkt-border)',
+                      borderRadius: 'var(--mkt-wobbly-blob-2)',
+                      boxShadow: '3px 3px 0 0 var(--mkt-border)',
+                    }}
                   >
-                    {t(`items.${item.key}.role`)}
-                  </div>
-                  <div
-                    className="mt-1"
-                    style={{ color: 'var(--mkt-fg-subtle)', fontSize: '0.8rem' }}
-                  >
-                    {t(`items.${item.key}.location`)}
+                    {initial}
+                  </span>
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--mkt-font-display)',
+                        color: 'var(--mkt-fg)',
+                        fontSize: '1.1rem',
+                        fontWeight: 700,
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {t(`items.${item.key}.name`)}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: 'var(--mkt-font-body)',
+                        color: 'var(--mkt-fg-muted)',
+                        fontSize: '0.95rem',
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {t(`items.${item.key}.role`)}{' · '}{t(`items.${item.key}.location`)}
+                    </div>
                   </div>
                 </div>
               </article>

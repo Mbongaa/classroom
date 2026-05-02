@@ -3,6 +3,14 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Mail, Phone, MapPin, Send, Check, AlertCircle } from 'lucide-react';
+import {
+  SketchButton,
+  SketchCard,
+  SketchField,
+  SketchInput,
+  SketchTextarea,
+  StickyTag,
+} from '@/components/marketing/sketch';
 
 type Status = 'idle' | 'sending' | 'sent' | 'error';
 
@@ -47,191 +55,193 @@ export default function Contact() {
   };
 
   return (
-    <section
-      id="contact"
-      className="mkt-section"
-      style={{ background: 'var(--mkt-bg-sunken)' }}
-    >
+    <section id="contact" className="mkt-section">
       <div className="mkt-container">
         <div className="mx-auto max-w-2xl text-center">
-          <span className="mkt-eyebrow">{t('eyebrow')}</span>
-          <h2 className="mkt-h2 mt-3">{t('title')}</h2>
-          <p className="mkt-lead mt-4 mx-auto" style={{ marginInline: 'auto' }}>
+          <StickyTag rotate={-2} tone="postit">
+            {t('eyebrow')}
+          </StickyTag>
+          <h2 className="mkt-h2 mt-6">{t('title')}</h2>
+          <p className="mkt-lead mt-6 mx-auto" style={{ marginInline: 'auto' }}>
             {t('lead')}
           </p>
         </div>
 
-        <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,_2fr)_minmax(0,_3fr)] lg:gap-14">
-          {/* Left: brand contact details */}
-          <aside className="flex flex-col gap-6">
-            <div>
-              <h3
-                className="font-semibold"
-                style={{
-                  color: 'var(--mkt-fg)',
-                  fontSize: '1.05rem',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {t('directTitle')}
-              </h3>
-              <p
-                className="mt-2 leading-relaxed"
-                style={{ color: 'var(--mkt-fg-muted)', fontSize: '0.92rem' }}
-              >
-                {t('directBody')}
-              </p>
-            </div>
+        <div className="mt-16 grid gap-12 lg:grid-cols-[minmax(0,_2fr)_minmax(0,_3fr)] lg:gap-16">
+          {/* Left: contact details on a paper card */}
+          <SketchCard tone="paper" rotate={-1} radiusVariant="b">
+            <h3
+              style={{
+                fontFamily: 'var(--mkt-font-display)',
+                fontSize: '1.4rem',
+                fontWeight: 700,
+                color: 'var(--mkt-fg)',
+              }}
+            >
+              {t('directTitle')}
+            </h3>
+            <p
+              className="mt-3"
+              style={{
+                fontFamily: 'var(--mkt-font-body)',
+                color: 'var(--mkt-fg-muted)',
+                fontSize: '1.02rem',
+                lineHeight: 1.55,
+              }}
+            >
+              {t('directBody')}
+            </p>
 
-            <ul className="flex flex-col gap-4">
-              <li className="flex items-center gap-3">
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-xl"
-                  style={{
-                    background: 'var(--mkt-brand-soft)',
-                    color: 'var(--mkt-brand-deep)',
-                  }}
-                >
-                  <Mail size={16} aria-hidden />
-                </span>
+            <ul className="mt-6 flex flex-col gap-4">
+              <ContactItem
+                icon={<Mail size={18} strokeWidth={2.6} aria-hidden />}
+              >
                 <a
                   href={`mailto:${t('email')}`}
-                  className="mkt-focus-ring transition-colors"
-                  style={{ color: 'var(--mkt-fg)', fontSize: '0.95rem' }}
+                  className="mkt-link mkt-focus-ring"
+                  style={{
+                    fontFamily: 'var(--mkt-font-body)',
+                    fontSize: '1.05rem',
+                  }}
                 >
                   {t('email')}
                 </a>
-              </li>
-              <li className="flex items-center gap-3">
+              </ContactItem>
+              <ContactItem
+                icon={<Phone size={18} strokeWidth={2.6} aria-hidden />}
+              >
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-xl"
                   style={{
-                    background: 'var(--mkt-brand-soft)',
-                    color: 'var(--mkt-brand-deep)',
+                    fontFamily: 'var(--mkt-font-body)',
+                    fontSize: '1.05rem',
+                    color: 'var(--mkt-fg)',
                   }}
                 >
-                  <Phone size={16} aria-hidden />
-                </span>
-                <span style={{ color: 'var(--mkt-fg)', fontSize: '0.95rem' }}>
                   {t('phone')}
                 </span>
-              </li>
-              <li className="flex items-center gap-3">
+              </ContactItem>
+              <ContactItem
+                icon={<MapPin size={18} strokeWidth={2.6} aria-hidden />}
+              >
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-xl"
                   style={{
-                    background: 'var(--mkt-brand-soft)',
-                    color: 'var(--mkt-brand-deep)',
+                    fontFamily: 'var(--mkt-font-body)',
+                    fontSize: '1.05rem',
+                    color: 'var(--mkt-fg)',
                   }}
                 >
-                  <MapPin size={16} aria-hidden />
-                </span>
-                <span style={{ color: 'var(--mkt-fg)', fontSize: '0.95rem' }}>
                   {t('city')}
                 </span>
-              </li>
+              </ContactItem>
             </ul>
 
             <p
-              className="leading-relaxed"
-              style={{ color: 'var(--mkt-fg-subtle)', fontSize: '0.85rem' }}
+              className="mt-6"
+              style={{
+                fontFamily: 'var(--mkt-font-body)',
+                color: 'var(--mkt-fg-subtle)',
+                fontSize: '0.92rem',
+                lineHeight: 1.5,
+              }}
             >
               {t('responseTime')}
             </p>
-          </aside>
+          </SketchCard>
 
-          {/* Right: form card */}
+          {/* Right: form */}
           <form
             onSubmit={handleSubmit}
-            className="mkt-card flex flex-col gap-5"
             noValidate
+            style={{
+              background: 'var(--mkt-bg-elev)',
+              border: '2.5px solid var(--mkt-border)',
+              borderRadius: 'var(--mkt-wobbly)',
+              boxShadow: 'var(--mkt-shadow-card-strong)',
+              padding: 'clamp(1.75rem, 3vw, 2.5rem)',
+              transform: 'rotate(0.6deg)',
+            }}
           >
             <div className="grid gap-5 sm:grid-cols-2">
-              <Field label={t('fields.name')} required>
-                <input
+              <SketchField label={t('fields.name')} required>
+                <SketchInput
                   type="text"
                   name="name"
                   required
                   autoComplete="name"
                   disabled={status === 'sending'}
-                  className="mkt-focus-ring w-full rounded-lg px-3 py-2.5"
-                  style={fieldStyle}
                 />
-              </Field>
-              <Field label={t('fields.organization')}>
-                <input
+              </SketchField>
+              <SketchField label={t('fields.organization')}>
+                <SketchInput
                   type="text"
                   name="organization"
                   autoComplete="organization"
                   disabled={status === 'sending'}
-                  className="mkt-focus-ring w-full rounded-lg px-3 py-2.5"
-                  style={fieldStyle}
                 />
-              </Field>
+              </SketchField>
             </div>
 
-            <Field label={t('fields.email')} required>
-              <input
-                type="email"
-                name="email"
-                required
-                autoComplete="email"
-                disabled={status === 'sending'}
-                className="mkt-focus-ring w-full rounded-lg px-3 py-2.5"
-                style={fieldStyle}
-              />
-            </Field>
+            <div className="mt-5">
+              <SketchField label={t('fields.email')} required>
+                <SketchInput
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  disabled={status === 'sending'}
+                />
+              </SketchField>
+            </div>
 
-            <Field label={t('fields.message')} required>
-              <textarea
-                name="message"
-                required
-                rows={5}
-                disabled={status === 'sending'}
-                className="mkt-focus-ring w-full rounded-lg px-3 py-2.5"
-                style={{ ...fieldStyle, resize: 'vertical', minHeight: 120 }}
-              />
-            </Field>
+            <div className="mt-5">
+              <SketchField label={t('fields.message')} required>
+                <SketchTextarea
+                  name="message"
+                  required
+                  rows={5}
+                  disabled={status === 'sending'}
+                />
+              </SketchField>
+            </div>
 
-            <div className="flex items-center justify-between gap-4">
+            <div className="mt-6 flex items-center justify-between gap-4 flex-wrap">
               <p
                 style={{
+                  fontFamily: 'var(--mkt-font-body)',
                   color: 'var(--mkt-fg-subtle)',
-                  fontSize: '0.78rem',
+                  fontSize: '0.85rem',
                   lineHeight: 1.5,
+                  maxWidth: '20rem',
                 }}
               >
                 {t('privacyNote')}
               </p>
-              <button
+              <SketchButton
                 type="submit"
                 disabled={status === 'sending'}
-                className="mkt-focus-ring inline-flex h-11 items-center justify-center gap-2 rounded-full px-5 text-[14.5px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-                style={{
-                  background: 'var(--mkt-brand)',
-                  color: 'oklch(0.99 0.005 165)',
-                  whiteSpace: 'nowrap',
-                }}
+                size="md"
               >
-                <Send size={16} aria-hidden />
+                <Send size={16} strokeWidth={2.6} aria-hidden />
                 <span>
                   {status === 'sending' ? t('sending') : t('submit')}
                 </span>
-              </button>
+              </SketchButton>
             </div>
 
             {status === 'sent' && (
               <div
                 role="status"
-                className="flex items-start gap-2.5 rounded-lg px-3 py-3"
+                className="mt-5 flex items-start gap-2.5 px-4 py-3"
                 style={{
-                  background: 'oklch(0.95 0.04 165)',
-                  border: '1px solid oklch(0.85 0.06 165)',
-                  color: 'var(--mkt-brand-deep)',
-                  fontSize: '0.9rem',
+                  background: 'var(--mkt-postit)',
+                  border: '2px solid var(--mkt-border)',
+                  borderRadius: 'var(--mkt-wobbly-md)',
+                  fontFamily: 'var(--mkt-font-body)',
+                  color: 'var(--mkt-fg)',
+                  fontSize: '1rem',
                 }}
               >
-                <Check size={16} aria-hidden className="mt-0.5 flex-shrink-0" />
+                <Check size={18} strokeWidth={2.6} aria-hidden className="mt-0.5 flex-shrink-0" />
                 <span>{t('successMessage')}</span>
               </div>
             )}
@@ -239,15 +249,22 @@ export default function Contact() {
             {status === 'error' && (
               <div
                 role="alert"
-                className="flex items-start gap-2.5 rounded-lg px-3 py-3"
+                className="mt-5 flex items-start gap-2.5 px-4 py-3"
                 style={{
-                  background: 'oklch(0.96 0.04 25)',
-                  border: '1px solid oklch(0.85 0.08 25)',
-                  color: 'oklch(0.45 0.12 25)',
-                  fontSize: '0.9rem',
+                  background: 'var(--mkt-accent-soft)',
+                  border: '2px solid var(--mkt-accent)',
+                  borderRadius: 'var(--mkt-wobbly-md)',
+                  fontFamily: 'var(--mkt-font-body)',
+                  color: 'var(--mkt-accent-deep)',
+                  fontSize: '1rem',
                 }}
               >
-                <AlertCircle size={16} aria-hidden className="mt-0.5 flex-shrink-0" />
+                <AlertCircle
+                  size={18}
+                  strokeWidth={2.6}
+                  aria-hidden
+                  className="mt-0.5 flex-shrink-0"
+                />
                 <span>{errorMessage || t('errorMessage')}</span>
               </div>
             )}
@@ -258,41 +275,28 @@ export default function Contact() {
   );
 }
 
-const fieldStyle: React.CSSProperties = {
-  background: 'var(--mkt-bg)',
-  border: '1px solid var(--mkt-border)',
-  color: 'var(--mkt-fg)',
-  fontSize: '0.95rem',
-  letterSpacing: '-0.005em',
-};
-
-function Field({
-  label,
-  required,
+function ContactItem({
+  icon,
   children,
 }: {
-  label: string;
-  required?: boolean;
+  icon: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-1.5">
+    <li className="flex items-center gap-3">
       <span
-        className="font-medium"
+        className="flex h-10 w-10 flex-shrink-0 items-center justify-center"
         style={{
+          background: 'var(--mkt-postit)',
           color: 'var(--mkt-fg)',
-          fontSize: '0.85rem',
-          letterSpacing: '-0.005em',
+          border: '2px solid var(--mkt-border)',
+          borderRadius: 'var(--mkt-wobbly-blob-2)',
+          boxShadow: '2px 2px 0 0 var(--mkt-border)',
         }}
       >
-        {label}
-        {required && (
-          <span aria-hidden style={{ color: 'var(--mkt-brand)' }}>
-            {' *'}
-          </span>
-        )}
+        {icon}
       </span>
       {children}
-    </label>
+    </li>
   );
 }

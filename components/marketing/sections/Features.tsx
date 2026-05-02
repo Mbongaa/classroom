@@ -11,6 +11,12 @@ import {
   Repeat,
   HandCoins,
 } from 'lucide-react';
+import {
+  SketchCard,
+  StickyTag,
+  OrganicBlob,
+  PaperUnderline,
+} from '@/components/marketing/sketch';
 
 const tabs = [
   { id: 'overview', icon: BarChart3 },
@@ -20,16 +26,37 @@ const tabs = [
 ] as const;
 
 const featureItems = [
-  { key: 'payments', icon: CreditCard },
-  { key: 'sepa', icon: Landmark },
-  { key: 'batches', icon: Repeat },
+  {
+    key: 'payments',
+    icon: CreditCard,
+    tone: 'paper' as const,
+    rotate: -1.5,
+    decoration: 'tape' as const,
+    span: 'lg:col-span-2',
+  },
+  {
+    key: 'sepa',
+    icon: Landmark,
+    tone: 'postit' as const,
+    rotate: 1.8,
+    decoration: 'tack' as const,
+    span: 'lg:col-span-1',
+  },
+  {
+    key: 'batches',
+    icon: Repeat,
+    tone: 'paper' as const,
+    rotate: -1,
+    decoration: 'tack-blue' as const,
+    span: 'lg:col-span-1',
+  },
 ] as const;
 
 const stats = [
-  { key: 'transcription' },
-  { key: 'translation' },
-  { key: 'accuracy' },
-  { key: 'latency' },
+  { key: 'transcription', variant: 1 },
+  { key: 'translation', variant: 2 },
+  { key: 'accuracy', variant: 3 },
+  { key: 'latency', variant: 4 },
 ] as const;
 
 export default function Features() {
@@ -37,21 +64,31 @@ export default function Features() {
   const [activeTab, setActiveTab] = useState<typeof tabs[number]['id']>('overview');
 
   return (
-    <section
-      id="features"
-      className="mkt-section"
-      style={{ background: 'var(--mkt-bg-sunken)' }}
-    >
+    <section id="features" className="mkt-section">
       <div className="mkt-container">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="mkt-h2">{t('title')}</h2>
-          <p className="mkt-lead mt-4 mx-auto" style={{ marginInline: 'auto' }}>
+          <StickyTag rotate={-2} tone="postit">
+            {t('eyebrow')}
+          </StickyTag>
+          <h2 className="mkt-h2 mt-6 inline-block relative">
+            {t('title')}
+            <PaperUnderline
+              color="var(--mkt-secondary)"
+              style={{
+                position: 'absolute',
+                left: '15%',
+                bottom: -6,
+                width: '70%',
+              }}
+            />
+          </h2>
+          <p className="mkt-lead mt-6 mx-auto" style={{ marginInline: 'auto' }}>
             {t('lead')}
           </p>
         </div>
 
-        {/* Dashboard tabs */}
-        <div className="mt-12 flex flex-wrap justify-center gap-2">
+        {/* Sketch tabs — wobbly pill buttons */}
+        <div className="mt-12 flex flex-wrap justify-center gap-3">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active = tab.id === activeTab;
@@ -60,140 +97,214 @@ export default function Features() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className="mkt-focus-ring inline-flex items-center gap-2 rounded-full px-4 py-2 transition-colors"
+                className="mkt-focus-ring inline-flex items-center gap-2 transition-transform duration-100"
                 style={{
-                  background: active ? 'var(--mkt-brand)' : 'var(--mkt-bg-elev)',
-                  color: active ? 'oklch(0.99 0.005 165)' : 'var(--mkt-fg)',
-                  border: '1px solid',
-                  borderColor: active ? 'var(--mkt-brand)' : 'var(--mkt-border)',
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  letterSpacing: '-0.005em',
+                  background: active ? 'var(--mkt-accent)' : 'var(--mkt-bg-elev)',
+                  color: active ? 'var(--mkt-bg-elev)' : 'var(--mkt-fg)',
+                  border: `2px solid var(--mkt-border)`,
+                  borderRadius: 'var(--mkt-wobbly-pill)',
+                  boxShadow: active
+                    ? '2px 2px 0 0 var(--mkt-border)'
+                    : '4px 4px 0 0 var(--mkt-border)',
+                  fontFamily: 'var(--mkt-font-body)',
+                  fontSize: '1rem',
+                  padding: '0.55rem 1.1rem',
+                  transform: active ? 'translate(2px, 2px)' : 'rotate(-0.6deg)',
                 }}
               >
-                <Icon size={14} aria-hidden />
+                <Icon size={16} strokeWidth={2.6} aria-hidden />
                 <span>{t(`tabs.${tab.id}`)}</span>
               </button>
             );
           })}
         </div>
 
-        {/* Browser-chrome dashboard preview */}
+        {/* Polaroid dashboard preview — taped to the page */}
         <div
-          className="mx-auto mt-7 overflow-hidden rounded-2xl"
-          style={{
-            background: 'var(--mkt-bg-elev)',
-            border: '1px solid var(--mkt-border)',
-            boxShadow:
-              '0 1px 1px oklch(0.20 0.02 200 / 0.04), 0 12px 32px oklch(0.20 0.02 200 / 0.10), 0 40px 100px oklch(0.20 0.02 200 / 0.18)',
-            maxWidth: '1080px',
-          }}
+          className="relative mx-auto mt-10"
+          style={{ maxWidth: '1080px', transform: 'rotate(-0.6deg)' }}
         >
-          {/* Mac-window chrome */}
-          <div
-            className="flex items-center gap-2 px-4 py-3"
+          {/* Tape strips */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute"
             style={{
-              background: 'var(--mkt-bg-sunken)',
-              borderBottom: '1px solid var(--mkt-border)',
+              top: -14,
+              left: 60,
+              transform: 'rotate(-7deg)',
+              width: 96,
+              height: 24,
+              background: 'rgba(80, 80, 80, 0.18)',
+              border: '1px solid rgba(45, 45, 45, 0.18)',
+              borderRadius: 2,
+              zIndex: 2,
+            }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute"
+            style={{
+              top: -14,
+              right: 60,
+              transform: 'rotate(6deg)',
+              width: 96,
+              height: 24,
+              background: 'rgba(80, 80, 80, 0.18)',
+              border: '1px solid rgba(45, 45, 45, 0.18)',
+              borderRadius: 2,
+              zIndex: 2,
+            }}
+          />
+
+          <div
+            style={{
+              background: 'var(--mkt-bg-elev)',
+              border: '3px solid var(--mkt-border)',
+              borderRadius: 'var(--mkt-wobbly-md)',
+              boxShadow: '8px 8px 0 0 var(--mkt-border)',
+              overflow: 'hidden',
             }}
           >
-            <div className="flex gap-1.5">
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: 'oklch(0.72 0.16 25)' }}
-              />
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: 'oklch(0.82 0.13 80)' }}
-              />
-              <span
-                className="h-2.5 w-2.5 rounded-full"
-                style={{ background: 'oklch(0.70 0.13 155)' }}
-              />
-            </div>
-            <div className="flex flex-1 justify-center">
-              <div
-                className="flex items-center gap-1.5 rounded-md px-3 py-1"
-                style={{
-                  background: 'var(--mkt-bg)',
-                  fontSize: '11px',
-                  color: 'var(--mkt-fg-subtle)',
-                  border: '1px solid var(--mkt-border)',
-                }}
-              >
-                <Lock size={10} aria-hidden />
-                <span>dashboard.bayaan.ai/{activeTab}</span>
+            {/* Browser chrome — sketched */}
+            <div
+              className="flex items-center gap-2 px-4 py-3"
+              style={{
+                background: 'var(--mkt-bg-sunken)',
+                borderBottom: '2px solid var(--mkt-border)',
+              }}
+            >
+              <div className="flex gap-1.5">
+                <span
+                  className="h-3 w-3"
+                  style={{
+                    background: 'var(--mkt-accent)',
+                    border: '1.5px solid var(--mkt-border)',
+                    borderRadius: '50% 45% 50% 45%',
+                  }}
+                />
+                <span
+                  className="h-3 w-3"
+                  style={{
+                    background: 'var(--mkt-postit-deep)',
+                    border: '1.5px solid var(--mkt-border)',
+                    borderRadius: '45% 50% 45% 50%',
+                  }}
+                />
+                <span
+                  className="h-3 w-3"
+                  style={{
+                    background: 'var(--mkt-secondary)',
+                    border: '1.5px solid var(--mkt-border)',
+                    borderRadius: '50% 50% 45% 50%',
+                  }}
+                />
               </div>
+              <div className="flex flex-1 justify-center">
+                <div
+                  className="flex items-center gap-1.5 px-3 py-1"
+                  style={{
+                    background: 'var(--mkt-bg-elev)',
+                    fontFamily: 'var(--mkt-font-body)',
+                    fontSize: '0.85rem',
+                    color: 'var(--mkt-fg-subtle)',
+                    border: '1.5px solid var(--mkt-border)',
+                    borderRadius: '14px 4px 12px 6px / 6px 14px 4px 12px',
+                  }}
+                >
+                  <Lock size={12} strokeWidth={2.6} aria-hidden />
+                  <span>dashboard.bayaan.ai/{activeTab}</span>
+                </div>
+              </div>
+              <span className="w-10" />
             </div>
-            <span className="w-10" /> {/* Spacer for symmetry */}
-          </div>
 
-          {/* Faux dashboard content (lightweight skeleton — not a real screenshot) */}
-          <DashboardSkeleton activeTab={activeTab} />
+            <DashboardSkeleton activeTab={activeTab} />
+          </div>
         </div>
 
-        {/* Feature cards — uniform 3-col grid */}
-        <div className="mt-16 grid gap-5 lg:grid-cols-3 lg:gap-6">
+        {/* Asymmetric bento feature cards */}
+        <div className="mt-20 grid gap-7 lg:grid-cols-4">
           {featureItems.map((item) => {
             const Icon = item.icon;
             return (
-              <article key={item.key} className="mkt-card flex flex-col">
+              <SketchCard
+                key={item.key}
+                tone={item.tone}
+                decoration={item.decoration}
+                rotate={item.rotate}
+                hoverJiggle
+                className={item.span}
+                radiusVariant={item.tone === 'postit' ? 'b' : 'a'}
+                style={{
+                  paddingTop: item.decoration === 'tack' || item.decoration === 'tack-blue' ? '2.5rem' : undefined,
+                }}
+              >
                 <div
-                  className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl"
+                  className="mb-5 flex h-14 w-14 items-center justify-center"
                   style={{
-                    background: 'var(--mkt-brand-soft)',
-                    color: 'var(--mkt-brand-deep)',
+                    background: 'var(--mkt-accent)',
+                    color: 'var(--mkt-bg-elev)',
+                    border: '2.5px solid var(--mkt-border)',
+                    borderRadius: 'var(--mkt-wobbly-blob-1)',
+                    boxShadow: '3px 3px 0 0 var(--mkt-border)',
                   }}
                 >
-                  <Icon size={20} aria-hidden />
+                  <Icon size={22} strokeWidth={2.6} aria-hidden />
                 </div>
-                <h3 className="mkt-h3" style={{ fontSize: '1.05rem' }}>
+                <h3 className="mkt-h3" style={{ fontSize: '1.5rem' }}>
                   {t(`items.${item.key}.title`)}
                 </h3>
                 <p
-                  className="mt-2 leading-relaxed"
-                  style={{ color: 'var(--mkt-fg-muted)', fontSize: '0.92rem' }}
+                  className="mt-3"
+                  style={{
+                    fontFamily: 'var(--mkt-font-body)',
+                    color: 'var(--mkt-fg-muted)',
+                    fontSize: '1.05rem',
+                    lineHeight: 1.6,
+                  }}
                 >
                   {t(`items.${item.key}.body`)}
                 </p>
-              </article>
+              </SketchCard>
             );
           })}
         </div>
 
-        {/* Stats strip — drenched emerald block */}
-        <div
-          className="mt-16 grid grid-cols-2 gap-x-6 gap-y-10 rounded-2xl px-6 py-10 sm:grid-cols-4 md:px-12 md:py-14"
-          style={{
-            background:
-              'linear-gradient(135deg, var(--mkt-brand-deep), var(--mkt-brand))',
-            color: 'oklch(0.96 0.02 165)',
-          }}
-        >
-          {stats.map((s) => (
-            <div key={s.key} className="text-center">
+        {/* Stats — organic blobs, not the hero-metric template */}
+        <div className="mt-20 grid grid-cols-2 gap-6 sm:grid-cols-4 sm:gap-8">
+          {stats.map((s, i) => (
+            <OrganicBlob
+              key={s.key}
+              variant={s.variant}
+              className="aspect-square flex-col text-center"
+              style={{
+                padding: '1.25rem',
+                transform: `rotate(${[-2, 1.5, -1, 2][i]}deg)`,
+              }}
+            >
               <div
-                className="font-bold tabular-nums"
                 style={{
-                  color: 'oklch(0.99 0.005 165)',
-                  fontSize: 'clamp(2rem, 4vw, 2.75rem)',
-                  letterSpacing: '-0.025em',
-                  lineHeight: 1,
+                  fontFamily: 'var(--mkt-font-display)',
+                  fontWeight: 700,
+                  color: 'var(--mkt-fg)',
+                  fontSize: 'clamp(1.6rem, 3.2vw, 2.4rem)',
+                  lineHeight: 1.05,
                 }}
               >
                 {t(`stats.${s.key}.value`)}
               </div>
               <div
-                className="mt-3"
+                className="mt-2"
                 style={{
-                  color: 'oklch(0.92 0.04 165)',
-                  fontSize: '0.85rem',
-                  letterSpacing: '-0.005em',
+                  fontFamily: 'var(--mkt-font-body)',
+                  color: 'var(--mkt-fg-muted)',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.3,
                 }}
               >
                 {t(`stats.${s.key}.label`)}
               </div>
-            </div>
+            </OrganicBlob>
           ))}
         </div>
       </div>
@@ -207,29 +318,28 @@ function DashboardSkeleton({ activeTab }: { activeTab: string }) {
       key={activeTab}
       className="grid gap-4 p-5 md:grid-cols-[200px_1fr] md:p-7"
       style={{
-        background:
-          'linear-gradient(180deg, var(--mkt-bg-elev) 0%, var(--mkt-bg) 100%)',
+        background: 'var(--mkt-bg-elev)',
         minHeight: 360,
       }}
     >
       {/* Sidebar */}
       <aside
-        className="hidden flex-col gap-2 rounded-xl p-3 md:flex"
+        className="hidden flex-col gap-2 p-3 md:flex"
         style={{
-          background: 'var(--mkt-bg)',
-          border: '1px solid var(--mkt-border)',
+          background: 'var(--mkt-bg-sunken)',
+          border: '2px solid var(--mkt-border)',
+          borderRadius: 'var(--mkt-wobbly-md)',
         }}
       >
         {[0.85, 0.55, 0.7, 0.45, 0.6, 0.5].map((w, i) => (
           <div
             key={i}
-            className="h-3 rounded"
+            className="h-3"
             style={{
               width: `${w * 100}%`,
               background:
-                i === 0
-                  ? 'var(--mkt-brand-soft)'
-                  : 'var(--mkt-border)',
+                i === 0 ? 'var(--mkt-accent)' : 'var(--mkt-border-soft)',
+              borderRadius: '8px 2px 8px 2px',
             }}
           />
         ))}
@@ -242,32 +352,42 @@ function DashboardSkeleton({ activeTab }: { activeTab: string }) {
           {[0, 1, 2].map((i) => (
             <div
               key={i}
-              className="rounded-xl p-4"
+              className="p-4"
               style={{
                 background: 'var(--mkt-bg)',
-                border: '1px solid var(--mkt-border)',
+                border: '2px solid var(--mkt-border)',
+                borderRadius: 'var(--mkt-wobbly-md)',
+                boxShadow: '3px 3px 0 0 var(--mkt-border)',
+                transform: `rotate(${[-1, 0.5, -0.5][i]}deg)`,
               }}
             >
               <div
-                className="h-2.5 rounded"
-                style={{ width: '40%', background: 'var(--mkt-border)' }}
+                className="h-2.5"
+                style={{
+                  width: '40%',
+                  background: 'var(--mkt-border-soft)',
+                  borderRadius: 6,
+                }}
               />
               <div
-                className="mt-3 h-6 rounded"
+                className="mt-3 h-6"
                 style={{
                   width: '60%',
-                  background: 'var(--mkt-brand-soft)',
+                  background: i === 1 ? 'var(--mkt-postit)' : 'var(--mkt-accent-soft)',
+                  border: '1.5px solid var(--mkt-border)',
+                  borderRadius: '10px 3px 12px 4px',
                 }}
               />
             </div>
           ))}
         </div>
-        {/* Chart placeholder */}
+        {/* Chart placeholder — bars with hand-drawn variance */}
         <div
-          className="flex-1 rounded-xl p-4"
+          className="flex-1 p-4"
           style={{
             background: 'var(--mkt-bg)',
-            border: '1px solid var(--mkt-border)',
+            border: '2px solid var(--mkt-border)',
+            borderRadius: 'var(--mkt-wobbly-md)',
             minHeight: 180,
             display: 'flex',
             alignItems: 'flex-end',
@@ -282,10 +402,9 @@ function DashboardSkeleton({ activeTab }: { activeTab: string }) {
                   flex: 1,
                   height: `${h * 100}%`,
                   background:
-                    i % 3 === 0
-                      ? 'var(--mkt-brand)'
-                      : 'var(--mkt-brand-soft)',
-                  borderRadius: '4px 4px 0 0',
+                    i % 3 === 0 ? 'var(--mkt-accent)' : 'var(--mkt-postit)',
+                  border: '1.5px solid var(--mkt-border)',
+                  borderRadius: '6px 3px 0 0',
                 }}
               />
             ),

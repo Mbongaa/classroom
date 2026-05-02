@@ -12,7 +12,8 @@ export default function Hero() {
         height: 'calc(100svh - 64px)',
         display: 'flex',
         flexDirection: 'column',
-        background: '#000',
+        // Transparent — the paper texture from [data-mkt-root] shows through.
+        background: 'transparent',
       }}
     >
       <MarketingStudentView variant="desktop" fillParent />

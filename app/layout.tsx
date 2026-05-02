@@ -2,7 +2,7 @@ import '../styles/globals.css';
 import '@livekit/components-styles';
 import '@livekit/components-styles/prefabs';
 import type { Metadata, Viewport } from 'next';
-import { Poppins } from 'next/font/google';
+import { Poppins, Kalam, Patrick_Hand } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { getDirection, type Locale } from '@/i18n/config';
@@ -13,6 +13,22 @@ const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800', '900'],
   variable: '--font-poppins',
+});
+
+// Marketing-only display fonts. Loaded globally so [data-mkt-root] inherits them
+// without flash; product UI never references --font-kalam / --font-patrick.
+const kalam = Kalam({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-kalam',
+  display: 'swap',
+});
+
+const patrickHand = Patrick_Hand({
+  subsets: ['latin'],
+  weight: ['400'],
+  variable: '--font-patrick',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {
@@ -55,7 +71,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const dir = getDirection(locale);
 
   return (
-    <html lang={locale} dir={dir} className={poppins.variable} suppressHydrationWarning>
+    <html
+      lang={locale}
+      dir={dir}
+      className={`${poppins.variable} ${kalam.variable} ${patrickHand.variable}`}
+      suppressHydrationWarning
+    >
       <body data-lk-theme="default" className={poppins.className}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>

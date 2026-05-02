@@ -2,8 +2,15 @@
 
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { ArrowRight } from 'lucide-react';
+import { SketchCard, StickyTag } from '@/components/marketing/sketch';
 
-const acts = ['challenge', 'realization', 'universal', 'vision'] as const;
+const acts = [
+  { key: 'challenge', tone: 'paper', rotate: -2.5, decoration: 'tape' },
+  { key: 'realization', tone: 'postit', rotate: 1.8, decoration: 'tack' },
+  { key: 'universal', tone: 'paper', rotate: -1.3, decoration: 'tack-blue' },
+  { key: 'vision', tone: 'postit', rotate: 2.2, decoration: 'tape-double' },
+] as const;
 
 export default function Anecdote() {
   const t = useTranslations('marketing.anecdote');
@@ -14,105 +21,104 @@ export default function Anecdote() {
       className="mkt-section relative overflow-hidden"
       style={{ background: 'var(--mkt-bg-sunken)' }}
     >
-      {/* Decorative oversize quotation mark in the upper-left, anchoring the editorial register */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute select-none"
-        style={{
-          top: '2.5rem',
-          left: '-0.25rem',
-          fontSize: 'clamp(12rem, 22vw, 22rem)',
-          lineHeight: 1,
-          fontFamily: 'Poppins, system-ui, sans-serif',
-          fontWeight: 800,
-          color: 'var(--mkt-brand)',
-          opacity: 0.05,
-          letterSpacing: '-0.06em',
-        }}
-      >
-        “
-      </span>
-
       <div className="mkt-container relative">
         <div className="max-w-2xl">
-          <h2 className="mkt-h2">{t('title')}</h2>
+          <StickyTag rotate={2} tone="paper">
+            {t('eyebrow')}
+          </StickyTag>
+          <h2
+            className="mkt-h2 mt-6"
+            style={{ fontSize: 'clamp(2.5rem, 5.5vw, 4.25rem)' }}
+          >
+            {t('title')}
+          </h2>
         </div>
 
-        <div className="mt-14 space-y-12 md:mt-20 md:space-y-20">
+        {/* Corkboard of sticky-note acts. Asymmetric layout breaks the grid. */}
+        <div className="mt-16 grid gap-10 md:mt-24 md:grid-cols-12 md:gap-x-8 md:gap-y-16">
           {acts.map((act, i) => {
-            const isOdd = i % 2 === 1;
-            return (
-              <article
-                key={act}
-                className="relative grid gap-6 md:grid-cols-12 md:items-start md:gap-10"
-              >
-                {/* Eyebrow label */}
-                <div
-                  className={`md:col-span-4 ${isOdd ? 'md:order-2 md:col-start-9' : ''}`}
-                >
-                  <div className="flex items-center gap-3 md:flex-col md:items-start md:gap-4">
-                    {/* Index ornament */}
-                    <span
-                      aria-hidden
-                      className="font-semibold tabular-nums"
-                      style={{
-                        color: 'var(--mkt-accent-deep)',
-                        fontSize: '0.95rem',
-                        letterSpacing: '0.06em',
-                      }}
-                    >
-                      {String(i + 1).padStart(2, '0')}
-                    </span>
-                    <span
-                      className="font-semibold uppercase"
-                      style={{
-                        color: 'var(--mkt-fg-subtle)',
-                        fontSize: '0.7rem',
-                        letterSpacing: '0.22em',
-                      }}
-                    >
-                      {t(`acts.${act}.label`)}
-                    </span>
-                  </div>
-                </div>
+            // Asymmetric placement: alternate column position + width
+            const placement = [
+              'md:col-span-7 md:col-start-1', // act 1: left, wide
+              'md:col-span-6 md:col-start-7', // act 2: right, medium
+              'md:col-span-6 md:col-start-2', // act 3: left-of-center
+              'md:col-span-7 md:col-start-6', // act 4: right, wide
+            ][i];
 
-                {/* Body — long-form serif-feeling block */}
-                <div
-                  className={`md:col-span-8 ${isOdd ? 'md:order-1 md:col-start-1 md:row-start-1' : ''}`}
+            return (
+              <div key={act.key} className={placement}>
+                <SketchCard
+                  tone={act.tone}
+                  decoration={act.decoration}
+                  rotate={act.rotate}
+                  emphasized={i === 0 || i === 3}
+                  radiusVariant={i % 2 === 0 ? 'a' : 'b'}
+                  style={{
+                    paddingTop: act.decoration.startsWith('tack')
+                      ? '2.5rem'
+                      : undefined,
+                  }}
                 >
-                  <p
-                    className="leading-relaxed"
+                  <div
                     style={{
-                      color: 'var(--mkt-fg)',
-                      fontSize: 'clamp(1.125rem, 1.6vw, 1.4rem)',
-                      lineHeight: 1.6,
-                      maxWidth: '38rem',
+                      fontFamily: 'var(--mkt-font-body)',
+                      fontSize: '0.85rem',
+                      letterSpacing: '0.2em',
+                      color: 'var(--mkt-accent)',
+                      textTransform: 'uppercase',
                       fontWeight: 400,
                     }}
                   >
-                    {t(`acts.${act}.body`)}
+                    <span
+                      className="tabular-nums"
+                      style={{ marginRight: '0.6rem', color: 'var(--mkt-fg-subtle)' }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    {t(`acts.${act.key}.label`)}
+                  </div>
+                  <p
+                    className="mt-4"
+                    style={{
+                      fontFamily: 'var(--mkt-font-body)',
+                      color: 'var(--mkt-fg)',
+                      fontSize: 'clamp(1.05rem, 1.4vw, 1.2rem)',
+                      lineHeight: 1.65,
+                    }}
+                  >
+                    {t(`acts.${act.key}.body`)}
                   </p>
-                </div>
-              </article>
+                </SketchCard>
+              </div>
             );
           })}
         </div>
 
-        {/* Closing CTA — quiet, not loud */}
-        <div className="mt-16 flex md:mt-24">
+        {/* Closing CTA — handwritten link, not a banner */}
+        <div className="mt-20 flex">
           <Link
             href="/signup"
-            className="mkt-focus-ring group inline-flex items-center gap-2 text-[15px] font-semibold"
-            style={{ color: 'var(--mkt-brand)' }}
+            className="mkt-focus-ring inline-flex items-center gap-2 group"
+            style={{
+              fontFamily: 'var(--mkt-font-display)',
+              color: 'var(--mkt-fg)',
+              fontSize: '1.4rem',
+              fontWeight: 700,
+              textDecoration: 'underline',
+              textDecorationStyle: 'wavy',
+              textDecorationColor: 'var(--mkt-accent)',
+              textUnderlineOffset: '6px',
+              textDecorationThickness: '2px',
+            }}
           >
             <span>{t('cta')}</span>
-            <span
+            <ArrowRight
+              size={22}
+              strokeWidth={2.6}
               aria-hidden
-              className="inline-block transition-transform group-hover:translate-x-1"
-              style={{ color: 'var(--mkt-accent-deep)' }}
-            >
-              →
-            </span>
+              className="transition-transform duration-100 group-hover:translate-x-1"
+              style={{ color: 'var(--mkt-accent)' }}
+            />
           </Link>
         </div>
       </div>
