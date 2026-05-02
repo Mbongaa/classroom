@@ -18,7 +18,7 @@ export const useThemeToggle = ({
   blur?: boolean;
   gifUrl?: string;
 } = {}) => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
 
   // Initialize with the resolved theme if available
   const [isDark, setIsDark] = useState(() => {
@@ -52,9 +52,15 @@ export const useThemeToggle = ({
   }, []);
 
   const toggleTheme = useCallback(() => {
-    // Toggle based on the actual theme, not isDark
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    const newIsDark = newTheme === 'dark';
+    // Use `resolvedTheme` (always 'light' or 'dark') rather than `theme`
+    // (which can be 'system'). With `enableSystem` on the ThemeProvider, a
+    // user who never manually toggled has theme='system'. The old comparison
+    // `theme === 'light'` was false in that case so the toggle went
+    // 'system' → 'light'; if the resolved system value was already light
+    // the click produced no visible change ("the toggle won't turn").
+    const currentlyDark = resolvedTheme === 'dark';
+    const newTheme = currentlyDark ? 'light' : 'dark';
+    const newIsDark = !currentlyDark;
 
     // Update isDark immediately for SVG animation
     setIsDark(newIsDark);
@@ -74,7 +80,7 @@ export const useThemeToggle = ({
     }
 
     document.startViewTransition(switchTheme);
-  }, [theme, setTheme, variant, start, blur, gifUrl, updateStyles, setIsDark]);
+  }, [resolvedTheme, setTheme, variant, start, blur, gifUrl, updateStyles, setIsDark]);
 
   const setCrazyLightTheme = useCallback(() => {
     setIsDark(false);
