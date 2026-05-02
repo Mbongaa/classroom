@@ -899,6 +899,42 @@
         }
       }
     },
+    "inTheRoom": {
+      "eyebrow": "vanaf de minbar",
+      "titleLine1": "Echte vrijdag.",
+      "titleLine2": "Echte vertaling.",
+      "lead": "Vijf clips, vijf moskeeën. Tik op een polaroid en zie hem in de spotlight verschijnen — de luisteraar op zijn telefoon volgt elk woord, met ongeveer tweeënhalve seconde vertraging.",
+      "tapHint": "tik op een polaroid →",
+      "phones": {
+        "eyebrow": "vanaf elke telefoon",
+        "title": "Luisteraars kijken mee via hun telefoon.",
+        "lead": "Geen app, geen account. De imam deelt een link, de luisteraar tikt erop, en de ondertiteling stroomt al binnen.",
+        "screens": {
+          "live": {
+            "alt": "Live vertaalpaneel met Nederlandse tekst onder de video van de imam",
+            "caption": "Live vertaling",
+            "sublabel": "Nederlandse ondertiteling stroomt mee terwijl de imam spreekt."
+          },
+          "fullscreen": {
+            "alt": "Schermvullende video van Sheikh Rachid met Nederlandse ondertiteling",
+            "caption": "Volledig scherm",
+            "sublabel": "Eén tik en de imam vult het scherm, ondertiteling erover."
+          },
+          "everyWord": {
+            "alt": "Live vertaalpaneel met meerdere Nederlandse ondertitels en mute-knop",
+            "caption": "Mis geen woord",
+            "sublabel": "Scrol terug, pas tekstgrootte aan, demp de zaal."
+          }
+        }
+      },
+      "clips": {
+        "rotterdam-friday": "Vrijdagkhutba · 1.200 luisteraars",
+        "eindhoven-tafsir": "Tafsir-halaqa · Soera Al-Kahf",
+        "eindhoven-tarawih": "Ramadan-tarawih · vraaguur",
+        "maaseik-halaqa": "Jongeren-halaqa · seerah",
+        "eindhoven-eid": "Eid-khutba · openbaar gebed"
+      }
+    },
     "features": {
       "eyebrow": "meer dan vertaling",
       "title": "donaties, leden, één rustig dashboard.",
@@ -929,7 +965,7 @@
       "lead": "We begonnen met de vrijdagskhutba. Hetzelfde gereedschap draagt nu lessen, gemeenschapsavonden, klassen en evenementen.",
       "cases": {
         "khutbah": {
-          "title": "Friday khutbah",
+          "title": "Vrijdagkhutba",
           "body": "Aanbidders die geen Arabisch spreken volgen elk woord van de imam. Bezoekers en jongeren voelen zich opgenomen, niet buitengesloten.",
           "tag": "kerndawah",
           "chips": [
@@ -1086,7 +1122,7 @@
         "instant": "Live in vijf minuten",
         "setup": "We helpen je team op weg"
       },
-      "ctaPrimary": "Begin gratis",
+      "ctaPrimary": "maak nu een account",
       "ctaSecondary": "Praat met ons",
       "blessing": {
         "arabic": "بارك الله فيكم",
@@ -1252,7 +1288,9 @@
           "redirecting": "Doorsturen…",
           "redirectingDashboard": "Doorsturen naar je dashboard…"
         },
-        "titlePre_": "Stel je"
+        "titlePre_": "Stel je",
+        "googleButton": "Aanmelden met Google",
+        "or": "OF"
       },
       "signin": {
         "titlePre": "Welkom",
@@ -1277,6 +1315,28 @@
         "googleSoon": "binnenkort",
         "noAccount": "Nog geen account?",
         "signUpLink": "Aanmelden",
+        "errorGeneric": "Er ging iets mis. Probeer het opnieuw."
+      },
+      "welcome": {
+        "titlePre": "Laatste",
+        "titleMarker": "stap",
+        "subtitle": "Vertel ons iets over je masjid zodat we je account kunnen afronden.",
+        "signedInAs": "Aangemeld als {email}",
+        "name": {
+          "label": "Volledige naam",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Voer je volledige naam in"
+        },
+        "org": {
+          "label": "Naam van de organisatie",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Vertel ons de naam van je masjid of centrum",
+          "hint": "Je moskee, school of islamitisch centrum"
+        },
+        "submit": "Setup afronden",
+        "submitting": "Bezig met instellen…",
+        "helperBeta": "Gratis tijdens beta",
+        "helperSetup": "Je kunt dit later wijzigen in instellingen.",
         "errorGeneric": "Er ging iets mis. Probeer het opnieuw."
       }
     }

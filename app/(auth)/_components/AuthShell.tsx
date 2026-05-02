@@ -122,6 +122,7 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
           {/* Decorative sticky tucked bottom-right */}
           <div
             aria-hidden
+            className="auth-decorative-sticky"
             style={{
               position: 'absolute',
               bottom: -10,
@@ -224,6 +225,7 @@ function LeftPane({
         </Link>
         <span
           aria-hidden
+          className="auth-beta-chip"
           style={{
             fontSize: 13,
             padding: '4px 10px',
@@ -318,6 +320,7 @@ function LeftPane({
       {/* Decorative testimonial sticky */}
       <div
         aria-hidden
+        className="auth-decorative-sticky"
         style={{
           position: 'absolute',
           bottom: 80,

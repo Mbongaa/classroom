@@ -12,8 +12,61 @@ import {
   PlanType,
 } from '@/lib/stripe';
 import { slugify } from '@/lib/slugify';
-import { isLocale, LOCALE_COOKIE_NAME, type Locale } from '@/i18n/config';
+import { defaultLocale, isLocale, LOCALE_COOKIE_NAME, type Locale } from '@/i18n/config';
 import { geocodeAddress } from '@/lib/geocoding';
+import { createDefaultMosqueClassroom } from '@/lib/classroom-utils';
+import { sendEmail } from '@/lib/email/email-service';
+import { WelcomeEmail } from '@/lib/email/templates/WelcomeEmail';
+import { formatBillingDate } from '@/lib/email/billing-utils';
+import { getEmailTranslator } from '@/lib/email/i18n';
+
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? '').replace(/\/$/, '');
+
+/**
+ * Fire the WelcomeEmail for a freshly-created beta org. Best-effort — never
+ * blocks the sign-up redirect; the only consequence of failure is a missing
+ * email, which the user can recover by re-requesting from settings.
+ *
+ * Paid signups intentionally skip this path: the Stripe webhook
+ * (`/api/webhooks/stripe`) sends its own WelcomeEmail once Checkout completes,
+ * so calling here too would cause a double-send.
+ */
+async function sendBetaWelcomeEmail(params: {
+  email: string;
+  fullName: string;
+  organizationName: string;
+  trialEndsAt: string | null;
+  locale: Locale;
+}) {
+  if (!params.email) return;
+  try {
+    const t = getEmailTranslator(params.locale, 'emails.welcome');
+    await sendEmail({
+      to: params.email,
+      subject: t('subject'),
+      react: WelcomeEmail({
+        userName: params.fullName || 'there',
+        organizationName: params.organizationName,
+        planName: 'Free Trial',
+        billingPeriodEnd: formatBillingDate(params.trialEndsAt),
+        dashboardUrl: `${SITE_URL}/dashboard`,
+        billingPortalUrl: `${SITE_URL}/dashboard/billing`,
+        locale: params.locale,
+      }),
+      tags: [
+        { name: 'type', value: 'beta_welcome' },
+      ],
+    });
+  } catch (err) {
+    console.error('[Auth] Beta welcome email failed:', err);
+  }
+}
+
+async function readLocaleCookie(): Promise<Locale> {
+  const cookieStore = await cookies();
+  const raw = cookieStore.get(LOCALE_COOKIE_NAME)?.value;
+  return isLocale(raw) ? raw : defaultLocale;
+}
 
 export type AuthResult = {
   success: boolean;
@@ -131,14 +184,21 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
   // Use admin client for initial setup (bypasses RLS)
   const supabaseAdmin = createAdminClient();
 
-  // Create organization - beta gets active status immediately, pro starts as incomplete
+  // Beta = 30-day free trial that flips to 'past_due' lockout once expired,
+  // unless the user goes through Stripe Checkout from /billing/required to
+  // attach a card. Pro signups still start 'incomplete' until checkout
+  // completes (Stripe webhook flips to 'active').
   const isBeta = plan === 'beta';
+  const trialEndsAt = isBeta
+    ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    : null;
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .insert({
       name: orgName,
       slug: orgSlug,
-      subscription_status: isBeta ? 'active' : 'incomplete',
+      subscription_status: isBeta ? 'trialing' : 'incomplete',
+      trial_ends_at: trialEndsAt,
       subscription_tier: 'free',
       // Address fields are optional now — collected later in onboarding.
       address_street: addressStreet || null,
@@ -203,8 +263,28 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     return { success: false, error: `Failed to add organization member: ${memberError.message}` };
   }
 
+  // Seed the default Khutba (speech, Ar→Nl) room so the org can host their
+  // first jummah without going through the Create Room flow first.
+  // Best-effort: failures are logged but do not block sign-up.
+  try {
+    await createDefaultMosqueClassroom(org.id, authData.user.id);
+  } catch (e) {
+    console.error('[Signup] Failed to seed default Khutba classroom:', e);
+  }
+
   // Handle Beta plan - already created with active status, just redirect
   if (plan === 'beta') {
+    // Beta-only welcome email. Paid signups get their welcome from the
+    // Stripe webhook once Checkout completes — sending here too would
+    // double-send.
+    const locale = await readLocaleCookie();
+    void sendBetaWelcomeEmail({
+      email,
+      fullName,
+      organizationName: orgName,
+      trialEndsAt,
+      locale,
+    });
     revalidatePath('/', 'layout');
     return {
       success: true,
@@ -265,6 +345,137 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     success: true,
     checkoutUrl: checkoutSession.url!,
   };
+}
+
+/**
+ * Complete onboarding for a user who signed up via OAuth (Google, etc.).
+ *
+ * OAuth sign-in creates the auth.users row but skips the org-creation work
+ * that `signUp` does for email/password users. This action runs from the
+ * /welcome page after the user enters their organization name.
+ *
+ * Requires:
+ *   - An authenticated session (the OAuth callback already exchanged the code).
+ *   - The user must NOT already have an organization_id on their profile.
+ */
+export async function completeOnboarding(formData: FormData): Promise<AuthResult> {
+  const orgName = (formData.get('orgName') as string | null)?.trim() ?? '';
+  const fullNameInput = (formData.get('fullName') as string | null)?.trim() ?? '';
+
+  if (!orgName) {
+    return { success: false, error: 'Organization name is required' };
+  }
+
+  const orgSlug = slugify(orgName);
+  if (!orgSlug) {
+    return { success: false, error: 'Organization name must produce a valid URL slug' };
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Not authenticated' };
+  }
+
+  const supabaseAdmin = createAdminClient();
+
+  // Refuse if the user already has an org — onboarding is a one-shot action.
+  const { data: existingProfile } = await supabaseAdmin
+    .from('profiles')
+    .select('organization_id, full_name')
+    .eq('id', user.id)
+    .single();
+
+  if (existingProfile?.organization_id) {
+    return { success: true, redirectUrl: '/dashboard' };
+  }
+
+  // Slug uniqueness — same constraint as updateOrganizationName.
+  const { data: slugConflict } = await supabaseAdmin
+    .from('organizations')
+    .select('id')
+    .eq('slug', orgSlug)
+    .single();
+
+  if (slugConflict) {
+    return { success: false, error: 'An organization with this slug already exists' };
+  }
+
+  // OAuth signups also start on the 30-day beta trial. Same paywall-on-expiry
+  // behaviour as email/password beta: the dashboard layout redirects to
+  // /billing/required once trial_ends_at is in the past.
+  const trialEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: org, error: orgError } = await supabaseAdmin
+    .from('organizations')
+    .insert({
+      name: orgName,
+      slug: orgSlug,
+      subscription_status: 'trialing',
+      trial_ends_at: trialEndsAt,
+      subscription_tier: 'free',
+    })
+    .select()
+    .single();
+
+  if (orgError) {
+    return { success: false, error: `Failed to create organization: ${orgError.message}` };
+  }
+
+  // Prefer the explicit input, then existing profile name, then OAuth metadata.
+  const oauthName =
+    (user.user_metadata?.full_name as string | undefined) ??
+    (user.user_metadata?.name as string | undefined) ??
+    '';
+  const fullName = fullNameInput || existingProfile?.full_name || oauthName || '';
+
+  const { error: profileError } = await supabaseAdmin
+    .from('profiles')
+    .update({
+      organization_id: org.id,
+      full_name: fullName,
+      role: 'admin',
+    })
+    .eq('id', user.id);
+
+  if (profileError) {
+    return { success: false, error: `Failed to update profile: ${profileError.message}` };
+  }
+
+  const { error: memberError } = await supabaseAdmin.from('organization_members').insert({
+    organization_id: org.id,
+    user_id: user.id,
+    role: 'admin',
+  });
+
+  if (memberError) {
+    return { success: false, error: `Failed to add organization member: ${memberError.message}` };
+  }
+
+  // Seed the default Khutba (speech, Ar→Nl) room so the org can host their
+  // first jummah without going through the Create Room flow first.
+  // Best-effort: failures are logged but do not block onboarding.
+  try {
+    await createDefaultMosqueClassroom(org.id, user.id);
+  } catch (e) {
+    console.error('[completeOnboarding] Failed to seed default Khutba classroom:', e);
+  }
+
+  if (user.email) {
+    const locale = await readLocaleCookie();
+    void sendBetaWelcomeEmail({
+      email: user.email,
+      fullName,
+      organizationName: orgName,
+      trialEndsAt,
+      locale,
+    });
+  }
+
+  revalidatePath('/', 'layout');
+  return { success: true, redirectUrl: '/dashboard' };
 }
 
 /**

@@ -3,53 +3,6 @@
 import Link from 'next/link';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { StickyTag } from '@/components/marketing/sketch';
-
-const linkGroups = [
-  {
-    titleKey: 'product',
-    rotate: -2,
-    tone: 'postit' as const,
-    links: [
-      { href: '#features', key: 'features' },
-      { href: '#contact', key: 'contact' },
-      { href: 'mailto:support@bayaan.ai?subject=Demo%20request', key: 'demo' },
-      { href: 'mailto:support@bayaan.ai?subject=API%20access', key: 'api' },
-    ],
-  },
-  {
-    titleKey: 'mosques',
-    rotate: 1.6,
-    tone: 'paper' as const,
-    links: [
-      { href: '#use-cases', key: 'useCases' },
-      { href: '#testimonials', key: 'stories' },
-      { href: 'mailto:support@bayaan.ai?subject=Resources', key: 'resources' },
-      { href: 'mailto:support@bayaan.ai?subject=Support', key: 'support' },
-    ],
-  },
-  {
-    titleKey: 'company',
-    rotate: -1.4,
-    tone: 'postit' as const,
-    links: [
-      { href: '#story', key: 'about' },
-      { href: 'mailto:support@bayaan.ai?subject=Careers', key: 'careers' },
-      { href: '#contact', key: 'contact' },
-    ],
-  },
-  {
-    titleKey: 'legal',
-    rotate: 1.8,
-    tone: 'paper' as const,
-    links: [
-      { href: '/legal/privacy', key: 'privacy' },
-      { href: '/legal/terms', key: 'terms' },
-      { href: '/legal/security', key: 'security' },
-      { href: '/legal/compliance', key: 'compliance' },
-    ],
-  },
-] as const;
 
 export function MarketingFooter() {
   const t = useTranslations('marketing.footer');
@@ -79,7 +32,7 @@ export function MarketingFooter() {
       </svg>
 
       <div className="mkt-container py-20">
-        <div className="grid gap-14 md:grid-cols-[minmax(0,_1.4fr)_minmax(0,_2fr)] md:gap-16">
+        <div className="max-w-2xl">
           {/* Brand block */}
           <div>
             <Link
@@ -162,33 +115,6 @@ export function MarketingFooter() {
             </ul>
           </div>
 
-          {/* 4 link columns with sticky-tag headers */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
-            {linkGroups.map((group) => (
-              <div key={group.titleKey}>
-                <StickyTag rotate={group.rotate} tone={group.tone}>
-                  {t(`groups.${group.titleKey}`)}
-                </StickyTag>
-                <ul className="mt-5 space-y-3">
-                  {group.links.map((link) => (
-                    <li key={link.key}>
-                      <Link
-                        href={link.href}
-                        className="mkt-focus-ring mkt-link"
-                        style={{
-                          fontFamily: 'var(--mkt-font-body)',
-                          fontSize: '1rem',
-                          color: 'var(--mkt-fg)',
-                        }}
-                      >
-                        {t(`links.${link.key}`)}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
         </div>
 
         <div

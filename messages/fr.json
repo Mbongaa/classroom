@@ -899,6 +899,42 @@
         }
       }
     },
+    "inTheRoom": {
+      "eyebrow": "depuis le minbar",
+      "titleLine1": "Vrai vendredi.",
+      "titleLine2": "Vraies traductions.",
+      "lead": "Cinq clips, cinq mosquées. Tapez sur un polaroid et regardez-le passer en avant — le téléphone de l’auditeur attrape chaque mot, environ deux secondes et demie après l’imam.",
+      "tapHint": "tapez sur un polaroid →",
+      "phones": {
+        "eyebrow": "depuis n’importe quel téléphone",
+        "title": "Les auditeurs rejoignent depuis leur téléphone.",
+        "lead": "Aucune application, aucun compte. L’imam partage un lien, l’auditeur clique, et les sous-titres défilent déjà.",
+        "screens": {
+          "live": {
+            "alt": "Panneau de traduction en direct défilant en néerlandais sous la vidéo de l’imam",
+            "caption": "Traduction en direct",
+            "sublabel": "Les sous-titres défilent pendant que l’imam parle."
+          },
+          "fullscreen": {
+            "alt": "Vidéo plein écran de Sheikh Rachid avec sous-titre en néerlandais",
+            "caption": "Plein écran",
+            "sublabel": "Une touche, l’imam remplit l’écran, sous-titres incrustés."
+          },
+          "everyWord": {
+            "alt": "Panneau de traduction avec plusieurs sous-titres et bouton muet",
+            "caption": "Rien ne vous échappe",
+            "sublabel": "Revenez en arrière, ajustez la taille, coupez le son."
+          }
+        }
+      },
+      "clips": {
+        "rotterdam-friday": "Khoutba du vendredi · 1 200 auditeurs",
+        "eindhoven-tafsir": "Halaqa de tafsir · Sourate Al-Kahf",
+        "eindhoven-tarawih": "Tarawih du Ramadan · questions",
+        "maaseik-halaqa": "Halaqa des jeunes · sira",
+        "eindhoven-eid": "Khoutba de l’Aïd · prière ouverte"
+      }
+    },
     "features": {
       "eyebrow": "plus que la traduction",
       "title": "dons, membres, un seul tableau de bord serein.",
@@ -1082,11 +1118,11 @@
       "title": "prêt à élargir la portée de votre dawah ?",
       "lead": "rejoignez les mosquées du monde entier pour rendre le savoir islamique accessible à tous",
       "points": {
-        "noCard": "No credit card to start",
-        "instant": "Live in five minutes",
-        "setup": "We'll help you onboard your team"
+        "noCard": "Aucune carte requise",
+        "instant": "En ligne en cinq minutes",
+        "setup": "Nous accompagnons votre équipe"
       },
-      "ctaPrimary": "Start free",
+      "ctaPrimary": "créer un compte",
       "ctaSecondary": "Talk to us",
       "blessing": {
         "arabic": "بارك الله فيكم",
@@ -1251,7 +1287,9 @@
           "ready": "Votre compte sur {url} est prêt.",
           "redirecting": "Redirection…",
           "redirectingDashboard": "Redirection vers votre tableau de bord…"
-        }
+        },
+        "googleButton": "S’inscrire avec Google",
+        "or": "OU"
       },
       "signin": {
         "titlePre": "Bon",
@@ -1277,6 +1315,28 @@
         "noAccount": "Pas encore de compte ?",
         "signUpLink": "S’inscrire",
         "errorGeneric": "Une erreur est survenue. Veuillez réessayer."
+      },
+      "welcome": {
+        "titlePre": "Une dernière",
+        "titleMarker": "étape",
+        "subtitle": "Dis-nous quelques mots sur ta mosquée pour finaliser ton compte.",
+        "signedInAs": "Connecté en tant que {email}",
+        "name": {
+          "label": "Nom complet",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Indique ton nom complet"
+        },
+        "org": {
+          "label": "Nom de l’organisation",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Indique le nom de ta mosquée ou de ton centre",
+          "hint": "Ta mosquée, école ou centre islamique"
+        },
+        "submit": "Terminer la configuration",
+        "submitting": "Configuration en cours…",
+        "helperBeta": "Gratuit pendant la bêta",
+        "helperSetup": "Tu pourras modifier cela plus tard dans les paramètres.",
+        "errorGeneric": "Une erreur s’est produite. Réessaie."
       }
     }
   }

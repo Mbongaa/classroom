@@ -899,6 +899,42 @@
         }
       }
     },
+    "inTheRoom": {
+      "eyebrow": "von der Minbar",
+      "titleLine1": "Echter Freitag.",
+      "titleLine2": "Echte Übersetzungen.",
+      "lead": "Fünf Clips, fünf Moscheen. Tippe auf ein Polaroid und beobachte, wie es ins Rampenlicht rückt — das Telefon des Zuhörers fängt jedes Wort ein, etwa zweieinhalb Sekunden nach dem Imam.",
+      "tapHint": "tippe auf ein Polaroid →",
+      "phones": {
+        "eyebrow": "von jedem Handy",
+        "title": "Zuhörer schalten sich per Handy zu.",
+        "lead": "Keine App, kein Konto. Der Imam teilt einen Link, der Zuhörer tippt drauf, und die Untertitel laufen schon.",
+        "screens": {
+          "live": {
+            "alt": "Live-Übersetzungspanel mit niederländischem Text unter dem Video des Imams",
+            "caption": "Live-Übersetzung",
+            "sublabel": "Untertitel laufen, während der Imam spricht."
+          },
+          "fullscreen": {
+            "alt": "Vollbild-Video von Sheikh Rachid mit niederländischem Untertitel",
+            "caption": "Vollbild",
+            "sublabel": "Ein Tipp, der Imam füllt den Bildschirm, Untertitel darüber."
+          },
+          "everyWord": {
+            "alt": "Übersetzungspanel mit mehreren Untertiteln und Stummschalt-Knopf",
+            "caption": "Kein Wort verpassen",
+            "sublabel": "Zurückscrollen, Textgröße anpassen, Saal stummschalten."
+          }
+        }
+      },
+      "clips": {
+        "rotterdam-friday": "Freitagskhutba · 1.200 Zuhörer",
+        "eindhoven-tafsir": "Tafsir-Halaqa · Sure Al-Kahf",
+        "eindhoven-tarawih": "Ramadan-Tarawih · Fragerunde",
+        "maaseik-halaqa": "Jugend-Halaqa · Sira",
+        "eindhoven-eid": "Eid-Khutba · offenes Gebet"
+      }
+    },
     "features": {
       "eyebrow": "mehr als übersetzung",
       "title": "spenden, mitglieder, ein ruhiges dashboard.",
@@ -1082,11 +1118,11 @@
       "title": "bereit, deine dawah-reichweite zu erweitern?",
       "lead": "schließe dich moscheen weltweit an, um islamisches wissen für alle zugänglich zu machen",
       "points": {
-        "noCard": "No credit card to start",
-        "instant": "Live in five minutes",
-        "setup": "We'll help you onboard your team"
+        "noCard": "Keine Kreditkarte nötig",
+        "instant": "In fünf Minuten live",
+        "setup": "Wir richten dein Team mit ein"
       },
-      "ctaPrimary": "Start free",
+      "ctaPrimary": "konto erstellen",
       "ctaSecondary": "Talk to us",
       "blessing": {
         "arabic": "بارك الله فيكم",
@@ -1251,7 +1287,9 @@
           "ready": "Dein Konto unter {url} ist bereit.",
           "redirecting": "Weiterleitung…",
           "redirectingDashboard": "Weiterleitung zum Dashboard…"
-        }
+        },
+        "googleButton": "Mit Google registrieren",
+        "or": "ODER"
       },
       "signin": {
         "titlePre": "Willkommen",
@@ -1276,6 +1314,28 @@
         "googleSoon": "bald",
         "noAccount": "Noch kein Konto?",
         "signUpLink": "Registrieren",
+        "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut."
+      },
+      "welcome": {
+        "titlePre": "Ein letzter",
+        "titleMarker": "Schritt",
+        "subtitle": "Erzähl uns kurz von deiner Moschee, damit wir dein Konto fertig einrichten können.",
+        "signedInAs": "Angemeldet als {email}",
+        "name": {
+          "label": "Vollständiger Name",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Bitte gib deinen vollständigen Namen ein"
+        },
+        "org": {
+          "label": "Name der Organisation",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Sag uns den Namen deiner Moschee oder deines Zentrums",
+          "hint": "Deine Moschee, Schule oder islamisches Zentrum"
+        },
+        "submit": "Einrichtung abschließen",
+        "submitting": "Wird eingerichtet…",
+        "helperBeta": "Während der Beta kostenlos",
+        "helperSetup": "Du kannst das später in den Einstellungen ändern.",
         "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut."
       }
     }

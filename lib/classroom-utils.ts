@@ -96,6 +96,71 @@ export async function createClassroom(params: CreateClassroomParams): Promise<Cl
 }
 
 /**
+ * Create the default Khutba room that every new mosque starts with.
+ *
+ * Pre-populates a speech-mode room (Arabic source → Dutch translation by
+ * default) so a freshly-onboarded mosque can host their first jummah
+ * without needing to click through the Create Room flow.
+ *
+ * Best-effort: callers should wrap in try/catch and log failures rather
+ * than abort sign-up. The user can always create rooms manually if this
+ * is a no-op for any reason (e.g. someone re-runs onboarding after a slug
+ * collision).
+ *
+ * Returns the created classroom, or null if the room_code already exists
+ * for this organization (idempotent re-runs are a no-op).
+ */
+export async function createDefaultMosqueClassroom(
+  organizationId: string,
+  teacherId: string,
+): Promise<Classroom | null> {
+  const supabase = createAdminClient();
+
+  // Skip if the org already has a 'khutba' room — keeps this safe to call
+  // from any onboarding path without risk of duplicate-key throws.
+  const { data: existing } = await supabase
+    .from('classrooms')
+    .select('id')
+    .eq('organization_id', organizationId)
+    .eq('room_code', 'khutba')
+    .maybeSingle();
+  if (existing) return null;
+
+  const { data, error } = await supabase
+    .from('classrooms')
+    .insert({
+      organization_id: organizationId,
+      room_code: 'khutba',
+      teacher_id: teacherId,
+      name: 'Khutba',
+      description: null,
+      room_type: 'speech',
+      // settings.language is the Speech-to-Text source language; speaker_name
+      // is a label the room carries for the imam/khateeb so future UI
+      // surfaces (transcript header, recording metadata) can render it
+      // without re-asking on every join.
+      settings: {
+        language: 'ar',
+        enable_recording: true,
+        enable_chat: true,
+        max_participants: 100,
+        speaker_name: 'Sheikh',
+      },
+      transcription_language: 'ar',
+      is_active: true,
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505') return null; // race: another path inserted first
+    throw new Error(`Failed to create default Khutba classroom: ${error.message}`);
+  }
+
+  return data as Classroom;
+}
+
+/**
  * Get classroom by room code
  *
  * @param roomCode - User-facing room code (e.g., "MATH101")

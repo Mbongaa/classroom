@@ -92,7 +92,7 @@ export default function CTA() {
             </div>
 
             <div className="flex flex-col gap-4 md:items-end">
-              <SketchButton href="/signup" size="lg" variant="primary">
+              <SketchButton href="#contact" size="lg" variant="primary">
                 {t('ctaPrimary')}
                 <ArrowRight size={18} strokeWidth={2.6} aria-hidden />
               </SketchButton>

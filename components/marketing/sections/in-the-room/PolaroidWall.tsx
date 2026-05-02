@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useTranslations } from 'next-intl';
 import {
   StickyTag,
   PaperUnderline,
@@ -13,28 +14,10 @@ import { Paperclip } from './Paperclip';
 import { PhoneMockup } from './PhoneMockup';
 
 const PHONE_SCREENS = [
-  {
-    src: '/marketing/rachid-mobile-2.jpg',
-    alt: 'Live translation panel scrolling Dutch text below the imam video',
-    rotate: -2.5,
-    caption: 'Live translation',
-    sublabel: 'Dutch captions stream in as the imam speaks.',
-  },
-  {
-    src: '/marketing/rachid-mobile-3.jpg',
-    alt: 'Fullscreen video of Sheikh Rachid with overlaid Dutch caption',
-    rotate: 1.5,
-    caption: 'Fullscreen view',
-    sublabel: 'One tap, the imam fills the screen, captions overlay.',
-  },
-  {
-    src: '/marketing/rachid-mobile-1.jpg',
-    alt: 'Live translation panel with multiple Dutch captions and mute toggle',
-    rotate: -1.2,
-    caption: 'Catch every word',
-    sublabel: 'Scroll back, adjust text size, mute the room.',
-  },
-];
+  { src: '/marketing/rachid-mobile-2.jpg', screenKey: 'live', rotate: -2.5 },
+  { src: '/marketing/rachid-mobile-3.jpg', screenKey: 'fullscreen', rotate: 1.5 },
+  { src: '/marketing/rachid-mobile-1.jpg', screenKey: 'everyWord', rotate: -1.2 },
+] as const;
 
 const THUMB_LAYOUT: Array<{ rotate: number; offsetX: number; offsetY: number }> = [
   { rotate: -3.2, offsetX: 0, offsetY: 0 },
@@ -44,6 +27,7 @@ const THUMB_LAYOUT: Array<{ rotate: number; offsetX: number; offsetY: number }> 
 ];
 
 export default function PolaroidWall() {
+  const t = useTranslations('marketing.inTheRoom');
   const [activeId, setActiveId] = React.useState(mosqueClips[0].id);
   const active = getClipById(activeId);
   const others = mosqueClips.filter((c) => c.id !== activeId).slice(0, 4);
@@ -88,15 +72,15 @@ export default function PolaroidWall() {
         <div className="grid items-end gap-8 md:grid-cols-[1.05fr_1fr] md:gap-14">
           <div className="mx-auto max-w-xl text-center md:mx-0 md:text-left">
             <StickyTag rotate={-2} tone="postit">
-              from the minbar
+              {t('eyebrow')}
             </StickyTag>
             <h2
               className="mkt-h2 mt-6 relative inline-block"
               style={{ fontSize: 'clamp(2.25rem, 5vw, 3.75rem)' }}
             >
-              Real Friday.
+              {t('titleLine1')}
               <br />
-              Real translations.
+              {t('titleLine2')}
               <PaperUnderline
                 width="58%"
                 color="var(--mkt-accent)"
@@ -105,9 +89,7 @@ export default function PolaroidWall() {
             </h2>
           </div>
           <p className="mkt-lead text-center md:text-left mx-auto md:mx-0">
-            Five clips, five mosques. Tap any polaroid and watch it fly into the
-            spotlight while the listener&apos;s phone keeps catching every word, two
-            and a half seconds behind the imam.
+            {t('lead')}
           </p>
         </div>
 
@@ -119,6 +101,7 @@ export default function PolaroidWall() {
               key={active.id}
               clip={active}
               videoRef={videoRef}
+              context={t(`clips.${active.id}`)}
             />
 
             {/* Sticky-note hint with dashed arrow — only on the first interaction */}
@@ -144,7 +127,7 @@ export default function PolaroidWall() {
                   fontWeight: 700,
                 }}
               >
-                tap a polaroid →
+                {t('tapHint')}
               </div>
               <DashedArrow
                 direction="down-left"
@@ -195,7 +178,7 @@ export default function PolaroidWall() {
                   color: 'var(--mkt-fg-muted)',
                 }}
               >
-                from any phone
+                {t('phones.eyebrow')}
               </span>
               <SquigglyLine
                 width={100}
@@ -208,7 +191,7 @@ export default function PolaroidWall() {
               className="mkt-h2 mt-6 relative inline-block"
               style={{ fontSize: 'clamp(2rem, 4.4vw, 3rem)' }}
             >
-              Students can join through phone.
+              {t('phones.title')}
               <PaperUnderline
                 width="40%"
                 color="var(--mkt-accent)"
@@ -219,8 +202,7 @@ export default function PolaroidWall() {
               className="mkt-lead mt-6"
               style={{ marginInline: 'auto' }}
             >
-              No app to install, no account to make. The imam shares a link, the
-              listener taps it, and the captions are already streaming.
+              {t('phones.lead')}
             </p>
           </div>
 
@@ -261,7 +243,7 @@ export default function PolaroidWall() {
                 >
                   <PhoneMockup
                     screenshot={screen.src}
-                    alt={screen.alt}
+                    alt={t(`phones.screens.${screen.screenKey}.alt`)}
                     rotate={p.rotate}
                     transformOrigin="bottom center"
                     pinned={false}
@@ -288,10 +270,10 @@ export default function PolaroidWall() {
               >
                 <PhoneMockup
                   screenshot={screen.src}
-                  alt={screen.alt}
+                  alt={t(`phones.screens.${screen.screenKey}.alt`)}
                   rotate={screen.rotate}
-                  caption={screen.caption}
-                  sublabel={screen.sublabel}
+                  caption={t(`phones.screens.${screen.screenKey}.caption`)}
+                  sublabel={t(`phones.screens.${screen.screenKey}.sublabel`)}
                 />
               </div>
             ))}
@@ -307,9 +289,11 @@ export default function PolaroidWall() {
 function SpotlightPolaroid({
   clip,
   videoRef,
+  context,
 }: {
   clip: MosqueClip;
   videoRef: React.RefObject<HTMLVideoElement>;
+  context: string;
 }) {
   return (
     <div
@@ -323,8 +307,8 @@ function SpotlightPolaroid({
         animation: 'mkt-fade-up 420ms var(--mkt-ease-snap)',
       }}
     >
-      {/* Wire paperclip slipped over the top edge */}
-      <Paperclip size="lg" rotate={-8} left={36} />
+      {/* Wire paperclip slipped over the top edge — right side */}
+      <Paperclip size="lg" rotate={8} right={36} />
 
       <MosqueClipFrame
         videoSrc={clip.videoSrc}
@@ -371,7 +355,7 @@ function SpotlightPolaroid({
               marginTop: 4,
             }}
           >
-            {clip.context}
+            {context}
           </div>
         </div>
         <span

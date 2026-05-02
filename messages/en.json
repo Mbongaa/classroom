@@ -911,6 +911,42 @@
       },
       "cta": "Join Our Mission"
     },
+    "inTheRoom": {
+      "eyebrow": "from the minbar",
+      "titleLine1": "Real Friday.",
+      "titleLine2": "Real translations.",
+      "lead": "Five clips, five mosques. Tap any polaroid and watch it fly into the spotlight while the listener’s phone keeps catching every word, two and a half seconds behind the imam.",
+      "tapHint": "tap a polaroid →",
+      "phones": {
+        "eyebrow": "from any phone",
+        "title": "Students can join through phone.",
+        "lead": "No app to install, no account to make. The imam shares a link, the listener taps it, and the captions are already streaming.",
+        "screens": {
+          "live": {
+            "alt": "Live translation panel scrolling Dutch text below the imam video",
+            "caption": "Live translation",
+            "sublabel": "Dutch captions stream in as the imam speaks."
+          },
+          "fullscreen": {
+            "alt": "Fullscreen video of Sheikh Rachid with overlaid Dutch caption",
+            "caption": "Fullscreen view",
+            "sublabel": "One tap, the imam fills the screen, captions overlay."
+          },
+          "everyWord": {
+            "alt": "Live translation panel with multiple Dutch captions and mute toggle",
+            "caption": "Catch every word",
+            "sublabel": "Scroll back, adjust text size, mute the room."
+          }
+        }
+      },
+      "clips": {
+        "rotterdam-friday": "Friday khutbah · 1,200 listeners",
+        "eindhoven-tafsir": "Tafsir halaqa · Surah Al-Kahf",
+        "eindhoven-tarawih": "Ramadan tarawih · Q&A",
+        "maaseik-halaqa": "Youth halaqa · seerah",
+        "eindhoven-eid": "Eid khutbah · open prayer"
+      }
+    },
     "features": {
       "eyebrow": "more than translation",
       "title": "donations, members, one calm dashboard.",
@@ -1122,7 +1158,7 @@
         "instant": "instant activation",
         "setup": "setup in 5 minutes"
       },
-      "ctaPrimary": "get started today",
+      "ctaPrimary": "create account now",
       "ctaSecondary": "book a demo",
       "blessing": {
         "arabic": "بارَكَ اللَّهُ فِيكُمْ",
@@ -1227,7 +1263,9 @@
           "ready": "Your account at {url} is ready.",
           "redirecting": "Redirecting…",
           "redirectingDashboard": "Redirecting to your dashboard…"
-        }
+        },
+        "googleButton": "Sign up with Google",
+        "or": "OR"
       },
       "signin": {
         "titlePre": "Welcome",
@@ -1252,6 +1290,28 @@
         "googleSoon": "soon",
         "noAccount": "Don’t have an account?",
         "signUpLink": "Sign up",
+        "errorGeneric": "Something went wrong. Please try again."
+      },
+      "welcome": {
+        "titlePre": "One last",
+        "titleMarker": "step",
+        "subtitle": "Tell us a bit about your masjid so we can finish setting up your account.",
+        "signedInAs": "Signed in as {email}",
+        "name": {
+          "label": "Full name",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Please enter your full name"
+        },
+        "org": {
+          "label": "Organization name",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Tell us your masjid or center name",
+          "hint": "Your mosque, school, or Islamic center"
+        },
+        "submit": "Finish setup",
+        "submitting": "Setting up…",
+        "helperBeta": "Free during beta",
+        "helperSetup": "You can change this later in settings.",
         "errorGeneric": "Something went wrong. Please try again."
       }
     }

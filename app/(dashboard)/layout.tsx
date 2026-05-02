@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
 import { UserProviderWrapper } from '@/components/user-provider-wrapper';
@@ -48,12 +49,44 @@ export default async function DashboardGroupLayout({
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('organization:organizations(slug)')
+      .select(
+        'organization_id, is_superadmin, organization:organizations(slug, subscription_status, trial_ends_at, stripe_subscription_id)',
+      )
       .eq('id', user.id)
       .single();
-    const organization = (profile as { organization?: { slug?: string } | null } | null)
-      ?.organization;
-    orgSlug = organization?.slug ?? null;
+    const typedProfile = profile as
+      | {
+          organization_id?: string | null;
+          is_superadmin?: boolean | null;
+          organization?: {
+            slug?: string;
+            subscription_status?: string | null;
+            trial_ends_at?: string | null;
+            stripe_subscription_id?: string | null;
+          } | null;
+        }
+      | null;
+    // OAuth signups land on /welcome to pick an org name. If anyone reaches
+    // the dashboard without that step (direct nav, mid-flow refresh), bounce
+    // them back so the rest of the layout doesn't render against a missing
+    // organization.
+    if (!typedProfile?.organization_id) {
+      redirect('/welcome');
+    }
+    // Beta-trial paywall: once trial_ends_at is in the past and no Stripe
+    // subscription has been attached, route the user to /billing/required
+    // instead of letting them into the dashboard. Superadmins bypass — they
+    // need to operate the platform independently of any single org's billing.
+    const org = typedProfile.organization;
+    const trialExpired =
+      org?.subscription_status === 'trialing' &&
+      org?.trial_ends_at != null &&
+      new Date(org.trial_ends_at).getTime() < Date.now() &&
+      !org?.stripe_subscription_id;
+    if (trialExpired && !typedProfile.is_superadmin) {
+      redirect('/billing/required');
+    }
+    orgSlug = org?.slug ?? null;
   }
 
   const actingAs = user ? await resolveActingAsForUser(user.id) : null;

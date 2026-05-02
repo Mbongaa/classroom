@@ -75,7 +75,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Protected routes - require authentication
-  const protectedPaths = ['/dashboard', '/manage-rooms', '/profile', '/org', '/superadmin'];
+  const protectedPaths = ['/dashboard', '/manage-rooms', '/profile', '/org', '/superadmin', '/billing', '/welcome'];
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
 
   // Public routes - accessible without authentication

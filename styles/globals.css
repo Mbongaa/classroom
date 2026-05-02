@@ -752,7 +752,52 @@ html.mkt-active body {
   box-shadow: 8px 8px 0 var(--mkt-fg);
 }
 @media (max-width: 900px) {
-  .auth-left { padding: 28px; min-height: 280px; }
+  .auth-left {
+    padding: 56px 22px 24px;
+    min-height: auto;
+    border-radius: 22px 56px 24px 48px / 48px 24px 56px 22px;
+    box-shadow: 6px 6px 0 var(--mkt-fg);
+  }
+  /* Top section is busy enough on a phone — drop the BETA chip, the mock
+     translation caption, and both decorative stickies. The clean stack on
+     mobile is: logo → headline → lead → social proof → form. */
+  .auth-beta-chip,
+  .auth-mock-caption,
+  .auth-decorative-sticky {
+    display: none !important;
+  }
+  .auth-left-headline {
+    /* Generous line-height so the yellow "every language" chip on line 2
+       doesn't visually bleed up into the white "The khutbah," on line 1. */
+    font-size: clamp(28px, 7vw, 36px);
+    line-height: 1.45;
+  }
+  .auth-marker-yellow {
+    /* line-height:1 already inherits from the base rule; just trim the
+       padding so the chip hugs the glyphs even tighter on small screens. */
+    padding: 0.04em 0.26em;
+    border-radius: 10px 3px 9px 4px / 4px 10px 3px 9px;
+  }
+  .auth-left-lead {
+    font-size: 15px;
+    margin-top: 10px;
+    max-width: 32rem;
+  }
+  .auth-left-body { margin-top: 16px; }
+  .auth-logo { font-size: 22px; }
+  /* Social-proof footer: keep, but compact. */
+  .auth-left-foot {
+    margin-top: 18px;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .auth-avatars > span {
+    width: 28px;
+    height: 28px;
+    margin-left: -8px;
+    font-size: 12px;
+    border-width: 2px;
+  }
 }
 
 .auth-left-grain {
@@ -831,17 +876,19 @@ html.mkt-active body {
   box-shadow: 3px 3px 0 var(--mkt-bg-elev);
 }
 
-/* Solid yellow chip on the dark left pane. The original "highlighter
-   stroke" gradient (covering only the bottom strip of the line) leaves the
-   top half of dark text invisible against the dark pane — solid coverage
-   keeps the whole word readable while staying on-brand. */
+/* Solid yellow chip on the dark left pane. `display: inline-block` with
+   `line-height: 1` gives the chip its own tight box sized to the glyphs,
+   instead of inheriting the parent headline's roomy line-height and
+   inflating into a tall block that bleeds into the line above. Vertical
+   align is set so the chip's baseline lines up with the surrounding text. */
 .auth-marker-yellow {
+  display: inline-block;
   background: var(--mkt-postit);
-  padding: 0.05em 0.3em;
+  padding: 0.06em 0.32em;
   color: var(--mkt-fg);
+  line-height: 1;
+  vertical-align: baseline;
   border-radius: 14px 4px 12px 6px / 6px 14px 4px 12px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
 }
 
 .auth-mock-caption {

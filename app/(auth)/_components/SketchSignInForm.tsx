@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { signIn } from '@/lib/actions/auth';
+import { createClient } from '@/lib/supabase/client';
 
 const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
@@ -12,7 +13,23 @@ export function SketchSignInForm() {
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [submitting, setSubmitting] = useState(false);
+  const [googleSubmitting, setGoogleSubmitting] = useState(false);
   const [bannerErr, setBannerErr] = useState('');
+
+  async function handleGoogleSignIn() {
+    setBannerErr('');
+    setGoogleSubmitting(true);
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+    if (error) {
+      setBannerErr(error.message);
+      setGoogleSubmitting(false);
+    }
+    // On success the browser navigates to Google; nothing else to do.
+  }
 
   const errs = {
     email:
@@ -98,6 +115,25 @@ export function SketchSignInForm() {
         </div>
       )}
 
+      <button
+        type="button"
+        className="auth-btn auth-btn-ghost"
+        onClick={handleGoogleSignIn}
+        disabled={googleSubmitting || submitting}
+      >
+        {googleSubmitting ? (
+          <>
+            <span className="auth-spinner" /> {t('submitting')}
+          </>
+        ) : (
+          <>
+            <GoogleIcon /> {t('googleButton')}
+          </>
+        )}
+      </button>
+
+      <div className="auth-or">{t('or')}</div>
+
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signin-email">
           {t('email.label')}
@@ -143,7 +179,7 @@ export function SketchSignInForm() {
       <button
         type="submit"
         className="auth-btn"
-        disabled={!valid || submitting}
+        disabled={!valid || submitting || googleSubmitting}
       >
         {submitting ? (
           <>
@@ -152,29 +188,6 @@ export function SketchSignInForm() {
         ) : (
           t('submit')
         )}
-      </button>
-
-      <div className="auth-or">{t('or')}</div>
-
-      <button
-        type="button"
-        className="auth-btn auth-btn-ghost"
-        disabled
-        title={t('googleButton')}
-      >
-        <GoogleIcon /> {t('googleButton')}
-        <span
-          style={{
-            fontSize: 12,
-            padding: '2px 8px',
-            marginLeft: 6,
-            background: 'var(--mkt-border-soft)',
-            border: '1.5px solid var(--mkt-border)',
-            borderRadius: 12,
-          }}
-        >
-          {t('googleSoon')}
-        </span>
       </button>
 
       <div className="auth-footer-link">
