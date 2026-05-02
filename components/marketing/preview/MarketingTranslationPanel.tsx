@@ -2,19 +2,32 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useLocale } from 'next-intl';
 import { Volume2, VolumeOff } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 import styles from '@/app/components/SpeechTranslationPanel.module.css';
+import type { SegmentLocale } from './demoData';
 
+/**
+ * A segment carries its translations for every supported locale; the panel
+ * renders the one matching the currently active marketing locale at render
+ * time. This makes the cards reactive to locale changes — the existing
+ * stack of translations re-renders in the new language without re-driving
+ * the video timeline.
+ */
 export interface MarketingSegment {
   id: number;
-  text: string;
+  translations: Record<SegmentLocale, string>;
   isLatest?: boolean;
 }
 
 interface MarketingTranslationPanelProps {
   segments: MarketingSegment[];
-  targetLanguage?: string;
+  /**
+   * Forces a specific target language. When omitted, falls back to the
+   * active next-intl locale (which is what the marketing nav toggle drives).
+   */
+  targetLanguage?: SegmentLocale;
   variant?: 'desktop' | 'mobile';
   isStreamMuted?: boolean;
   onToggleStreamMute?: () => void;
@@ -32,13 +45,25 @@ const MIN_FONT_SIZE = 14;
 const MAX_FONT_SIZE = 120;
 const FONT_STEP = 4;
 
+const SUPPORTED_LOCALES = new Set<SegmentLocale>(['en', 'nl', 'de', 'fr', 'ar']);
+
 export function MarketingTranslationPanel({
   segments,
-  targetLanguage = 'en',
+  targetLanguage,
   variant = 'desktop',
   isStreamMuted,
   onToggleStreamMute,
 }: MarketingTranslationPanelProps) {
+  const activeLocale = useLocale();
+  // Resolve the target language: explicit prop wins, otherwise use the
+  // active marketing locale, falling back to English when the locale isn't
+  // one of the supported segment translation keys.
+  const lang: SegmentLocale =
+    targetLanguage ??
+    (SUPPORTED_LOCALES.has(activeLocale as SegmentLocale)
+      ? (activeLocale as SegmentLocale)
+      : 'en');
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const [fontSize, setFontSize] = useState(variant === 'mobile' ? 22 : 50);
 
@@ -67,19 +92,22 @@ export function MarketingTranslationPanel({
             </div>
             <div className={styles.languageIndicator}>
               <span className={styles.languageLabel}>Translating to</span>
-              <span>{languageLabels[targetLanguage] ?? targetLanguage.toUpperCase()}</span>
+              <span>{languageLabels[lang] ?? lang.toUpperCase()}</span>
             </div>
           </div>
         ) : (
           segments.map((segment, i) => {
             const isLatest = i === segments.length - 1;
+            // Locale lookup with English fallback so an unsupported locale
+            // gracefully degrades instead of rendering blank.
+            const text = segment.translations[lang] ?? segment.translations.en;
             return (
               <div
                 key={segment.id}
                 className={`${styles.translationItem} ${isLatest ? styles.latest : ''}`}
               >
                 <div className={styles.translationText} style={{ fontSize: `${fontSize}px` }}>
-                  {segment.text}
+                  {text}
                 </div>
               </div>
             );

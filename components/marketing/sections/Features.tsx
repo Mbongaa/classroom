@@ -3,13 +3,12 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
-  Radio,
-  BarChart3,
-  Lock,
-  CreditCard,
-  Landmark,
-  Repeat,
+  Languages,
   HandCoins,
+  Repeat,
+  Globe2,
+  Lock,
+  Heart,
 } from 'lucide-react';
 import {
   SketchCard,
@@ -18,33 +17,36 @@ import {
   PaperUnderline,
 } from '@/components/marketing/sketch';
 
+// Each tab represents a connection point bayaan creates between the mosque
+// and its visitors — not a dashboard view. The order goes: language reach,
+// one-off support, recurring members, audience growth.
 const tabs = [
-  { id: 'overview', icon: BarChart3 },
-  { id: 'rooms', icon: Radio },
+  { id: 'translation', icon: Languages },
   { id: 'donations', icon: HandCoins },
-  { id: 'mandates', icon: Repeat },
+  { id: 'members', icon: Repeat },
+  { id: 'reach', icon: Globe2 },
 ] as const;
 
 const featureItems = [
   {
-    key: 'payments',
-    icon: CreditCard,
+    key: 'translation',
+    icon: Languages,
     tone: 'paper' as const,
     rotate: -1.5,
     decoration: 'tape' as const,
     span: 'lg:col-span-2',
   },
   {
-    key: 'sepa',
-    icon: Landmark,
+    key: 'donations',
+    icon: HandCoins,
     tone: 'postit' as const,
     rotate: 1.8,
     decoration: 'tack' as const,
     span: 'lg:col-span-1',
   },
   {
-    key: 'batches',
-    icon: Repeat,
+    key: 'members',
+    icon: Heart,
     tone: 'paper' as const,
     rotate: -1,
     decoration: 'tack-blue' as const,
@@ -61,7 +63,7 @@ const stats = [
 
 export default function Features() {
   const t = useTranslations('marketing.features');
-  const [activeTab, setActiveTab] = useState<typeof tabs[number]['id']>('overview');
+  const [activeTab, setActiveTab] = useState<typeof tabs[number]['id']>('translation');
 
   return (
     <section id="features" className="mkt-section">
@@ -215,7 +217,7 @@ export default function Features() {
                   }}
                 >
                   <Lock size={12} strokeWidth={2.6} aria-hidden />
-                  <span>dashboard.bayaan.ai/{activeTab}</span>
+                  <span>bayaan.app/{activeTab}</span>
                 </div>
               </div>
               <span className="w-10" />

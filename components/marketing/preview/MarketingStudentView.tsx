@@ -43,7 +43,13 @@ export function MarketingStudentView({
     if (segment && !processedRef.current.has(segment.id)) {
       processedRef.current.add(segment.id);
       setSegments((prev) => {
-        const next = [...prev, { id: segment.id, text: segment.translation.en }];
+        // Carry the full translation map so the panel resolves the active
+        // locale at render time. Existing cards re-render in the new
+        // language when the user flips the locale toggle.
+        const next = [
+          ...prev,
+          { id: segment.id, translations: segment.translation },
+        ];
         return next.slice(-MAX_SEGMENTS);
       });
     }
@@ -125,7 +131,8 @@ export function MarketingStudentView({
           >
             <MarketingTranslationPanel
               segments={segments}
-              targetLanguage="en"
+              // targetLanguage omitted: panel auto-derives from the active
+              // next-intl locale (driven by the marketing nav toggle).
               variant={variant}
               isStreamMuted={isStreamMuted}
               onToggleStreamMute={toggleStreamMute}

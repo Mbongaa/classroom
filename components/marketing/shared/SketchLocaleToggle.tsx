@@ -86,17 +86,19 @@ export function SketchLocaleToggle({ compact = true, align = 'right' }: Props) {
         aria-controls={panelId}
         aria-label={`Language: ${localeLabels[current]}`}
         onClick={() => setOpen((v) => !v)}
-        className="mkt-focus-ring inline-flex items-center gap-2"
+        className="mkt-focus-ring inline-flex items-center gap-1.5"
         style={{
           background: 'var(--mkt-bg-elev)',
           color: 'var(--mkt-fg)',
           border: '2px solid var(--mkt-border)',
-          borderRadius: 'var(--mkt-wobbly-pill)',
+          // Wrinkled square shape — matches the hamburger button so the
+          // pair on the right side of the nav reads as siblings.
+          borderRadius: 'var(--mkt-wobbly-md)',
           boxShadow: '3px 3px 0 0 var(--mkt-border)',
-          padding: '0.4rem 0.85rem',
+          padding: '0 0.7rem',
           fontFamily: 'var(--mkt-font-body)',
           fontSize: '0.95rem',
-          minHeight: 40,
+          height: 44,
           minWidth: 64,
           transition: 'transform 100ms cubic-bezier(0.22, 1, 0.36, 1)',
           transform: open ? 'translate(2px, 2px)' : undefined,

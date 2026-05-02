@@ -912,29 +912,9 @@
       "cta": "Join Our Mission"
     },
     "features": {
-      "eyebrow": "powerful dashboard",
-      "title": "donations and direct debits, on autopilot",
-      "lead": "collect support from your community without the admin overhead — built-in payments, recurring SEPA mandates, and automated batch runs.",
-      "tabs": {
-        "overview": "overview",
-        "rooms": "room management",
-        "donations": "donations",
-        "mandates": "mandates"
-      },
-      "items": {
-        "payments": {
-          "title": "built-in payment system",
-          "body": "accept one-off and recurring donations through iDEAL, cards, and bank transfer. funds settle straight to your mosque's account."
-        },
-        "sepa": {
-          "title": "automatic SEPA direct debits",
-          "body": "members sign a digital mandate once. monthly contributions are collected automatically — no reminders, no chasing, no spreadsheets."
-        },
-        "batches": {
-          "title": "scheduled debit batches",
-          "body": "the system queues, validates, and submits SEPA batches on schedule. failed collections are retried with a clean audit trail."
-        }
-      },
+      "eyebrow": "what bayaan brings",
+      "title": "connect your mosque to every visitor.",
+      "lead": "live translation, donations, and monthly members. one place to keep your community close, in any language.",
       "stats": {
         "transcription": {
           "value": "50+",
@@ -951,6 +931,26 @@
         "latency": {
           "value": "~2.5s",
           "label": "translation latency"
+        }
+      },
+      "tabs": {
+        "translation": "translation",
+        "donations": "donations",
+        "members": "members",
+        "reach": "reach"
+      },
+      "items": {
+        "translation": {
+          "title": "live translation, every language",
+          "body": "real-time captions in 50+ languages turn the khutbah into something every visitor can follow. no app, no setup, no headsets."
+        },
+        "donations": {
+          "title": "donations, frictionless",
+          "body": "ideal, cards, and bank transfer in one place. visitors give in seconds and the funds settle straight to your mosque’s account."
+        },
+        "members": {
+          "title": "monthly members, on autopilot",
+          "body": "visitors sign one digital mandate and stay close every month. bayaan handles the sepa collection, retries, and audit trail."
         }
       }
     },

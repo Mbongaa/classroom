@@ -171,7 +171,8 @@ export function MarketingNavigation() {
           </SketchButton>
         </div>
 
-        <div className="flex items-center gap-1 md:hidden" style={{ zIndex: 50 }}>
+        <div className="flex items-center gap-2 md:hidden" style={{ zIndex: 50 }}>
+          <SketchLocaleToggle compact />
           <button
             type="button"
             ref={triggerRef}
@@ -278,9 +279,8 @@ export function MarketingNavigation() {
               style={{ borderTop: '2px dashed var(--mkt-border)' }}
             />
 
-            {/* Account actions + language */}
+            {/* Account actions */}
             <div className="mt-8 flex flex-col items-start gap-5">
-              <SketchLocaleToggle compact={false} align="left" />
               <Link
                 href="/login"
                 onClick={() => setOpen(false)}

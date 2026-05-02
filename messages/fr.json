@@ -900,29 +900,9 @@
       }
     },
     "features": {
-      "eyebrow": "tableau de bord puissant",
-      "title": "dons et prélèvements automatiques, en pilote automatique",
-      "lead": "collectez le soutien de votre communauté sans la charge administrative — paiements intégrés, mandats SEPA récurrents et lots automatiques.",
-      "tabs": {
-        "overview": "Aperçu",
-        "rooms": "Salles",
-        "donations": "Dons",
-        "mandates": "Mandats"
-      },
-      "items": {
-        "payments": {
-          "title": "Système de paiement intégré",
-          "body": "Dons ponctuels et récurrents via iDEAL, carte et virement. Les fonds arrivent directement sur le compte de la mosquée."
-        },
-        "sepa": {
-          "title": "Prélèvements SEPA automatiques",
-          "body": "Les membres signent un mandat numérique une fois. Les contributions mensuelles sont prélevées automatiquement — sans rappels, sans tableurs."
-        },
-        "batches": {
-          "title": "Lots de prélèvement programmés",
-          "body": "Le système planifie, valide et envoie les lots SEPA à temps. Les échecs sont automatiquement retentés, avec piste d'audit complète."
-        }
-      },
+      "eyebrow": "ce que bayaan apporte",
+      "title": "reliez votre mosquée à chaque visiteur.",
+      "lead": "traduction en direct, dons et membres mensuels. un seul endroit pour garder votre communauté proche, dans toutes les langues.",
       "stats": {
         "transcription": {
           "value": "50+",
@@ -939,6 +919,26 @@
         "latency": {
           "value": "~2,5s",
           "label": "latence de traduction"
+        }
+      },
+      "tabs": {
+        "translation": "traduction",
+        "donations": "dons",
+        "members": "membres",
+        "reach": "portée"
+      },
+      "items": {
+        "translation": {
+          "title": "traduction en direct, dans toutes les langues",
+          "body": "sous-titres en temps réel dans plus de 50 langues. la khoutba devient accessible à chaque visiteur. aucune app, aucune installation, aucun casque."
+        },
+        "donations": {
+          "title": "dons, sans friction",
+          "body": "ideal, cartes et virement au même endroit. les visiteurs donnent en quelques secondes et l’argent arrive directement sur le compte de la mosquée."
+        },
+        "members": {
+          "title": "membres mensuels, en pilote automatique",
+          "body": "les visiteurs signent un mandat numérique une seule fois et restent proches chaque mois. bayaan gère le prélèvement SEPA, les nouvelles tentatives et la piste d’audit."
         }
       }
     },

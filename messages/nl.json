@@ -900,29 +900,9 @@
       }
     },
     "features": {
-      "eyebrow": "krachtig dashboard",
-      "title": "donaties en automatische incasso’s, op de automatische piloot",
-      "lead": "verzamel steun van je gemeenschap zonder de administratieve last — ingebouwde betalingen, terugkerende SEPA-machtigingen en automatische batches.",
-      "tabs": {
-        "overview": "overzicht",
-        "rooms": "ruimtes",
-        "donations": "donaties",
-        "mandates": "machtigingen"
-      },
-      "items": {
-        "payments": {
-          "title": "Ingebouwd betaalsysteem",
-          "body": "Eénmalige en doorlopende donaties via iDEAL, kaart en bankoverschrijving. Betalingen komen rechtstreeks op de rekening van de moskee binnen."
-        },
-        "sepa": {
-          "title": "Automatische SEPA-incasso's",
-          "body": "Leden tekenen één keer een digitale machtiging. Maandelijkse bijdragen worden automatisch geïncasseerd — geen herinneringen, geen Excel."
-        },
-        "batches": {
-          "title": "Geplande incassobatches",
-          "body": "Het systeem plant, controleert en verstuurt SEPA-batches op tijd. Mislukte incasso's worden automatisch opnieuw geprobeerd, met een volledig audit-spoor."
-        }
-      },
+      "eyebrow": "wat bayaan brengt",
+      "title": "verbind je moskee met elke bezoeker.",
+      "lead": "live vertaling, donaties en maandelijkse leden. één plek om je gemeenschap dichtbij te houden, in elke taal.",
       "stats": {
         "transcription": {
           "value": "50+",
@@ -939,6 +919,26 @@
         "latency": {
           "value": "~2,5s",
           "label": "vertaallatentie"
+        }
+      },
+      "tabs": {
+        "translation": "vertaling",
+        "donations": "donaties",
+        "members": "leden",
+        "reach": "bereik"
+      },
+      "items": {
+        "translation": {
+          "title": "live vertaling, in elke taal",
+          "body": "realtime ondertiteling in 50+ talen maakt de khutba toegankelijk voor elke bezoeker. geen app, geen installatie, geen headsets."
+        },
+        "donations": {
+          "title": "donaties, zonder gedoe",
+          "body": "ideal, kaarten en overschrijving op één plek. bezoekers geven in seconden en het geld komt direct op de rekening van je moskee."
+        },
+        "members": {
+          "title": "maandelijkse leden, op de automatische piloot",
+          "body": "bezoekers tekenen één digitale machtiging en blijven elke maand verbonden. bayaan regelt de SEPA-incasso, herhaalpogingen en audit trail."
         }
       }
     },

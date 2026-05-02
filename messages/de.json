@@ -900,29 +900,9 @@
       }
     },
     "features": {
-      "eyebrow": "leistungsstarkes dashboard",
-      "title": "spenden und lastschriften, auf autopilot",
-      "lead": "sammle unterstützung von deiner gemeinschaft ohne den verwaltungsaufwand — eingebaute zahlungen, wiederkehrende SEPA-mandate und automatische batches.",
-      "tabs": {
-        "overview": "Übersicht",
-        "rooms": "Räume",
-        "donations": "Spenden",
-        "mandates": "Mandate"
-      },
-      "items": {
-        "payments": {
-          "title": "Eingebautes Zahlungssystem",
-          "body": "Einmalige und wiederkehrende Spenden über iDEAL, Karten und Banküberweisung. Beträge gehen direkt auf das Konto der Moschee."
-        },
-        "sepa": {
-          "title": "Automatische SEPA-Lastschriften",
-          "body": "Mitglieder unterzeichnen einmal ein digitales Mandat. Monatsbeiträge werden automatisch eingezogen — ohne Erinnerungen, ohne Tabellen."
-        },
-        "batches": {
-          "title": "Geplante Lastschrift-Stapel",
-          "body": "Das System plant, prüft und übermittelt SEPA-Stapel termingerecht. Fehlgeschlagene Einzüge werden automatisch wiederholt — mit lückenlosem Audit."
-        }
-      },
+      "eyebrow": "was bayaan bringt",
+      "title": "verbinde deine moschee mit jedem besucher.",
+      "lead": "live-übersetzung, spenden und monatliche mitglieder. ein ort, um deine gemeinschaft nah zu halten, in jeder sprache.",
       "stats": {
         "transcription": {
           "value": "50+",
@@ -939,6 +919,26 @@
         "latency": {
           "value": "~2,5s",
           "label": "Übersetzungslatenz"
+        }
+      },
+      "tabs": {
+        "translation": "übersetzung",
+        "donations": "spenden",
+        "members": "mitglieder",
+        "reach": "reichweite"
+      },
+      "items": {
+        "translation": {
+          "title": "live-übersetzung, in jeder sprache",
+          "body": "echtzeit-untertitel in 50+ sprachen machen die khutba für jeden besucher zugänglich. keine app, keine einrichtung, keine headsets."
+        },
+        "donations": {
+          "title": "spenden, ohne aufwand",
+          "body": "ideal, kartenzahlung und überweisung an einem ort. besucher spenden in sekunden, das geld geht direkt aufs konto der moschee."
+        },
+        "members": {
+          "title": "monatliche mitglieder, auf autopilot",
+          "body": "besucher unterschreiben einmal eine digitale ermächtigung und bleiben jeden monat dabei. bayaan kümmert sich um SEPA-einzug, wiederholungen und audit-trail."
         }
       }
     },
