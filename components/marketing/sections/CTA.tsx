@@ -4,7 +4,7 @@ import { ArrowRight, Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SketchButton } from '@/components/marketing/sketch';
 
-const points = ['noCard', 'instant', 'setup'] as const;
+const points = ['instant', 'setup'] as const;
 
 export default function CTA() {
   const t = useTranslations('marketing.cta');

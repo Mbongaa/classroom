@@ -1205,6 +1205,98 @@
           "location": "Maaseik, Belgien"
         }
       }
+    },
+    "auth": {
+      "shell": {
+        "beta": "BETA · Kostenlos",
+        "headlineLine1": "Die Khutba,",
+        "headlineLine2Pre": "in",
+        "headlineLine2Marker": "jeder Sprache",
+        "leadBase": "Live-Untertitel für Jummah. Keine App, keine Einrichtung.",
+        "leadSignup": "Melde dich an und führe diesen Freitag deine erste übersetzte Jummah durch.",
+        "leadSignin": "Willkommen zurück, melde dich an, um deine Moschee zu verwalten.",
+        "mockSpeaker": "Imam · Arabisch",
+        "mockText": "Aller Lob gebührt Allah, wir preisen Ihn",
+        "audioPrivate": "🔒 Audio verlässt deine Moschee nicht",
+        "testimonial": "„Die Einrichtung dauerte 6 Min. Sechs!“",
+        "testimonialAttribution": "Br. Tariq",
+        "socialAlready": "bereits auf Bayaan",
+        "socialMasjid": "{count} Moschee",
+        "socialMasjids": "{count} Moscheen",
+        "countries": "Belgien · Deutschland · VAE · Niederlande"
+      },
+      "tabs": {
+        "signin": "Anmelden",
+        "signup": "Konto erstellen"
+      },
+      "signup": {
+        "titlePre": "Richte deine",
+        "titleMarker": "Moschee",
+        "subtitle": "Kostenlos während der Beta · in wenigen Minuten eingerichtet",
+        "name": {
+          "label": "Vollständiger Name",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Bitte gib deinen vollständigen Namen ein"
+        },
+        "email": {
+          "label": "E-Mail",
+          "placeholder": "imam@deinemoschee.de",
+          "required": "E-Mail erforderlich",
+          "invalid": "Das sieht nicht nach einer gültigen E-Mail aus"
+        },
+        "password": {
+          "label": "Passwort",
+          "placeholder": "••••••••",
+          "required": "Passwort erforderlich",
+          "tooShort": "Mindestens 8 Zeichen",
+          "hint": "Mindestens 8 Zeichen"
+        },
+        "org": {
+          "label": "Name der Organisation",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Nenn uns den Namen deiner Moschee oder deines Zentrums",
+          "hint": "Deine Moschee, Schule oder islamisches Zentrum"
+        },
+        "urlEmpty": "deine-moschee",
+        "submit": "Konto erstellen",
+        "submitting": "Konto wird erstellt…",
+        "helperBeta": "Kostenlos während der Beta",
+        "helperSetup": "In wenigen Minuten eingerichtet.",
+        "haveAccount": "Hast du schon ein Konto?",
+        "signInLink": "Anmelden",
+        "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut.",
+        "success": {
+          "title": "Mabrook!",
+          "ready": "Dein Konto unter {url} ist bereit.",
+          "redirecting": "Weiterleitung…",
+          "redirectingDashboard": "Weiterleitung zum Dashboard…"
+        }
+      },
+      "signin": {
+        "titlePre": "Willkommen",
+        "titleMarker": "zurück",
+        "subtitle": "Melde dich an, um Übersetzungen und dein Predigtarchiv zu verwalten.",
+        "email": {
+          "label": "E-Mail",
+          "placeholder": "imam@deinemoschee.de",
+          "required": "E-Mail erforderlich",
+          "invalid": "Das sieht nicht nach einer gültigen E-Mail aus"
+        },
+        "password": {
+          "label": "Passwort",
+          "placeholder": "••••••••",
+          "required": "Passwort erforderlich"
+        },
+        "forgotPassword": "Passwort vergessen?",
+        "submit": "Anmelden",
+        "submitting": "Anmelden…",
+        "or": "ODER",
+        "googleButton": "Mit Google fortfahren",
+        "googleSoon": "bald",
+        "noAccount": "Noch kein Konto?",
+        "signUpLink": "Registrieren",
+        "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut."
+      }
     }
   }
 }

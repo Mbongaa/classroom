@@ -1153,7 +1153,7 @@
       "contact": {
         "email": "support@bayaan.ai",
         "phone": "+31 6 28718008",
-        "city": "amsterdam, netherlands"
+        "city": "eindhoven, netherlands"
       },
       "copyright": "all rights reserved.",
       "madeWith": "built with care for the ummah.",
@@ -1180,6 +1180,98 @@
         "terms": "terms",
         "security": "security",
         "compliance": "compliance"
+      }
+    },
+    "auth": {
+      "shell": {
+        "beta": "BETA · Free",
+        "headlineLine1": "The khutbah,",
+        "headlineLine2Pre": "in",
+        "headlineLine2Marker": "every language",
+        "leadBase": "Live captions for jummah. No app, no setup.",
+        "leadSignup": "Sign up and run your first translated jummah this Friday.",
+        "leadSignin": "Welcome back, sign in to manage your masjid.",
+        "mockSpeaker": "Imam · Arabic",
+        "mockText": "All praise is due to Allah, we praise Him",
+        "audioPrivate": "🔒 Audio never leaves your masjid",
+        "testimonial": "“Setup took 6 min. Six!”",
+        "testimonialAttribution": "Br. Tariq",
+        "socialAlready": "already on Bayaan",
+        "socialMasjid": "{count} masjid",
+        "socialMasjids": "{count} masjids",
+        "countries": "Belgium · Germany · UAE · Netherlands"
+      },
+      "tabs": {
+        "signin": "Sign in",
+        "signup": "Create account"
+      },
+      "signup": {
+        "titlePre": "Set up your",
+        "titleMarker": "masjid",
+        "subtitle": "Free during beta · Set up in minutes",
+        "name": {
+          "label": "Full name",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Please enter your full name"
+        },
+        "email": {
+          "label": "Email",
+          "placeholder": "imam@yourmasjid.org",
+          "required": "Email required",
+          "invalid": "That doesn’t look like a valid email"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "••••••••",
+          "required": "Password required",
+          "tooShort": "Must be at least 8 characters",
+          "hint": "Must be at least 8 characters"
+        },
+        "org": {
+          "label": "Organization name",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Tell us your masjid or center name",
+          "hint": "Your mosque, school, or Islamic center"
+        },
+        "urlEmpty": "your-masjid",
+        "submit": "Create Account",
+        "submitting": "Creating account…",
+        "helperBeta": "Free during beta",
+        "helperSetup": "Set up in minutes.",
+        "haveAccount": "Already have an account?",
+        "signInLink": "Sign in",
+        "errorGeneric": "Something went wrong. Please try again.",
+        "success": {
+          "title": "Mabrook!",
+          "ready": "Your account at {url} is ready.",
+          "redirecting": "Redirecting…",
+          "redirectingDashboard": "Redirecting to your dashboard…"
+        }
+      },
+      "signin": {
+        "titlePre": "Welcome",
+        "titleMarker": "back",
+        "subtitle": "Sign in to manage translations & your sermon archive.",
+        "email": {
+          "label": "Email",
+          "placeholder": "imam@yourmasjid.org",
+          "required": "Email required",
+          "invalid": "That doesn’t look like a valid email"
+        },
+        "password": {
+          "label": "Password",
+          "placeholder": "••••••••",
+          "required": "Password required"
+        },
+        "forgotPassword": "Forgot password?",
+        "submit": "Sign In",
+        "submitting": "Signing in…",
+        "or": "OR",
+        "googleButton": "Continue with Google",
+        "googleSoon": "soon",
+        "noAccount": "Don’t have an account?",
+        "signUpLink": "Sign up",
+        "errorGeneric": "Something went wrong. Please try again."
       }
     }
   }

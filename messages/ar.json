@@ -1206,6 +1206,98 @@
           "location": "ماسايك، بلجيكا"
         }
       }
+    },
+    "auth": {
+      "shell": {
+        "beta": "بيتا · مجّاناً",
+        "headlineLine1": "الخطبة،",
+        "headlineLine2Pre": "بـ",
+        "headlineLine2Marker": "كلّ لغة",
+        "leadBase": "ترجمة حيّة لخطبة الجمعة. بلا تطبيق، بلا إعداد.",
+        "leadSignup": "سجّل وأقم أوّل جمعة مترجمة لك هذا الأسبوع.",
+        "leadSignin": "أهلاً بعودتك، سجّل دخولك لإدارة مسجدك.",
+        "mockSpeaker": "الإمام · عربي",
+        "mockText": "إنّ الحمدَ لله نحمدُهُ",
+        "audioPrivate": "🔒 الصوت لا يخرج من مسجدك",
+        "testimonial": "«استغرق الإعداد 6 دقائق. ستّ!»",
+        "testimonialAttribution": "الأخ طارق",
+        "socialAlready": "موجودون على بيان",
+        "socialMasjid": "مسجد واحد",
+        "socialMasjids": "{count} مسجداً",
+        "countries": "بلجيكا · ألمانيا · الإمارات · هولندا"
+      },
+      "tabs": {
+        "signin": "تسجيل الدخول",
+        "signup": "إنشاء حساب"
+      },
+      "signup": {
+        "titlePre": "هيّئ",
+        "titleMarker": "مسجدك",
+        "subtitle": "مجّاناً خلال البيتا · جاهز خلال دقائق",
+        "name": {
+          "label": "الاسم الكامل",
+          "placeholder": "يوسف أحمد",
+          "required": "الرجاء إدخال الاسم الكامل"
+        },
+        "email": {
+          "label": "البريد الإلكتروني",
+          "placeholder": "imam@yourmasjid.org",
+          "required": "البريد الإلكتروني مطلوب",
+          "invalid": "هذا لا يبدو بريداً إلكترونياً صحيحاً"
+        },
+        "password": {
+          "label": "كلمة المرور",
+          "placeholder": "••••••••",
+          "required": "كلمة المرور مطلوبة",
+          "tooShort": "8 أحرف على الأقل",
+          "hint": "8 أحرف على الأقل"
+        },
+        "org": {
+          "label": "اسم المنظّمة",
+          "placeholder": "مسجد النور",
+          "required": "أخبرنا باسم مسجدك أو مركزك",
+          "hint": "مسجدك أو مدرستك أو مركزك الإسلامي"
+        },
+        "urlEmpty": "your-masjid",
+        "submit": "إنشاء الحساب",
+        "submitting": "جاري إنشاء الحساب…",
+        "helperBeta": "مجّاناً خلال البيتا",
+        "helperSetup": "جاهز خلال دقائق.",
+        "haveAccount": "لديك حساب بالفعل؟",
+        "signInLink": "تسجيل الدخول",
+        "errorGeneric": "حدث خطأ ما. الرجاء المحاولة مجدّداً.",
+        "success": {
+          "title": "مبروك!",
+          "ready": "حسابك على {url} جاهز.",
+          "redirecting": "جاري التحويل…",
+          "redirectingDashboard": "جاري التحويل إلى لوحة التحكم…"
+        }
+      },
+      "signin": {
+        "titlePre": "أهلاً بعودتك",
+        "titleMarker": "",
+        "subtitle": "سجّل دخولك لإدارة الترجمات وأرشيف خطبك.",
+        "email": {
+          "label": "البريد الإلكتروني",
+          "placeholder": "imam@yourmasjid.org",
+          "required": "البريد الإلكتروني مطلوب",
+          "invalid": "هذا لا يبدو بريداً إلكترونياً صحيحاً"
+        },
+        "password": {
+          "label": "كلمة المرور",
+          "placeholder": "••••••••",
+          "required": "كلمة المرور مطلوبة"
+        },
+        "forgotPassword": "نسيت كلمة المرور؟",
+        "submit": "تسجيل الدخول",
+        "submitting": "جاري تسجيل الدخول…",
+        "or": "أو",
+        "googleButton": "المتابعة عبر Google",
+        "googleSoon": "قريباً",
+        "noAccount": "ليس لديك حساب؟",
+        "signUpLink": "سجّل الآن",
+        "errorGeneric": "حدث خطأ ما. الرجاء المحاولة مجدّداً."
+      }
     }
   }
 }

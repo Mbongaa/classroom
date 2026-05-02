@@ -1205,6 +1205,98 @@
           "location": "Maaseik, Belgique"
         }
       }
+    },
+    "auth": {
+      "shell": {
+        "beta": "BÊTA · Gratuit",
+        "headlineLine1": "La khoutba,",
+        "headlineLine2Pre": "dans",
+        "headlineLine2Marker": "toutes les langues",
+        "leadBase": "Sous-titres en direct pour la jummah. Aucune app, aucune installation.",
+        "leadSignup": "Inscrivez-vous et organisez votre première jummah traduite ce vendredi.",
+        "leadSignin": "Bon retour, connectez-vous pour gérer votre mosquée.",
+        "mockSpeaker": "Imam · Arabe",
+        "mockText": "Toute louange est due à Allah, nous Le louons",
+        "audioPrivate": "🔒 L’audio ne quitte jamais votre mosquée",
+        "testimonial": "« L’installation a pris 6 min. Six ! »",
+        "testimonialAttribution": "Br. Tariq",
+        "socialAlready": "déjà sur Bayaan",
+        "socialMasjid": "{count} mosquée",
+        "socialMasjids": "{count} mosquées",
+        "countries": "Belgique · Allemagne · ÉAU · Pays-Bas"
+      },
+      "tabs": {
+        "signin": "Se connecter",
+        "signup": "Créer un compte"
+      },
+      "signup": {
+        "titlePre": "Configurez votre",
+        "titleMarker": "mosquée",
+        "subtitle": "Gratuit pendant la bêta · prêt en quelques minutes",
+        "name": {
+          "label": "Nom complet",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Veuillez saisir votre nom complet"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "imam@votremosquee.fr",
+          "required": "E-mail requis",
+          "invalid": "Cela ne ressemble pas à un e-mail valide"
+        },
+        "password": {
+          "label": "Mot de passe",
+          "placeholder": "••••••••",
+          "required": "Mot de passe requis",
+          "tooShort": "8 caractères minimum",
+          "hint": "8 caractères minimum"
+        },
+        "org": {
+          "label": "Nom de l’organisation",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Indiquez le nom de votre mosquée ou centre",
+          "hint": "Votre mosquée, école ou centre islamique"
+        },
+        "urlEmpty": "votre-mosquee",
+        "submit": "Créer un compte",
+        "submitting": "Création du compte…",
+        "helperBeta": "Gratuit pendant la bêta",
+        "helperSetup": "Prêt en quelques minutes.",
+        "haveAccount": "Vous avez déjà un compte ?",
+        "signInLink": "Se connecter",
+        "errorGeneric": "Une erreur est survenue. Veuillez réessayer.",
+        "success": {
+          "title": "Mabrouk !",
+          "ready": "Votre compte sur {url} est prêt.",
+          "redirecting": "Redirection…",
+          "redirectingDashboard": "Redirection vers votre tableau de bord…"
+        }
+      },
+      "signin": {
+        "titlePre": "Bon",
+        "titleMarker": "retour",
+        "subtitle": "Connectez-vous pour gérer les traductions et votre archive de sermons.",
+        "email": {
+          "label": "E-mail",
+          "placeholder": "imam@votremosquee.fr",
+          "required": "E-mail requis",
+          "invalid": "Cela ne ressemble pas à un e-mail valide"
+        },
+        "password": {
+          "label": "Mot de passe",
+          "placeholder": "••••••••",
+          "required": "Mot de passe requis"
+        },
+        "forgotPassword": "Mot de passe oublié ?",
+        "submit": "Se connecter",
+        "submitting": "Connexion…",
+        "or": "OU",
+        "googleButton": "Continuer avec Google",
+        "googleSoon": "bientôt",
+        "noAccount": "Pas encore de compte ?",
+        "signUpLink": "S’inscrire",
+        "errorGeneric": "Une erreur est survenue. Veuillez réessayer."
+      }
     }
   }
 }

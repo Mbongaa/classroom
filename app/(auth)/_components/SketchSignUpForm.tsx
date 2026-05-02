@@ -1,12 +1,14 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { signUp } from '@/lib/actions/auth';
 import { slugify } from '@/lib/slugify';
 
 const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 export function SketchSignUpForm() {
+  const t = useTranslations('marketing.auth.signup');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,20 +27,20 @@ export function SketchSignUpForm() {
   const slug = useMemo(() => slugify(org), [org]);
 
   const errs = {
-    name: touched.name && !name ? 'Please enter your full name' : '',
+    name: touched.name && !name ? t('name.required') : '',
     email:
       touched.email && email && !isEmail(email)
-        ? "That doesn't look like a valid email"
+        ? t('email.invalid')
         : touched.email && !email
-          ? 'Email required'
+          ? t('email.required')
           : '',
     password:
       touched.password && password && password.length < 8
-        ? 'Must be at least 8 characters'
+        ? t('password.tooShort')
         : touched.password && !password
-          ? 'Password required'
+          ? t('password.required')
           : '',
-    org: touched.org && !org ? 'Tell us your masjid or center name' : '',
+    org: touched.org && !org ? t('org.required') : '',
   };
   const valid = name && isEmail(email) && password.length >= 8 && org;
 
@@ -74,7 +76,7 @@ export function SketchSignUpForm() {
       }, 1400);
     } catch (err) {
       if (err instanceof Error && err.message === 'NEXT_REDIRECT') throw err;
-      setBannerErr('Something went wrong. Please try again.');
+      setBannerErr(t('errorGeneric'));
       setSubmitting(false);
     }
   }
@@ -100,11 +102,11 @@ export function SketchSignUpForm() {
               padding: '0 4px',
             }}
           >
-            Mabrook!
+            {t('success.title')}
           </span>
         </h3>
         <p style={{ fontSize: 17, marginBottom: 4, fontFamily: 'var(--mkt-font-body)' }}>
-          Your account at <strong>bayaan.app/{slug}</strong> is ready.
+          {t('success.ready', { url: `bayaan.app/${slug}` })}
         </p>
         <p
           style={{
@@ -114,7 +116,7 @@ export function SketchSignUpForm() {
             fontFamily: 'var(--mkt-font-body)',
           }}
         >
-          {redirectUrl ? 'Redirecting…' : 'Redirecting to your dashboard…'}
+          {redirectUrl ? t('success.redirecting') : t('success.redirectingDashboard')}
         </p>
         <span
           className="auth-spinner"
@@ -134,7 +136,7 @@ export function SketchSignUpForm() {
           marginBottom: 4,
         }}
       >
-        Set up your{' '}
+        {t('titlePre')}{' '}
         <span
           style={{
             background:
@@ -142,7 +144,7 @@ export function SketchSignUpForm() {
             padding: '0 4px',
           }}
         >
-          masjid
+          {t('titleMarker')}
         </span>
       </h2>
       <p
@@ -154,7 +156,7 @@ export function SketchSignUpForm() {
           fontFamily: 'var(--mkt-font-body)',
         }}
       >
-        Free during beta · no card required
+        {t('subtitle')}
       </p>
 
       {bannerErr && (
@@ -168,18 +170,18 @@ export function SketchSignUpForm() {
 
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signup-name">
-          Full name <span className="req">*</span>
+          {t('name.label')} <span className="req">*</span>
         </label>
         <input
           id="signup-name"
           type="text"
           className={`auth-field ${errs.name ? 'is-error' : ''}`}
-          placeholder="Yusuf Ahmed"
+          placeholder={t('name.placeholder')}
           autoComplete="name"
           autoCapitalize="words"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, name: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, name: true }))}
           required
         />
         {errs.name && <div className="auth-field-error">↳ {errs.name}</div>}
@@ -187,18 +189,18 @@ export function SketchSignUpForm() {
 
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signup-email">
-          Email <span className="req">*</span>
+          {t('email.label')} <span className="req">*</span>
         </label>
         <input
           id="signup-email"
           type="email"
           className={`auth-field ${errs.email ? 'is-error' : ''}`}
-          placeholder="imam@yourmasjid.org"
+          placeholder={t('email.placeholder')}
           autoComplete="email"
           autoCapitalize="none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, email: true }))}
           required
         />
         {errs.email && <div className="auth-field-error">↳ {errs.email}</div>}
@@ -206,45 +208,45 @@ export function SketchSignUpForm() {
 
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signup-password">
-          Password <span className="req">*</span>
+          {t('password.label')} <span className="req">*</span>
         </label>
         <input
           id="signup-password"
           type="password"
           className={`auth-field ${errs.password ? 'is-error' : ''}`}
-          placeholder="••••••••"
+          placeholder={t('password.placeholder')}
           autoComplete="new-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, password: true }))}
           required
           minLength={8}
         />
         {errs.password ? (
           <div className="auth-field-error">↳ {errs.password}</div>
         ) : (
-          <div className="auth-field-helper">Must be at least 8 characters</div>
+          <div className="auth-field-helper">{t('password.hint')}</div>
         )}
       </div>
 
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signup-org">
-          Organization name <span className="req">*</span>
+          {t('org.label')} <span className="req">*</span>
         </label>
         <input
           id="signup-org"
           type="text"
           className={`auth-field ${errs.org ? 'is-error' : ''}`}
-          placeholder="Masjid Al-Noor"
+          placeholder={t('org.placeholder')}
           value={org}
           onChange={(e) => setOrg(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, org: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, org: true }))}
           required
         />
         {errs.org ? (
           <div className="auth-field-error">↳ {errs.org}</div>
         ) : (
-          <div className="auth-field-helper">Your mosque, school, or Islamic center</div>
+          <div className="auth-field-helper">{t('org.hint')}</div>
         )}
         <div className="auth-url-preview" aria-live="polite">
           <span style={{ fontSize: 14 }} aria-hidden>
@@ -254,7 +256,7 @@ export function SketchSignUpForm() {
           {slug ? (
             <span className="slug">{slug}</span>
           ) : (
-            <span className="empty">your-masjid</span>
+            <span className="empty">{t('urlEmpty')}</span>
           )}
         </div>
       </div>
@@ -266,19 +268,19 @@ export function SketchSignUpForm() {
       >
         {submitting ? (
           <>
-            <span className="auth-spinner" /> Creating account…
+            <span className="auth-spinner" /> {t('submitting')}
           </>
         ) : (
-          'Create Account'
+          t('submit')
         )}
       </button>
 
       <div className="auth-submit-helper">
-        <span className="marker">Free during beta</span>. No credit card required.
+        <span className="marker">{t('helperBeta')}</span>. {t('helperSetup')}
       </div>
 
       <div className="auth-footer-link">
-        Already have an account? <a href="/login">Sign in</a>
+        {t('haveAccount')} <a href="/login">{t('signInLink')}</a>
       </div>
     </form>
   );

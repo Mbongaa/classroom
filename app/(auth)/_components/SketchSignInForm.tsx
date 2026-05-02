@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { signIn } from '@/lib/actions/auth';
 
 const isEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
 
 export function SketchSignInForm() {
+  const t = useTranslations('marketing.auth.signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
@@ -15,11 +17,11 @@ export function SketchSignInForm() {
   const errs = {
     email:
       touched.email && email && !isEmail(email)
-        ? "That doesn't look like a valid email"
+        ? t('email.invalid')
         : touched.email && !email
-          ? 'Email required'
+          ? t('email.required')
           : '',
-    password: touched.password && !password ? 'Password required' : '',
+    password: touched.password && !password ? t('password.required') : '',
   };
   const valid = isEmail(email) && password.length > 0;
 
@@ -43,7 +45,7 @@ export function SketchSignInForm() {
     } catch (err) {
       // Next.js's redirect() throws — re-throw so navigation occurs.
       if (err instanceof Error && err.message === 'NEXT_REDIRECT') throw err;
-      setBannerErr('Something went wrong. Please try again.');
+      setBannerErr(t('errorGeneric'));
     } finally {
       setSubmitting(false);
     }
@@ -59,16 +61,21 @@ export function SketchSignInForm() {
           marginBottom: 4,
         }}
       >
-        Welcome{' '}
-        <span
-          style={{
-            textDecoration: 'underline wavy var(--mkt-accent)',
-            textUnderlineOffset: '6px',
-            textDecorationThickness: '2px',
-          }}
-        >
-          back
-        </span>
+        {t('titlePre')}
+        {t('titleMarker') && (
+          <>
+            {' '}
+            <span
+              style={{
+                textDecoration: 'underline wavy var(--mkt-accent)',
+                textUnderlineOffset: '6px',
+                textDecorationThickness: '2px',
+              }}
+            >
+              {t('titleMarker')}
+            </span>
+          </>
+        )}
       </h2>
       <p
         style={{
@@ -79,7 +86,7 @@ export function SketchSignInForm() {
           fontFamily: 'var(--mkt-font-body)',
         }}
       >
-        Sign in to manage translations &amp; your sermon archive.
+        {t('subtitle')}
       </p>
 
       {bannerErr && (
@@ -93,19 +100,19 @@ export function SketchSignInForm() {
 
       <div className="auth-field-group">
         <label className="auth-field-label" htmlFor="signin-email">
-          Email
+          {t('email.label')}
         </label>
         <input
           id="signin-email"
           name="email"
           type="email"
           className={`auth-field ${errs.email ? 'is-error' : ''}`}
-          placeholder="imam@yourmasjid.org"
+          placeholder={t('email.placeholder')}
           autoComplete="email"
           autoCapitalize="none"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, email: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, email: true }))}
           required
         />
         {errs.email && <div className="auth-field-error">↳ {errs.email}</div>}
@@ -113,24 +120,24 @@ export function SketchSignInForm() {
 
       <div className="auth-field-group" style={{ marginBottom: 6 }}>
         <label className="auth-field-label" htmlFor="signin-password">
-          Password
+          {t('password.label')}
         </label>
         <input
           id="signin-password"
           name="password"
           type="password"
           className={`auth-field ${errs.password ? 'is-error' : ''}`}
-          placeholder="••••••••"
+          placeholder={t('password.placeholder')}
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          onBlur={() => setTouched((t) => ({ ...t, password: true }))}
+          onBlur={() => setTouched((tt) => ({ ...tt, password: true }))}
           required
         />
         {errs.password && <div className="auth-field-error">↳ {errs.password}</div>}
       </div>
       <div className="auth-forgot">
-        <a href="/forgot-password">Forgot password?</a>
+        <a href="/forgot-password">{t('forgotPassword')}</a>
       </div>
 
       <button
@@ -140,22 +147,22 @@ export function SketchSignInForm() {
       >
         {submitting ? (
           <>
-            <span className="auth-spinner" /> Signing in…
+            <span className="auth-spinner" /> {t('submitting')}
           </>
         ) : (
-          'Sign In'
+          t('submit')
         )}
       </button>
 
-      <div className="auth-or">OR</div>
+      <div className="auth-or">{t('or')}</div>
 
       <button
         type="button"
         className="auth-btn auth-btn-ghost"
         disabled
-        title="Google sign-in coming soon"
+        title={t('googleButton')}
       >
-        <GoogleIcon /> Continue with Google
+        <GoogleIcon /> {t('googleButton')}
         <span
           style={{
             fontSize: 12,
@@ -166,13 +173,13 @@ export function SketchSignInForm() {
             borderRadius: 12,
           }}
         >
-          soon
+          {t('googleSoon')}
         </span>
       </button>
 
       <div className="auth-footer-link">
-        Don&apos;t have an account?{' '}
-        <a href="/signup">Sign up</a>
+        {t('noAccount')}{' '}
+        <a href="/signup">{t('signUpLink')}</a>
       </div>
     </form>
   );

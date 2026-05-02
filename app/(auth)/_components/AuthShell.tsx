@@ -4,8 +4,11 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useLocale, useTranslations } from 'next-intl';
+import { ArrowLeft } from 'lucide-react';
 import { setLocale } from '@/app/actions/locale';
-import { isLocale } from '@/i18n/config';
+import { isLocale, type Locale } from '@/i18n/config';
+import { SketchLocaleToggle } from '@/components/marketing/shared/SketchLocaleToggle';
 
 type Mode = 'signin' | 'signup';
 
@@ -57,6 +60,9 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
     window.history.replaceState({}, '', url.toString());
   }, [searchParams]);
 
+  const t = useTranslations('marketing.auth.tabs');
+  const tShell = useTranslations('marketing.auth.shell');
+
   const switchMode = (next: Mode) => {
     if (next === mode) return;
     router.push(next === 'signup' ? '/signup' : '/login');
@@ -64,6 +70,51 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
 
   return (
     <div data-mkt-root className="auth-stage">
+      {/* Back-to-landing button — fixed top-left, mirrors the locale toggle.
+          Cream paper styling so it pops against the dark left pane on
+          desktop and blends on the stacked mobile layout. */}
+      <Link
+        href="/"
+        aria-label="Back to home"
+        style={{
+          position: 'fixed',
+          top: 14,
+          left: 14,
+          zIndex: 70,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 6,
+          padding: '8px 14px 8px 12px',
+          background: 'var(--mkt-bg-elev)',
+          border: '2.5px solid var(--mkt-border)',
+          borderRadius: 999,
+          fontFamily: 'var(--mkt-font-display)',
+          fontSize: 15,
+          fontWeight: 600,
+          color: 'var(--mkt-fg)',
+          textDecoration: 'none',
+          boxShadow: '3px 3px 0 var(--mkt-border)',
+          transform: 'rotate(-1deg)',
+          lineHeight: 1,
+        }}
+      >
+        <ArrowLeft size={16} strokeWidth={2.6} aria-hidden />
+        <span>Back</span>
+      </Link>
+
+      {/* Locale picker — fixed top-right so it sits above both panes and
+          stays reachable on the mobile stacked layout. */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 14,
+          right: 14,
+          zIndex: 70,
+        }}
+      >
+        <SketchLocaleToggle compact />
+      </div>
+
       <LeftPane mode={mode} organizationCount={organizationCount} />
 
       <div className="auth-right">
@@ -101,7 +152,7 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
                 border: '1px dashed rgba(0,0,0,0.3)',
               }}
             />
-            🔒 Audio never leaves your masjid
+            {tShell('audioPrivate')}
           </div>
 
           <div className="auth-card">
@@ -113,7 +164,7 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
                 className={`auth-tab ${mode === 'signin' ? 'is-active' : ''}`}
                 onClick={() => switchMode('signin')}
               >
-                Sign in
+                {t('signin')}
               </button>
               <button
                 type="button"
@@ -122,7 +173,7 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
                 className={`auth-tab ${mode === 'signup' ? 'is-active' : ''}`}
                 onClick={() => switchMode('signup')}
               >
-                Create account
+                {t('signup')}
               </button>
             </div>
             {children}
@@ -133,6 +184,16 @@ export function AuthShell({ mode, children, organizationCount }: AuthShellProps)
   );
 }
 
+// Locale-aware translation of the mock-caption sample line so the auth
+// page mirrors what the actual product would render in each language.
+const MOCK_CAPTION_BY_LOCALE: Record<Locale, { tag: string; text: string }> = {
+  en: { tag: 'EN', text: 'All praise is due to Allah, we praise Him' },
+  nl: { tag: 'NL', text: 'Alle lof is voor Allah, wij prijzen Hem' },
+  de: { tag: 'DE', text: 'Aller Lob gebührt Allah, wir preisen Ihn' },
+  fr: { tag: 'FR', text: 'Toute louange est due à Allah, nous Le louons' },
+  ar: { tag: 'AR', text: 'إنّ الحمدَ لله نحمدُهُ' },
+};
+
 function LeftPane({
   mode,
   organizationCount,
@@ -140,9 +201,14 @@ function LeftPane({
   mode: Mode;
   organizationCount?: number;
 }) {
+  const activeLocale = useLocale() as Locale;
+  const mock = MOCK_CAPTION_BY_LOCALE[activeLocale] ?? MOCK_CAPTION_BY_LOCALE.en;
+  const t = useTranslations('marketing.auth.shell');
   // Server-resolved count when available; otherwise show a quiet fallback so
   // the slot doesn't render empty during static generation / SSR-skip cases.
   const count = organizationCount ?? 7;
+  // ICU-style pluralization isn't worth wiring for a single string here.
+  const masjidCountLabel = t(count === 1 ? 'socialMasjid' : 'socialMasjids', { count });
   return (
     <div className="auth-left">
       <div className="auth-left-grain" aria-hidden />
@@ -168,26 +234,26 @@ function LeftPane({
             transform: 'rotate(2deg)',
           }}
         >
-          BETA · Free
+          {t('beta')}
         </span>
       </div>
 
       <div className="auth-left-body">
         <h1 className="auth-left-headline">
-          The khutbah,
+          {t('headlineLine1')}
           <br />
-          in <span className="auth-marker-yellow">every language</span>.
+          {t('headlineLine2Pre')}{' '}
+          <span className="auth-marker-yellow">{t('headlineLine2Marker')}</span>
+          .
         </h1>
         <p className="auth-left-lead">
-          Live captions for jummah. No app, no setup.{' '}
-          {mode === 'signup'
-            ? 'Sign up and run your first translated jummah this Friday.'
-            : 'Welcome back, sign in to manage your masjid.'}
+          {t('leadBase')}{' '}
+          {mode === 'signup' ? t('leadSignup') : t('leadSignin')}
         </p>
 
         {/* Mock translation caption */}
         <div className="auth-mock-caption">
-          <span className="auth-mock-tag">Imam · Arabic</span>
+          <span className="auth-mock-tag">{t('mockSpeaker')}</span>
           <div
             lang="ar"
             dir="rtl"
@@ -204,10 +270,14 @@ function LeftPane({
             className="auth-mock-tag"
             style={{ background: 'var(--mkt-postit-blue)' }}
           >
-            EN
+            {mock.tag}
           </span>
-          <div style={{ fontSize: 16 }}>
-            All praise is due to Allah, we praise Him
+          <div
+            style={{ fontSize: 16 }}
+            dir={activeLocale === 'ar' ? 'rtl' : 'ltr'}
+            lang={activeLocale}
+          >
+            {t('mockText')}
             <span className="auth-cursor">▌</span>
           </div>
         </div>
@@ -235,12 +305,12 @@ function LeftPane({
         <div>
           <div>
             <strong style={{ color: 'var(--mkt-bg-elev)' }}>
-              {count} {count === 1 ? 'masjid' : 'masjids'}
+              {masjidCountLabel}
             </strong>{' '}
-            already on Bayaan
+            {t('socialAlready')}
           </div>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
-            Belgium · Germany · UAE · Netherlands
+            {t('countries')}
           </div>
         </div>
       </div>
@@ -277,7 +347,7 @@ function LeftPane({
             border: '1px dashed rgba(0,0,0,0.3)',
           }}
         />
-        ✨ &ldquo;Setup took 6 min. Six!&rdquo; <em>· Br. Tariq</em>
+        ✨ {t('testimonial')} <em>· {t('testimonialAttribution')}</em>
       </div>
     </div>
   );

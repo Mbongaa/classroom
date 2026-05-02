@@ -1205,6 +1205,99 @@
           "location": "Maaseik, België"
         }
       }
+    },
+    "auth": {
+      "shell": {
+        "beta": "BÈTA · Gratis",
+        "headlineLine1": "De khutba,",
+        "headlineLine2Pre": "in",
+        "headlineLine2Marker": "elke taal",
+        "leadBase": "Live ondertiteling voor jummah. Geen app, geen installatie.",
+        "leadSignup": "Meld je aan en draai je eerste vertaalde jummah aanstaande vrijdag.",
+        "leadSignin": "Welkom terug, log in om je moskee te beheren.",
+        "mockSpeaker": "Imam · Arabisch",
+        "mockText": "Alle lof is voor Allah, wij prijzen Hem",
+        "audioPrivate": "🔒 Geluid blijft binnen jouw moskee",
+        "testimonial": "“Installatie duurde 6 min. Zes!”",
+        "testimonialAttribution": "Br. Tariq",
+        "socialAlready": "al op Bayaan",
+        "socialMasjid": "{count} moskee",
+        "socialMasjids": "{count} moskeeën",
+        "countries": "België · Duitsland · VAE · Nederland"
+      },
+      "tabs": {
+        "signin": "Inloggen",
+        "signup": "Account aanmaken"
+      },
+      "signup": {
+        "titlePre": "Stel je",
+        "titleMarker": "moskee",
+        "subtitle": "Gratis tijdens bèta · klaar in enkele minuten",
+        "name": {
+          "label": "Volledige naam",
+          "placeholder": "Yusuf Ahmed",
+          "required": "Vul je volledige naam in"
+        },
+        "email": {
+          "label": "E-mail",
+          "placeholder": "imam@jouwmoskee.nl",
+          "required": "E-mail verplicht",
+          "invalid": "Dit lijkt geen geldig e-mailadres"
+        },
+        "password": {
+          "label": "Wachtwoord",
+          "placeholder": "••••••••",
+          "required": "Wachtwoord verplicht",
+          "tooShort": "Minimaal 8 tekens",
+          "hint": "Minimaal 8 tekens"
+        },
+        "org": {
+          "label": "Naam van de organisatie",
+          "placeholder": "Masjid Al-Noor",
+          "required": "Geef de naam van je moskee of centrum",
+          "hint": "Je moskee, school of islamitisch centrum"
+        },
+        "urlEmpty": "jouw-moskee",
+        "submit": "Account aanmaken",
+        "submitting": "Account aanmaken…",
+        "helperBeta": "Gratis tijdens bèta",
+        "helperSetup": "Klaar in enkele minuten.",
+        "haveAccount": "Heb je al een account?",
+        "signInLink": "Inloggen",
+        "errorGeneric": "Er ging iets mis. Probeer het opnieuw.",
+        "success": {
+          "title": "Mabrook!",
+          "ready": "Je account op {url} is klaar.",
+          "redirecting": "Doorsturen…",
+          "redirectingDashboard": "Doorsturen naar je dashboard…"
+        },
+        "titlePre_": "Stel je"
+      },
+      "signin": {
+        "titlePre": "Welkom",
+        "titleMarker": "terug",
+        "subtitle": "Log in om vertalingen en je preekarchief te beheren.",
+        "email": {
+          "label": "E-mail",
+          "placeholder": "imam@jouwmoskee.nl",
+          "required": "E-mail verplicht",
+          "invalid": "Dit lijkt geen geldig e-mailadres"
+        },
+        "password": {
+          "label": "Wachtwoord",
+          "placeholder": "••••••••",
+          "required": "Wachtwoord verplicht"
+        },
+        "forgotPassword": "Wachtwoord vergeten?",
+        "submit": "Inloggen",
+        "submitting": "Inloggen…",
+        "or": "OF",
+        "googleButton": "Doorgaan met Google",
+        "googleSoon": "binnenkort",
+        "noAccount": "Nog geen account?",
+        "signUpLink": "Aanmelden",
+        "errorGeneric": "Er ging iets mis. Probeer het opnieuw."
+      }
     }
   }
 }
