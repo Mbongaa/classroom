@@ -1,8 +1,3 @@
-'use client';
+import Contact from '@/components/marketing/sections/Contact';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const ContactWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/Contact'),
-  mobile: () => import('@/components/marketing/sections/Contact'),
-});
+export const ContactWrapper = Contact;

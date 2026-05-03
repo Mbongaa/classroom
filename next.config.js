@@ -56,7 +56,7 @@ const withPWA = require('@ducanh2912/next-pwa').default({
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false,
   images: {
     formats: ['image/webp'],
   },

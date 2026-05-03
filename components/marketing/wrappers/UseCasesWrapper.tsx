@@ -1,8 +1,3 @@
-'use client';
+import UseCases from '@/components/marketing/sections/UseCases';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const UseCasesWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/UseCases'),
-  mobile: () => import('@/components/marketing/sections/UseCases'),
-});
+export const UseCasesWrapper = UseCases;

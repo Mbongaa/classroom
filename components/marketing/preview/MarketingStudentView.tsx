@@ -155,7 +155,9 @@ export function MarketingStudentView({
             <div className={styles.mainVideoGrid} style={isMobile ? { padding: '0.5rem' } : undefined}>
               <div className={styles.teacherVideo} style={{ aspectRatio: 'auto' }}>
                 <MarketingTeacherTile
-                  videoSrc="/marketing/camera-preview.mp4"
+                  videoSrc="/marketing/camera-preview-720.mp4"
+                  videoSrcWebm="/marketing/camera-preview-720.webm"
+                  poster="/marketing/camera-preview-poster.jpg"
                   name="Sheikh Mamdouh"
                   className={styles.teacherTile}
                   onTimeUpdate={handleVideoTime}

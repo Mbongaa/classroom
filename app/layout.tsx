@@ -1,6 +1,7 @@
 import '../styles/globals.css';
-import '@livekit/components-styles';
-import '@livekit/components-styles/prefabs';
+// LiveKit component styles are scoped to room routes via per-route layouts
+// (app/rooms/layout.tsx, app/v2/rooms/layout.tsx, app/custom/layout.tsx) so the
+// marketing landing and other product surfaces don't pay for ~30KB of unused CSS.
 import type { Metadata, Viewport } from 'next';
 import { Poppins, Kalam, Patrick_Hand } from 'next/font/google';
 import { headers } from 'next/headers';
@@ -19,24 +20,30 @@ const MARKETING_ROUTES = new Set(['/', '/login', '/signup', '/forgot-password', 
 
 const poppins = Poppins({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-poppins',
+  display: 'swap',
 });
 
 // Marketing-only display fonts. Loaded globally so [data-mkt-root] inherits them
 // without flash; product UI never references --font-kalam / --font-patrick.
+// `display: 'optional'` lets the browser skip a delayed swap on slow connections —
+// product surfaces never render these, so the fallback is acceptable when the
+// font hasn't arrived inside the swap window.
 const kalam = Kalam({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-kalam',
-  display: 'swap',
+  display: 'optional',
+  preload: false,
 });
 
 const patrickHand = Patrick_Hand({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-patrick',
-  display: 'swap',
+  display: 'optional',
+  preload: false,
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bayaan.ai';

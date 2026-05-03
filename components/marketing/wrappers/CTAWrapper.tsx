@@ -1,8 +1,3 @@
-'use client';
+import CTA from '@/components/marketing/sections/CTA';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const CTAWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/CTA'),
-  mobile: () => import('@/components/marketing/sections/CTA'),
-});
+export const CTAWrapper = CTA;

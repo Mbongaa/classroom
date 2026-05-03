@@ -1,8 +1,3 @@
-'use client';
+import Features from '@/components/marketing/sections/Features';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const FeaturesWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/Features'),
-  mobile: () => import('@/components/marketing/sections/Features'),
-});
+export const FeaturesWrapper = Features;

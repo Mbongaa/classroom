@@ -16,6 +16,10 @@ import {
 
 interface MarketingTeacherTileProps {
   videoSrc: string;
+  /** Optional WebM source served first to AV1/VP9-capable browsers. */
+  videoSrcWebm?: string;
+  /** Poster painted in the first round trip while the video buffers. */
+  poster?: string;
   name: string;
   className?: string;
   onTimeUpdate?: (time: number) => void;
@@ -33,6 +37,8 @@ interface MarketingTeacherTileProps {
  */
 export function MarketingTeacherTile({
   videoSrc,
+  videoSrcWebm,
+  poster,
   name,
   className = '',
   onTimeUpdate,
@@ -99,8 +105,10 @@ export function MarketingTeacherTile({
           loop
           muted={isStreamMuted}
           playsInline
-          preload="auto"
+          preload="metadata"
+          poster={poster}
         >
+          {videoSrcWebm ? <source src={videoSrcWebm} type="video/webm" /> : null}
           <source src={videoSrc} type="video/mp4" />
         </video>
       ) : null}

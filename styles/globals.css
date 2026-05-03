@@ -398,6 +398,39 @@ html.mkt-active body {
   color-scheme: light;
 }
 
+/* The marketing landing reuses small bits of the production room chrome
+   (MarketingStudentView, MarketingTranslationPanel) which reference LiveKit
+   CSS variables. The LiveKit stylesheet is no longer imported globally — it
+   only loads on /rooms, /v2/rooms, /custom — so the marketing surface needs
+   to define the handful of LiveKit vars its preview chrome actually reads.
+   Values mirror @livekit/components-styles defaults. */
+[data-mkt-root] {
+  --lk-bg: #111;
+  --lk-bg2: rgb(29.75, 29.75, 29.75);
+  --lk-bg3: rgb(42.5, 42.5, 42.5);
+  --lk-bg4: rgb(55.25, 55.25, 55.25);
+  --lk-text1: white;
+  --lk-text2: rgba(255, 255, 255, 0.4);
+}
+
+/* CSS-only desktop/mobile gating for marketing sections so the server
+   response is correct for both viewports without a runtime swap. Used by
+   `createSectionWrapper`. Breakpoint matches `useIsMobile` (768px). */
+.mkt-only-desktop {
+  display: contents;
+}
+.mkt-only-mobile {
+  display: none;
+}
+@media (max-width: 767px) {
+  .mkt-only-desktop {
+    display: none;
+  }
+  .mkt-only-mobile {
+    display: contents;
+  }
+}
+
 [data-mkt-root] {
   font-family: var(--mkt-font-body);
   background: var(--mkt-bg);

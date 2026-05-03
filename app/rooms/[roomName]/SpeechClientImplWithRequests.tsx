@@ -39,6 +39,7 @@ import { useResizable } from '@/lib/useResizable';
 import { useVerticalResizable } from '@/lib/useVerticalResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
 import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtils';
+import { useLeaveDestination } from '@/lib/useLeaveDestination';
 import styles from './SpeechClient.module.css';
 
 interface PermissionNotification {
@@ -296,9 +297,10 @@ export function SpeechClientImplWithRequests({
     );
   }, [allTracks, allStudents]);
 
+  const leaveDestination = useLeaveDestination(userRole);
   const handleOnLeave = React.useCallback(() => {
-    router.push('/');
-  }, [router]);
+    router.push(leaveDestination);
+  }, [router, leaveDestination]);
 
   // Handle permission update from teacher (for teachers sending updates)
   const handlePermissionUpdate = React.useCallback(
@@ -682,7 +684,7 @@ export function SpeechClientImplWithRequests({
           <div className={styles.roomInfo}>
             <button
               className={styles.backButton}
-              onClick={() => { backIconRef.current?.startAnimation(); room.disconnect(); router.push('/'); }}
+              onClick={() => { backIconRef.current?.startAnimation(); room.disconnect(); router.push(leaveDestination); }}
               onMouseEnter={() => backIconRef.current?.startAnimation()}
               onMouseLeave={() => backIconRef.current?.stopAnimation()}
               title="Leave room"

@@ -61,6 +61,14 @@ const jsonLd = {
 export default function Page() {
   return (
     <>
+      {/* Paint the hero immediately. The poster JPEG is ~31KB and the video
+          source kicks in once the browser has bandwidth (preload="metadata"). */}
+      <link
+        rel="preload"
+        as="image"
+        href="/marketing/camera-preview-poster.jpg"
+        fetchPriority="high"
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

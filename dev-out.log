@@ -1,0 +1,170 @@
+
+> livekit-meet@0.2.0 dev C:\Users\hassa\OneDrive\Desktop\Bayaan.ai\classroom
+> next dev --turbo
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+ ⚠ Port 3000 is in use, trying 3001 instead.
+ ⚠ Port 3001 is in use, trying 3002 instead.
+ ⚠ Port 3002 is in use, trying 3003 instead.
+ ⚠ Port 3003 is in use, trying 3004 instead.
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 15.2.8 (Turbopack)
+   - Local:        http://localhost:3004
+   - Network:      http://172.24.112.1:3004
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · turbo
+
+ ✓ Starting...
+ ✓ Compiled in 378ms
+ ✓ Ready in 2.8s
+ ○ Compiling /login ...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+ ✓ Compiled /login in 5.1s
+ GET /login?redirect=%2Fdashboard 200 in 6176ms
+ ⚠ Cross origin request detected from 172.24.112.1 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ○ Compiling /icon.svg ...
+ ✓ Compiled /icon.svg in 711ms
+ GET /icon.svg?icon.b869be61.svg 200 in 880ms
+ ○ Compiling /thank-you ...
+ ✓ Compiled /thank-you in 968ms
+ GET /thank-you 200 in 1314ms
+ GET /login 200 in 329ms
+ ○ Compiling /auth/auth-code-error ...
+ ✓ Compiled /auth/auth-code-error in 858ms
+ GET /auth/auth-code-error 200 in 1162ms
+ ○ Compiling /forgot-password ...
+ ✓ Compiled /forgot-password in 1290ms
+ GET /forgot-password 200 in 1637ms
+ ○ Compiling /v2 ...
+ ✓ Compiled /v2 in 1586ms
+ GET /v2 200 in 1954ms
+ ○ Compiling /api/classrooms ...
+ ✓ Compiled /api/classrooms in 687ms
+ GET /api/classrooms 401 in 889ms
+ ✓ Compiled in 2.3s
+ ✓ Compiled in 2.2s
+ GET /auth/auth-code-error 200 in 346ms
+ GET /forgot-password 200 in 319ms
+ GET /auth/auth-code-error 200 in 354ms
+ GET /auth/auth-code-error 200 in 286ms
+ ✓ Compiled in 2.2s
+ ✓ Compiled in 2.5s
+ GET /auth/auth-code-error 200 in 318ms
+ ✓ Compiled in 2.4s
+ GET /auth/auth-code-error 200 in 302ms
+ ○ Compiling / ...
+ ✓ Compiled / in 2s
+ GET / 200 in 2316ms
+ ○ Compiling /test-classroom ...
+ ✓ Compiled /test-classroom in 1058ms
+ GET /test-classroom 200 in 1415ms
+ ○ Compiling /signup ...
+ ✓ Compiled /signup in 1466ms
+ GET /signup 200 in 1802ms
+ POST /signup 200 in 2081ms
+ GET /login 200 in 350ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 1803ms
+ GET /dashboard 200 in 2150ms
+ POST /login 303 in 2696ms
+ GET /dashboard 200 in 179ms
+ ○ Compiling /welcome ...
+ ✓ Compiled /welcome in 1118ms
+ GET /welcome 200 in 1470ms
+ POST /welcome 200 in 796ms
+[Email Service] Email sent successfully: 6dab7a03-1133-4eab-b3af-de8ea64d29f0
+ GET /dashboard 200 in 356ms
+ GET /dashboard 200 in 573ms
+ ✓ Compiled /api/me in 479ms
+ GET /api/me 200 in 781ms
+ GET /api/me 200 in 321ms
+ ✓ Compiled /api/sessions in 452ms
+ GET /api/classrooms 200 in 584ms
+ GET /api/sessions 200 in 724ms
+ GET /api/classrooms 200 in 394ms
+ GET /api/sessions 200 in 290ms
+ ○ Compiling /dashboard/rooms ...
+ ✓ Compiled /dashboard/rooms in 1762ms
+ GET /dashboard/rooms 200 in 2381ms
+ GET /api/me 200 in 260ms
+ GET /api/me 200 in 408ms
+ GET /api/classrooms 200 in 860ms
+ ○ Compiling /api/prompts ...
+ ✓ Compiled /api/prompts in 607ms
+ GET /api/prompts 200 in 936ms
+ ✓ Compiled in 2.8s
+ GET /dashboard/rooms 200 in 703ms
+ GET /api/me 200 in 324ms
+ GET /api/me 200 in 361ms
+ GET /api/classrooms 200 in 564ms
+ GET /api/prompts 200 in 372ms
+ ○ Compiling /dashboard/profile ...
+ ✓ Compiled /dashboard/profile in 1799ms
+ GET /dashboard/profile 200 in 2412ms
+ GET /api/me 200 in 313ms
+ GET /api/me 200 in 434ms
+ ○ Compiling /dashboard/billing ...
+ ✓ Compiled /dashboard/billing in 1536ms
+ GET /dashboard/billing 200 in 2320ms
+ GET /api/me 200 in 357ms
+ GET /api/me 200 in 249ms
+ ○ Compiling /dashboard/recordings ...
+ ✓ Compiled /dashboard/recordings in 2.2s
+ GET /dashboard/recordings 200 in 2639ms
+ GET /api/me 200 in 278ms
+ GET /api/me 200 in 306ms
+ GET /api/sessions 200 in 497ms
+ ○ Compiling /dashboard/prompts ...
+ ✓ Compiled /dashboard/prompts in 1604ms
+ GET /dashboard/prompts 200 in 2169ms
+ GET /api/prompts 200 in 432ms
+ GET /api/me 200 in 436ms
+ GET /api/me 200 in 302ms
+ ○ Compiling /mosque-admin/[slug] ...
+ ✓ Compiled /mosque-admin/[slug] in 1611ms
+ GET /mosque-admin/audit-mosque 200 in 3315ms
+ GET /api/me 200 in 274ms
+ GET /api/me 200 in 317ms
+ ○ Compiling /mosque-admin/[slug]/campaigns ...
+ ✓ Compiled /mosque-admin/[slug]/campaigns in 1927ms
+Error: INVALID_MESSAGE: UNCLOSED_TAG (Used in the donate URL: /donate/<org>/<slug>. Lowercase letters, numbers and hyphens.)
+    at CampaignFormDialog (file://C%3A/Users/hassa/OneDrive/Desktop/Bayaan.ai/classroom/app/%28dashboard%29/mosque-admin/%5Bslug%5D/campaigns/CampaignFormDialog.tsx:223:46)
+  221 |               />
+  222 |               <p className="text-xs text-slate-500 dark:text-slate-400">
+> 223 |                 {isEdit ? t('slugHintEdit') : t('slugHintCreate')}
+      |                                              ^
+  224 |               </p>
+  225 |             </div>
+  226 | {
+  code: 'INVALID_MESSAGE',
+  originalMessage: 'UNCLOSED_TAG (Used in the donate URL: /donate/<org>/<slug>. Lowercase letters, numbers and hyphens.)'
+}
+ GET /mosque-admin/audit-mosque/campaigns 200 in 3532ms
+ GET /api/me 200 in 492ms
+ GET /api/me 200 in 374ms
+ GET /dashboard/billing 200 in 817ms
+ GET /api/me 200 in 256ms
+ GET /api/me 200 in 297ms
+ ✓ Compiled in 13.7s
+ ✓ Compiled in 513ms
+[1m[31mFATAL[39m[0m: An unexpected Turbopack error occurred. Please report the content of C:\Users\hassa\AppData\Local\Temp\next-panic-9a7a3787e178183a358554e1cee44a1a.log, along with a description of what you were doing when the error occurred, to https://github.com/vercel/next.js/issues/new?template=1.bug_report.yml
+ ✓ Compiled in 835ms
+ ✓ Compiled in 3.7s
+ ✓ Compiled in 3.7s
+ ⚠ Found a change in next.config.js. Restarting the server to apply the changes...
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+   ▲ Next.js 15.2.8 (Turbopack)
+   - Local:        http://localhost:3004
+   - Network:      http://172.24.112.1:3004
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · turbo
+
+ ✓ Starting...
+ ✓ Compiled in 620ms
+ ✓ Ready in 3.7s

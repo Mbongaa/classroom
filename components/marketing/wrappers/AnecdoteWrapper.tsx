@@ -1,8 +1,3 @@
-'use client';
+import Anecdote from '@/components/marketing/sections/Anecdote';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const AnecdoteWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/Anecdote'),
-  mobile: () => import('@/components/marketing/sections/Anecdote'),
-});
+export const AnecdoteWrapper = Anecdote;

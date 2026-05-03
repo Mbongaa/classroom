@@ -41,6 +41,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
+import { useLeaveDestination } from '@/lib/useLeaveDestination';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -506,7 +507,11 @@ function VideoConferenceComponent(props: {
   }, []);
 
   const router = useRouter();
-  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const leaveDestination = useLeaveDestination(props.classroomRole);
+  const handleOnLeave = React.useCallback(
+    () => router.push(leaveDestination),
+    [router, leaveDestination],
+  );
   const handleError = React.useCallback((error: Error) => {
     console.error(error);
     alert(`Encountered an unexpected error, check the console logs for details: ${error.message}`);

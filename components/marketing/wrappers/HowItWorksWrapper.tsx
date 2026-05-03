@@ -1,8 +1,3 @@
-'use client';
+import HowItWorks from '@/components/marketing/sections/HowItWorks';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const HowItWorksWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/HowItWorks'),
-  mobile: () => import('@/components/marketing/sections/HowItWorks'),
-});
+export const HowItWorksWrapper = HowItWorks;

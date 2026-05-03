@@ -1,8 +1,3 @@
-'use client';
+import Testimonials from '@/components/marketing/sections/Testimonials';
 
-import { createSectionWrapper } from './createSectionWrapper';
-
-export const TestimonialsWrapper = createSectionWrapper({
-  desktop: () => import('@/components/marketing/sections/Testimonials'),
-  mobile: () => import('@/components/marketing/sections/Testimonials'),
-});
+export const TestimonialsWrapper = Testimonials;

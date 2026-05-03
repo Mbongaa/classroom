@@ -31,6 +31,7 @@ import {
   DisconnectReason,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
+import { useLeaveDestination } from '@/lib/useLeaveDestination';
 
 // V2 token is 30 min, refresh at 25 min
 const TOKEN_REFRESH_INTERVAL_MS = 25 * 60 * 1000;
@@ -402,7 +403,11 @@ function V2VideoConference(props: {
   const room = React.useMemo(() => new Room(roomOptions), [roomOptions]);
 
   const connectOptions = React.useMemo((): RoomConnectOptions => ({ autoSubscribe: true }), []);
-  const handleOnLeave = React.useCallback(() => router.push('/'), [router]);
+  const leaveDestination = useLeaveDestination(props.classroomRole);
+  const handleOnLeave = React.useCallback(
+    () => router.push(leaveDestination),
+    [router, leaveDestination],
+  );
   const handleError = React.useCallback((error: Error) => {
     console.error('[V2]', error);
     alert(`Error: ${error.message}`);
