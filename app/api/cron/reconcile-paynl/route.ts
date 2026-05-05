@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { fetchDirectDebitStatus, fetchMandateStatus, PayNLError } from '@/lib/paynl';
+import {
+  fetchDirectDebitStatus,
+  fetchMandateStatus,
+  listDirectDebitsByMandate,
+  PayNLError,
+} from '@/lib/paynl';
 
 /**
  * GET/POST /api/cron/reconcile-paynl
@@ -66,18 +71,139 @@ async function handle(request: NextRequest) {
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString();
 
   const mandateSummary = await reconcileMandates(supabase, cutoff);
+  const backfillSummary = await backfillMissingDirectDebits(supabase);
   const debitSummary = await reconcileDirectDebits(supabase, cutoff);
 
   console.log('[Cron reconcile-paynl] run complete', {
     mandates: mandateSummary,
+    backfill: backfillSummary,
     directDebits: debitSummary,
   });
 
   return NextResponse.json({
     ok: true,
     mandates: mandateSummary,
+    backfill: backfillSummary,
     directDebits: debitSummary,
   });
+}
+
+/**
+ * Insert missing `direct_debits` rows for ACTIVE mandates whose first (or
+ * subsequent) debit fired without our webhook recording it. Runs after
+ * reconcileMandates so new ACTIVE flips in this run are also covered.
+ *
+ * Strategy:
+ *   1. Pull all ACTIVE mandates (cap to MAX_PER_RUN; lowest paynl_id-by-time).
+ *   2. For each, list debits at Pay.nl via /v2/directdebits?mandate[eq]=...
+ *   3. Upsert any debit Pay.nl reports that we don't have locally. Status
+ *      is mapped from Pay.nl's phase to our enum (PENDING / COLLECTED / STORNO).
+ *
+ * Idempotent — `paynl_directdebit_id` is unique, so a re-run inserts nothing.
+ */
+async function backfillMissingDirectDebits(
+  supabase: ReturnType<typeof createAdminClient>,
+) {
+  const summary = { mandates_checked: 0, debits_inserted: 0, errors: 0 };
+
+  const { data: mandates, error } = await supabase
+    .from('mandates')
+    .select('id, paynl_mandate_id, paynl_service_id')
+    .eq('status', 'ACTIVE')
+    .limit(MAX_PER_RUN)
+    .returns<{ id: string; paynl_mandate_id: string; paynl_service_id: string }[]>();
+
+  if (error) {
+    console.error('[Reconcile/backfill] mandates fetch failed', error.message);
+    return { ...summary, errors: 1 };
+  }
+
+  for (const m of mandates ?? []) {
+    summary.mandates_checked += 1;
+    try {
+      const live = await listDirectDebitsByMandate(m.paynl_mandate_id);
+      if (live.length === 0) continue;
+
+      // Skip ids we already have. Single round-trip per mandate.
+      const ids = live.map((l) => l.id).filter(Boolean);
+      const { data: existing } = await supabase
+        .from('direct_debits')
+        .select('paynl_directdebit_id')
+        .in('paynl_directdebit_id', ids);
+      const known = new Set((existing ?? []).map((r) => r.paynl_directdebit_id));
+
+      for (const dd of live) {
+        if (!dd.id || known.has(dd.id)) continue;
+
+        const status = mapPayNLPhaseToLocal(dd.status, dd.declined, dd.collectedAt, dd.reversedAt);
+        const insertRow: Record<string, unknown> = {
+          mandate_id: m.id,
+          paynl_directdebit_id: dd.id,
+          paynl_order_id: dd.paynlOrderId,
+          paynl_service_id: m.paynl_service_id,
+          amount: dd.amount?.value ?? 0,
+          currency: dd.amount?.currency ?? 'EUR',
+          process_date: dd.processDate ? dd.processDate.slice(0, 10) : null,
+          status,
+          collected_at: dd.collectedAt ?? null,
+          storno_at: dd.reversedAt ?? null,
+        };
+        if (dd.createdAt) insertRow.created_at = dd.createdAt;
+
+        const { error: insertError } = await supabase
+          .from('direct_debits')
+          .insert(insertRow);
+
+        if (insertError) {
+          // Race with the webhook handler (or another reconcile run) inserting
+          // first — unique constraint kicks in. Ignore.
+          if ((insertError as { code?: string }).code === '23505') continue;
+          summary.errors += 1;
+          console.error('[Reconcile/backfill] direct_debit insert failed', {
+            paynlDirectDebitId: dd.id,
+            error: insertError.message,
+          });
+          continue;
+        }
+        summary.debits_inserted += 1;
+        console.log('[Reconcile/backfill] inserted missing direct_debit', {
+          mandateId: m.id,
+          paynlDirectDebitId: dd.id,
+          status,
+        });
+      }
+    } catch (err) {
+      summary.errors += 1;
+      if (err instanceof PayNLError) {
+        console.error('[Reconcile/backfill] Pay.nl rejected list', {
+          mandateId: m.id,
+          paynlMandateId: m.paynl_mandate_id,
+          status: err.status,
+        });
+      } else {
+        console.error('[Reconcile/backfill] threw', {
+          mandateId: m.id,
+          error: err instanceof Error ? err.message : err,
+        });
+      }
+    }
+  }
+
+  return summary;
+}
+
+function mapPayNLPhaseToLocal(
+  phase: string | null,
+  declined: boolean,
+  collectedAt?: string | null,
+  reversedAt?: string | null,
+): 'PENDING' | 'COLLECTED' | 'STORNO' {
+  if (reversedAt || declined) return 'STORNO';
+  if (collectedAt) return 'COLLECTED';
+  const p = (phase ?? '').toLowerCase();
+  if (p === 'collected' || p === 'paid') return 'COLLECTED';
+  if (p === 'reversed' || p === 'storno' || p === 'returned') return 'STORNO';
+  return 'PENDING';
 }
 
 async function reconcileMandates(

@@ -246,6 +246,11 @@ export interface MandateCreatePayload {
   customer: MandateCustomer;
   amount: OrderAmount;
   stats?: OrderStats;
+  /** Webhook URL Pay.nl posts every mandate event to (pending, collected,
+   *  storno, refund, mandate.cancelled). Without this the mandate response
+   *  has `exchangeUrl: null` and our webhook handler is bypassed entirely. */
+  exchangeUrl?: string;
+  integration?: { test: boolean };
 }
 
 export interface MandateResponse {
@@ -269,6 +274,10 @@ export interface DirectDebitPayload {
   processDate: string;
   amount: OrderAmount;
   stats?: OrderStats;
+  /** Webhook URL Pay.nl posts collected/storno/refund events to.
+   *  Defense-in-depth — should usually be inherited from the parent mandate. */
+  exchangeUrl?: string;
+  integration?: { test: boolean };
 }
 
 export interface DirectDebitResponse {
@@ -314,6 +323,13 @@ export async function createMandate(payload: MandateCreatePayload): Promise<Mand
     ...payload,
     description: payload.description.slice(0, DESCRIPTION_MAX_LENGTH),
   };
+  if (isSandboxMode()) {
+    // Mirror createOrder: when PAYNL_SANDBOX_MODE=true, mandate must also
+    // be flagged as test or Pay.nl will submit a real SEPA file to the bank.
+    sanitized.integration = { test: true };
+  } else {
+    delete sanitized.integration;
+  }
   return paynlRequest<MandateResponse>(
     getRestBase(),
     '/v2/directdebits/mandates',
@@ -333,6 +349,11 @@ export async function triggerDirectDebit(
     ...payload,
     description: payload.description.slice(0, DESCRIPTION_MAX_LENGTH),
   };
+  if (isSandboxMode()) {
+    sanitized.integration = { test: true };
+  } else {
+    delete sanitized.integration;
+  }
   return paynlRequest<DirectDebitResponse>(getRestBase(), '/v2/directdebits', 'POST', sanitized);
 }
 
@@ -378,6 +399,55 @@ export interface DirectDebitStatusResponse {
   amount?: { value: number; currency: string };
   raw?: unknown;
 }
+/**
+ * GET /v2/directdebits?mandate[eq]={code} — list every direct debit Pay.nl
+ * has for a given mandate. Used by the reconcile cron to backfill rows we
+ * missed because the corresponding webhook was lost (e.g. mandate created
+ * before exchangeUrl wiring, or transient delivery failure).
+ */
+export interface DirectDebitListItem {
+  id: string;
+  paynlOrderId: string | null;
+  amount: { value: number; currency: string } | null;
+  processDate: string | null;
+  status: string | null;
+  declined: boolean;
+  collectedAt?: string | null;
+  reversedAt?: string | null;
+  createdAt?: string | null;
+}
+
+export async function listDirectDebitsByMandate(
+  mandateCode: string,
+): Promise<DirectDebitListItem[]> {
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/directdebits?mandate%5Beq%5D=${encodeURIComponent(mandateCode)}`,
+    'GET',
+  );
+  const root = raw as { directdebits?: unknown[] } | null;
+  const items = Array.isArray(root?.directdebits) ? root!.directdebits : [];
+  return items.map((dd) => {
+    const d = dd as Record<string, unknown>;
+    const status = d.status as { code?: number; action?: string; phase?: string } | string | null;
+    const phase =
+      typeof status === 'object' && status !== null
+        ? (status.phase as string | undefined) ?? null
+        : (status as string | null);
+    return {
+      id: String(d.id ?? ''),
+      paynlOrderId: (d.orderId as string | undefined) ?? null,
+      amount: (d.amount as { value: number; currency: string } | undefined) ?? null,
+      processDate: (d.processDate as string | undefined) ?? null,
+      status: phase,
+      declined: Boolean(d.declined),
+      collectedAt: (d.collectedAt as string | undefined) ?? null,
+      reversedAt: (d.reversedAt as string | undefined) ?? null,
+      createdAt: (d.createdAt as string | undefined) ?? null,
+    };
+  });
+}
+
 export async function fetchDirectDebitStatus(
   directDebitId: string,
 ): Promise<DirectDebitStatusResponse> {

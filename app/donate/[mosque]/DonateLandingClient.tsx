@@ -1,25 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
-import { IconHeartHandshake, IconChevronRight, IconX } from '@tabler/icons-react';
-import { createClient } from '@/lib/supabase/client';
-import { getCampaignIcon } from '@/lib/campaign-icons';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
+import { IconChevronRight, IconHeartHandshake } from '@tabler/icons-react';
 import { LottieIcon } from '@/components/lottie-icon';
 
-const DotLottieReact = dynamic(
-  () => import('@lottiefiles/dotlottie-react').then((m) => m.DotLottieReact),
-  { ssr: false },
-);
-
 /**
- * Dual-pane donation landing for the POS / kiosk tablet.
+ * Phone-first donation chooser.
  *
- * Left pane:  campaign rows — tap to select
- * Right pane: selected campaign details + two payment CTAs
- *
- * Both panes are vertically centered within the viewport.
+ * Reached by scanning the kiosk QR or by direct link to /donate/[mosque].
+ * Two top-level paths:
+ *   1. Become a member  → /donate/[mosque]/member        (org-level SEPA mandate)
+ *   2. One-time donation → /donate/[mosque]/[campaign]   (per-campaign checkout)
  */
 
 export interface CampaignDisplay {
@@ -34,7 +25,6 @@ export interface CampaignDisplay {
 }
 
 interface DonateLandingClientProps {
-  orgId: string;
   orgSlug: string;
   orgName: string;
   orgCity: string | null;
@@ -51,11 +41,7 @@ function formatEuro(cents: number): string {
   }).format(cents / 100);
 }
 
-/** Auto-timeout for QR overlay (ms). */
-const QR_TIMEOUT_MS = 60_000;
-
 export function DonateLandingClient({
-  orgId,
   orgSlug,
   orgName,
   orgCity,
@@ -63,479 +49,131 @@ export function DonateLandingClient({
   orgDescription,
   campaigns,
 }: DonateLandingClientProps) {
-  const [selected, setSelected] = useState<CampaignDisplay | null>(
-    campaigns.length > 0 ? campaigns[0] : null,
-  );
-
-  // QR overlay state
-  const [qrSessionId, setQrSessionId] = useState<string | null>(null);
-  const [qrUrl, setQrUrl] = useState<string | null>(null);
-  const [qrKind, setQrKind] = useState<'one-time' | 'recurring' | null>(null);
-  const [creatingSession, setCreatingSession] = useState(false);
-  const realtimeChannelRef = useRef<ReturnType<ReturnType<typeof createClient>['channel']> | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const closeQrOverlay = useCallback(() => {
-    setQrSessionId(null);
-    setQrUrl(null);
-    setQrKind(null);
-    if (realtimeChannelRef.current) {
-      const supabase = createClient();
-      supabase.removeChannel(realtimeChannelRef.current);
-      realtimeChannelRef.current = null;
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
-    }
-  }, []);
-
-  /**
-   * Generic QR overlay opener. Creates a kiosk session, builds the
-   * phone URL, and subscribes to Realtime for scan detection.
-   *
-   * @param campaignSlug  - which campaign the QR points to
-   * @param kind          - 'one-time' or 'recurring' (controls overlay copy + URL params)
-   */
-  async function openQrOverlay(campaignSlug: string, kind: 'one-time' | 'recurring') {
-    if (creatingSession) return;
-    setCreatingSession(true);
-
-    try {
-      const res = await fetch('/api/kiosk-sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          organization_id: orgId,
-          campaign_slug: campaignSlug,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to create session');
-
-      const sessionId = data.id as string;
-      const params = new URLSearchParams({ kiosk: sessionId });
-      if (kind === 'recurring') params.set('recurring', 'true');
-      const donateUrl = `${window.location.origin}/donate/${orgSlug}/${campaignSlug}?${params.toString()}`;
-
-      setQrSessionId(sessionId);
-      setQrUrl(donateUrl);
-      setQrKind(kind);
-
-      // Subscribe to Realtime updates on this session row.
-      const supabase = createClient();
-      const channel = supabase
-        .channel(`kiosk-${sessionId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'kiosk_sessions',
-            filter: `id=eq.${sessionId}`,
-          },
-          (payload) => {
-            if ((payload.new as { status?: string }).status === 'scanned') {
-              closeQrOverlay();
-            }
-          },
-        )
-        .subscribe();
-
-      realtimeChannelRef.current = channel;
-
-      // Auto-timeout fallback
-      timeoutRef.current = setTimeout(() => {
-        closeQrOverlay();
-      }, QR_TIMEOUT_MS);
-    } catch {
-      // Silently fail — worst case the link still works as a direct tap
-    } finally {
-      setCreatingSession(false);
-    }
-  }
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (realtimeChannelRef.current) {
-        const supabase = createClient();
-        supabase.removeChannel(realtimeChannelRef.current);
-      }
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  const selectedIconEntry = getCampaignIcon(selected?.icon);
-
-  const hasGoal =
-    selected?.goal_amount != null && selected.goal_amount > 0;
-  const pct =
-    hasGoal && selected
-      ? Math.min(100, Math.round((selected.raised_cents / selected.goal_amount!) * 100))
-      : null;
-
-  // ---- Bottom Lottie progress driven by selected campaign % ----
-  const dotLottieRef = useRef<any>(null);
-  const lottieLoadedRef = useRef(false);
-  const currentFrameRef = useRef(0);
-
-  const animateToPercentage = useCallback((p: number) => {
-    const instance = dotLottieRef.current;
-    if (!instance || !lottieLoadedRef.current) return;
-    const total = instance.totalFrames;
-    if (!total) return;
-    const clamped = Math.max(0, Math.min(100, p));
-    const targetFrame = Math.round((clamped / 100) * (total - 1));
-    const fromFrame = currentFrameRef.current;
-
-    if (fromFrame === targetFrame) return;
-
-    currentFrameRef.current = targetFrame;
-
-    if (fromFrame < targetFrame) {
-      instance.setMode('forward');
-      instance.setSegment(fromFrame, targetFrame);
-    } else {
-      instance.setMode('reverse');
-      instance.setSegment(targetFrame, fromFrame);
-    }
-    instance.setSpeed(2);
-    instance.play();
-  }, []);
-
-  const dotLottieRefCallback = useCallback(
-    (dotLottie: any) => {
-      dotLottieRef.current = dotLottie;
-      if (dotLottie) {
-        dotLottie.addEventListener('load', () => {
-          lottieLoadedRef.current = true;
-          animateToPercentage(pct ?? 0);
-        });
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
-
-  useEffect(() => {
-    animateToPercentage(pct ?? 0);
-  }, [pct, animateToPercentage]);
-
   return (
-    <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+    <main className="flex min-h-[100svh] flex-col bg-white text-slate-900 dark:bg-black dark:text-white">
       {/* Header */}
-      <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-6 py-5">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold sm:text-3xl">{orgName}</h1>
-            {orgCity && (
-              <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
-                {orgCity}, {orgCountry}
-              </p>
-            )}
-          </div>
-          <p className="text-xs text-slate-400">
+      <header className="flex-shrink-0 border-b border-slate-100 px-4 py-3 dark:border-slate-800">
+        <div className="mx-auto flex max-w-lg items-center justify-between">
+          <span className="text-sm font-semibold">{orgName}</span>
+          <span className="text-[11px] text-slate-400">
             Powered by{' '}
             <a
               href="https://www.bayaan.app"
-              className="underline underline-offset-4 hover:text-slate-600 dark:hover:text-slate-300"
+              className="underline underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300"
             >
               Bayaan
             </a>
-          </p>
+          </span>
         </div>
       </header>
 
-      {campaigns.length === 0 ? (
-        <div className="flex min-h-0 flex-1 items-center justify-center px-4">
-          <div className="text-center">
-            <p className="text-lg font-medium">No active campaigns</p>
+      <div className="mx-auto w-full max-w-lg flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        {/* Intro */}
+        <section className="text-center">
+          <h1 className="text-2xl font-bold sm:text-3xl">Support {orgName}</h1>
+          {(orgCity || orgDescription) && (
             <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Check back soon — {orgName} is setting up their donation causes.
+              {orgDescription ?? `${orgCity ? `${orgCity}, ` : ''}${orgCountry}`}
+            </p>
+          )}
+        </section>
+
+        {/* Member CTA */}
+        <Link
+          href={`/donate/${orgSlug}/member`}
+          className="mt-7 flex w-full items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/40 p-5 text-left transition-all hover:border-emerald-400 hover:shadow-md active:scale-[0.99] dark:border-emerald-900/60 dark:bg-emerald-950/20 dark:hover:border-emerald-500"
+        >
+          <div aria-hidden="true" className="shrink-0">
+            <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={56} />
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-semibold sm:text-lg">Become a monthly member</p>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+              Recurring SEPA direct debit. Cancel anytime.
             </p>
           </div>
+          <IconChevronRight aria-hidden="true" className="h-5 w-5 shrink-0 text-slate-400" />
+        </Link>
+
+        {/* Divider */}
+        <div className="my-7 flex items-center gap-3">
+          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+          <span className="text-xs uppercase tracking-wider text-slate-400">
+            Or one-time donation
+          </span>
+          <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
         </div>
-      ) : (
-        <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 flex-col overflow-y-auto md:flex-row md:overflow-hidden">
-          {/* ---- Left pane: campaign rows ---- */}
-          <div className="flex flex-col border-r border-[rgba(128,128,128,0.15)] p-6 md:max-w-[55%] md:flex-1 md:overflow-y-auto">
-            {orgDescription && (
-              <p className="mb-6 text-sm text-slate-600 dark:text-slate-300">
-                {orgDescription}
-              </p>
-            )}
 
-            {/* Monthly supporter — org-level, independent of campaign selection */}
-            <button
-              type="button"
-              onClick={() => openQrOverlay(campaigns[0].slug, 'recurring')}
-              disabled={creatingSession}
-              className="mb-6 flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-emerald-600 hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-emerald-400"
-            >
-              <div aria-hidden="true" className="shrink-0">
-                <LottieIcon src="/lottie/supporter-icon.lottie?v=3" size={72} />
-              </div>
-              <div className="flex-1">
-                <p className="text-xl font-semibold sm:text-2xl">Become a monthly supporter</p>
-                <p className="text-base text-slate-500 dark:text-slate-400">
-                  Recurring SEPA direct debit. Cancel anytime.
-                </p>
-              </div>
-              <IconChevronRight className="h-6 w-6 shrink-0 text-slate-400" />
-            </button>
-
-            <h2 id="cause-list-label" className="mb-3 text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">
-              Choose a cause
-            </h2>
+        {/* Campaign list */}
+        {campaigns.length === 0 ? (
+          <div className="rounded-2xl border border-slate-200 p-6 text-center dark:border-slate-800">
             <div
-              role="radiogroup"
-              aria-labelledby="cause-list-label"
-              className="overflow-hidden rounded-xl border border-[rgba(128,128,128,0.15)]"
+              aria-hidden="true"
+              className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800"
             >
-              {campaigns.map((campaign, i) => {
-                const isSelected = selected?.id === campaign.id;
-                const isLast = i === campaigns.length - 1;
-                const cHasGoal =
-                  campaign.goal_amount != null && campaign.goal_amount > 0;
-                const cPct = cHasGoal
-                  ? Math.min(
-                      100,
-                      Math.round(
-                        (campaign.raised_cents / campaign.goal_amount!) * 100,
-                      ),
-                    )
-                  : null;
-
-                return (
-                  <button
-                    key={campaign.id}
-                    type="button"
-                    role="radio"
-                    aria-checked={isSelected}
-                    onClick={() => setSelected(campaign)}
-                    className={`flex w-full items-center gap-4 px-5 py-4 text-left transition-colors ${
-                      isSelected
-                        ? 'bg-slate-50 dark:bg-slate-900/60'
-                        : 'bg-white hover:bg-slate-50/60 dark:bg-transparent dark:hover:bg-slate-900/30'
-                    } ${!isLast ? 'border-b border-[rgba(128,128,128,0.1)]' : ''}`}
+              <IconHeartHandshake className="h-6 w-6 text-slate-400" />
+            </div>
+            <p className="text-sm font-medium">No active campaigns yet</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Check back soon — or become a monthly member to support {orgName} directly.
+            </p>
+          </div>
+        ) : (
+          <ul className="space-y-2.5">
+            {campaigns.map((campaign) => {
+              const hasGoal = campaign.goal_amount != null && campaign.goal_amount > 0;
+              const pct = hasGoal
+                ? Math.min(
+                    100,
+                    Math.round((campaign.raised_cents / campaign.goal_amount!) * 100),
+                  )
+                : null;
+              return (
+                <li key={campaign.id}>
+                  <Link
+                    href={`/donate/${orgSlug}/${campaign.slug}`}
+                    className="flex w-full items-center gap-4 rounded-xl border border-slate-200 bg-white p-4 text-left transition-all hover:border-slate-400 hover:shadow-sm active:scale-[0.99] dark:border-slate-800 dark:bg-slate-900/40 dark:hover:border-slate-600"
                   >
-                    {/* Selection indicator */}
-                    <div
-                      aria-hidden="true"
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
-                        isSelected
-                          ? 'border-black bg-black dark:border-white dark:bg-white'
-                          : 'border-slate-300 dark:border-slate-600'
-                      }`}
-                    >
-                      {isSelected && (
-                        <div className="h-2 w-2 rounded-full bg-white dark:bg-black" />
-                      )}
-                    </div>
-
-                    {/* Campaign info — title on its own line, pill below to avoid wrap conflicts */}
                     <div className="min-w-0 flex-1">
-                      <span className="block font-semibold">{campaign.title}</span>
-                      {campaign.cause_type && (
-                        <span className="mt-1 inline-block rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-                          {campaign.cause_type}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="truncate font-semibold">{campaign.title}</span>
+                        {campaign.cause_type && (
+                          <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                            {campaign.cause_type}
+                          </span>
+                        )}
+                      </div>
                       {campaign.description && (
-                        <p className="mt-0.5 truncate text-sm text-slate-500 dark:text-slate-400">
+                        <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
                           {campaign.description}
                         </p>
                       )}
-                    </div>
-
-                    {/* Raised / goal on the right */}
-                    <div className="shrink-0 text-right">
-                      {cHasGoal ? (
-                        <>
-                          <p className="text-sm font-semibold">
-                            {formatEuro(campaign.raised_cents)}
-                          </p>
-                          <div className="mt-1 flex items-center gap-2">
-                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                              <div
-                                className="h-full rounded-full bg-[#30f2cf]"
-                                style={{ width: `${cPct}%` }}
-                              />
-                            </div>
-                            <span className="text-[10px] text-slate-400">
-                              {formatEuro(campaign.goal_amount!)}
-                            </span>
+                      {hasGoal && (
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                            <div
+                              className="h-full rounded-full bg-emerald-500"
+                              style={{ width: `${pct}%` }}
+                            />
                           </div>
-                        </>
-                      ) : campaign.raised_cents > 0 ? (
-                        <p className="text-sm font-semibold">
-                          {formatEuro(campaign.raised_cents)}
-                        </p>
-                      ) : (
-                        <IconChevronRight aria-hidden="true" className="h-4 w-4 text-slate-400" />
+                          <span className="shrink-0 text-[10px] text-slate-400">
+                            {formatEuro(campaign.raised_cents)} of{' '}
+                            {formatEuro(campaign.goal_amount!)}
+                          </span>
+                        </div>
                       )}
                     </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ---- Right pane: payment options ----
-              Top-aligned (mx-auto, not m-auto) so the One-time donation card lines up
-              horizontally with the "Become a monthly supporter" card on the left pane.
-              Padding matches the left pane (p-6) for consistent inner offset. */}
-          <div className="flex flex-1 flex-col p-6 md:overflow-y-auto">
-            {selected ? (
-              <div className="mx-auto w-full max-w-sm">
-                {/* Payment CTA — top of right pane so it aligns horizontally with the
-                    "Become a monthly supporter" card on the left. The campaign recap below
-                    becomes the "what you're donating to" context. */}
-                <button
-                  type="button"
-                  onClick={() => openQrOverlay(selected!.slug, 'one-time')}
-                  disabled={creatingSession}
-                  className="flex w-full items-center gap-5 rounded-xl border border-[rgba(128,128,128,0.2)] bg-white p-7 text-left transition-all hover:border-black hover:shadow-lg active:scale-[0.98] dark:bg-slate-900/40 dark:hover:border-white"
-                >
-                  <div aria-hidden="true" className="shrink-0">
-                    <LottieIcon src="/lottie/qr-code.json" size={88} className="dark:hidden" />
-                    <LottieIcon src="/lottie/qr-code-white.json" size={88} className="hidden dark:block" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xl font-semibold sm:text-2xl">
-                      {creatingSession ? 'Preparing...' : 'One-time donation'}
-                    </p>
-                    <p className="text-base text-slate-500 dark:text-slate-400">
-                      Scan the QR code with your phone to donate
-                    </p>
-                  </div>
-                  <IconChevronRight aria-hidden="true" className="h-6 w-6 shrink-0 text-slate-400" />
-                </button>
-
-                {/* Selected campaign recap */}
-                <div className="mt-6 text-center">
-                  {selected.cause_type && (
-                    <span className="mb-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                      {selected.cause_type}
-                    </span>
-                  )}
-                  <h2 className="mt-2 text-2xl font-bold">{selected.title}</h2>
-                  {selected.description && (
-                    <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                      {selected.description}
-                    </p>
-                  )}
-                  {hasGoal && (
-                    <div className="mt-4">
-                      <div className="mx-auto h-2 max-w-xs overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                        <div
-                          className="h-full rounded-full bg-[#30f2cf] transition-all"
-                          style={{ width: `${pct}%` }}
-                        />
-                      </div>
-                      <p className="mt-2 text-sm">
-                        <span className="font-semibold">
-                          {formatEuro(selected.raised_cents)}
-                        </span>{' '}
-                        <span className="text-slate-500 dark:text-slate-400">
-                          of {formatEuro(selected.goal_amount!)} &middot; {pct}%
-                        </span>
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Campaign icon animation — sized for landscape iPad fit */}
-                {selectedIconEntry && (
-                  <div aria-hidden="true" className="mt-6 flex justify-center">
-                    <LottieIcon src={selectedIconEntry.file} size={220} />
-                  </div>
-                )}
-
-                {/* Back / deselect on mobile */}
-                <button
-                  type="button"
-                  onClick={() => setSelected(null)}
-                  className="mt-6 block w-full text-center text-sm text-slate-500 underline-offset-4 hover:underline dark:text-slate-400 md:hidden"
-                >
-                  &larr; Choose a different cause
-                </button>
-              </div>
-            ) : (
-              <div className="mx-auto mt-12 text-center">
-                <div aria-hidden="true" className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                  <IconHeartHandshake className="h-8 w-8 text-slate-400" />
-                </div>
-                <p className="text-lg font-medium">Select a campaign</p>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Choose a cause on the left to see donation options
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Bottom Lottie progress — full-bleed traversal animation that advances with the selected
-          campaign's raised %. Visible band is 40px; the animation is rendered at 80px so its
-          bottom 50% sits below the viewport edge (clipped by the wrapper's overflow-hidden).
-          Effect: the progress mark peeks up from the bottom of the screen.
-
-          layout={{ fit: 'cover', align: [0, 0] }} forces the animation to fill the canvas width
-          (no centering letterbox margins) and aligns to the top-left so the visible 40px band is
-          the top of the animation. Default 'contain' was leaving ~100px gap on each side. */}
-      <div aria-hidden="true" className="shrink-0 w-full overflow-hidden" style={{ height: 40 }}>
-        <DotLottieReact
-          src="/lottie/donation-progress.lottie"
-          autoplay={false}
-          loop={false}
-          dotLottieRefCallback={dotLottieRefCallback}
-          layout={{ fit: 'cover', align: [0, 0] }}
-          style={{ width: '100%', height: 80 }}
-        />
+                    <IconChevronRight
+                      aria-hidden="true"
+                      className="h-5 w-5 shrink-0 text-slate-400"
+                    />
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
-
-      {/* ---- QR Code Overlay ---- */}
-      {qrUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="relative mx-4 w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl dark:bg-slate-900">
-            <button
-              type="button"
-              onClick={closeQrOverlay}
-              className="absolute right-4 top-4 rounded-full p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-              aria-label="Close"
-            >
-              <IconX className="h-5 w-5" />
-            </button>
-
-            <h2 className="text-xl font-bold">
-              {qrKind === 'recurring' ? 'Become a monthly supporter' : 'Scan to donate'}
-            </h2>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              {qrKind === 'recurring'
-                ? 'Scan with your phone to set up a recurring donation'
-                : 'Open your phone camera and scan this QR code'}
-            </p>
-
-            <div className="mx-auto mt-6 inline-block rounded-xl bg-white p-4">
-              <QRCodeSVG
-                value={qrUrl}
-                size={240}
-                level="M"
-                includeMargin={false}
-              />
-            </div>
-
-            <p className="mt-4 text-xs text-slate-400">
-              {selected?.title} — {orgName}
-            </p>
-            <p className="mt-6 text-xs text-slate-400">
-              This screen will close automatically when the QR is scanned
-            </p>
-          </div>
-        </div>
-      )}
     </main>
   );
 }

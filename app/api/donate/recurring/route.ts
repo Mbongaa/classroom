@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createMandate, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
-import { resolveOrganizationServiceIdForCampaign } from '@/lib/paynl-organization-resolver';
+import {
+  resolveOrganizationServiceIdForCampaign,
+  resolveOrganizationServiceIdForOrganization,
+} from '@/lib/paynl-organization-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 import { sendEmail } from '@/lib/email/email-service';
 import { formatBillingDate, formatMoney } from '@/lib/email/billing-utils';
@@ -28,7 +31,11 @@ import { buildManageUrl, generateManageToken } from '@/lib/donor-manage-token';
 // ---------------------------------------------------------------------------
 
 interface RecurringDonationBody {
-  campaign_id: string;
+  // Exactly one of these is required:
+  //   campaign_id    → recurring donation to a specific campaign
+  //   organization_id → membership mandate (no campaign)
+  campaign_id?: string;
+  organization_id?: string;
   amount: number; // cents
   currency?: string;
   donor_name: string;
@@ -69,8 +76,13 @@ function validateBody(
   }
   const r = raw as Record<string, unknown>;
 
-  if (typeof r.campaign_id !== 'string' || !UUID_RE.test(r.campaign_id)) {
-    return { ok: false, error: 'campaign_id must be a uuid' };
+  const hasCampaign = typeof r.campaign_id === 'string' && UUID_RE.test(r.campaign_id);
+  const hasOrg = typeof r.organization_id === 'string' && UUID_RE.test(r.organization_id);
+  if (hasCampaign === hasOrg) {
+    return {
+      ok: false,
+      error: 'Provide exactly one of campaign_id or organization_id',
+    };
   }
   if (typeof r.amount !== 'number' || !Number.isInteger(r.amount) || r.amount <= 0) {
     return { ok: false, error: 'amount must be a positive integer (cents)' };
@@ -108,7 +120,8 @@ function validateBody(
   return {
     ok: true,
     body: {
-      campaign_id: r.campaign_id,
+      campaign_id: hasCampaign ? (r.campaign_id as string) : undefined,
+      organization_id: hasOrg ? (r.organization_id as string) : undefined,
       amount: r.amount,
       currency: (r.currency as string) || 'EUR',
       donor_name: r.donor_name.trim(),
@@ -151,37 +164,80 @@ export async function POST(request: NextRequest) {
   const body = validation.body;
 
   try {
-    // ---- 3. Fetch active campaign + its organization's Pay.nl details --
+    // ---- 3. Resolve campaign (campaign-scoped) or organization (membership) -
     const supabaseAdmin = createAdminClient();
-    const { data: campaign, error: campaignError } = await supabaseAdmin
-      .from('campaigns')
-      .select('id, title, slug, cause_type, organization_id, is_active')
-      .eq('id', body.campaign_id)
-      .eq('is_active', true)
-      .single();
 
-    if (campaignError || !campaign) {
-      return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
-    }
+    let campaignId: string | null = null;
+    let campaignTitle: string | null = null;
+    let campaignCauseType: string | null = null;
+    let referenceSlug: string;
 
-    // Phase 2: resolve paynl_service_id per organization (falls back to env var).
-    const resolved = await resolveOrganizationServiceIdForCampaign(supabaseAdmin, campaign.id);
-    if (!resolved) {
-      return NextResponse.json(
-        { error: 'Campaign is not configured for payments yet' },
-        { status: 503 },
+    let resolved: Awaited<ReturnType<typeof resolveOrganizationServiceIdForCampaign>>;
+
+    if (body.campaign_id) {
+      const { data: campaign, error: campaignError } = await supabaseAdmin
+        .from('campaigns')
+        .select('id, title, slug, cause_type, organization_id, is_active')
+        .eq('id', body.campaign_id)
+        .eq('is_active', true)
+        .single();
+
+      if (campaignError || !campaign) {
+        return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
+      }
+
+      resolved = await resolveOrganizationServiceIdForCampaign(supabaseAdmin, campaign.id);
+      if (!resolved) {
+        return NextResponse.json(
+          { error: 'Campaign is not configured for payments yet' },
+          { status: 503 },
+        );
+      }
+
+      campaignId = campaign.id;
+      campaignTitle = campaign.title;
+      campaignCauseType = campaign.cause_type || null;
+      referenceSlug = campaign.slug.slice(0, 16);
+    } else {
+      // Membership mandate — no campaign attached.
+      resolved = await resolveOrganizationServiceIdForOrganization(
+        supabaseAdmin,
+        body.organization_id as string,
       );
+      if (!resolved) {
+        return NextResponse.json(
+          { error: 'Organization is not configured for payments yet' },
+          { status: 503 },
+        );
+      }
+      referenceSlug = 'MEMBER';
     }
+
     const serviceId = resolved.serviceId;
 
-    const slugSafe = campaign.slug.slice(0, 16);
+    // Webhook URL — must be set per-mandate. Without it the mandate is
+    // created with exchangeUrl=null at Pay.nl and every event (pending,
+    // collected, storno, refund) is dropped. Mirrors /api/donate/one-time.
+    const exchangeSecret = process.env.PAYNL_EXCHANGE_SECRET;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    if (!exchangeSecret || !siteUrl) {
+      console.error(
+        '[PayNL] Missing required env: PAYNL_EXCHANGE_SECRET / NEXT_PUBLIC_SITE_URL',
+      );
+      return NextResponse.json({ error: 'Server not configured for payments' }, { status: 500 });
+    }
+    const exchangeBase = siteUrl
+      .replace(/\/$/, '')
+      .replace(/^(https?:\/\/)www\.([^/]*\.vercel\.app)/i, '$1$2');
+    const exchangeUrl = `${exchangeBase}/api/webhook/pay?token=${encodeURIComponent(exchangeSecret)}`;
 
     const mandatePayload = {
       serviceId,
-      reference: `MANDATE-${slugSafe}-${Date.now()}`,
-      description: campaign.title, // createMandate truncates to 32 chars
+      reference: `MANDATE-${referenceSlug}-${Date.now()}`,
+      description: campaignTitle || 'Monthly membership', // createMandate truncates to 32 chars
       processDate: body.process_date,
       type: 'FLEXIBLE' as const,
+      exchangeUrl,
       customer: {
         ipAddress: ip,
         email: body.donor_email,
@@ -193,9 +249,9 @@ export async function POST(request: NextRequest) {
       },
       amount: { value: body.amount, currency: body.currency || 'EUR' },
       stats: {
-        extra1: campaign.id,
-        extra2: campaign.cause_type || '',
-        extra3: campaign.organization_id,
+        extra1: campaignId || resolved.organizationId,
+        extra2: campaignCauseType || (campaignId ? '' : 'membership'),
+        extra3: resolved.organizationId,
       },
     };
 
@@ -211,7 +267,8 @@ export async function POST(request: NextRequest) {
     const { data: mandateRow, error: insertError } = await supabaseAdmin
       .from('mandates')
       .insert({
-        campaign_id: campaign.id,
+        campaign_id: campaignId,
+        organization_id: resolved.organizationId,
         paynl_mandate_id: mandateResponse.code,
         paynl_service_id: serviceId,
         mandate_type: 'FLEXIBLE',
@@ -220,9 +277,9 @@ export async function POST(request: NextRequest) {
         iban_owner: body.iban_owner,
         status: 'PENDING',
         monthly_amount: body.amount,
-        stats_extra1: campaign.id,
-        stats_extra2: campaign.cause_type || null,
-        stats_extra3: campaign.organization_id,
+        stats_extra1: campaignId || resolved.organizationId,
+        stats_extra2: campaignCauseType || (campaignId ? null : 'membership'),
+        stats_extra3: resolved.organizationId,
         manage_token: manageToken,
       })
       .select('id, paynl_mandate_id, manage_token')
@@ -245,8 +302,9 @@ export async function POST(request: NextRequest) {
     console.log('[PayNL] Mandate created', {
       mandateRowId: mandateRow.id,
       paynlMandateId: mandateRow.paynl_mandate_id,
-      campaignId: campaign.id,
+      campaignId: campaignId,
       organizationId: resolved.organizationId,
+      kind: campaignId ? 'campaign' : 'membership',
       routing: resolved.usedFallback ? 'env-fallback' : 'per-org',
       sandbox: isSandboxMode(),
     });
@@ -269,15 +327,16 @@ export async function POST(request: NextRequest) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.bayaan.app';
       const manageUrl = buildManageUrl(siteUrl, manageToken);
 
+      const subjectKind = campaignId ? 'donation' : 'membership';
       const result = await sendEmail({
         to: body.donor_email,
         from: buildDonorFrom(orgName),
-        subject: `Your ${formatMoney(body.amount, body.currency || 'EUR')}/month donation to ${orgName} is set up`,
+        subject: `Your ${formatMoney(body.amount, body.currency || 'EUR')}/month ${subjectKind} to ${orgName} is set up`,
         react: DonorMandateRegisteredEmail({
           donorName: body.donor_name,
           mosqueName: orgName,
           monthlyAmount: formatMoney(body.amount, body.currency || 'EUR'),
-          campaignTitle: campaign.title || 'General donations',
+          campaignTitle: campaignTitle || 'Monthly membership',
           firstDebitDate: formatBillingDate(body.process_date),
           mandateReference: mandateRow.paynl_mandate_id,
           ibanLast4,
@@ -286,6 +345,7 @@ export async function POST(request: NextRequest) {
         tags: [
           { name: 'type', value: 'donor_mandate_registered' },
           { name: 'organization_id', value: resolved.organizationId },
+          { name: 'kind', value: campaignId ? 'campaign' : 'membership' },
         ],
       });
       if (result && typeof result === 'object' && 'success' in result && result.success === false) {

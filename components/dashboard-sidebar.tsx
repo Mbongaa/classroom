@@ -82,16 +82,6 @@ export function AppSidebar() {
             icon: IconHeartHandshake,
           },
           {
-            label: t('finance.products'),
-            href: `/mosque-admin/${financeSlug}/products`,
-            icon: IconPackage,
-          },
-          {
-            label: t('finance.appointments'),
-            href: `/mosque-admin/${financeSlug}/appointments`,
-            icon: IconCalendar,
-          },
-          {
             label: t('finance.members'),
             href: `/mosque-admin/${financeSlug}/members`,
             icon: IconUsers,
@@ -106,6 +96,15 @@ export function AppSidebar() {
             href: `/mosque-admin/${financeSlug}/settings`,
             icon: IconSettings,
           },
+        ]
+      : [];
+
+  // Hidden behind a "Coming soon" badge until the feature is production-ready.
+  const financeComingSoon: Pick<NavItem, 'label' | 'icon'>[] =
+    isFinanceMode && financeSlug
+      ? [
+          { label: t('finance.products'), icon: IconPackage },
+          { label: t('finance.appointments'), icon: IconCalendar },
         ]
       : [];
 
@@ -158,6 +157,43 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {financeComingSoon.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <div
+                className={cn(
+                  'mt-2 mb-1 px-3 text-[10px] font-medium uppercase tracking-wider text-muted-foreground',
+                  state === 'collapsed' && 'sr-only',
+                )}
+              >
+                {t('finance.comingSoon')}
+              </div>
+              <SidebarMenu>
+                {financeComingSoon.map((item) => (
+                  <SidebarMenuItem key={item.label}>
+                    <SidebarMenuButton
+                      disabled
+                      aria-disabled="true"
+                      tooltip={
+                        state === 'collapsed'
+                          ? `${item.label} — ${t('finance.comingSoon')}`
+                          : undefined
+                      }
+                      className="cursor-not-allowed opacity-60 hover:bg-transparent"
+                    >
+                      <item.icon className="size-4 text-black dark:text-white" />
+                      <span className="text-black dark:text-white">{item.label}</span>
+                      <span className="ms-auto rounded-full border border-[rgba(128,128,128,0.3)] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                        {t('finance.soonBadge')}
+                      </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter>

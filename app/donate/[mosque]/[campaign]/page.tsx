@@ -9,10 +9,7 @@ import { DonationCheckout } from './DonationCheckout';
  * Public donation page (Stripe-style checkout). Uses the anon Supabase
  * client (public RLS on campaigns); no donor PII is read here.
  *
- * The `mosque` route param is the organization slug. When the URL contains
- * `?kiosk=<session-id>`, this page was opened by scanning a QR code on the
- * kiosk tablet — we mark the kiosk session as "scanned" so the tablet
- * resets via Supabase Realtime.
+ * The `mosque` route param is the organization slug.
  */
 
 interface PageProps {
@@ -20,7 +17,7 @@ interface PageProps {
     mosque: string;
     campaign: string;
   }>;
-  searchParams: Promise<{ kiosk?: string; recurring?: string }>;
+  searchParams: Promise<{ recurring?: string }>;
 }
 
 interface CampaignRow {
@@ -40,30 +37,13 @@ interface OrganizationRow {
   slug: string;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 export default async function DonationPage({ params, searchParams }: PageProps) {
   const { mosque, campaign: campaignSlug } = await params;
-  const { kiosk: kioskSessionId, recurring } = await searchParams;
+  const { recurring } = await searchParams;
 
   // Recurring donations use the dedicated mandate registration page.
   if (recurring === 'true') {
-    const mandateUrl = `/donate/${mosque}/${campaignSlug}/mandate`;
-    redirect(kioskSessionId ? `${mandateUrl}?kiosk=${kioskSessionId}` : mandateUrl);
-  }
-
-  // If opened via QR scan from kiosk, mark the session as scanned so the
-  // kiosk tablet resets. Fire-and-forget — don't block page render.
-  if (kioskSessionId && UUID_RE.test(kioskSessionId)) {
-    const supabaseAdmin = createAdminClient();
-    supabaseAdmin
-      .from('kiosk_sessions')
-      .update({ status: 'scanned' })
-      .eq('id', kioskSessionId)
-      .eq('status', 'waiting')
-      .then(({ error }) => {
-        if (error) console.error('[KioskSession] scanned update failed', error);
-      });
+    redirect(`/donate/${mosque}/${campaignSlug}/mandate`);
   }
 
   const supabase = await createClient();

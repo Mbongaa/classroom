@@ -103,3 +103,43 @@ export async function resolveOrganizationServiceIdForCampaign(
     usedFallback: true,
   };
 }
+
+/**
+ * Same logic as resolveOrganizationServiceIdForCampaign, but keyed by an
+ * organization id directly. Used by membership mandates (no campaign).
+ */
+export async function resolveOrganizationServiceIdForOrganization(
+  supabase: AdminClient,
+  organizationId: string,
+): Promise<ResolvedOrganizationServiceId | null> {
+  const { data, error } = await supabase
+    .from('organizations')
+    .select('id, paynl_service_id, paynl_merchant_id, donations_active')
+    .eq('id', organizationId)
+    .single();
+
+  if (error || !data) return null;
+
+  const donationsActive = data.donations_active === true;
+  const orgServiceId = (data.paynl_service_id as string | null) || null;
+  const merchantId = (data.paynl_merchant_id as string | null) || null;
+
+  if (donationsActive && orgServiceId) {
+    return {
+      serviceId: orgServiceId,
+      organizationId: data.id,
+      merchantId,
+      usedFallback: false,
+    };
+  }
+
+  const fallback = process.env.PAYNL_SERVICE_ID;
+  if (!fallback) return null;
+
+  return {
+    serviceId: fallback,
+    organizationId: data.id,
+    merchantId: null,
+    usedFallback: true,
+  };
+}

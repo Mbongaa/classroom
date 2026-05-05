@@ -107,9 +107,12 @@
       "dashboard": "Tableau de bord",
       "campaigns": "Campagnes",
       "products": "Produits",
+      "appointments": "Rendez-vous",
       "members": "Membres",
       "transactions": "Transactions",
-      "settings": "Paramètres"
+      "settings": "Paramètres",
+      "comingSoon": "Bientôt disponible",
+      "soonBadge": "Bientôt"
     },
     "footer": {
       "billing": "Facturation",

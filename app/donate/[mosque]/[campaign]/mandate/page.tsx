@@ -20,7 +20,6 @@ interface PageProps {
     mosque: string;
     campaign: string;
   }>;
-  searchParams: Promise<{ kiosk?: string }>;
 }
 
 interface CampaignRow {
@@ -40,24 +39,8 @@ interface OrganizationRow {
   slug: string;
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export default async function MandatePage({ params, searchParams }: PageProps) {
+export default async function MandatePage({ params }: PageProps) {
   const { mosque, campaign: campaignSlug } = await params;
-  const { kiosk: kioskSessionId } = await searchParams;
-
-  // If opened via QR scan from kiosk, mark the session as scanned.
-  if (kioskSessionId && UUID_RE.test(kioskSessionId)) {
-    const adminClient = createAdminClient();
-    adminClient
-      .from('kiosk_sessions')
-      .update({ status: 'scanned' })
-      .eq('id', kioskSessionId)
-      .eq('status', 'waiting')
-      .then(({ error }) => {
-        if (error) console.error('[KioskSession] scanned update failed', error);
-      });
-  }
 
   const supabase = await createClient();
 

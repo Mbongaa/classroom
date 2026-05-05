@@ -1,21 +1,19 @@
 import { notFound } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { DonateLandingClient, type CampaignDisplay } from './DonateLandingClient';
+import { KioskDisplayClient, type KioskCampaign } from './KioskDisplayClient';
 
 /**
- * /donate/[mosque]
+ * /kiosk/[mosque]
  *
- * Phone-first donation chooser. Reached by scanning the kiosk QR or via
- * a direct link. Two paths:
- *   - Become a member  → /donate/[mosque]/member
- *   - One-time donation → /donate/[mosque]/[campaign]
+ * Passive kiosk display. No touch interactions — runs on any screen
+ * (TV, tablet, monitor) at the mosque. Shows:
+ *   - org name + city
+ *   - rotating campaign cards (10s each)
+ *   - permanent QR code pointing to /donate/[mosque]
  *
- * The kiosk tablet itself shows the passive display at /kiosk/[mosque].
- *
- * No authentication required. Campaign data is fetched via the anon client
- * (public RLS policy). Raised amounts use the admin client because
- * transactions/direct_debits are service-role-only (donor PII).
+ * The donor scans the QR with their phone, lands on the chooser, and picks
+ * Member vs One-time → /donate/[mosque]/member or /donate/[mosque]/[campaign].
  */
 
 interface PageProps {
@@ -41,12 +39,10 @@ interface CampaignRow {
   icon: string | null;
 }
 
-export default async function DonateLandingPage({ params }: PageProps) {
+export default async function KioskPage({ params }: PageProps) {
   const { mosque: slug } = await params;
 
   const supabase = await createClient();
-
-  // Fetch org via public RLS policy (donations_active orgs only).
   const { data: organization } = await supabase
     .from('organizations')
     .select<string, OrganizationRow>('id, slug, name, description, city, country')
@@ -58,7 +54,6 @@ export default async function DonateLandingPage({ params }: PageProps) {
     notFound();
   }
 
-  // Active campaigns via anon client (public RLS).
   const { data: campaigns } = await supabase
     .from('campaigns')
     .select<string, CampaignRow>('id, slug, title, description, goal_amount, cause_type, icon')
@@ -69,8 +64,7 @@ export default async function DonateLandingPage({ params }: PageProps) {
 
   const campaignList = campaigns ?? [];
 
-  // Compute raised amounts per campaign. Admin client because transactions
-  // and direct_debits have no public RLS policies.
+  // Compute raised totals via admin client (donor-PII tables have no public RLS).
   const raisedMap = new Map<string, number>();
   if (campaignList.length > 0) {
     const campaignIds = campaignList.map((c) => c.id);
@@ -87,7 +81,6 @@ export default async function DonateLandingPage({ params }: PageProps) {
         .in('mandates.campaign_id', campaignIds)
         .eq('status', 'COLLECTED'),
     ]);
-
     for (const row of txResult.data ?? []) {
       raisedMap.set(row.campaign_id, (raisedMap.get(row.campaign_id) ?? 0) + (row.amount ?? 0));
     }
@@ -101,19 +94,19 @@ export default async function DonateLandingPage({ params }: PageProps) {
     }
   }
 
-  const campaignsWithRaised: CampaignDisplay[] = campaignList.map((c) => ({
+  const enriched: KioskCampaign[] = campaignList.map((c) => ({
     ...c,
     raised_cents: raisedMap.get(c.id) ?? 0,
   }));
 
   return (
-    <DonateLandingClient
+    <KioskDisplayClient
       orgSlug={organization.slug}
       orgName={organization.name}
       orgCity={organization.city}
       orgCountry={organization.country}
       orgDescription={organization.description}
-      campaigns={campaignsWithRaised}
+      campaigns={enriched}
     />
   );
 }

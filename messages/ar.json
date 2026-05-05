@@ -110,7 +110,9 @@
       "appointments": "المواعيد",
       "members": "الأعضاء",
       "transactions": "المعاملات",
-      "settings": "الإعدادات"
+      "settings": "الإعدادات",
+      "comingSoon": "قريباً",
+      "soonBadge": "قريباً"
     },
     "footer": {
       "billing": "الفوترة",

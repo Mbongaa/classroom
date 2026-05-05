@@ -1,0 +1,8 @@
+[mcp_servers.shadcn]
+args = [
+    "/c",
+    "npx",
+    "shadcn@latest",
+    "mcp",
+]
+command = "cmd.exe"

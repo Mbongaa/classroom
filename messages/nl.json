@@ -107,9 +107,12 @@
       "dashboard": "Dashboard",
       "campaigns": "Campagnes",
       "products": "Producten",
+      "appointments": "Afspraken",
       "members": "Leden",
       "transactions": "Transacties",
-      "settings": "Instellingen"
+      "settings": "Instellingen",
+      "comingSoon": "Binnenkort",
+      "soonBadge": "Binnenkort"
     },
     "footer": {
       "billing": "Facturatie",

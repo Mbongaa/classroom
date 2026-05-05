@@ -110,7 +110,9 @@
       "appointments": "Appointments",
       "members": "Members",
       "transactions": "Transactions",
-      "settings": "Settings"
+      "settings": "Settings",
+      "comingSoon": "Coming soon",
+      "soonBadge": "Soon"
     },
     "footer": {
       "billing": "Billing",

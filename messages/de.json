@@ -107,9 +107,12 @@
       "dashboard": "Dashboard",
       "campaigns": "Kampagnen",
       "products": "Produkte",
+      "appointments": "Termine",
       "members": "Mitglieder",
       "transactions": "Transaktionen",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "comingSoon": "Demnächst",
+      "soonBadge": "Bald"
     },
     "footer": {
       "billing": "Abrechnung",

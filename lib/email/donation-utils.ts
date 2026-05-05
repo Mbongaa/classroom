@@ -164,6 +164,7 @@ export async function getMandateContext(
       donor_name,
       donor_email,
       monthly_amount,
+      organization_id,
       campaigns(title, mosque_id)
     `,
     )
@@ -176,10 +177,12 @@ export async function getMandateContext(
   }
 
   const campaign = Array.isArray(data.campaigns) ? data.campaigns[0] : data.campaigns;
-  const organizationId = campaign?.mosque_id;
+  // Membership mandates have no campaign — fall back to mandates.organization_id.
+  const organizationId =
+    (data as { organization_id?: string | null }).organization_id ?? campaign?.mosque_id;
 
   if (!organizationId) {
-    console.error('[donation-utils] mandate missing mosque id via campaign', { mandateCode });
+    console.error('[donation-utils] mandate missing organization id', { mandateCode });
     return null;
   }
 
@@ -222,6 +225,7 @@ export async function getStornoContext(
         paynl_mandate_id,
         donor_name,
         donor_email,
+        organization_id,
         campaigns(title, mosque_id)
       )
     `,
@@ -241,9 +245,11 @@ export async function getStornoContext(
   }
 
   const campaign = Array.isArray(mandate.campaigns) ? mandate.campaigns[0] : mandate.campaigns;
-  const organizationId = campaign?.mosque_id;
+  // Membership mandates have no campaign — fall back to mandates.organization_id.
+  const organizationId =
+    (mandate as { organization_id?: string | null }).organization_id ?? campaign?.mosque_id;
   if (!organizationId) {
-    console.error('[donation-utils] storno missing mosque id', { directDebitId });
+    console.error('[donation-utils] storno missing organization id', { directDebitId });
     return null;
   }
 

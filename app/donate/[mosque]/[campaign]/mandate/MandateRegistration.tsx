@@ -48,7 +48,10 @@ interface CampaignProp {
 }
 
 interface MandateRegistrationProps {
-  campaign: CampaignProp;
+  /** When omitted, this is a membership mandate (org-level, no campaign). */
+  campaign?: CampaignProp | null;
+  /** Required when campaign is omitted; ignored otherwise. */
+  organizationId?: string;
   orgName: string;
   orgSlug: string;
 }
@@ -97,9 +100,11 @@ function isoDatePlusDays(days: number): string {
 
 export function MandateRegistration({
   campaign,
+  organizationId,
   orgName,
-  orgSlug,
+  orgSlug: _orgSlug,
 }: MandateRegistrationProps) {
+  const isMembership = !campaign;
   // Step state
   const [step, setStep] = useState(0);
 
@@ -261,7 +266,9 @@ export function MandateRegistration({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          campaign_id: campaign.id,
+          ...(campaign
+            ? { campaign_id: campaign.id }
+            : { organization_id: organizationId }),
           amount: amountCents,
           donor_name: donorName.trim(),
           donor_email: donorEmail.trim(),
