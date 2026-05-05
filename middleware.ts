@@ -61,19 +61,6 @@ function stripWww(host: string): string {
 export async function middleware(request: NextRequest) {
   const host = request.headers.get('host')?.toLowerCase() || '';
 
-  // ---- Force apex (no www) on app host --------------------------------
-  // Supabase OAuth + email-link flows pin the redirect URL to the host the
-  // user started on. If the user lands on www.bayaan.app the redirect goes
-  // back to www.bayaan.app/auth/callback, which usually isn't on Supabase's
-  // allowlist → silent fallback to the Site URL → user dumped on landing.
-  // 308 keeps query string + cookies-by-domain so OAuth code params survive.
-  if (host === `www.${APP_HOST}`) {
-    const url = request.nextUrl.clone();
-    url.host = APP_HOST;
-    url.protocol = 'https:';
-    return NextResponse.redirect(url, 308);
-  }
-
   // ---- Subdomain → /donate rewrite (org slug subdomains) ---------------
   const subdomainMatch = host.match(SUBDOMAIN_RE);
   if (subdomainMatch && subdomainMatch[1] !== 'www') {
