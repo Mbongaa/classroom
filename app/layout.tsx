@@ -10,6 +10,7 @@ import { getLocale, getMessages } from 'next-intl/server';
 import { getDirection, type Locale } from '@/i18n/config';
 import { ToasterProvider } from './components/ToasterProvider';
 import { Providers } from './providers';
+import { Analytics } from '@vercel/analytics/next';
 
 // Routes whose surface uses the sketch design system (marketing landing +
 // auth pages). On these routes we render <html class="mkt-active"> server
@@ -164,6 +165,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </Providers>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
