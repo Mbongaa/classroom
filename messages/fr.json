@@ -142,11 +142,10 @@
       "organizationFallback": "N/A"
     },
     "quickActions": {
-      "title": "Actions rapides",
-      "description": "Démarrer ou rejoindre une session instantanément",
-      "intro": "Démarrez ou rejoignez une session de visioconférence.",
-      "startClassroom": "Démarrer une salle de classe",
-      "startSpeechSession": "Démarrer une session vocale",
+      "title": "Quickstart",
+      "description": "Demarrer instantanement une session khutba unique",
+      "intro": "Creez une salle khutba unique avec traduction arabe fusha vers neerlandais.",
+      "khutbaQuickstart": "Khutba Quickstart",
       "managePersistentRooms": "Gérer les salles permanentes"
     },
     "recentRooms": {

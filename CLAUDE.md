@@ -35,19 +35,13 @@ pnpm test        # Run tests with Vitest
 
 ### Git Operations
 
-**IMPORTANT**: Claude Code should NOT perform ANY git operations:
-
-```bash
-# ❌ NOT ALLOWED: ANY git operations
-git add               # User will handle staging
-git commit            # User will handle committing
-git push              # User will handle pushing
-git pull              # User will handle pulling
-git fetch             # User will handle fetching
-git status            # Only allowed for checking current state if explicitly requested
-```
-
-**Rule**: Claude Code should NOT perform ANY git operations (no add, commit, push, or any other git commands). The user will handle ALL git operations themselves. Exception: `git status` may be used to check the current state when explicitly requested.
+Claude may run git operations when the user asks. Default to non-destructive
+ones (`status`, `log`, `diff`, `show`, `branch -v`, `stash`) without confirming.
+For destructive operations (`reset --hard`, `clean -fd`, `push --force`,
+`branch -D`, `checkout --`), confirm intent in one short sentence before
+running, prefer the safe variant (e.g. stash/branch before reset), and never
+amend or rewrite shared history. Never commit on the user's behalf unless
+they explicitly ask.
 
 ### Environment Setup
 

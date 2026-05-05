@@ -5,6 +5,8 @@ import { AccessToken, AccessTokenOptions, VideoGrant, RoomServiceClient } from '
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
+import { requireTeacher } from '@/lib/api-auth';
+import { dispatchAgentToRoom } from '@/lib/v2/livekit-helpers';
 
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
@@ -50,9 +52,19 @@ export async function GET(request: NextRequest) {
     // NEW: Check if this is a classroom or speech session and what role
     const isClassroom = request.nextUrl.searchParams.get('classroom') === 'true';
     const isSpeech = request.nextUrl.searchParams.get('speech') === 'true';
-    const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
+    const roleParam = request.nextUrl.searchParams.get('role') ?? 'student';
+    const role = roleParam === 'teacher' ? 'teacher' : 'student';
+    const quickstart = request.nextUrl.searchParams.get('quickstart');
+    const isKhutbaQuickstart = quickstart === 'khutba' && isSpeech;
 
-    if (isClassroom || isSpeech) {
+    if (typeof roomName !== 'string') {
+      return new NextResponse('Missing required query parameter: roomName', { status: 400 });
+    }
+    if (participantName === null) {
+      return new NextResponse('Missing required query parameter: participantName', { status: 400 });
+    }
+
+    if ((isClassroom || isSpeech) && !isKhutbaQuickstart) {
       return NextResponse.json(
         {
           error:
@@ -60,6 +72,11 @@ export async function GET(request: NextRequest) {
         },
         { status: 410 },
       );
+    }
+
+    if (isKhutbaQuickstart && role === 'teacher') {
+      const auth = await requireTeacher();
+      if (!auth.success) return auth.response;
     }
 
     // SUPABASE AUTH CHECK - Get authenticated user
@@ -77,12 +94,12 @@ export async function GET(request: NextRequest) {
     // CLASSROOM LOOKUP AND LIVEKIT BRIDGE
     // This is the critical mapping: user-facing room_code → LiveKit UUID
     let userRole = role; // Default to query param role
-    let livekitRoomName = roomName; // Default to user-facing room name
+    let livekitRoomName: string = roomName; // Default to user-facing room name
     let classroom = null;
-    let selectedLanguage = 'en'; // Default language for credential routing
+    let selectedLanguage = isKhutbaQuickstart ? 'ar' : 'en'; // Default language for credential routing
 
     // If this is a classroom/speech session, look up in Supabase
-    if ((isClassroom || isSpeech) && roomName) {
+    if ((isClassroom || isSpeech) && !isKhutbaQuickstart && roomName) {
       // Get user's organization context if authenticated
       let organizationId: string | undefined;
       if (user) {
@@ -202,17 +219,57 @@ export async function GET(request: NextRequest) {
         // Continue anyway - token generation might still work
       }
     }
+
+    if (isKhutbaQuickstart && credentials.apiKey && credentials.apiSecret && credentials.url) {
+      try {
+        const roomService = new RoomServiceClient(credentials.url, credentials.apiKey, credentials.apiSecret);
+        const existingRooms = await roomService.listRooms([livekitRoomName]);
+
+        if (role === 'teacher') {
+          if (existingRooms.length === 0) {
+            await roomService.createRoom({
+              name: livekitRoomName,
+              emptyTimeout: 300,
+              metadata: JSON.stringify({
+                type: 'khutba-quickstart',
+                speakerLanguage: 'ar',
+                translationLanguage: 'nl',
+                createdAt: Date.now(),
+              }),
+            });
+          }
+
+          try {
+            await dispatchAgentToRoom(
+              livekitRoomName,
+              'ar',
+              JSON.stringify({
+                type: 'khutba-quickstart',
+                speakerLanguage: 'ar',
+                translationLanguage: 'nl',
+              }),
+            );
+          } catch (error) {
+            console.error('[Khutba Quickstart] Agent dispatch failed:', error);
+          }
+        } else if (existingRooms.length === 0) {
+          return NextResponse.json(
+            { error: 'No active khutba session. Waiting for the speaker to start the room.' },
+            { status: 409 },
+          );
+        }
+      } catch (error) {
+        console.error('[Khutba Quickstart] Error ensuring LiveKit room exists:', error);
+        return NextResponse.json(
+          { error: 'Unable to start or join khutba session right now' },
+          { status: 503 },
+        );
+      }
+    }
     const livekitServerUrl = region ? getLiveKitURL(credentials.url, region) : credentials.url;
     let randomParticipantPostfix = request.cookies.get(COOKIE_KEY)?.value;
     if (livekitServerUrl === undefined) {
       return NextResponse.json({ error: 'Invalid region' }, { status: 400 });
-    }
-
-    if (typeof roomName !== 'string') {
-      return new NextResponse('Missing required query parameter: roomName', { status: 400 });
-    }
-    if (participantName === null) {
-      return new NextResponse('Missing required query parameter: participantName', { status: 400 });
     }
 
     // Generate participant token
@@ -225,9 +282,10 @@ export async function GET(request: NextRequest) {
       ? JSON.stringify({
           ...JSON.parse(metadata),
           ...(isClassroom || isSpeech ? { role } : {}),
+          ...(isKhutbaQuickstart ? { quickstart: 'khutba' } : {}),
         })
       : isClassroom || isSpeech
-        ? JSON.stringify({ role })
+        ? JSON.stringify({ role, ...(isKhutbaQuickstart ? { quickstart: 'khutba' } : {}) })
         : '';
 
     const participantToken = await createParticipantToken(

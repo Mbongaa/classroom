@@ -17,7 +17,28 @@ import { dispatchAgentToRoom } from '@/lib/v2/livekit-helpers';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { classroomId } = body as { classroomId: string };
+    const { classroomId, roomName, language: requestedLanguage, quickstart } = body as {
+      classroomId?: string;
+      roomName?: string;
+      language?: string;
+      quickstart?: string;
+    };
+
+    if (quickstart === 'khutba' && roomName) {
+      console.log(`[V2 Dispatch] Re-dispatching quickstart agent for ${roomName}`);
+
+      const dispatch = await dispatchAgentToRoom(
+        roomName,
+        requestedLanguage || 'ar',
+        JSON.stringify({
+          type: 'khutba-quickstart',
+          speakerLanguage: 'ar',
+          translationLanguage: 'nl',
+        }),
+      );
+
+      return NextResponse.json({ success: true, dispatchId: dispatch?.id });
+    }
 
     if (!classroomId) {
       return NextResponse.json(
@@ -34,11 +55,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const language = classroom.settings?.language || 'en';
+    const classroomLanguage = classroom.settings?.language || 'en';
 
-    console.log(`[V2 Dispatch] Re-dispatching agent for classroom ${classroomId} (${language})`);
+    console.log(`[V2 Dispatch] Re-dispatching agent for classroom ${classroomId} (${classroomLanguage})`);
 
-    const dispatch = await dispatchAgentToRoom(classroomId, language);
+    const dispatch = await dispatchAgentToRoom(classroomId, classroomLanguage);
 
     return NextResponse.json({ success: true, dispatchId: dispatch?.id });
   } catch (error) {

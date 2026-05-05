@@ -19,6 +19,9 @@ export default async function Page({
     role?: string;
     org?: string;
     pin?: string;
+    quickstart?: string;
+    speakerLanguage?: string;
+    translationLanguage?: string;
   }>;
 }) {
   const _params = await params;
@@ -35,7 +38,8 @@ export default async function Page({
   // Demo-mode rooms (no classroom row) fall through to PageClientImpl untouched.
   const isClassroom = _searchParams.classroom === 'true';
   const isSpeech = _searchParams.speech === 'true';
-  if (isClassroom || isSpeech) {
+  const isKhutbaQuickstart = _searchParams.quickstart === 'khutba' && isSpeech;
+  if ((isClassroom || isSpeech) && !isKhutbaQuickstart) {
     let organizationId: string | undefined;
     if (_searchParams.org) {
       try {

@@ -73,6 +73,7 @@ export function PageClientImpl(props: {
   const [enteredPin, setEnteredPin] = React.useState('');
   const [roomPin, setRoomPin] = React.useState<string | null>(null);
   const [checkingPin, setCheckingPin] = React.useState(false);
+  const [isKhutbaQuickstart, setIsKhutbaQuickstart] = React.useState(false);
 
   // Check classroom/speech role from URL (client-side only to avoid hydration issues)
   const [classroomInfo, setClassroomInfo] = React.useState<{
@@ -88,11 +89,21 @@ export function PageClientImpl(props: {
     const isSpeech = currentUrl.searchParams.get('speech') === 'true';
     const role = currentUrl.searchParams.get('role');
     const pin = currentUrl.searchParams.get('pin');
+    const isQuickstart =
+      currentUrl.searchParams.get('quickstart') === 'khutba' && isSpeech;
 
     if (isClassroom) {
       setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
     } else if (isSpeech) {
       setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
+    }
+
+    if (isQuickstart) {
+      setIsKhutbaQuickstart(true);
+      const speakerLanguage = currentUrl.searchParams.get('speakerLanguage') || 'ar';
+      const translationLanguage = currentUrl.searchParams.get('translationLanguage') || 'nl';
+      setSelectedLanguage(role === 'teacher' ? speakerLanguage : translationLanguage);
+      setSelectedTranslationLanguage(translationLanguage);
     }
   }, []);
 
@@ -109,6 +120,8 @@ export function PageClientImpl(props: {
   React.useEffect(() => {
     const fetchRoomMetadata = async () => {
       try {
+        if (isKhutbaQuickstart) return;
+
         // Include org slug in the request for proper org scoping
         const currentUrl = new URL(window.location.href);
         const urlOrgSlug = currentUrl.searchParams.get('org');
@@ -152,7 +165,7 @@ export function PageClientImpl(props: {
     };
 
     fetchRoomMetadata();
-  }, [props.roomName, classroomInfo?.role]);
+  }, [props.roomName, classroomInfo?.role, isKhutbaQuickstart]);
 
   const qrCanvasRef = React.useRef<HTMLDivElement>(null);
   const copyIconRef = React.useRef<CopyIconHandle>(null);
@@ -164,6 +177,15 @@ export function PageClientImpl(props: {
     if (!classroomInfo || classroomInfo.role !== 'teacher') return '';
     // SSR guard: window is not available during server rendering
     if (typeof window === 'undefined') return '';
+    if (isKhutbaQuickstart) {
+      const url = new URL(`/rooms/${props.roomName}`, window.location.origin);
+      url.searchParams.set('speech', 'true');
+      url.searchParams.set('role', 'student');
+      url.searchParams.set('quickstart', 'khutba');
+      url.searchParams.set('translationLanguage', selectedTranslationLanguage || 'nl');
+      if (orgSlug) url.searchParams.set('org', orgSlug);
+      return url.toString();
+    }
     const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
     let link = `${window.location.origin}${prefix}${props.roomName}`;
     const linkParams = new URLSearchParams();
@@ -172,7 +194,7 @@ export function PageClientImpl(props: {
     const qs = linkParams.toString();
     if (qs) link += `?${qs}`;
     return link;
-  }, [classroomInfo, orgSlug, props.roomName]);
+  }, [classroomInfo, orgSlug, props.roomName, isKhutbaQuickstart, selectedTranslationLanguage]);
 
   const preJoinDefaults = React.useMemo(() => {
     // For students, disable camera/mic by default to avoid permission issues
@@ -205,6 +227,9 @@ export function PageClientImpl(props: {
       const isSpeech = currentUrl.searchParams.get('speech');
       const role = currentUrl.searchParams.get('role');
       const urlOrg = currentUrl.searchParams.get('org');
+      const quickstart = currentUrl.searchParams.get('quickstart');
+      const speakerLanguage = currentUrl.searchParams.get('speakerLanguage');
+      const translationLanguage = currentUrl.searchParams.get('translationLanguage');
 
       if (isClassroom) {
         url.searchParams.append('classroom', isClassroom);
@@ -215,12 +240,27 @@ export function PageClientImpl(props: {
       if (role) {
         url.searchParams.append('role', role);
       }
+      if (quickstart) {
+        url.searchParams.append('quickstart', quickstart);
+      }
+      if (speakerLanguage) {
+        url.searchParams.append('speakerLanguage', speakerLanguage);
+      }
+      if (translationLanguage) {
+        url.searchParams.append('translationLanguage', translationLanguage);
+      }
       // Forward org slug for organization-scoped room lookup
       if (urlOrg) {
         url.searchParams.append('org', urlOrg);
       }
 
       const connectionDetailsResp = await fetch(url.toString());
+      if (!connectionDetailsResp.ok) {
+        const errorText = await connectionDetailsResp.text();
+        setPreJoinChoices(undefined);
+        alert(`Failed to connect: ${errorText}`);
+        return;
+      }
       const connectionDetailsData = await connectionDetailsResp.json();
       setConnectionDetails(connectionDetailsData);
     },
@@ -390,6 +430,7 @@ export function PageClientImpl(props: {
           roomName={props.roomName}
           orgSlug={orgSlug}
           orgName={orgName}
+          isKhutbaQuickstart={isKhutbaQuickstart}
         />
       )}
     </main>
@@ -409,6 +450,7 @@ function VideoConferenceComponent(props: {
   roomName: string;
   orgSlug?: string | null;
   orgName?: string | null;
+  isKhutbaQuickstart?: boolean;
 }) {
   const keyProvider = React.useMemo(() => new ExternalE2EEKeyProvider(), []);
   const { worker, e2eePassphrase } = useSetupE2EE();
@@ -796,10 +838,18 @@ function VideoConferenceComponent(props: {
         const isClassroom = currentUrl.searchParams.get('classroom');
         const isSpeech = currentUrl.searchParams.get('speech');
         const role = currentUrl.searchParams.get('role');
+        const urlOrg = currentUrl.searchParams.get('org');
+        const quickstart = currentUrl.searchParams.get('quickstart');
+        const speakerLanguage = currentUrl.searchParams.get('speakerLanguage');
+        const translationLanguage = currentUrl.searchParams.get('translationLanguage');
 
         if (isClassroom) url.searchParams.append('classroom', isClassroom);
         if (isSpeech) url.searchParams.append('speech', isSpeech);
         if (role) url.searchParams.append('role', role);
+        if (urlOrg) url.searchParams.append('org', urlOrg);
+        if (quickstart) url.searchParams.append('quickstart', quickstart);
+        if (speakerLanguage) url.searchParams.append('speakerLanguage', speakerLanguage);
+        if (translationLanguage) url.searchParams.append('translationLanguage', translationLanguage);
 
         const response = await fetch(url.toString());
         if (!response.ok) {
@@ -892,11 +942,17 @@ function VideoConferenceComponent(props: {
         const isSpeech = currentUrl.searchParams.get('speech');
         const role = currentUrl.searchParams.get('role');
         const urlOrg = currentUrl.searchParams.get('org');
+        const quickstart = currentUrl.searchParams.get('quickstart');
+        const speakerLanguage = currentUrl.searchParams.get('speakerLanguage');
+        const translationLanguage = currentUrl.searchParams.get('translationLanguage');
 
         if (isClassroom) url.searchParams.append('classroom', isClassroom);
         if (isSpeech) url.searchParams.append('speech', isSpeech);
         if (role) url.searchParams.append('role', role);
         if (urlOrg) url.searchParams.append('org', urlOrg);
+        if (quickstart) url.searchParams.append('quickstart', quickstart);
+        if (speakerLanguage) url.searchParams.append('speakerLanguage', speakerLanguage);
+        if (translationLanguage) url.searchParams.append('translationLanguage', translationLanguage);
 
         const response = await fetch(url.toString());
         if (!response.ok) {
@@ -959,6 +1015,23 @@ function VideoConferenceComponent(props: {
   const [isClassroom, setIsClassroom] = React.useState(false);
   const [isSpeech, setIsSpeech] = React.useState(false);
   const [userRole, setUserRole] = React.useState<string | null>(null);
+  const transcriptionApiUrl = props.isKhutbaQuickstart
+    ? '/api/transcriptions'
+    : '/api/v2/transcriptions';
+  const translationApiUrl = props.isKhutbaQuickstart
+    ? '/api/recordings/translations'
+    : '/api/v2/translations';
+  const dispatchAgentRequest = React.useMemo(
+    () =>
+      props.isKhutbaQuickstart
+        ? {
+            roomName: props.connectionDetails.roomName,
+            language: 'ar',
+            quickstart: 'khutba',
+          }
+        : undefined,
+    [props.connectionDetails.roomName, props.isKhutbaQuickstart],
+  );
 
   // Read URL params client-side AFTER hydration to avoid SSR mismatch
   React.useEffect(() => {
@@ -982,8 +1055,8 @@ function VideoConferenceComponent(props: {
               sessionId={sessionId}
               orgSlug={props.orgSlug}
               orgName={props.orgName}
-              transcriptionApiUrl="/api/v2/transcriptions"
-              translationApiUrl="/api/v2/translations"
+              transcriptionApiUrl={transcriptionApiUrl}
+              translationApiUrl={translationApiUrl}
             />
           ) : isSpeech ? (
             <SpeechClientImpl
@@ -993,8 +1066,9 @@ function VideoConferenceComponent(props: {
               sessionId={sessionId}
               orgSlug={props.orgSlug}
               orgName={props.orgName}
-              transcriptionApiUrl="/api/v2/transcriptions"
-              translationApiUrl="/api/v2/translations"
+              transcriptionApiUrl={transcriptionApiUrl}
+              translationApiUrl={translationApiUrl}
+              dispatchAgentRequest={dispatchAgentRequest}
             />
           ) : (
             <CustomVideoConference

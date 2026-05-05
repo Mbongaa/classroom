@@ -142,11 +142,10 @@
       "organizationFallback": "N/A"
     },
     "quickActions": {
-      "title": "Quick Actions",
-      "description": "Start or join a session instantly",
-      "intro": "Start or join a video conference session.",
-      "startClassroom": "Start Classroom",
-      "startSpeechSession": "Start Speech Session",
+      "title": "Quickstart",
+      "description": "Start a one-time khutba session instantly",
+      "intro": "Create a one-time khutba room with Arabic Fusha to Dutch translation.",
+      "khutbaQuickstart": "Khutba Quickstart",
       "managePersistentRooms": "Manage Persistent Rooms"
     },
     "recentRooms": {

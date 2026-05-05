@@ -142,11 +142,10 @@
       "organizationFallback": "N.v.t."
     },
     "quickActions": {
-      "title": "Snelle acties",
-      "description": "Start of neem direct deel aan een sessie",
-      "intro": "Start of neem deel aan een videoconferentie.",
-      "startClassroom": "Klaslokaal starten",
-      "startSpeechSession": "Spraaksessie starten",
+      "title": "Quickstart",
+      "description": "Start direct een eenmalige khutba-sessie",
+      "intro": "Maak een eenmalige khutba-kamer met Arabisch Fusha naar Nederlandse vertaling.",
+      "khutbaQuickstart": "Khutba Quickstart",
       "managePersistentRooms": "Permanente kamers beheren"
     },
     "recentRooms": {

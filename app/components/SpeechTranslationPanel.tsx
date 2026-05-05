@@ -21,6 +21,12 @@ interface SpeechTranslationPanelProps {
   showVideo?: boolean;
   onVideoToggle?: () => void;
   translationApiUrl?: string; // V2 passes '/api/v2/translations'
+  dispatchAgentRequest?: {
+    classroomId?: string;
+    roomName?: string;
+    language?: string;
+    quickstart?: string;
+  };
   onResizePointerDown?: (e: React.PointerEvent) => void;
   controlBar?: React.ReactNode;
   participantCount?: number;
@@ -58,6 +64,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
   // and 404s for every v2 session id, which silently blocks DB writes and
   // eventually trips the reaper's 30-min inactivity kick.
   translationApiUrl = '/api/v2/translations',
+  dispatchAgentRequest,
   onResizePointerDown,
   controlBar,
   participantCount,
@@ -154,7 +161,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
             headers: { 'Content-Type': 'application/json' },
             // room.name is the actual LiveKit room name = classroom UUID
             // (the `roomName` prop is the user-facing room code, which differs)
-            body: JSON.stringify({ classroomId: room.name }),
+            body: JSON.stringify(dispatchAgentRequest ?? { classroomId: room.name }),
           });
           if (!res.ok) {
             console.error('[Translation Failsafe] Re-dispatch failed:', res.status);
@@ -182,7 +189,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
       room.off(RoomEvent.Connected, armFailsafe);
       room.off(RoomEvent.Disconnected, cancel);
     };
-  }, [room]);
+  }, [room, dispatchAgentRequest]);
 
   // Translation service health monitoring
   useEffect(() => {
@@ -410,7 +417,7 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
     return () => {
       room.off(RoomEvent.TranscriptionReceived, handleTranscription);
     };
-  }, [room, targetLanguage, sessionId, sessionStartTime, userRole]);
+  }, [room, targetLanguage, sessionId, sessionStartTime, userRole, translationApiUrl]);
 
   // User-intent tracking: only disable auto-scroll on explicit user interaction
   useEffect(() => {

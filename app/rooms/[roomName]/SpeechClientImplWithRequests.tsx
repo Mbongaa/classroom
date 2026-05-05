@@ -61,6 +61,12 @@ interface SpeechClientImplWithRequestsProps {
   orgName?: string | null;
   transcriptionApiUrl?: string;
   translationApiUrl?: string;
+  dispatchAgentRequest?: {
+    classroomId?: string;
+    roomName?: string;
+    language?: string;
+    quickstart?: string;
+  };
 }
 
 export function SpeechClientImplWithRequests({
@@ -72,6 +78,7 @@ export function SpeechClientImplWithRequests({
   orgName,
   transcriptionApiUrl,
   translationApiUrl,
+  dispatchAgentRequest,
 }: SpeechClientImplWithRequestsProps) {
   const router = useRouter();
   const room = useRoomContext();
@@ -762,6 +769,7 @@ export function SpeechClientImplWithRequests({
                 showVideo={showVideo}
                 onVideoToggle={() => setShowVideo((prev) => !prev)}
                 translationApiUrl={translationApiUrl}
+                dispatchAgentRequest={dispatchAgentRequest}
                 participantCount={participants.length}
                 onTranslationToggle={() => setShowTranslation(!showTranslation)}
                 showTranslation={showTranslation}
@@ -987,6 +995,8 @@ export function SpeechClientImplWithRequests({
               onFullscreenToggle={() => setIsFullscreen((prev) => !prev)}
               showVideo={showVideo}
               onVideoToggle={() => setShowVideo((prev) => !prev)}
+              translationApiUrl={translationApiUrl}
+              dispatchAgentRequest={dispatchAgentRequest}
               onResizePointerDown={mobileTranslationResize.handlePointerDown}
               participantCount={participants.length}
             />

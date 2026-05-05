@@ -7,7 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Classroom } from '@/lib/types';
+import { generateRoomId } from '@/lib/client-utils';
 import { Video, ArrowRight } from 'lucide-react';
+import { LottieIcon } from '@/components/lottie-icon';
 
 interface DashboardContentProps {
   userName: string;
@@ -23,18 +25,25 @@ export function DashboardContent({
   classroomCount,
   recordingCount,
   organizationName,
+  organizationSlug,
   rooms,
 }: DashboardContentProps) {
   const router = useRouter();
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
 
-  const startClassroom = () => {
-    router.push('/dashboard/rooms');
-  };
-
-  const startSpeechSession = () => {
-    router.push('/dashboard/rooms');
+  const startKhutbaQuickstart = () => {
+    const params = new URLSearchParams({
+      speech: 'true',
+      role: 'teacher',
+      quickstart: 'khutba',
+      speakerLanguage: 'ar',
+      translationLanguage: 'nl',
+    });
+    if (organizationSlug) {
+      params.set('org', organizationSlug);
+    }
+    router.push(`/rooms/${generateRoomId()}?${params.toString()}`);
   };
 
   const stats = [
@@ -99,42 +108,25 @@ export function DashboardContent({
               {t('quickActions.intro')}
             </p>
 
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1rem',
-                alignItems: 'center',
-              }}
-            >
+            <div className="flex w-full justify-center">
               <button
-                onClick={startClassroom}
-                className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
+                onClick={startKhutbaQuickstart}
+                className="group flex w-full max-w-md cursor-pointer items-center justify-center gap-4 rounded-2xl bg-black px-8 py-7 text-2xl font-bold text-white shadow-lg ring-offset-2 transition duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-black hover:ring-offset-white active:scale-[0.99] sm:text-3xl dark:bg-white dark:text-black dark:hover:ring-white dark:ring-offset-black"
               >
-                {t('quickActions.startClassroom')}
-              </button>
-
-              <button
-                onClick={startSpeechSession}
-                className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
-              >
-                {t('quickActions.startSpeechSession')}
-              </button>
-
-              <div
-                style={{
-                  width: '100%',
-                  height: '1px',
-                  background: 'rgba(128, 128, 128, 0.3)',
-                  margin: '0.5rem 0',
-                }}
-              />
-
-              <button
-                onClick={() => router.push('/dashboard/rooms')}
-                className="flex min-w-[120px] cursor-pointer items-center justify-center gap-2 rounded-full bg-black text-white dark:bg-white dark:text-black px-4 py-2 font-medium ring-offset-2 transition duration-200 hover:ring-2 hover:ring-black hover:ring-offset-white dark:hover:ring-white dark:ring-offset-black"
-              >
-                {t('quickActions.managePersistentRooms')}
+                {/* Source .lottie has an 800x800 canvas with the mic artwork
+                    only occupying the center ~half. Oversize the inner Lottie
+                    to ~2× the visible box and clip the empty canvas padding
+                    with overflow-hidden, so the centered artwork fills the
+                    48x48 viewport. */}
+                <span
+                  aria-hidden="true"
+                  className="relative h-12 w-12 shrink-0 overflow-hidden sm:h-14 sm:w-14"
+                >
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <LottieIcon src="/lottie/microphone-record.lottie" size={96} />
+                  </span>
+                </span>
+                <span>{t('quickActions.khutbaQuickstart')}</span>
               </button>
             </div>
           </CardContent>

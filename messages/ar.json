@@ -143,10 +143,9 @@
     },
     "quickActions": {
       "title": "إجراءات سريعة",
-      "description": "ابدأ أو انضم إلى جلسة فورًا",
-      "intro": "ابدأ أو انضم إلى جلسة مؤتمر مرئي.",
-      "startClassroom": "بدء فصل دراسي",
-      "startSpeechSession": "بدء جلسة خطاب",
+      "description": "ابدأ جلسة خطبة مؤقتة فورًا",
+      "intro": "أنشئ غرفة خطبة مؤقتة مع ترجمة من العربية الفصحى إلى الهولندية.",
+      "khutbaQuickstart": "Khutba Quickstart",
       "managePersistentRooms": "إدارة الغرف الدائمة"
     },
     "recentRooms": {
