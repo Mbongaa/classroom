@@ -1,0 +1,83 @@
+
+> livekit-meet@0.2.0 build /vercel/sandbox/primary
+> next build
+
+[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+   ▲ Next.js 15.2.8
+
+   Creating an optimized production build ...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for server...
+ ✓ (pwa) Compiling for client (static)...
+ ○ (pwa) Service worker: /vercel/sandbox/primary/public/sw.js
+ ○ (pwa)   URL: /sw.js
+ ○ (pwa)   Scope: /
+ ○ (pwa) Custom runtimeCaching array found, using it instead of the default one.
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+<w> [webpack.cache.PackFileCacheStrategy] Serializing big strings (114kiB) impacts deserialization performance (consider using Buffer instead and decode when needed)
+ ⚠ Compiled with warnings
+
+/_next/static/chunks/a0381dde.89597512d7988701.js is 5.9 MB, and won't be precached. Configure maximumFileSizeToCacheInBytes to change this limit.
+
+./node_modules/.pnpm/@supabase+realtime-js@2.15.5/node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+A Node.js API is used (process.versions at line: 35) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/.pnpm/@supabase+realtime-js@2.15.5/node_modules/@supabase/realtime-js/dist/module/lib/websocket-factory.js
+./node_modules/.pnpm/@supabase+realtime-js@2.15.5/node_modules/@supabase/realtime-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+supabase-js@2.58.0/node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+ssr@0.7.0_@supabase+supabase-js@2.58.0/node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/.pnpm/@supabase+ssr@0.7.0_@supabase+supabase-js@2.58.0/node_modules/@supabase/ssr/dist/module/index.js
+./lib/supabase/middleware.ts
+
+./node_modules/.pnpm/@supabase+supabase-js@2.58.0/node_modules/@supabase/supabase-js/dist/module/index.js
+A Node.js API is used (process.version at line: 24) which is not supported in the Edge Runtime.
+Learn more: https://nextjs.org/docs/api-reference/edge-runtime
+
+Import trace for requested module:
+./node_modules/.pnpm/@supabase+supabase-js@2.58.0/node_modules/@supabase/supabase-js/dist/module/index.js
+./node_modules/.pnpm/@supabase+ssr@0.7.0_@supabase+supabase-js@2.58.0/node_modules/@supabase/ssr/dist/module/createBrowserClient.js
+./node_modules/.pnpm/@supabase+ssr@0.7.0_@supabase+supabase-js@2.58.0/node_modules/@supabase/ssr/dist/module/index.js
+./lib/supabase/middleware.ts
+
+   Linting and checking validity of types ...
+
+./app/(dashboard)/dashboard/prompts/page.tsx
+43:6  Warning: React Hook useEffect has a missing dependency: 'fetchTemplates'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/(dashboard)/dashboard/recordings/page.tsx
+84:6  Warning: React Hook useEffect has a missing dependency: 't'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/RecordingDownloadDialog.tsx
+97:6  Warning: React Hook useEffect has missing dependencies: 'recording' and 'translationLanguage'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./app/components/SpeechTranslationPanel.tsx
+413:6  Warning: React Hook useEffect has a missing dependency: 'translationApiUrl'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+   Collecting page data ...
+Error: Missing API key. Pass it to the constructor `new Resend("re_123")`
+    at new C (.next/server/chunks/6199.js:14:72897)
+    at 51215 (.next/server/app/api/auth/email-hook/route.js:1:8955)
+    at t (.next/server/webpack-runtime.js:1:128)
+    at <unknown> (.next/server/app/api/auth/email-hook/route.js:1:10952)
+    at t.a (.next/server/webpack-runtime.js:1:891)
+    at 66256 (.next/server/app/api/auth/email-hook/route.js:1:10848)
+    at t (.next/server/webpack-runtime.js:1:128)
+    at <unknown> (.next/server/app/api/auth/email-hook/route.js:1:9801)
+    at t.a (.next/server/webpack-runtime.js:1:891)
+    at 54607 (.next/server/app/api/auth/email-hook/route.js:1:9622)
+
+> Build error occurred
+[Error: Failed to collect page data for /api/auth/email-hook] {
+  type: 'Error'
+}
+ ELIFECYCLE  Command failed with exit code 1.
