@@ -11,6 +11,7 @@ import {
   type PersonLicenseFromList,
 } from '@/lib/paynl-alliance';
 import { maybeEnableSepaDirectDebit } from '@/lib/paynl-directdebit';
+import { evaluateMerchantReadiness } from '@/lib/paynl-readiness';
 
 /**
  * GET /api/organizations/[id]/merchant/status
@@ -127,7 +128,7 @@ export async function GET(
   const { data: org, error: orgError } = await supabaseAdmin
     .from('organizations')
     .select(
-      'id, name, slug, paynl_merchant_id, paynl_service_id, paynl_boarding_status, paynl_directdebit_status, kyc_status, donations_active, onboarded_at, platform_fee_bps, website_url',
+      'id, name, slug, paynl_merchant_id, paynl_service_id, paynl_boarding_status, paynl_directdebit_status, paynl_manual_payout_approved, kyc_status, donations_active, onboarded_at, platform_fee_bps, website_url',
     )
     .eq('id', id)
     .single();
@@ -195,19 +196,28 @@ export async function GET(
       }),
     ]);
 
-    // Log raw response so we can discover the exact field names Pay.nl uses
-    // for license data (birthCountry, uboType) and document statuses.
-    console.log('[Alliance] getMerchantInfo raw', JSON.stringify({
+    // Log only counts/statuses here; the full Merchant:Info response can carry
+    // PII and must not be emitted from production status polling.
+    console.log('[Alliance] getMerchantInfo synced', {
       organizationId: id,
       merchantCode: org.paynl_merchant_id,
       boardingStatus: info.boardingStatus,
-      // Raw document statuses from Pay.nl BEFORE our mapping.
-      rawDocStatuses: info.documents.map((d) => ({ code: d.code, type: d.type, rawStatus: d.status })),
-      // Full raw license objects — reveals actual field names for birthCountry / uboType.
-      rawLicenses: info.raw,
-    }));
+      documentCount: info.documents.length,
+      licenseCount: info.licenses.length,
+    });
 
     const nextKyc = mapBoardingToKyc(info.boardingStatus, org.kyc_status as KycStatus);
+    const serviceId = info.primaryServiceCode ?? org.paynl_service_id;
+    const readiness = evaluateMerchantReadiness({
+      merchantStatus: info.status,
+      boardingStatus: info.boardingStatus,
+      payoutStatus: info.payoutStatus,
+      serviceId,
+      services: info.services,
+      clearingAccounts: info.clearingAccounts,
+      manualPayoutApproved:
+        (org as { paynl_manual_payout_approved?: boolean | null }).paynl_manual_payout_approved,
+    });
 
     const update: Record<string, unknown> = {};
     if (info.boardingStatus && info.boardingStatus !== org.paynl_boarding_status) {
@@ -216,11 +226,11 @@ export async function GET(
     if (nextKyc !== org.kyc_status) {
       update.kyc_status = nextKyc;
     }
-    if (nextKyc === 'approved' && !org.donations_active) {
+    if (nextKyc === 'approved' && readiness.ready && !org.donations_active) {
       update.donations_active = true;
       update.onboarded_at = org.onboarded_at ?? new Date().toISOString();
     }
-    if (nextKyc === 'rejected' && org.donations_active) {
+    if ((nextKyc === 'rejected' || !readiness.ready) && org.donations_active) {
       update.donations_active = false;
     }
     // Backfill the SL-XXXX-XXXX issued by Pay.nl. Without this, donation
@@ -456,7 +466,7 @@ export async function GET(
 
     return NextResponse.json({
       merchantId: org.paynl_merchant_id,
-      serviceId: info.primaryServiceCode ?? org.paynl_service_id,
+      serviceId,
       directDebitStatus,
       boardingStatus: info.boardingStatus ?? org.paynl_boarding_status,
       status: info.status,
@@ -470,11 +480,17 @@ export async function GET(
       contractLanguage: info.contractLanguage,
       website: info.website,
       clearingAccounts: info.clearingAccounts,
+      readiness,
       remoteLicenses,
       kycStatus: nextKyc,
-      donationsActive: nextKyc === 'approved' ? true : org.donations_active,
+      donationsActive:
+        nextKyc === 'approved' && readiness.ready
+          ? true
+          : nextKyc === 'rejected' || !readiness.ready
+            ? false
+            : org.donations_active,
       onboardedAt:
-        nextKyc === 'approved' && !org.onboarded_at
+        nextKyc === 'approved' && readiness.ready && !org.onboarded_at
           ? new Date().toISOString()
           : org.onboarded_at,
       platformFeeBps: org.platform_fee_bps,

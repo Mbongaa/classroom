@@ -5,7 +5,8 @@ import { requireOrgAdmin } from '@/lib/api-auth';
 /**
  * GET /api/organizations/[id]/mandates
  *
- * List all SEPA mandates for campaigns belonging to this organization.
+ * List all SEPA mandates belonging to this organization, including
+ * campaignless membership mandates.
  * Returns mandates sorted by creation date (newest first), with campaign
  * title included for display.
  *
@@ -28,25 +29,12 @@ export async function GET(
 
   const supabaseAdmin = createAdminClient();
 
-  // First get the org's campaign IDs.
-  const { data: campaigns } = await supabaseAdmin
-    .from('campaigns')
-    .select('id, title, slug')
-    .eq('organization_id', id);
-
-  const campaignIds = (campaigns ?? []).map((c) => c.id);
-
-  if (campaignIds.length === 0) {
-    return NextResponse.json({ mandates: [] });
-  }
-
-  // Fetch mandates for those campaigns.
   const { data: mandates, error } = await supabaseAdmin
     .from('mandates')
     .select(
       'id, paynl_mandate_id, mandate_type, donor_name, donor_email, iban_owner, status, monthly_amount, first_debit_at, created_at, campaign_id, campaigns(id, title, slug)',
     )
-    .in('campaign_id', campaignIds)
+    .eq('organization_id', id)
     .order('created_at', { ascending: false })
     .limit(200);
 

@@ -28,6 +28,7 @@ interface OrganizationRow {
   contact_email: string | null;
   contact_phone: string | null;
   bank_iban: string | null;
+  bank_iban_last4: string | null;
   bank_account_holder: string | null;
   paynl_merchant_id: string | null;
   legal_form: string | null;
@@ -56,7 +57,7 @@ export default async function OnboardingPage({ params }: PageProps) {
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>(
-      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban, bank_account_holder, paynl_merchant_id, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code',
+      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban_last4, bank_account_holder, paynl_merchant_id, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code',
     )
     .eq('slug', slug)
     .single();
@@ -90,5 +91,5 @@ export default async function OnboardingPage({ params }: PageProps) {
     }
   }
 
-  return <OnboardingWizard organization={organization} />;
+  return <OnboardingWizard organization={{ ...organization, bank_iban: null }} />;
 }

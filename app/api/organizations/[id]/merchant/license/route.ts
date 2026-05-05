@@ -7,6 +7,9 @@ import {
   PayNLAllianceNotActivatedError,
   PayNLError,
 } from '@/lib/paynl-alliance';
+import { redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * PATCH /api/organizations/[id]/merchant/license
@@ -38,8 +41,29 @@ export async function PATCH(
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
+  const limiter = await rateLimit(
+    `merchant:license:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 10,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many license updates. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
+
   if (!isAllianceEnabled()) {
     return NextResponse.json({ error: 'Pay.nl Alliance is not activated.' }, { status: 503 });
+  }
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
   }
 
   let body: unknown;
@@ -156,7 +180,7 @@ export async function PATCH(
         personId: b.personId,
         licenseCode: person.paynl_license_code,
         status: error.status,
-        body: error.body,
+        body: redactPII(error.body),
       });
       return NextResponse.json(
         { error: `Pay.nl rejected the update (HTTP ${error.status})` },

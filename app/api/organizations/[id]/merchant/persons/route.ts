@@ -10,6 +10,9 @@ import {
   type LegalForm,
   type MerchantPerson,
 } from '@/lib/paynl-alliance';
+import { redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/organizations/[id]/merchant/persons
@@ -221,8 +224,29 @@ export async function POST(
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
+  const limiter = await rateLimit(
+    `merchant:persons:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 10,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many person updates. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
+
   if (!isAllianceEnabled()) {
     return NextResponse.json({ error: 'Pay.nl Alliance is not activated.' }, { status: 503 });
+  }
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
   }
 
   let raw: unknown;
@@ -299,12 +323,12 @@ export async function POST(
           organizationId: id,
           licenseCode: body.replaceLicenseCode,
           status: err.status,
-          body: err.body,
+          body: redactPII(err.body),
         });
         return NextResponse.json(
           {
             error: `Pay.nl rejected DELETE of placeholder license ${body.replaceLicenseCode} (HTTP ${err.status}).`,
-            paynlBody: err.body,
+            paynlBody: redactPII(err.body),
           },
           { status: 502 },
         );
@@ -331,7 +355,7 @@ export async function POST(
       console.error('[Alliance] createLicense failed', {
         organizationId: id,
         status: err.status,
-        body: err.body,
+        body: redactPII(err.body),
       });
       return NextResponse.json(
         {
@@ -339,7 +363,7 @@ export async function POST(
             body.replaceLicenseCode
               ? `Placeholder ${body.replaceLicenseCode} was removed but Pay.nl rejected the new license (HTTP ${err.status}). Re-submit to retry.`
               : `Pay.nl rejected the new license (HTTP ${err.status}).`,
-          paynlBody: err.body,
+          paynlBody: redactPII(err.body),
         },
         { status: 502 },
       );

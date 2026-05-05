@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
-import { isAllianceEnabled } from '@/lib/paynl-alliance';
+import { isAllianceEnabled, listClearings, PayNLError } from '@/lib/paynl-alliance';
 
 /**
  * GET /api/organizations/[id]/merchant/stats
@@ -75,8 +75,22 @@ export async function GET(
   let totalMandates = 0;
   let activeMandates = 0;
 
+  const [mandateResult, activeMandateResult] = await Promise.all([
+    supabaseAdmin
+      .from('mandates')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', id),
+    supabaseAdmin
+      .from('mandates')
+      .select('id', { count: 'exact', head: true })
+      .eq('organization_id', id)
+      .eq('status', 'ACTIVE'),
+  ]);
+  totalMandates = mandateResult.count ?? 0;
+  activeMandates = activeMandateResult.count ?? 0;
+
   if (campaignIds.length > 0) {
-    const [paidResult, pendingResult, mandateResult, activeMandateResult] = await Promise.all([
+    const [paidResult, pendingResult] = await Promise.all([
       supabaseAdmin
         .from('transactions')
         .select('amount', { count: 'exact' })
@@ -89,15 +103,6 @@ export async function GET(
         .select('id', { count: 'exact', head: true })
         .in('campaign_id', campaignIds)
         .eq('status', 'PENDING'),
-      supabaseAdmin
-        .from('mandates')
-        .select('id', { count: 'exact', head: true })
-        .in('campaign_id', campaignIds),
-      supabaseAdmin
-        .from('mandates')
-        .select('id', { count: 'exact', head: true })
-        .in('campaign_id', campaignIds)
-        .eq('status', 'ACTIVE'),
     ]);
 
     totalDonationsCents = (paidResult.data || []).reduce(
@@ -106,8 +111,6 @@ export async function GET(
     );
     totalPaidCount = paidResult.count ?? 0;
     totalPendingCount = pendingResult.count ?? 0;
-    totalMandates = mandateResult.count ?? 0;
-    activeMandates = activeMandateResult.count ?? 0;
   }
 
   const estimatedFeesCents = Math.round(
@@ -119,10 +122,41 @@ export async function GET(
   // not part of the merchant onboarding surface. Local DB aggregates cover
   // donation counts + totals for now; wallet/remote stats are pending the
   // v2 port.
-  const walletBalance = null;
-  const paynlStats = null;
-  if (isAllianceEnabled() && org.paynl_merchant_id) {
-    // No-op: v2 endpoints for wallet + stats not yet wired.
+  let settlementVisibility:
+    | {
+        source: 'paynl';
+        clearings: Awaited<ReturnType<typeof listClearings>>;
+        warning: null;
+      }
+    | {
+        source: 'local';
+        clearings: [];
+        warning: string;
+      } = {
+    source: 'local',
+    clearings: [],
+    warning: 'Pay.nl settlement reporting is not enabled for this deployment.',
+  };
+
+  if (isAllianceEnabled() && org.paynl_merchant_id && process.env.PAYNL_REPORTING_ENABLED === 'true') {
+    try {
+      settlementVisibility = {
+        source: 'paynl',
+        clearings: await listClearings(org.paynl_merchant_id, 10),
+        warning: null,
+      };
+    } catch (error) {
+      const warning =
+        error instanceof PayNLError && (error.status === 401 || error.status === 403)
+          ? 'Pay.nl settlement reporting permissions are not enabled for this account.'
+          : 'Could not reach Pay.nl settlement reporting; showing local finance data only.';
+      console.error('[Merchant stats] Pay.nl clearings fetch failed', {
+        organizationId: id,
+        merchantCode: org.paynl_merchant_id,
+        error: error instanceof Error ? error.message : error,
+      });
+      settlementVisibility = { source: 'local', clearings: [], warning };
+    }
   }
 
   return NextResponse.json({
@@ -137,7 +171,6 @@ export async function GET(
       estimatedFeesCents,
       platformFeeBps: org.platform_fee_bps,
     },
-    walletBalance,
-    paynlStats,
+    settlementVisibility,
   });
 }

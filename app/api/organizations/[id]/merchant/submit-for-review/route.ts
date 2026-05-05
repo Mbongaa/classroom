@@ -8,6 +8,9 @@ import {
   PayNLAllianceNotActivatedError,
   PayNLError,
 } from '@/lib/paynl-alliance';
+import { redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/organizations/[id]/merchant/submit-for-review
@@ -27,7 +30,7 @@ import {
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
@@ -38,11 +41,32 @@ export async function POST(
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
+  const limiter = await rateLimit(
+    `merchant:submit:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 5,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many review submissions. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
+
   if (!isAllianceEnabled()) {
     return NextResponse.json(
       { error: 'Pay.nl Alliance is not yet activated on this platform.' },
       { status: 503 },
     );
+  }
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
   }
 
   const supabaseAdmin = createAdminClient();
@@ -192,7 +216,7 @@ export async function POST(
         organizationId: id,
         merchantCode: org.paynl_merchant_id,
         status: error.status,
-        body: error.body,
+        body: redactPII(error.body),
       });
       return NextResponse.json(
         {

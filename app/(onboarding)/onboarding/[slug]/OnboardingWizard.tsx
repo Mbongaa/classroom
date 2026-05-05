@@ -40,6 +40,7 @@ interface OrganizationProp {
   contact_email: string | null;
   contact_phone: string | null;
   bank_iban: string | null;
+  bank_iban_last4?: string | null;
   bank_account_holder: string | null;
   legal_form: string | null;
   mcc: string | null;

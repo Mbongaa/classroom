@@ -13,8 +13,8 @@ import { PayNLError, cancelMandate, redactPII } from '@/lib/paynl';
  * "pull the plug" lever for repeat-storno donors and explicit donor
  * cancellation requests.
  *
- * Defense in depth: we re-verify that the mandate belongs to a campaign
- * owned by this organization before touching Pay.nl. We then refuse if the
+ * Defense in depth: we re-verify that the mandate belongs to this
+ * organization before touching Pay.nl. We then refuse if the
  * status is already CANCELLED or EXPIRED to keep the operation idempotent
  * without doubling up Pay.nl calls.
  *
@@ -43,14 +43,9 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
 
   const supabaseAdmin = createAdminClient();
 
-  // Fetch the mandate WITH its campaign so we can verify org ownership.
-  // The campaigns join is the only way to scope mandates to an organization
-  // (mandates.campaign_id → campaigns.organization_id).
   const { data: mandate, error: fetchError } = await supabaseAdmin
     .from('mandates')
-    .select(
-      'id, paynl_mandate_id, status, campaign_id, campaigns!inner(id, organization_id)',
-    )
+    .select('id, paynl_mandate_id, status, campaign_id, organization_id')
     .eq('id', mandateId)
     .single();
 
@@ -58,14 +53,7 @@ export async function POST(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Mandate not found' }, { status: 404 });
   }
 
-  // The supabase-js typegen for embedded selects sometimes resolves to an
-  // array, sometimes to an object. Normalise both shapes.
-  const rawCampaigns = (mandate as unknown as { campaigns: unknown }).campaigns;
-  const campaign = Array.isArray(rawCampaigns)
-    ? (rawCampaigns[0] as { organization_id: string } | undefined)
-    : (rawCampaigns as { organization_id: string } | null);
-
-  if (!campaign || campaign.organization_id !== id) {
+  if (mandate.organization_id !== id) {
     return NextResponse.json({ error: 'Mandate not found' }, { status: 404 });
   }
 

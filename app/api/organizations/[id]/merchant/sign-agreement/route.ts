@@ -8,6 +8,9 @@ import {
   PayNLAllianceNotActivatedError,
 } from '@/lib/paynl-alliance';
 import { generateAgreementPdf } from '@/lib/agreement-pdf';
+import { redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/organizations/[id]/merchant/sign-agreement
@@ -44,6 +47,23 @@ export async function POST(
 
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
+
+  const limiter = await rateLimit(
+    `merchant:agreement:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 6,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many agreement signing attempts. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
 
   let body: unknown;
   try {
@@ -163,7 +183,6 @@ export async function POST(
   if (uploadError) {
     console.error('[Agreement] Storage upload failed', {
       organizationId: id,
-      storagePath,
       error: uploadError.message,
     });
     return NextResponse.json(
@@ -189,22 +208,24 @@ export async function POST(
     })
     .eq('id', doc.id);
 
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
+  }
+
   if (!isAllianceEnabled()) {
     // Alliance disabled (local/staging): record locally and return success.
     console.log('[Agreement] Alliance disabled — agreement recorded locally only', {
       organizationId: id,
       signeeName,
-      storagePath,
     });
     return NextResponse.json({
       ok: true,
       status: 'uploaded',
       uploadedAt: signedAt,
-      storagePath,
       source: 'local',
     });
   }
-
   // Forward to Pay.nl.
   try {
     const fileName = `overeenkomst_${org.name.replace(/[^a-zA-Z0-9]/g, '_')}_${signedAt.split('T')[0]}.pdf`;
@@ -229,33 +250,30 @@ export async function POST(
       documentCode: b.documentCode,
       signeeName,
       paynlStatus: uploadResult.status,
-      storagePath,
     });
 
     return NextResponse.json({
       ok: true,
       status: finalStatus,
       uploadedAt: signedAt,
-      storagePath,
       source: 'paynl',
     });
   } catch (error) {
     if (error instanceof PayNLAllianceNotActivatedError) {
-      return NextResponse.json({ ok: true, status: 'uploaded', storagePath, source: 'local' });
+      return NextResponse.json({ ok: true, status: 'uploaded', source: 'local' });
     }
     if (error instanceof PayNLError) {
       console.error('[Agreement] Pay.nl upload failed', {
         organizationId: id,
         documentCode: b.documentCode,
         status: error.status,
-        body: error.body,
+        body: redactPII(error.body),
       });
       return NextResponse.json(
         {
           error: `Agreement was signed and saved locally but Pay.nl upload failed (HTTP ${error.status}). It will be retried on the next status refresh.`,
           status: 'uploaded',
           uploadedAt: signedAt,
-          storagePath,
         },
         { status: 502 },
       );

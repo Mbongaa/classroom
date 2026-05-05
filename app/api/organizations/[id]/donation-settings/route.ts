@@ -14,11 +14,11 @@ import { THANK_YOU_ANIMATIONS } from '@/lib/thankyou-animations';
  * (those are not donation concerns).
  *
  * Editable fields are partitioned by role:
- *   - Org admins can change: contact info, bank info, branding (animation)
+ *   - Org admins can change: contact info, bank account holder, branding (animation)
  *   - Superadmins can additionally change: platform_fee_bps, donations_active,
- *     kyc_status, paynl_service_id, paynl_merchant_id
+ *     kyc_status, paynl_service_id, paynl_merchant_id, manual payout approval
  *
- * paynl_secret is never returned to the client.
+ * paynl_secret and full bank_iban are never returned to the client.
  */
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +30,7 @@ const SUPERADMIN_ONLY_FIELDS = new Set([
   'kyc_status',
   'paynl_service_id',
   'paynl_merchant_id',
+  'paynl_manual_payout_approved',
 ]);
 
 // ---------------------------------------------------------------------------
@@ -53,7 +54,7 @@ export async function GET(
   const { data, error } = await supabaseAdmin
     .from('organizations')
     .select(
-      'id, slug, name, description, contact_email, contact_phone, city, country, bank_iban, bank_account_holder, paynl_service_id, paynl_merchant_id, platform_fee_bps, kyc_status, donations_active, onboarded_at, thankyou_animation_id, created_at, updated_at',
+      'id, slug, name, description, contact_email, contact_phone, city, country, bank_iban_last4, bank_account_holder, paynl_service_id, paynl_merchant_id, platform_fee_bps, kyc_status, donations_active, paynl_manual_payout_approved, onboarded_at, thankyou_animation_id, created_at, updated_at',
     )
     .eq('id', id)
     .single();
@@ -109,7 +110,8 @@ export async function PATCH(
     if (!IBAN_RE.test(clean)) {
       return NextResponse.json({ error: 'Invalid IBAN' }, { status: 400 });
     }
-    update.bank_iban = clean;
+    update.bank_iban = null;
+    update.bank_iban_last4 = clean.slice(-4);
   }
 
   // Thank-you animation: validated against the catalog so a malicious or
@@ -153,7 +155,7 @@ export async function PATCH(
     .update(update)
     .eq('id', id)
     .select(
-      'id, slug, name, description, contact_email, contact_phone, city, country, bank_iban, bank_account_holder, paynl_service_id, paynl_merchant_id, platform_fee_bps, kyc_status, donations_active, onboarded_at, thankyou_animation_id, created_at, updated_at',
+      'id, slug, name, description, contact_email, contact_phone, city, country, bank_iban_last4, bank_account_holder, paynl_service_id, paynl_merchant_id, platform_fee_bps, kyc_status, donations_active, paynl_manual_payout_approved, onboarded_at, thankyou_animation_id, created_at, updated_at',
     )
     .single();
 

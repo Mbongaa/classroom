@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createOrder, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
 import { resolveOrganizationServiceIdForCampaign } from '@/lib/paynl-organization-resolver';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
@@ -109,7 +110,7 @@ function validateBody(raw: unknown): { ok: true; body: OneTimeDonationBody } | {
 export async function POST(request: NextRequest) {
   // ---- 1. Rate limit ----------------------------------------------------
   const ip = getClientIp(request.headers);
-  const limited = rateLimit(`donate:one-time:${ip}`, 10, 60_000);
+  const limited = await rateLimit(`donate:one-time:${ip}`, 10, 60_000);
   if (!limited.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait a minute and try again.' },
@@ -118,6 +119,11 @@ export async function POST(request: NextRequest) {
   }
 
   // ---- 2. Parse + validate body -----------------------------------------
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: 'Server not configured for payments' }, { status: 503 });
+  }
+
   let raw: unknown;
   try {
     raw = await request.json();
@@ -145,9 +151,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Campaign not found or inactive' }, { status: 404 });
     }
 
-    // Phase 2: resolve the correct paynl_service_id based on the campaign's
-    // organization. Falls back to PAYNL_SERVICE_ID env var for organizations
-    // that have not yet been onboarded via Alliance createMerchant.
+    // Resolve the correct paynl_service_id based on the campaign's organization.
+    // In production this refuses platform-wide fallback routing unless it was
+    // explicitly enabled by an operator.
     const resolved = await resolveOrganizationServiceIdForCampaign(supabaseAdmin, campaign.id);
     if (!resolved) {
       return NextResponse.json(

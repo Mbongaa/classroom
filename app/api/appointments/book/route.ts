@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createOrder, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
 import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
@@ -134,7 +135,7 @@ function validate(raw: unknown): { ok: true; body: BookBody } | { ok: false; err
 
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request.headers);
-  const limited = rateLimit(`appointments:book:${ip}`, 5, 60_000);
+  const limited = await rateLimit(`appointments:book:${ip}`, 5, 60_000);
   if (!limited.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait a minute and try again.' },
@@ -181,10 +182,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Organization not configured' }, { status: 503 });
   }
 
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    console.error('[Appointments] Pay.nl production config failed', {
+      error: productionConfigError,
+    });
+    return NextResponse.json({ error: 'Server not configured for payments' }, { status: 500 });
+  }
+
   const serviceId =
     organization.donations_active && organization.paynl_service_id
       ? organization.paynl_service_id
-      : process.env.PAYNL_SERVICE_ID;
+      : isSandboxMode() || process.env.PAYNL_ALLOW_PLATFORM_FALLBACK === 'true'
+        ? process.env.PAYNL_SERVICE_ID
+        : null;
 
   if (!serviceId) {
     return NextResponse.json(

@@ -26,7 +26,8 @@ interface MandateRow {
   campaigns: {
     title: string;
     organizations: { id: string; name: string };
-  };
+  } | null;
+  organizations: { id: string; name: string };
 }
 
 export async function POST(
@@ -40,7 +41,7 @@ export async function POST(
 
   const ip = getClientIp(request.headers);
   // Tighter limit on destructive endpoint.
-  const rl = rateLimit(`manage:cancel:${ip}`, 10, 60_000);
+  const rl = await rateLimit(`manage:cancel:${ip}`, 10, 60_000);
   if (!rl.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait a minute and try again.' },
@@ -52,7 +53,7 @@ export async function POST(
   const { data: mandate } = await supabase
     .from('mandates')
     .select(
-      'id, status, paynl_mandate_id, donor_name, donor_email, campaigns!inner(title, organizations!inner(id, name))',
+      'id, status, paynl_mandate_id, donor_name, donor_email, campaigns(title, organizations!inner(id, name)), organizations!inner(id, name)',
     )
     .eq('manage_token', token)
     .single<MandateRow>();
@@ -117,14 +118,14 @@ export async function POST(
 
   console.log('[Donor manage] Mandate cancelled by donor', {
     mandateId: mandate.id,
-    organizationId: mandate.campaigns.organizations.id,
+    organizationId: mandate.organizations.id,
   });
 
   // Confirmation email so the donor (or whoever has the email) sees the
   // cancellation went through. Failures here don't fail the request —
   // the cancellation IS persisted.
   try {
-    const orgName = mandate.campaigns.organizations.name || 'the mosque';
+    const orgName = mandate.organizations.name || 'the mosque';
     await sendEmail({
       to: mandate.donor_email,
       from: buildDonorFrom(orgName),
@@ -132,11 +133,11 @@ export async function POST(
       react: DonorMandateCancelledEmail({
         donorName: mandate.donor_name,
         mosqueName: orgName,
-        campaignTitle: mandate.campaigns.title || 'General donations',
+        campaignTitle: mandate.campaigns?.title || 'Monthly membership',
       }),
       tags: [
         { name: 'type', value: 'donor_mandate_cancelled' },
-        { name: 'organization_id', value: mandate.campaigns.organizations.id },
+        { name: 'organization_id', value: mandate.organizations.id },
       ],
     });
   } catch (err) {

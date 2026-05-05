@@ -33,6 +33,7 @@ interface OrganizationRow {
   contact_email: string | null;
   contact_phone: string | null;
   bank_iban: string | null;
+  bank_iban_last4: string | null;
   bank_account_holder: string | null;
   thankyou_animation_id: string | null;
   paynl_merchant_id: string | null;
@@ -108,7 +109,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>(
-      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban, bank_account_holder, thankyou_animation_id, paynl_merchant_id, paynl_service_id, paynl_boarding_status, kyc_status, donations_active, onboarded_at, platform_fee_bps, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code, preferred_locale',
+      'id, slug, name, description, city, country, contact_email, contact_phone, bank_iban_last4, bank_account_holder, thankyou_animation_id, paynl_merchant_id, paynl_service_id, paynl_boarding_status, kyc_status, donations_active, onboarded_at, platform_fee_bps, legal_form, mcc, kvk_number, vat_number, website_url, business_description, address_street, address_house_number, address_postal_code, preferred_locale',
     )
     .eq('slug', slug)
     .single();
@@ -176,6 +177,7 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
       <SettingsTabs
         organization={{
           ...organization,
+          bank_iban: null,
           persons: personsData ?? [],
           kyc_documents: documentsData ?? [],
         }}

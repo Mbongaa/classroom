@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createMandate, isSandboxMode, PayNLError, redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
 import {
   resolveOrganizationServiceIdForCampaign,
   resolveOrganizationServiceIdForOrganization,
@@ -141,7 +142,7 @@ function validateBody(
 export async function POST(request: NextRequest) {
   // ---- 1. Rate limit ----------------------------------------------------
   const ip = getClientIp(request.headers);
-  const limited = rateLimit(`donate:recurring:${ip}`, 10, 60_000);
+  const limited = await rateLimit(`donate:recurring:${ip}`, 10, 60_000);
   if (!limited.allowed) {
     return NextResponse.json(
       { error: 'Too many requests. Please wait a minute and try again.' },
@@ -150,6 +151,11 @@ export async function POST(request: NextRequest) {
   }
 
   // ---- 2. Parse + validate body -----------------------------------------
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: 'Server not configured for payments' }, { status: 503 });
+  }
+
   let raw: unknown;
   try {
     raw = await request.json();

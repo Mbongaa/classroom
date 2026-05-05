@@ -16,6 +16,9 @@ import {
 } from '@/lib/paynl-alliance';
 import { geocodeAddress } from '@/lib/geocoding';
 import { maybeEnableSepaDirectDebit } from '@/lib/paynl-directdebit';
+import { redactPII } from '@/lib/paynl';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/organizations/[id]/merchant/onboard
@@ -471,6 +474,23 @@ export async function POST(
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
+  const limiter = await rateLimit(
+    `merchant:onboard:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 5,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many onboarding attempts. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
+
   if (!isAllianceEnabled()) {
     return NextResponse.json(
       {
@@ -493,6 +513,10 @@ export async function POST(
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
   const body = validation.body;
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
+  }
 
   const supabaseAdmin = createAdminClient();
 
@@ -583,7 +607,8 @@ export async function POST(
         kyc_status: 'submitted',
         contact_email: body.contactEmail,
         contact_phone: body.contactPhone ?? null,
-        bank_iban: body.iban,
+        bank_iban: null,
+        bank_iban_last4: body.iban.slice(-4),
         bank_account_holder: body.ibanOwner,
         city: body.address.city,
         country: body.address.country,
@@ -818,9 +843,10 @@ export async function POST(
         organizationId: id,
         status: error.status,
         message: error.message,
-        body: error.body,
+        body: redactPII(error.body),
       });
-      const detail = extractPayNLErrorDetail(error.body) ?? error.message;
+      const redactedBody = redactPII(error.body);
+      const detail = extractPayNLErrorDetail(redactedBody) ?? error.message;
       // If the body is null, it's almost certainly one of our own throws
       // (config missing / unexpected response shape) — return 500, not 502,
       // and skip the misleading "Pay.nl rejected" framing.
@@ -831,7 +857,7 @@ export async function POST(
             ? `Onboarding failed: ${detail}`
             : `Pay.nl rejected the merchant application (HTTP ${error.status}): ${detail}`,
           paynlStatus: error.status,
-          paynlBody: error.body,
+          paynlBody: redactedBody,
         },
         { status: isLocalError ? 500 : 502 },
       );

@@ -9,14 +9,15 @@
  *
  *   1. If the campaign's organization has `paynl_service_id` set AND
  *      `donations_active = true` → use it (Phase 2 multi-tenant routing)
- *   2. Otherwise fall back to `PAYNL_SERVICE_ID` env var
- *      (Phase 1 single-location behaviour)
+ *   2. Otherwise fall back to `PAYNL_SERVICE_ID` only in sandbox/local
+ *      or when PAYNL_ALLOW_PLATFORM_FALLBACK=true.
  *
  * When Alliance is fully rolled out to every organization, the fallback can
  * be removed and the env var retired.
  */
 
 import type { createAdminClient } from './supabase/admin';
+import { shouldAllowPlatformPayNLFallback } from './paynl-production';
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -92,7 +93,8 @@ export async function resolveOrganizationServiceIdForCampaign(
     };
   }
 
-  // Phase 1 fallback: use the platform-wide env var.
+  // Phase 1 fallback: use the platform-wide env var only when explicitly safe.
+  if (!shouldAllowPlatformPayNLFallback()) return null;
   const fallback = process.env.PAYNL_SERVICE_ID;
   if (!fallback) return null;
 
@@ -132,6 +134,8 @@ export async function resolveOrganizationServiceIdForOrganization(
       usedFallback: false,
     };
   }
+
+  if (!shouldAllowPlatformPayNLFallback()) return null;
 
   const fallback = process.env.PAYNL_SERVICE_ID;
   if (!fallback) return null;

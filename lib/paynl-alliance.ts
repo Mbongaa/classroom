@@ -1109,6 +1109,59 @@ export async function listLicenses(
 }
 
 // ---------------------------------------------------------------------------
+// 10. listClearings - GET /v2/clearings
+//
+// Read-only settlement visibility. This endpoint requires Pay.nl to enable
+// the extra settlement/reporting permission group on the Alliance account.
+// ---------------------------------------------------------------------------
+
+export interface PayNLClearingSummary {
+  code: string;
+  clearingId: string | null;
+  state: string | null;
+  settlementDate: string | null;
+  valueDate: string | null;
+  amount: { value: number; currency: string } | null;
+  raw: unknown;
+}
+
+export async function listClearings(
+  merchantCode: string,
+  limit = 10,
+): Promise<PayNLClearingSummary[]> {
+  assertAllianceEnabled('listClearings');
+
+  const safeLimit = Math.min(Math.max(limit, 1), 100);
+  const raw = await paynlRequest<unknown>(
+    getRestBase(),
+    `/v2/clearings?merchant%5Beq%5D=${encodeURIComponent(merchantCode)}&limit=${safeLimit}`,
+    'GET',
+  );
+  const root = raw as Record<string, unknown> | null;
+  const arr =
+    (root?.clearings as unknown[] | undefined) ??
+    (root?.data as unknown[] | undefined) ??
+    (Array.isArray(raw) ? (raw as unknown[]) : []);
+
+  return arr.map((entry) => {
+    const c = (entry ?? {}) as Record<string, unknown>;
+    const amount = c.amount as { value?: number; currency?: string } | undefined;
+    return {
+      code: String(c.code ?? c.id ?? c.clearingId ?? ''),
+      clearingId: (c.clearingId as string | undefined) ?? (c.id as string | undefined) ?? null,
+      state: (c.state as string | undefined) ?? (c.status as string | undefined) ?? null,
+      settlementDate: (c.settlementDate as string | undefined) ?? null,
+      valueDate: (c.valueDate as string | undefined) ?? null,
+      amount:
+        amount && typeof amount.value === 'number'
+          ? { value: amount.value, currency: amount.currency ?? 'EUR' }
+          : null,
+      raw: entry,
+    };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Legacy v4 API: Service.enablePaymentOption
 //
 // SEPA direct-debit (and certain other alternative payment methods) cannot

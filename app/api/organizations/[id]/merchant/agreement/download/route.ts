@@ -71,7 +71,7 @@ export async function GET(
   if (dlError || !file) {
     console.error('[Agreement] Storage download failed', {
       organizationId: id,
-      storagePath: row.storage_path,
+      documentId: row.id,
       error: dlError?.message,
     });
     return NextResponse.json({ error: 'File not available' }, { status: 404 });

@@ -7,6 +7,8 @@ import {
   PayNLAllianceNotActivatedError,
   PayNLError,
 } from '@/lib/paynl-alliance';
+import { assertPayNLProductionConfig } from '@/lib/paynl-production';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/organizations/[id]/merchant/documents
@@ -79,11 +81,32 @@ export async function POST(
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
+  const limiter = await rateLimit(
+    `merchant:documents:${id}:${auth.user?.id ?? getClientIp(request.headers)}`,
+    {
+      limit: 12,
+      windowMs: 60_000,
+    },
+  );
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many document uploads. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
+
   if (!isAllianceEnabled()) {
     return NextResponse.json(
       { error: 'Pay.nl Alliance is not yet activated on this platform.' },
       { status: 503 },
     );
+  }
+  const productionConfigError = assertPayNLProductionConfig();
+  if (productionConfigError) {
+    return NextResponse.json({ error: productionConfigError }, { status: 503 });
   }
 
   // ---- Parse multipart ------------------------------------------------------
@@ -214,7 +237,6 @@ export async function POST(
       console.error('[Alliance] Pay.nl document upload failed', {
         organizationId: id,
         documentCode,
-        storagePath,
         status: error.status,
       });
       return NextResponse.json(
@@ -222,7 +244,6 @@ export async function POST(
           error:
             'Stored locally but Pay.nl rejected the upload. ' +
             'Please verify the file and try again.',
-          storagePath,
         },
         { status: 502 },
       );
@@ -230,7 +251,6 @@ export async function POST(
     console.error('[Alliance] Unexpected error forwarding document', {
       organizationId: id,
       documentCode,
-      storagePath,
       error,
     });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -257,7 +277,6 @@ export async function POST(
     console.error('[Alliance] Failed to update document row after upload', {
       organizationId: id,
       documentCode,
-      storagePath,
       error: updateError?.message,
     });
     return NextResponse.json(

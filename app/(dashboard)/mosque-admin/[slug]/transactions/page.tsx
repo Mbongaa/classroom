@@ -70,6 +70,7 @@ interface DirectDebitDbRow {
     donor_name: string;
     donor_email: string | null;
     campaign_id: string | null;
+    organization_id: string;
     campaigns: { id: string; title: string; slug: string; organization_id: string } | null;
   } | null;
 }
@@ -143,33 +144,33 @@ export default async function TransactionsPage({ params }: PageProps) {
   let directDebits: DirectDebitDbRow[] = [];
 
   if (campaignIds.length > 0) {
-    const [txResult, ddResult] = await Promise.all([
-      supabaseAdmin
-        .from('transactions')
-        .select<string, TransactionDbRow>(
-          `id, paynl_order_id, amount, currency, payment_method, status,
-           donor_name, donor_email, is_test, created_at, paid_at, campaign_id,
-           campaigns!inner(id, title, slug, organization_id)`,
-        )
-        .in('campaign_id', campaignIds)
-        .order('created_at', { ascending: false })
-        .limit(FETCH_LIMIT),
-      supabaseAdmin
-        .from('direct_debits')
-        .select<string, DirectDebitDbRow>(
-          `id, paynl_directdebit_id, paynl_order_id, amount, currency, status,
-           process_date, storno_at, collected_at, created_at, mandate_id,
-           mandates!inner(id, paynl_mandate_id, donor_name, donor_email, campaign_id,
-             campaigns!inner(id, title, slug, organization_id))`,
-        )
-        .in('mandates.campaign_id', campaignIds)
-        .order('created_at', { ascending: false })
-        .limit(FETCH_LIMIT),
-    ]);
+    const { data: txData } = await supabaseAdmin
+      .from('transactions')
+      .select<string, TransactionDbRow>(
+        `id, paynl_order_id, amount, currency, payment_method, status,
+         donor_name, donor_email, is_test, created_at, paid_at, campaign_id,
+         campaigns!inner(id, title, slug, organization_id)`,
+      )
+      .in('campaign_id', campaignIds)
+      .order('created_at', { ascending: false })
+      .limit(FETCH_LIMIT);
 
-    transactions = txResult.data ?? [];
-    directDebits = ddResult.data ?? [];
+    transactions = txData ?? [];
   }
+
+  const { data: ddData } = await supabaseAdmin
+    .from('direct_debits')
+    .select<string, DirectDebitDbRow>(
+      `id, paynl_directdebit_id, paynl_order_id, amount, currency, status,
+       process_date, storno_at, collected_at, created_at, mandate_id,
+       mandates!inner(id, paynl_mandate_id, donor_name, donor_email, campaign_id, organization_id,
+         campaigns(id, title, slug, organization_id))`,
+    )
+    .eq('mandates.organization_id', organization.id)
+    .order('created_at', { ascending: false })
+    .limit(FETCH_LIMIT);
+
+  directDebits = ddData ?? [];
 
   // ---------------------------------------------------------------------
   // Normalize both into a unified shape, then sort by the most relevant
@@ -210,7 +211,7 @@ export default async function TransactionsPage({ params }: PageProps) {
       donor_name: mandate?.donor_name ?? null,
       donor_email: mandate?.donor_email ?? null,
       payment_method: 'sepa',
-      campaign_title: campaign?.title ?? null,
+      campaign_title: campaign?.title ?? (mandate?.campaign_id ? null : 'Membership'),
       campaign_slug: campaign?.slug ?? null,
       sort_date: d.collected_at || d.process_date || d.created_at,
       created_at: d.created_at,

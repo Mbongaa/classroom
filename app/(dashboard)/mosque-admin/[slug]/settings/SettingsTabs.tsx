@@ -182,6 +182,7 @@ interface OrganizationProp {
   contact_email: string | null;
   contact_phone: string | null;
   bank_iban: string | null;
+  bank_iban_last4?: string | null;
   bank_account_holder: string | null;
   thankyou_animation_id: string | null;
   paynl_merchant_id: string | null;

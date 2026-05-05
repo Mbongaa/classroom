@@ -35,7 +35,8 @@ interface MandateRow {
     id: string;
     title: string;
     organizations: { id: string; name: string; slug: string };
-  };
+  } | null;
+  organizations: { id: string; name: string; slug: string };
 }
 
 // Hard caps so a compromised token can't be used to drain a donor at
@@ -43,8 +44,8 @@ interface MandateRow {
 const MIN_MONTHLY_CENTS = 100; // €1.00
 const MAX_MONTHLY_CENTS = 100_000; // €1,000.00
 
-function ratelimitOrFail(ip: string, route: string) {
-  const rl = rateLimit(`manage:${route}:${ip}`, 30, 60_000);
+async function ratelimitOrFail(ip: string, route: string) {
+  const rl = await rateLimit(`manage:${route}:${ip}`, 30, 60_000);
   if (rl.allowed) return null;
   return NextResponse.json(
     { error: 'Too many requests. Please wait a minute and try again.' },
@@ -57,7 +58,7 @@ async function loadMandate(token: string): Promise<MandateRow | null> {
   const { data } = await supabase
     .from('mandates')
     .select(
-      'id, status, monthly_amount, donor_name, donor_email, iban_owner, paynl_mandate_id, first_debit_at, next_debit_at, created_at, campaigns!inner(id, title, organizations!inner(id, name, slug))',
+      'id, status, monthly_amount, donor_name, donor_email, iban_owner, paynl_mandate_id, first_debit_at, next_debit_at, created_at, campaigns(id, title, organizations!inner(id, name, slug)), organizations!inner(id, name, slug)',
     )
     .eq('manage_token', token)
     .in('status', ['PENDING', 'ACTIVE'])
@@ -73,7 +74,7 @@ export async function GET(
   if (!isValidManageTokenShape(token)) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const limited = ratelimitOrFail(getClientIp(request.headers), 'get');
+  const limited = await ratelimitOrFail(getClientIp(request.headers), 'get');
   if (limited) return limited;
 
   const mandate = await loadMandate(token);
@@ -92,13 +93,13 @@ export async function GET(
     nextDebitAt: mandate.next_debit_at,
     createdAt: mandate.created_at,
     campaign: {
-      id: mandate.campaigns.id,
-      title: mandate.campaigns.title,
+      id: mandate.campaigns?.id ?? null,
+      title: mandate.campaigns?.title ?? 'Membership',
     },
     organization: {
-      id: mandate.campaigns.organizations.id,
-      name: mandate.campaigns.organizations.name,
-      slug: mandate.campaigns.organizations.slug,
+      id: mandate.organizations.id,
+      name: mandate.organizations.name,
+      slug: mandate.organizations.slug,
     },
   });
 }
@@ -111,7 +112,7 @@ export async function PATCH(
   if (!isValidManageTokenShape(token)) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 });
   }
-  const limited = ratelimitOrFail(getClientIp(request.headers), 'patch');
+  const limited = await ratelimitOrFail(getClientIp(request.headers), 'patch');
   if (limited) return limited;
 
   let raw: unknown;
@@ -167,7 +168,7 @@ export async function PATCH(
   // Confirmation email — donor sees that the change happened, and gets a
   // chance to react if it wasn't them.
   try {
-    const orgName = mandate.campaigns.organizations.name || 'the mosque';
+    const orgName = mandate.organizations.name || 'the mosque';
     await sendEmail({
       to: mandate.donor_email,
       from: buildDonorFrom(orgName),
@@ -177,11 +178,11 @@ export async function PATCH(
         mosqueName: orgName,
         oldAmount: formatMoney(previousAmount ?? 0, 'EUR'),
         newAmount: formatMoney(body.amount, 'EUR'),
-        campaignTitle: mandate.campaigns.title || 'General donations',
+        campaignTitle: mandate.campaigns?.title || 'Monthly membership',
       }),
       tags: [
         { name: 'type', value: 'donor_mandate_amount_changed' },
-        { name: 'organization_id', value: mandate.campaigns.organizations.id },
+          { name: 'organization_id', value: mandate.organizations.id },
       ],
     });
   } catch (err) {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { requireOrgAdmin } from '@/lib/api-auth';
 import { refundTransaction } from '@/lib/paynl';
+import { getClientIp, rateLimit } from '@/lib/rate-limit';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -34,6 +35,20 @@ export async function POST(
 
   const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
+
+  const limiter = await rateLimit(`refund:${id}:${getClientIp(request.headers)}`, {
+    limit: 10,
+    windowMs: 60_000,
+  });
+  if (!limiter.allowed) {
+    return NextResponse.json(
+      { error: 'Too many refund attempts. Please wait and try again.' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(limiter.retryAfterSeconds ?? 60) },
+      },
+    );
+  }
 
   const supabaseAdmin = createAdminClient();
 
@@ -85,7 +100,7 @@ export async function POST(
       transactionId,
       paynlOrderId: tx.paynl_order_id,
       amountCents: amountCents ?? 'full',
-      result,
+      paynlResultStatus: result?.status ?? null,
     });
     return NextResponse.json({ success: true, refund: result });
   } catch (err) {

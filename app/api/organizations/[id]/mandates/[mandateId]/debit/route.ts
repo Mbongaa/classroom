@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const { data: mandate, error: fetchError } = await supabaseAdmin
       .from('mandates')
       .select(
-        'id, paynl_mandate_id, paynl_service_id, status, stats_extra1, stats_extra2, stats_extra3, campaign_id, campaigns!inner(id, organization_id)',
+        'id, paynl_mandate_id, paynl_service_id, status, stats_extra1, stats_extra2, stats_extra3, campaign_id, organization_id',
       )
       .eq('id', mandateId)
       .single();
@@ -99,13 +99,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: 'Mandate not found' }, { status: 404 });
     }
 
-    // Verify the mandate belongs to this organization.
-    const rawCampaigns = (mandate as unknown as { campaigns: unknown }).campaigns;
-    const campaign = Array.isArray(rawCampaigns)
-      ? (rawCampaigns[0] as { organization_id: string } | undefined)
-      : (rawCampaigns as { organization_id: string } | null);
-
-    if (!campaign || campaign.organization_id !== id) {
+    if (mandate.organization_id !== id) {
       return NextResponse.json({ error: 'Mandate not found' }, { status: 404 });
     }
 
