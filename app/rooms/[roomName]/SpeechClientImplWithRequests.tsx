@@ -769,10 +769,10 @@ export function SpeechClientImplWithRequests({
                   <CustomControlBar
                     variation="minimal"
                     controls={{
-                      microphone: true,
-                      camera: true,
+                      microphone: canSpeak,
+                      camera: canSpeak,
                       chat: false,
-                      screenShare: true,
+                      screenShare: isTeacher,
                       leave: true,
                       translation: false,
                       record: isTeacher,
@@ -780,7 +780,7 @@ export function SpeechClientImplWithRequests({
                     onRecordClick={handleRecordToggle}
                     isRecording={isRecording}
                     recordingLoading={recordingLoading}
-                    isStudent={false}
+                    isStudent={!isTeacher}
                   />
                 }
               />
@@ -1001,10 +1001,10 @@ export function SpeechClientImplWithRequests({
           <CustomControlBar
             variation="minimal"
             controls={{
-              microphone: true,
-              camera: true,
+              microphone: canSpeak,
+              camera: canSpeak,
               chat: false,
-              screenShare: true,
+              screenShare: isTeacher,
               leave: true,
               translation: true,
               record: isTeacher,
@@ -1014,7 +1014,7 @@ export function SpeechClientImplWithRequests({
             onRecordClick={handleRecordToggle}
             isRecording={isRecording}
             recordingLoading={recordingLoading}
-            isStudent={false}
+            isStudent={!isTeacher}
           />
         </div>
       )}

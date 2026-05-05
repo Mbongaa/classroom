@@ -8,6 +8,8 @@ import { headers } from 'next/headers';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import { getDirection, type Locale } from '@/i18n/config';
+import { Analytics } from '@vercel/analytics/next';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ToasterProvider } from './components/ToasterProvider';
 import { Providers } from './providers';
 
@@ -164,6 +166,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </Providers>
         </NextIntlClientProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

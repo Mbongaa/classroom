@@ -2,22 +2,24 @@
 
 import React from 'react';
 import { Track } from 'livekit-client';
-import { useTrackToggle } from '@livekit/components-react';
+import { useLocalParticipantPermissions, useTrackToggle } from '@livekit/components-react';
 
 export function KeyboardShortcuts() {
   const { toggle: toggleMic } = useTrackToggle({ source: Track.Source.Microphone });
   const { toggle: toggleCamera } = useTrackToggle({ source: Track.Source.Camera });
+  const permissions = useLocalParticipantPermissions();
+  const canPublishMedia = permissions?.canPublish === true;
 
   React.useEffect(() => {
     function handleShortcut(event: KeyboardEvent) {
       // Toggle microphone: Cmd/Ctrl-Shift-A
-      if (toggleMic && event.key === 'A' && (event.ctrlKey || event.metaKey)) {
+      if (canPublishMedia && event.key === 'A' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         toggleMic();
       }
 
       // Toggle camera: Cmd/Ctrl-Shift-V
-      if (event.key === 'V' && (event.ctrlKey || event.metaKey)) {
+      if (canPublishMedia && event.key === 'V' && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         toggleCamera();
       }
@@ -25,7 +27,7 @@ export function KeyboardShortcuts() {
 
     window.addEventListener('keydown', handleShortcut);
     return () => window.removeEventListener('keydown', handleShortcut);
-  }, [toggleMic, toggleCamera]);
+  }, [canPublishMedia, toggleMic, toggleCamera]);
 
   return null;
 }
