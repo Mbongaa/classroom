@@ -169,6 +169,7 @@
       "fetchFailed": "فشل تحميل الفصول",
       "fetchRetry": "فشل تحميل الغرف. الرجاء المحاولة مرة أخرى.",
       "deleteFailed": "فشل حذف الغرفة",
+      "hostLinkFailed": "فشل إنشاء رابط المضيف",
       "deleteConfirm": "هل أنت متأكد من أنك تريد حذف \"{code}\"؟"
     },
     "empty": {
@@ -182,6 +183,8 @@
     },
     "actions": {
       "copyStudentLink": "نسخ رابط الطالب",
+      "copyHostLink": "نسخ رابط المضيف",
+      "copyHostWarning": "يمنح رابط المضيف صلاحيات المتحدث. شاركه فقط مع المعلم أو الشيخ.",
       "joinRoom": "انضمام إلى الغرفة",
       "joining": "جارٍ الانضمام…"
     }
@@ -466,7 +469,7 @@
         "slugLabel": "المعرّف",
         "slugPlaceholder": "مثل: ramadan-iftar",
         "slugHintEdit": "لا يمكن تغيير المعرّف — فسيكسر ذلك الروابط التي تمت مشاركتها بالفعل.",
-        "slugHintCreate": "يُستخدم في رابط التبرع: /donate/<org>/<slug>. أحرف إنجليزية صغيرة وأرقام وشرطات.",
+      "slugHintCreate": "يُستخدم في رابط التبرع، مثل /donate/organization/campaign. أحرف إنجليزية صغيرة وأرقام وشرطات.",
         "descriptionLabel": "الوصف",
         "descriptionPlaceholder": "ما الذي تدعمه هذه الحملة؟ اختياري.",
         "causeLabel": "نوع القضية",
@@ -543,7 +546,7 @@
         "slugLabel": "المعرّف",
         "slugPlaceholder": "مثل: quran-sahih-international",
         "slugHintEdit": "لا يمكن تغيير المعرّف — فسيكسر ذلك الروابط التي تمت مشاركتها بالفعل.",
-        "slugHintCreate": "يُستخدم في رابط المتجر: /shop/<org>/<slug>. أحرف إنجليزية صغيرة وأرقام وشرطات.",
+      "slugHintCreate": "يُستخدم في رابط المتجر، مثل /shop/organization/product. أحرف إنجليزية صغيرة وأرقام وشرطات.",
         "descriptionLabel": "الوصف",
         "descriptionPlaceholder": "تفاصيل المنتج. اختياري.",
         "priceLabel": "السعر (€)",

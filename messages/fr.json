@@ -169,6 +169,7 @@
       "fetchFailed": "Échec du chargement des salles de classe",
       "fetchRetry": "Échec du chargement des salles. Veuillez réessayer.",
       "deleteFailed": "Échec de la suppression de la salle",
+      "hostLinkFailed": "Impossible de créer le lien hôte",
       "deleteConfirm": "Êtes-vous sûr de vouloir supprimer « {code} » ?"
     },
     "empty": {
@@ -182,6 +183,8 @@
     },
     "actions": {
       "copyStudentLink": "Copier le lien étudiant",
+      "copyHostLink": "Copier le lien hôte",
+      "copyHostWarning": "Ce lien hôte donne les contrôles de prise de parole. Partagez-le uniquement avec l’enseignant ou le sheikh.",
       "joinRoom": "Rejoindre la salle",
       "joining": "Connexion en cours…"
     }
@@ -466,7 +469,7 @@
         "slugLabel": "Identifiant",
         "slugPlaceholder": "ex. ramadan-iftar",
         "slugHintEdit": "L'identifiant ne peut pas être modifié — cela casserait les liens déjà partagés.",
-        "slugHintCreate": "Utilisé dans l'URL de don : /donate/<org>/<slug>. Lettres minuscules, chiffres et tirets.",
+      "slugHintCreate": "Utilisé dans l'URL de don, par exemple /donate/organisation/campagne. Lettres minuscules, chiffres et tirets.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Que soutient cette campagne ? Optionnel.",
         "causeLabel": "Type de cause",
@@ -543,7 +546,7 @@
         "slugLabel": "Identifiant",
         "slugPlaceholder": "ex. quran-sahih-international",
         "slugHintEdit": "L'identifiant ne peut pas être modifié — cela casserait les liens déjà partagés.",
-        "slugHintCreate": "Utilisé dans l'URL de la boutique : /shop/<org>/<slug>. Lettres minuscules, chiffres et tirets.",
+      "slugHintCreate": "Utilisé dans l'URL de la boutique, par exemple /shop/organisation/produit. Lettres minuscules, chiffres et tirets.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Détails du produit. Optionnel.",
         "priceLabel": "Prix (€)",

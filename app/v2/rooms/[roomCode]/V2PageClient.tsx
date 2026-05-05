@@ -33,9 +33,6 @@ import {
 import { useRouter } from 'next/navigation';
 import { useLeaveDestination } from '@/lib/useLeaveDestination';
 
-// V2 token is 30 min, refresh at 25 min
-const TOKEN_REFRESH_INTERVAL_MS = 25 * 60 * 1000;
-
 interface V2ConnectResponse {
   serverUrl: string;
   participantToken: string;
@@ -43,6 +40,7 @@ interface V2ConnectResponse {
   sessionId: string;
   livekitRoomName: string;
   isNewSession: boolean;
+  grantedRole: 'teacher' | 'student';
 }
 
 export function V2PageClient({ roomCode }: { roomCode: string }) {
@@ -63,6 +61,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
     role: string;
     pin: string | null;
     mode?: 'classroom' | 'speech';
+    hostToken?: string | null;
   } | null>(null);
 
   React.useEffect(() => {
@@ -71,15 +70,16 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
     const isSpeech = url.searchParams.get('speech') === 'true';
     const role = url.searchParams.get('role');
     const pin = url.searchParams.get('pin');
+    const hostToken = url.searchParams.get('host');
 
     if (isSpeech) {
-      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech' });
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'speech', hostToken });
     } else {
       // Default to student when no role param is present. Teachers always
       // arrive with `role=teacher` via /v2/t/[code]; anyone else hitting
       // /v2/rooms/[code] directly is safer joining listen-only than as a
       // publishing teacher (which doubles agent STT load on live mosques).
-      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom' });
+      setClassroomInfo({ role: role || 'student', pin: pin || null, mode: 'classroom', hostToken });
     }
   }, []);
 
@@ -170,6 +170,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
             role,
             orgSlug: orgSlug || undefined,
             mode,
+            hostToken: classroomInfo?.hostToken || undefined,
           }),
         });
 
@@ -179,6 +180,9 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
         }
 
         const data: V2ConnectResponse = await response.json();
+        setClassroomInfo((current) =>
+          current ? { ...current, role: data.grantedRole } : current,
+        );
         setConnectResponse(data);
       } catch (error) {
         console.error('[V2] Connect error:', error);
@@ -330,7 +334,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
           userChoices={preJoinChoices}
           selectedLanguage={selectedLanguage}
           selectedTranslationLanguage={selectedTranslationLanguage}
-          classroomRole={classroomInfo?.role}
+          classroomRole={connectResponse.grantedRole}
           roomCode={roomCode}
           orgSlug={orgSlug}
           orgName={orgName}
@@ -346,7 +350,7 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
  * - Uses server-provided identity (no cookie-based random postfix)
  * - Uses server-provided sessionId (UUID, passed directly to data APIs)
  * - No client session end — lifecycle is 100% webhook-driven
- * - Token refresh via /api/v2/refresh-token at 25-min intervals
+ * - No client token refresh loop; LiveKit owns transient reconnect tokens
  */
 function V2VideoConference(props: {
   userChoices: LocalUserChoices;
@@ -362,21 +366,10 @@ function V2VideoConference(props: {
   const router = useRouter();
 
   const isConnectingRef = React.useRef(false);
-  const isReconnectingRef = React.useRef(false);
 
   // Store connect response in a ref so the connect useEffect doesn't re-fire on prop changes.
   // This prevents the disconnect-reconnect cycle caused by double-submit race conditions.
   const connectResponseRef = React.useRef(props.connectResponse);
-
-  // Store latest token for reconnection (updated by token refresh timer)
-  const latestTokenRef = React.useRef(props.connectResponse.participantToken);
-  const serverUrlRef = React.useRef(props.connectResponse.serverUrl);
-
-  // Keep refs in sync if props change (e.g. token refresh at parent level)
-  React.useEffect(() => {
-    latestTokenRef.current = props.connectResponse.participantToken;
-    serverUrlRef.current = props.connectResponse.serverUrl;
-  }, [props.connectResponse.participantToken, props.connectResponse.serverUrl]);
 
   const roomOptions = React.useMemo((): RoomOptions => {
     const videoCaptureDefaults: VideoCaptureOptions = {
@@ -481,11 +474,7 @@ function V2VideoConference(props: {
         }
 
         // Enable media for non-students
-        const url = new URL(window.location.href);
-        const isStudent =
-          (url.searchParams.get('classroom') === 'true' ||
-            url.searchParams.get('speech') === 'true') &&
-          url.searchParams.get('role') === 'student';
+        const isStudent = props.classroomRole === 'student';
 
         if (!isStudent) {
           if (props.userChoices.videoEnabled) {
@@ -511,43 +500,8 @@ function V2VideoConference(props: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room, connectOptions]);
 
-  // Token refresh timer — every 25 minutes
-  React.useEffect(() => {
-    const refreshToken = async () => {
-      try {
-        console.log('[V2 Token Refresh] Refreshing...');
-        const response = await fetch('/api/v2/refresh-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            roomCode: props.roomCode,
-            participantIdentity: props.connectResponse.participantIdentity,
-            participantName: props.userChoices.username,
-            role: props.classroomRole || 'student',
-            orgSlug: props.orgSlug || undefined,
-          }),
-        });
-
-        if (!response.ok) throw new Error(`Refresh failed: ${response.status}`);
-        const data = await response.json();
-        latestTokenRef.current = data.participantToken;
-        console.log('[V2 Token Refresh] Fresh token stored');
-      } catch (error) {
-        console.error('[V2 Token Refresh] Failed:', error);
-      }
-    };
-
-    const interval = setInterval(refreshToken, TOKEN_REFRESH_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [
-    props.roomCode,
-    props.connectResponse.participantIdentity,
-    props.userChoices.username,
-    props.classroomRole,
-    props.orgSlug,
-  ]);
-
-  // Disconnect handler — reconnect with fresh token, NO client session end
+  // LiveKit handles transient reconnects internally. We only observe lifecycle
+  // events and navigate away after a final disconnection.
   React.useEffect(() => {
     if (!room) return;
 
@@ -559,38 +513,31 @@ function V2VideoConference(props: {
         return;
       }
 
-      if (isReconnectingRef.current) return;
-      isReconnectingRef.current = true;
-
-      try {
-        // Use stored fresh token for reconnection
-        console.log('[V2] Reconnecting with stored token...');
-        await room.connect(serverUrlRef.current, latestTokenRef.current, connectOptions);
-        console.log('[V2] Reconnected successfully');
-        isReconnectingRef.current = false;
-      } catch (error) {
-        console.error('[V2] Reconnection failed:', error);
-        isReconnectingRef.current = false;
-        handleOnLeave();
-      }
+      handleOnLeave();
     };
 
+    const handleReconnecting = () => console.log('[V2] LiveKit reconnecting...');
+    const handleReconnected = () => console.log('[V2] LiveKit reconnected');
+
+    room.on(RoomEvent.Reconnecting, handleReconnecting);
+    room.on(RoomEvent.Reconnected, handleReconnected);
     room.on(RoomEvent.Disconnected, handleDisconnected);
     return () => {
+      room.off(RoomEvent.Reconnecting, handleReconnecting);
+      room.off(RoomEvent.Reconnected, handleReconnected);
       room.off(RoomEvent.Disconnected, handleDisconnected);
     };
-  }, [room, connectOptions, handleOnLeave]);
+  }, [room, handleOnLeave]);
 
   // Determine mode from URL
   const [isClassroom, setIsClassroom] = React.useState(false);
   const [isSpeech, setIsSpeech] = React.useState(false);
-  const [userRole, setUserRole] = React.useState<string | null>(null);
+  const userRole = props.classroomRole ?? null;
 
   React.useEffect(() => {
     const url = new URL(window.location.href);
     setIsClassroom(url.searchParams.get('classroom') === 'true');
     setIsSpeech(url.searchParams.get('speech') === 'true');
-    setUserRole(url.searchParams.get('role'));
   }, []);
 
   return (

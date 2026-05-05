@@ -33,6 +33,10 @@ async function validateWebhookSignature(
   }
 
   if (receivers.length === 0) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[V2 Webhook] No API credentials; refusing unsigned webhook in production');
+      return null;
+    }
     console.warn('[V2 Webhook] No API credentials — skipping signature validation');
     return JSON.parse(body);
   }

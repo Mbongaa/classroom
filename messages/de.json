@@ -169,6 +169,7 @@
       "fetchFailed": "Klassenzimmer konnten nicht geladen werden",
       "fetchRetry": "Räume konnten nicht geladen werden. Bitte erneut versuchen.",
       "deleteFailed": "Raum konnte nicht gelöscht werden",
+      "hostLinkFailed": "Host-Link konnte nicht erstellt werden",
       "deleteConfirm": "Sind Sie sicher, dass Sie „{code}\" löschen möchten?"
     },
     "empty": {
@@ -182,6 +183,8 @@
     },
     "actions": {
       "copyStudentLink": "Schülerlink kopieren",
+      "copyHostLink": "Host-Link kopieren",
+      "copyHostWarning": "Dieser Host-Link gibt Sprecherrechte. Teilen Sie ihn nur mit dem Lehrer oder Sheikh.",
       "joinRoom": "Raum beitreten",
       "joining": "Beitreten…"
     }
@@ -466,7 +469,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "z. B. ramadan-iftar",
         "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
-        "slugHintCreate": "Wird in der Spenden-URL verwendet: /donate/<org>/<slug>. Kleinbuchstaben, Zahlen und Bindestriche.",
+      "slugHintCreate": "Wird in der Spenden-URL verwendet, zum Beispiel /donate/organisation/kampagne. Kleinbuchstaben, Zahlen und Bindestriche.",
         "descriptionLabel": "Beschreibung",
         "descriptionPlaceholder": "Was unterstützt diese Kampagne? Optional.",
         "causeLabel": "Zweckart",
@@ -543,7 +546,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "z. B. quran-sahih-international",
         "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
-        "slugHintCreate": "Wird in der Shop-URL verwendet: /shop/<org>/<slug>. Kleinbuchstaben, Zahlen und Bindestriche.",
+      "slugHintCreate": "Wird in der Shop-URL verwendet, zum Beispiel /shop/organisation/produkt. Kleinbuchstaben, Zahlen und Bindestriche.",
         "descriptionLabel": "Beschreibung",
         "descriptionPlaceholder": "Produktdetails. Optional.",
         "priceLabel": "Preis (€)",

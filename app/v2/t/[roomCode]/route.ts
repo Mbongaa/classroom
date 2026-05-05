@@ -1,43 +1,94 @@
-import { redirect } from 'next/navigation';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
+import { getV2AuthenticatedUserContext, canHostClassroom } from '@/lib/v2/auth-context';
+import {
+  HostCapabilityConfigError,
+  createHostCapability,
+  verifyHostCapability,
+} from '@/lib/v2/host-capability';
 
 export async function GET(request: Request, { params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = await params;
-
   const requestUrl = new URL(request.url);
   const orgSlugParam = requestUrl.searchParams.get('org');
+  const hostToken = requestUrl.searchParams.get('host');
 
   let organizationId: string | undefined;
   if (orgSlugParam) {
     try {
       const org = await getOrganizationBySlug(orgSlugParam);
       if (org) organizationId = org.id;
-    } catch (e) {
-      console.error('[V2 Teacher Redirect] Error resolving org slug:', e);
+    } catch (error) {
+      console.error('[V2 Teacher Redirect] Error resolving org slug:', error);
     }
   }
 
-  let classroom = null;
   try {
-    classroom = await getClassroomByRoomCode(roomCode, organizationId);
+    const classroom = await getClassroomByRoomCode(roomCode, organizationId);
+    if (!classroom) {
+      return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam));
+    }
+
+    if (hostToken && verifyHostCapability(hostToken, classroom)) {
+      return NextResponse.redirect(buildTeacherUrl(request.url, roomCode, orgSlugParam, hostToken, classroom.room_type));
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const context = await getV2AuthenticatedUserContext(user.id);
+      if (canHostClassroom(context, classroom)) {
+        const freshHostToken = createHostCapability(classroom);
+        return NextResponse.redirect(
+          buildTeacherUrl(request.url, roomCode, orgSlugParam, freshHostToken, classroom.room_type),
+        );
+      }
+    }
+
+    return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam, classroom.room_type));
   } catch (error) {
-    console.error('[V2 Teacher Redirect] Error fetching classroom:', error);
+    if (error instanceof HostCapabilityConfigError) {
+      return NextResponse.json(
+        { error: 'Host link signing is not configured' },
+        { status: 500 },
+      );
+    }
+
+    console.error('[V2 Teacher Redirect] Error:', error);
+    return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam));
   }
+}
 
-  if (!classroom) {
-    redirect(`/v2/rooms/${roomCode}?classroom=true&role=teacher`);
-  }
+function buildTeacherUrl(
+  baseUrl: string,
+  roomCode: string,
+  orgSlug: string | null,
+  hostToken: string,
+  roomType: string,
+) {
+  const isSpeech = roomType === 'speech';
+  const url = new URL(`/v2/rooms/${encodeURIComponent(roomCode)}`, baseUrl);
+  url.searchParams.set(isSpeech ? 'speech' : 'classroom', 'true');
+  url.searchParams.set('role', 'teacher');
+  if (orgSlug) url.searchParams.set('org', orgSlug);
+  url.searchParams.set('host', hostToken);
+  return url;
+}
 
-  let url = `/v2/rooms/${roomCode}`;
-  if (classroom.room_type === 'classroom') {
-    url += '?classroom=true&role=teacher';
-  } else if (classroom.room_type === 'speech') {
-    url += '?speech=true&role=teacher';
-  } else {
-    url += '?classroom=true&role=teacher';
-  }
-
-  if (orgSlugParam) url += `&org=${encodeURIComponent(orgSlugParam)}`;
-
-  redirect(url);
+function buildStudentUrl(
+  baseUrl: string,
+  roomCode: string,
+  orgSlug: string | null,
+  roomType = 'classroom',
+) {
+  const isSpeech = roomType === 'speech';
+  const url = new URL(`/v2/rooms/${encodeURIComponent(roomCode)}`, baseUrl);
+  url.searchParams.set(isSpeech ? 'speech' : 'classroom', 'true');
+  url.searchParams.set('role', 'student');
+  if (orgSlug) url.searchParams.set('org', orgSlug);
+  return url;
 }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
 import { getLiveKitURL } from '@/lib/getLiveKitURL';
+import { getV2AuthenticatedUserContext, canHostClassroom } from '@/lib/v2/auth-context';
+import { HostCapabilityConfigError, verifyHostCapability } from '@/lib/v2/host-capability';
 import {
   getActiveV2Session,
   createV2Session,
@@ -20,15 +21,15 @@ import {
   deleteRoom,
 } from '@/lib/v2/livekit-helpers';
 
-
 /**
  * POST /api/v2/connect
  *
  * Unified connect endpoint for v2 sessions.
  * - Looks up classroom config
+ * - Grants teacher only from a host capability or authenticated org teacher/admin
  * - Validates LiveKit room state against DB (LiveKit = truth)
  * - Creates or reuses session
- * - Mints deterministic-identity token
+ * - Mints a scoped LiveKit token
  */
 export async function POST(request: NextRequest) {
   try {
@@ -38,8 +39,8 @@ export async function POST(request: NextRequest) {
       participantName,
       role: requestedRole,
       orgSlug,
-      mode,
       region,
+      hostToken,
     } = body as {
       roomCode: string;
       participantName: string;
@@ -47,6 +48,7 @@ export async function POST(request: NextRequest) {
       orgSlug?: string;
       mode?: 'classroom' | 'speech';
       region?: string;
+      hostToken?: string;
     };
 
     if (!roomCode || !participantName || !requestedRole) {
@@ -57,43 +59,20 @@ export async function POST(request: NextRequest) {
     }
 
     // --- 1. Resolve authenticated user and org ---
-    // Trust x-supabase-user-id from middleware (already validated via getUser
-    // upstream). Skips a duplicate auth.getUser() round-trip to Supabase.
+    // Trust x-supabase-user-id from middleware, which strips spoofed inbound
+    // values before setting the validated Supabase user id.
     const userId = request.headers.get('x-supabase-user-id') ?? undefined;
-    const supabase = await createClient();
+    const authContext = userId ? await getV2AuthenticatedUserContext(userId) : null;
 
     let organizationId: string | undefined;
-    let userRole: 'teacher' | 'student' = requestedRole;
-
-    if (userId) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('role, organization_id')
-        .eq('id', userId)
-        .single();
-
-      if (profile) {
-        organizationId = profile.organization_id;
-        // Honor whatever role the client requested. Promoting every admin to
-        // teacher caused superadmins spectating live mosque sessions to join as
-        // a second publishing teacher — doubling the agent's STT pipeline and
-        // letting the spectator's mic noise leak into the imam's transcript.
-        // Admins still get whatever permissions the request asks for; if they
-        // want to teach they explicitly request role=teacher.
-        if (profile.role === 'teacher') {
-          userRole = 'teacher';
-        } else if (profile.role === 'admin') {
-          userRole = requestedRole;
-        } else {
-          userRole = 'student';
-        }
-      }
-    }
-
-    // Fallback: resolve org from slug
-    if (!organizationId && orgSlug) {
+    // Resolve org from the public URL first so logged-in users can still join
+    // another mosque's public follower link as students.
+    if (orgSlug) {
       const org = await getOrganizationBySlug(orgSlug);
       if (org) organizationId = org.id;
+    }
+    if (!organizationId && authContext?.organizationId) {
+      organizationId = authContext.organizationId;
     }
 
     // --- 2. Look up classroom ---
@@ -104,6 +83,15 @@ export async function POST(request: NextRequest) {
         { status: 404 },
       );
     }
+
+    const hostTokenValid =
+      requestedRole === 'teacher' ? verifyHostCapability(hostToken, classroom) : false;
+    const authenticatedHost =
+      requestedRole === 'teacher' && canHostClassroom(authContext, classroom);
+    const userRole: 'teacher' | 'student' =
+      requestedRole === 'teacher' && (hostTokenValid || authenticatedHost)
+        ? 'teacher'
+        : 'student';
 
     const language = classroom.settings?.language || 'en';
     const credentials = getCredentialsForLanguage(language);
@@ -118,12 +106,9 @@ export async function POST(request: NextRequest) {
 
     // --- 2.5. Reap any stale legacy LiveKit room for this classroom ---
     //
-    // Pre-v2, the LiveKit room name was the human room_code (e.g. "ShaykhRachidRoom2").
-    // v2 uses classroom.id (a UUID) instead. If a legacy room is still alive on the
-    // server, it'll show up forever as an "orphan" in the superadmin sessions table
-    // (no v2_session row → falls into the orphan branch with a misleading creationTime
-    // as Started At). Reap it here, but only if it's empty — we don't want to kick
-    // anyone still connected via an old shared link.
+    // Pre-v2, the LiveKit room name was the human room_code. v2 uses
+    // classroom.id instead. Reap an empty legacy room so it does not show as
+    // an orphan forever, but never kick active users still on an old link.
     if (classroom.room_code && classroom.room_code !== classroom.id) {
       try {
         const legacyRoom = await verifyRoomExists(classroom.room_code, language);
@@ -141,12 +126,12 @@ export async function POST(request: NextRequest) {
           }
         }
       } catch (err) {
-        // Non-blocking — connect should still succeed even if reap fails.
+        // Non-blocking: connect should still succeed even if reap fails.
         console.error('[V2 Connect] Legacy room reap failed:', err);
       }
     }
 
-    // --- 3. Build deterministic identity ---
+    // --- 3. Build participant identity ---
     const identity = buildDeterministicIdentity(userRole, classroom.id, {
       userId,
       name: participantName,
@@ -157,45 +142,35 @@ export async function POST(request: NextRequest) {
     let isNewSession = false;
 
     if (session) {
-      // Active session exists in DB — verify against LiveKit
       const room = await verifyRoomExists(livekitRoomName, language);
 
       if (room) {
-        // Room exists — check if the agent is still present
         let hasAgent = false;
         try {
           const participants = await listRoomParticipants(livekitRoomName, language);
-          hasAgent = participants.some((p: any) =>
-            p.kind === 4 || p.kind === 'AGENT'
-          );
+          hasAgent = participants.some((p: any) => p.kind === 4 || p.kind === 'AGENT');
         } catch {
-          // listParticipants failed (room in transition) — assume no agent
+          // listParticipants failed while room is in transition; dispatch below.
         }
 
         if (hasAgent) {
-          // Agent alive → reuse. Identities now carry a per-connect suffix,
-          // so multiple devices for the same teacher coexist instead of
-          // kicking each other.
           console.log(`[V2 Connect] Reusing room with agent for ${roomCode} (session: ${session.id})`);
         } else {
-          // Room alive but agent gone → explicitly dispatch a new agent to the existing room
-          console.log(`[V2 Connect] Room exists but agent gone for ${roomCode} — dispatching agent`);
+          console.log(`[V2 Connect] Room exists but agent gone for ${roomCode}; dispatching agent`);
           try {
             await dispatchAgentToRoom(livekitRoomName, language);
           } catch (err) {
-            console.error(`[V2 Connect] Agent dispatch failed:`, err);
+            console.error('[V2 Connect] Agent dispatch failed:', err);
           }
         }
       } else {
-        // Room truly gone from LiveKit
-        console.log(`[V2 Connect] Stale session for ${roomCode} — LiveKit room gone`);
+        console.log(`[V2 Connect] Stale session for ${roomCode}; LiveKit room gone`);
         await transitionV2Session(session.id, 'ended', 'reaper');
         session = null;
       }
     }
 
     if (!session) {
-      // Only teachers can start new sessions — students must wait for a teacher
       if (userRole === 'student') {
         return NextResponse.json(
           { error: 'No active session. Waiting for teacher to start the room.' },
@@ -203,44 +178,43 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // No active session — create fresh LiveKit room + v2 session
       console.log(
         `[V2 Connect] Creating new session for ${roomCode} (${livekitRoomName}) on ${language === 'ar' ? 'Bayaan' : 'Vertex'}`,
       );
-      await createLiveKitRoom(livekitRoomName, language, 300);
+
+      try {
+        await createLiveKitRoom(livekitRoomName, language, 300);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        if (!/already exists|already_exist|exists/i.test(message)) {
+          throw err;
+        }
+        console.log(`[V2 Connect] LiveKit room already exists for ${roomCode}; reusing`);
+      }
+
       session = await createV2Session(
         classroom.id,
         livekitRoomName,
-        organizationId || null,
+        organizationId || classroom.organization_id || null,
       );
 
-      // Explicitly dispatch the agent — auto-dispatch is timing-sensitive and
-      // unreliable when the room is created milliseconds before the user joins.
-      // The same pattern is used in the existing-session branch above (line 142).
       try {
         await dispatchAgentToRoom(livekitRoomName, language);
       } catch (err) {
-        console.error(`[V2 Connect] Agent dispatch failed for new session:`, err);
-        // Non-blocking: user can still join, but translations may not work
-        // until they reconnect (which will hit the existing-session fallback path)
+        console.error('[V2 Connect] Agent dispatch failed for new session:', err);
       }
 
       isNewSession = true;
     }
 
-    // If session was draining and a human is reconnecting, reactivate
     if (session.state === 'draining') {
       await transitionV2Session(session.id, 'active');
     }
 
-    // --- 5. Record participant (fire-and-forget) ---
-    // mintV2Token below does NOT depend on this row existing (it just signs a
-    // JWT from identity/role/credentials). Don't block the response on it.
-    void upsertV2Participant(session.id, identity, participantName, userRole).catch(
-      (err) => console.error('[V2 Connect] upsertV2Participant failed:', err),
-    );
+    // This row is now part of the auth boundary: refresh/re-entry validates
+    // against stored role/name instead of trusting client-supplied role.
+    await upsertV2Participant(session.id, identity, participantName, userRole);
 
-    // --- 6. Mint token ---
     const token = await mintV2Token(
       identity,
       participantName,
@@ -250,9 +224,6 @@ export async function POST(request: NextRequest) {
       '30m',
     );
 
-    // Track participation for authenticated users (fire-and-forget).
-    // Uses admin client so the write doesn't depend on SSR cookie scope
-    // surviving past the response return.
     if (userId) {
       void createAdminClient()
         .from('classroom_participants')
@@ -274,7 +245,7 @@ export async function POST(request: NextRequest) {
 
     const serverUrl = region ? getLiveKitURL(credentials.url, region) : credentials.url;
 
-    console.log(`[V2 Connect] ${userRole} "${participantName}" → session ${session.id} (new: ${isNewSession})`);
+    console.log(`[V2 Connect] ${userRole} "${participantName}" -> session ${session.id} (new: ${isNewSession})`);
 
     return NextResponse.json({
       serverUrl,
@@ -283,11 +254,13 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       livekitRoomName,
       isNewSession,
+      grantedRole: userRole,
     });
   } catch (error) {
     console.error('[V2 Connect] Error:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { error: error instanceof HostCapabilityConfigError ? 'Host link signing is not configured' : message },
       { status: 500 },
     );
   }

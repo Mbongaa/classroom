@@ -37,6 +37,9 @@ export function validatePayNLProductionConfig(): PayNLProductionConfigResult {
   requireEnv('NEXT_PUBLIC_SITE_URL', issues);
   requireEnv('CRON_SECRET', issues);
   requireEnv('PAYNL_REFERRAL_PROFILE_CODE', issues);
+  // Required by lib/v2/host-capability.ts — without it, teacher host links
+  // cannot be signed/verified and teachers are silently demoted to students.
+  requireEnv('HOST_CAPABILITY_SECRET', issues);
 
   if (process.env.PAYNL_ALLIANCE_ENABLED !== 'true') {
     issues.push('PAYNL_ALLIANCE_ENABLED must be true for live merchant routing');

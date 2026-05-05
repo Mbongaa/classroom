@@ -1,9 +1,9 @@
 'use client';
 
-import { useRoomContext } from '@livekit/components-react';
-import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import { TranscriptionSegment, RoomEvent } from 'livekit-client';
-import { Languages, ArrowDown } from 'lucide-react';
+import { useParticipants, useRoomContext } from '@livekit/components-react';
+import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from 'react';
+import { ParticipantKind, TranscriptionSegment, RoomEvent } from 'livekit-client';
+import { Languages, ArrowDown, Users } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 import styles from './TranslationPanel.module.css';
 
@@ -45,6 +45,18 @@ export default function TranslationPanel({
   userRole,
 }: TranslationPanelProps) {
   const room = useRoomContext();
+  const participants = useParticipants();
+  // Exclude agent participants from the counter — donors/teachers expect to
+  // see other humans, not the STT/translation bots.
+  const humanParticipantCount = useMemo(
+    () =>
+      participants.filter(
+        (p) =>
+          p.kind !== ParticipantKind.AGENT &&
+          !(p.identity || '').toLowerCase().startsWith('agent-'),
+      ).length,
+    [participants],
+  );
   const [translations, setTranslations] = useState<TranslationEntry[]>([]);
   const [fontSize, setFontSize] = useState(DEFAULT_FONT_SIZE);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -379,6 +391,14 @@ export default function TranslationPanel({
           {translations.length > 0 && (
             <span className={styles.messageCountBadge}>{translations.length}</span>
           )}
+          <span
+            className={styles.participantBadge}
+            title={`${humanParticipantCount} participant${humanParticipantCount === 1 ? '' : 's'} in room`}
+            aria-label={`${humanParticipantCount} participants`}
+          >
+            <Users size={12} />
+            <span>{humanParticipantCount}</span>
+          </span>
           <div className={styles.fontControls}>
             <button
               onClick={() => setFontSize((prev) => Math.max(MIN_FONT_SIZE, prev - FONT_STEP))}

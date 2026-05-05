@@ -72,6 +72,7 @@ export interface Classroom {
   name: string; // Teacher/classroom name
   description: string | null;
   room_type: 'meeting' | 'classroom' | 'speech'; // Type of room
+  host_link_nonce?: string | null;
   settings: ClassroomSettings;
   is_active: boolean;
   created_at: string;

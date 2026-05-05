@@ -39,6 +39,12 @@ export async function GET(request: NextRequest) {
 
 async function handleReaper(request: NextRequest) {
   // Validate cron secret
+  if (!CRON_SECRET && process.env.NODE_ENV === 'production') {
+    return NextResponse.json(
+      { error: 'CRON_SECRET is not configured' },
+      { status: 500 },
+    );
+  }
   if (CRON_SECRET) {
     const authHeader = request.headers.get('authorization');
     if (authHeader !== `Bearer ${CRON_SECRET}`) {

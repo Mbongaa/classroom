@@ -169,6 +169,7 @@
       "fetchFailed": "Failed to fetch classrooms",
       "fetchRetry": "Failed to fetch rooms. Please try again.",
       "deleteFailed": "Failed to delete room",
+      "hostLinkFailed": "Failed to create host link",
       "deleteConfirm": "Are you sure you want to delete \"{code}\"?"
     },
     "empty": {
@@ -182,6 +183,8 @@
     },
     "actions": {
       "copyStudentLink": "Copy student link",
+      "copyHostLink": "Copy host link",
+      "copyHostWarning": "This host link gives speaker controls. Only share it with the teacher or sheikh.",
       "joinRoom": "Join Room",
       "joining": "Joining…"
     }
@@ -466,7 +469,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "e.g. ramadan-iftar",
         "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
-        "slugHintCreate": "Used in the donate URL: /donate/<org>/<slug>. Lowercase letters, numbers and hyphens.",
+      "slugHintCreate": "Used in the donate URL, for example /donate/organization/campaign. Lowercase letters, numbers and hyphens.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "What does this campaign support? Optional.",
         "causeLabel": "Cause type",
@@ -543,7 +546,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "e.g. quran-sahih-international",
         "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
-        "slugHintCreate": "Used in the shop URL: /shop/<org>/<slug>. Lowercase letters, numbers and hyphens.",
+      "slugHintCreate": "Used in the shop URL, for example /shop/organization/product. Lowercase letters, numbers and hyphens.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Product details. Optional.",
         "priceLabel": "Price (€)",

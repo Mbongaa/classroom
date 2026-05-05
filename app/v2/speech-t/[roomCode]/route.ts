@@ -1,13 +1,84 @@
-import { redirect } from 'next/navigation';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { getClassroomByRoomCode, getOrganizationBySlug } from '@/lib/classroom-utils';
+import { getV2AuthenticatedUserContext, canHostClassroom } from '@/lib/v2/auth-context';
+import {
+  HostCapabilityConfigError,
+  createHostCapability,
+  verifyHostCapability,
+} from '@/lib/v2/host-capability';
 
 export async function GET(request: Request, { params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = await params;
+  const requestUrl = new URL(request.url);
+  const orgSlugParam = requestUrl.searchParams.get('org');
+  const hostToken = requestUrl.searchParams.get('host');
 
-  const url = new URL(request.url);
-  const org = url.searchParams.get('org');
+  let organizationId: string | undefined;
+  if (orgSlugParam) {
+    try {
+      const org = await getOrganizationBySlug(orgSlugParam);
+      if (org) organizationId = org.id;
+    } catch (error) {
+      console.error('[V2 Speech Teacher Redirect] Error resolving org slug:', error);
+    }
+  }
 
-  let redirectUrl = `/v2/rooms/${roomCode}?speech=true&role=teacher`;
-  if (org) redirectUrl += `&org=${encodeURIComponent(org)}`;
+  try {
+    const classroom = await getClassroomByRoomCode(roomCode, organizationId);
+    if (!classroom) {
+      return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam));
+    }
 
-  redirect(redirectUrl);
+    if (hostToken && verifyHostCapability(hostToken, classroom)) {
+      return NextResponse.redirect(buildTeacherUrl(request.url, roomCode, orgSlugParam, hostToken));
+    }
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const context = await getV2AuthenticatedUserContext(user.id);
+      if (canHostClassroom(context, classroom)) {
+        const freshHostToken = createHostCapability(classroom);
+        return NextResponse.redirect(buildTeacherUrl(request.url, roomCode, orgSlugParam, freshHostToken));
+      }
+    }
+
+    return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam));
+  } catch (error) {
+    if (error instanceof HostCapabilityConfigError) {
+      return NextResponse.json(
+        { error: 'Host link signing is not configured' },
+        { status: 500 },
+      );
+    }
+
+    console.error('[V2 Speech Teacher Redirect] Error:', error);
+    return NextResponse.redirect(buildStudentUrl(request.url, roomCode, orgSlugParam));
+  }
+}
+
+function buildTeacherUrl(
+  baseUrl: string,
+  roomCode: string,
+  orgSlug: string | null,
+  hostToken: string,
+) {
+  const url = new URL(`/v2/rooms/${encodeURIComponent(roomCode)}`, baseUrl);
+  url.searchParams.set('speech', 'true');
+  url.searchParams.set('role', 'teacher');
+  if (orgSlug) url.searchParams.set('org', orgSlug);
+  url.searchParams.set('host', hostToken);
+  return url;
+}
+
+function buildStudentUrl(baseUrl: string, roomCode: string, orgSlug: string | null) {
+  const url = new URL(`/v2/rooms/${encodeURIComponent(roomCode)}`, baseUrl);
+  url.searchParams.set('speech', 'true');
+  url.searchParams.set('role', 'student');
+  if (orgSlug) url.searchParams.set('org', orgSlug);
+  return url;
 }

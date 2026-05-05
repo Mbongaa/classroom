@@ -67,8 +67,27 @@ export async function createV2Session(
     .single();
 
   if (error) {
+    if (error.code === '23505') {
+      const existing = await getActiveV2Session(classroomId);
+      if (existing) return existing;
+    }
     console.error('[V2 Session] Error creating session:', error);
     throw new Error(`Failed to create v2 session: ${error.message}`);
+  }
+  return data;
+}
+
+export async function getV2SessionById(sessionId: string): Promise<V2Session | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('v2_sessions')
+    .select('*')
+    .eq('id', sessionId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[V2 Session] Error fetching session:', error);
+    return null;
   }
   return data;
 }
@@ -311,6 +330,39 @@ export async function upsertV2Participant(
     }
     console.error('[V2 Participant] Insert error:', error);
     throw new Error(`Failed to insert v2 participant: ${error.message}`);
+  }
+  return data;
+}
+
+export interface V2Participant {
+  id: string;
+  session_id: string;
+  identity: string;
+  name: string;
+  role: 'teacher' | 'student' | 'translator' | 'agent';
+  language: string | null;
+  joined_at: string;
+  left_at: string | null;
+  is_active: boolean;
+}
+
+export async function getV2ParticipantByIdentity(
+  sessionId: string,
+  identity: string,
+): Promise<V2Participant | null> {
+  const supabase = createAdminClient();
+  const { data, error } = await supabase
+    .from('v2_participants')
+    .select('*')
+    .eq('session_id', sessionId)
+    .eq('identity', identity)
+    .order('joined_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[V2 Participant] Error fetching participant:', error);
+    return null;
   }
   return data;
 }

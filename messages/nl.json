@@ -169,6 +169,7 @@
       "fetchFailed": "Klaslokalen ophalen mislukt",
       "fetchRetry": "Kamers ophalen mislukt. Probeer het opnieuw.",
       "deleteFailed": "Kamer verwijderen mislukt",
+      "hostLinkFailed": "Hostlink maken mislukt",
       "deleteConfirm": "Weet je zeker dat je \"{code}\" wilt verwijderen?"
     },
     "empty": {
@@ -182,6 +183,8 @@
     },
     "actions": {
       "copyStudentLink": "Leerlingenlink kopiëren",
+      "copyHostLink": "Hostlink kopiëren",
+      "copyHostWarning": "Deze hostlink geeft sprekerrechten. Deel hem alleen met de docent of sheikh.",
       "joinRoom": "Deelnemen",
       "joining": "Bezig met deelnemen…"
     }
@@ -466,7 +469,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "bijv. ramadan-iftar",
         "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
-        "slugHintCreate": "Wordt gebruikt in de donatie-URL: /donate/<org>/<slug>. Kleine letters, cijfers en streepjes.",
+      "slugHintCreate": "Wordt gebruikt in de donatie-URL, bijvoorbeeld /donate/organisatie/campagne. Kleine letters, cijfers en streepjes.",
         "descriptionLabel": "Beschrijving",
         "descriptionPlaceholder": "Wat ondersteunt deze campagne? Optioneel.",
         "causeLabel": "Type doel",
@@ -543,7 +546,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "bijv. quran-sahih-international",
         "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
-        "slugHintCreate": "Wordt gebruikt in de winkel-URL: /shop/<org>/<slug>. Kleine letters, cijfers en streepjes.",
+      "slugHintCreate": "Wordt gebruikt in de winkel-URL, bijvoorbeeld /shop/organisatie/product. Kleine letters, cijfers en streepjes.",
         "descriptionLabel": "Beschrijving",
         "descriptionPlaceholder": "Productdetails. Optioneel.",
         "priceLabel": "Prijs (€)",

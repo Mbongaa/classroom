@@ -9,7 +9,7 @@ import { RoomFormDialog } from '@/components/rooms/RoomFormDialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import PulsatingLoader from '@/components/ui/pulsating-loader';
-import { Settings, Video, RefreshCw, Loader2 } from 'lucide-react';
+import { Settings, RefreshCw, Loader2, KeyRound } from 'lucide-react';
 import { CopyIcon } from '@/components/ui/copy';
 import { CheckIcon as AnimatedCheckIcon } from '@/components/ui/check';
 import { TrashIcon } from '@/components/ui/trash';
@@ -23,6 +23,8 @@ export default function DashboardRoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [copiedRoomId, setCopiedRoomId] = useState<string | null>(null);
+  const [copiedHostRoomId, setCopiedHostRoomId] = useState<string | null>(null);
+  const [copyingHostRoomId, setCopyingHostRoomId] = useState<string | null>(null);
   const [joiningRoomId, setJoiningRoomId] = useState<string | null>(null);
 
   const fetchRooms = useCallback(async () => {
@@ -89,6 +91,30 @@ export default function DashboardRoomsPage() {
     await navigator.clipboard.writeText(link);
     setCopiedRoomId(room.id);
     setTimeout(() => setCopiedRoomId(null), 2000);
+  };
+
+  const handleCopyHostLink = async (room: Classroom) => {
+    if (!confirm(t('actions.copyHostWarning'))) return;
+
+    setCopyingHostRoomId(room.id);
+    try {
+      const response = await fetch(`/api/classrooms/${room.room_code}/host-link`, {
+        cache: 'no-store',
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.hostUrl) {
+        throw new Error(data.error || t('errors.hostLinkFailed'));
+      }
+
+      await navigator.clipboard.writeText(data.hostUrl);
+      setCopiedHostRoomId(room.id);
+      setTimeout(() => setCopiedHostRoomId(null), 2000);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : t('errors.hostLinkFailed'));
+    } finally {
+      setCopyingHostRoomId(null);
+    }
   };
 
   const handleDeleteRoom = async (room: Classroom) => {
@@ -230,7 +256,7 @@ export default function DashboardRoomsPage() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    title="Copy student link"
+                    title={t('actions.copyStudentLink')}
                     onClick={() => handleCopyStudentLink(room)}
                   >
                     {copiedRoomId === room.id ? (
@@ -254,6 +280,25 @@ export default function DashboardRoomsPage() {
                     ) : (
                       t('actions.joinRoom')
                     )}
+                  </Button>
+                  <div className="w-px h-6 bg-amber-400/30 mx-2" />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs border-amber-400/50 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100"
+                    title={t('actions.copyHostLink')}
+                    onClick={() => handleCopyHostLink(room)}
+                    disabled={copyingHostRoomId === room.id}
+                    aria-busy={copyingHostRoomId === room.id}
+                  >
+                    {copyingHostRoomId === room.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : copiedHostRoomId === room.id ? (
+                      <AnimatedCheckIcon size={14} className="mr-1.5 text-green-500" />
+                    ) : (
+                      <KeyRound className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {t('actions.copyHostLink')}
                   </Button>
                 </div>
               </div>
@@ -335,6 +380,26 @@ export default function DashboardRoomsPage() {
                       )}
                     </Button>
                   </div>
+                </div>
+                <div className="border-t border-amber-400/20 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-full justify-center text-xs border-amber-400/50 text-amber-200 hover:bg-amber-500/10 hover:text-amber-100"
+                    title={t('actions.copyHostLink')}
+                    onClick={() => handleCopyHostLink(room)}
+                    disabled={copyingHostRoomId === room.id}
+                    aria-busy={copyingHostRoomId === room.id}
+                  >
+                    {copyingHostRoomId === room.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                    ) : copiedHostRoomId === room.id ? (
+                      <AnimatedCheckIcon size={14} className="mr-1.5 text-green-500" />
+                    ) : (
+                      <KeyRound className="h-3.5 w-3.5 mr-1.5" />
+                    )}
+                    {t('actions.copyHostLink')}
+                  </Button>
                 </div>
               </div>
             </div>

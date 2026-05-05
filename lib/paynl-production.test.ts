@@ -35,6 +35,7 @@ describe('validatePayNLProductionConfig', () => {
     delete process.env.NEXT_PUBLIC_SITE_URL;
     delete process.env.CRON_SECRET;
     delete process.env.PAYNL_REFERRAL_PROFILE_CODE;
+    delete process.env.HOST_CAPABILITY_SECRET;
     process.env.PAYNL_ALLIANCE_ENABLED = 'false';
     process.env.PAYNL_REPORTING_ENABLED = 'false';
 
@@ -49,6 +50,7 @@ describe('validatePayNLProductionConfig', () => {
         'NEXT_PUBLIC_SITE_URL is required',
         'CRON_SECRET is required',
         'PAYNL_REFERRAL_PROFILE_CODE is required',
+        'HOST_CAPABILITY_SECRET is required',
         'PAYNL_ALLIANCE_ENABLED must be true for live merchant routing',
         'PAYNL_REPORTING_ENABLED must be true after Pay.nl settlement/reporting permissions are confirmed',
       ]),
@@ -63,6 +65,7 @@ describe('validatePayNLProductionConfig', () => {
     process.env.NEXT_PUBLIC_SITE_URL = 'https://app.example.com';
     process.env.CRON_SECRET = 'cron-secret';
     process.env.PAYNL_REFERRAL_PROFILE_CODE = 'RP-1234-5678';
+    process.env.HOST_CAPABILITY_SECRET = 'host-capability-secret';
     process.env.PAYNL_ALLIANCE_ENABLED = 'true';
     process.env.PAYNL_REPORTING_ENABLED = 'true';
 

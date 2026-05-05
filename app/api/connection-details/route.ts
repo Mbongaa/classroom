@@ -52,6 +52,16 @@ export async function GET(request: NextRequest) {
     const isSpeech = request.nextUrl.searchParams.get('speech') === 'true';
     const role = request.nextUrl.searchParams.get('role') ?? 'student'; // 'teacher' or 'student'
 
+    if (isClassroom || isSpeech) {
+      return NextResponse.json(
+        {
+          error:
+            'Legacy classroom/speech token generation is disabled. Use /api/v2/connect.',
+        },
+        { status: 410 },
+      );
+    }
+
     // SUPABASE AUTH CHECK - Get authenticated user
     const supabase = await createClient();
     const {
