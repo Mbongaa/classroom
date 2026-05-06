@@ -152,7 +152,8 @@
       "description": "ابدأ جلسة خطبة مؤقتة فورًا",
       "intro": "أنشئ غرفة خطبة مؤقتة مع ترجمة من العربية الفصحى إلى الهولندية.",
       "khutbaQuickstart": "Khutba Quickstart",
-      "managePersistentRooms": "إدارة الغرف الدائمة"
+      "managePersistentRooms": "إدارة الغرف الدائمة",
+      "khutbaQuickstartStarting": "جارٍ التجهيز…"
     },
     "recentRooms": {
       "title": "الغرف الأخيرة",
@@ -163,6 +164,16 @@
         "classroom": "فصل دراسي",
         "speech": "خطاب",
         "meeting": "اجتماع"
+      }
+    },
+    "settings": {
+      "title": "الإعدادات",
+      "kioskRedirect": {
+        "title": "التوجيه إلى كشك التبرعات بعد الجلسة",
+        "description": "عند إنهاء الخطبة أو مغادرتها، يتم تحويل الشاشة إلى كشك التبرعات ليتمكن المستمعون من التبرع فوراً.",
+        "enabled": "مفعّل",
+        "disabled": "متوقف",
+        "disabledReason": "قم بإعداد مؤسستك أولاً لتفعيل هذه الميزة"
       }
     }
   },
@@ -1040,6 +1051,11 @@
       "email": "support@bayaan.ai",
       "phone": "+31 6 28718008",
       "city": "أيندهوفن، هولندا",
+      "whatsapp": {
+        "label": "تواصل عبر واتساب",
+        "helper": "يفتح واتساب برسالة جاهزة للإرسال",
+        "message": "السلام عليكم، أود معرفة المزيد عن Bayaan.ai لمسجدنا."
+      },
       "responseTime": "نرد عادةً خلال يوم عمل واحد، إن شاء الله.",
       "fields": {
         "name": "الاسم",

@@ -44,7 +44,12 @@ import { useResizable } from '@/lib/useResizable';
 import { useVerticalResizable } from '@/lib/useVerticalResizable';
 import { isAgentParticipant } from '@/lib/participantUtils';
 import { parseParticipantMetadata, getParticipantRole } from '@/lib/metadataUtils';
-import { useLeaveDestination } from '@/lib/useLeaveDestination';
+import {
+  POST_CALL_REDIRECT_PARAM,
+  readKioskRedirectEnabled,
+  readPostCallRedirectEnabled,
+  useLeaveDestination,
+} from '@/lib/useLeaveDestination';
 import styles from './ClassroomClient.module.css';
 
 interface PermissionNotification {
@@ -306,6 +311,34 @@ export function ClassroomClientImplWithRequests({
   const handleOnLeave = React.useCallback(() => {
     router.push(leaveDestination);
   }, [router, leaveDestination]);
+  const postCallRedirectEnabled =
+    !!orgSlug && (readKioskRedirectEnabled() || readPostCallRedirectEnabled());
+  const handleLeaveRoom = React.useCallback(async () => {
+    if (isTeacher && postCallRedirectEnabled) {
+      try {
+        await fetch('/api/rooms/end', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            roomName: room.name,
+            language: localParticipant.attributes?.speaking_language || 'en',
+          }),
+        });
+      } catch (error) {
+        console.warn('[Post-call Redirect] Failed to end room for everyone:', error);
+      }
+    }
+
+    room.disconnect();
+    router.push(leaveDestination);
+  }, [
+    isTeacher,
+    leaveDestination,
+    localParticipant.attributes?.speaking_language,
+    postCallRedirectEnabled,
+    room,
+    router,
+  ]);
 
   // Handle permission update from teacher (for teachers sending updates)
   const handlePermissionUpdate = React.useCallback(
@@ -852,7 +885,7 @@ export function ClassroomClientImplWithRequests({
           <div className={styles.roomInfo}>
             <button
               className={styles.backButton}
-              onClick={() => { backIconRef.current?.startAnimation(); room.disconnect(); router.push(leaveDestination); }}
+              onClick={() => { backIconRef.current?.startAnimation(); void handleLeaveRoom(); }}
               onMouseEnter={() => backIconRef.current?.startAnimation()}
               onMouseLeave={() => backIconRef.current?.stopAnimation()}
               title="Leave room"
@@ -873,7 +906,13 @@ export function ClassroomClientImplWithRequests({
                   onClick={() => {
                     copyIconRef.current?.startAnimation();
                     let studentLink = `${window.location.origin}/s/${roomName}`;
-                    if (orgSlug) studentLink += `?org=${encodeURIComponent(orgSlug)}`;
+                    const linkParams = new URLSearchParams();
+                    if (orgSlug) linkParams.set('org', orgSlug);
+                    if (orgSlug && (readKioskRedirectEnabled() || readPostCallRedirectEnabled())) {
+                      linkParams.set(POST_CALL_REDIRECT_PARAM, 'true');
+                    }
+                    const qs = linkParams.toString();
+                    if (qs) studentLink += `?${qs}`;
                     navigator.clipboard.writeText(studentLink);
                     setLinkCopied(true);
                     setTimeout(() => setLinkCopied(false), 2000);
@@ -962,6 +1001,7 @@ export function ClassroomClientImplWithRequests({
                     isRecording={isRecording}
                     recordingLoading={recordingLoading}
                     isStudent={!isTeacher}
+                    onLeaveClick={handleLeaveRoom}
                   />
                 }
               />
@@ -1263,6 +1303,7 @@ export function ClassroomClientImplWithRequests({
             isRecording={isRecording}
             recordingLoading={recordingLoading}
             isStudent={!isTeacher}
+            onLeaveClick={handleLeaveRoom}
           />
         </div>
       )}

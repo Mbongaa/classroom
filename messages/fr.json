@@ -152,7 +152,8 @@
       "description": "Demarrer instantanement une session khutba unique",
       "intro": "Creez une salle khutba unique avec traduction arabe fusha vers neerlandais.",
       "khutbaQuickstart": "Khutba Quickstart",
-      "managePersistentRooms": "Gérer les salles permanentes"
+      "managePersistentRooms": "Gérer les salles permanentes",
+      "khutbaQuickstartStarting": "Préparation…"
     },
     "recentRooms": {
       "title": "Salles récentes",
@@ -163,6 +164,16 @@
         "classroom": "Salle de classe",
         "speech": "Discours",
         "meeting": "Réunion"
+      }
+    },
+    "settings": {
+      "title": "Paramètres",
+      "kioskRedirect": {
+        "title": "Rediriger vers le kiosque de dons après une session",
+        "description": "Lorsque vous terminez ou quittez une khutba, l'écran passe à votre kiosque de dons pour que les auditeurs puissent donner immédiatement.",
+        "enabled": "Activé",
+        "disabled": "Désactivé",
+        "disabledReason": "Configurez d'abord votre organisation pour activer ceci"
       }
     }
   },
@@ -1040,6 +1051,11 @@
       "email": "support@bayaan.ai",
       "phone": "+31 6 28718008",
       "city": "Eindhoven, Pays-Bas",
+      "whatsapp": {
+        "label": "Contact par WhatsApp",
+        "helper": "Ouvre WhatsApp avec un message prêt à envoyer",
+        "message": "Assalamu alaikum, j'aimerais en savoir plus sur Bayaan.ai pour notre mosquée."
+      },
       "responseTime": "Nous répondons généralement sous un jour ouvré, in shaa Allah.",
       "fields": {
         "name": "Votre nom",

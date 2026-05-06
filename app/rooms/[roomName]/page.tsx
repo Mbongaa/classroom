@@ -22,6 +22,7 @@ export default async function Page({
     quickstart?: string;
     speakerLanguage?: string;
     translationLanguage?: string;
+    postCallRedirect?: string;
   }>;
 }) {
   const _params = await params;

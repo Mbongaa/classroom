@@ -42,7 +42,7 @@ export function DashboardModeToggle({
     <div
       role="tablist"
       aria-label={t('label')}
-      className="inline-flex items-center gap-0.5 rounded-full border border-[rgba(128,128,128,0.3)] bg-slate-200/80 p-0.5 dark:bg-slate-800/60"
+      className="inline-flex items-center gap-0.5 rounded-full border border-[rgba(128,128,128,0.3)] bg-background p-0.5"
     >
       <Link
         href="/dashboard"

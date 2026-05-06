@@ -2,13 +2,19 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Classroom } from '@/lib/types';
 import { generateRoomId } from '@/lib/client-utils';
-import { Video, ArrowRight, Monitor, ExternalLink } from 'lucide-react';
+import {
+  KIOSK_REDIRECT_ENABLED_KEY,
+  POST_CALL_REDIRECT_PARAM,
+} from '@/lib/useLeaveDestination';
+import { cn } from '@/lib/utils';
+import { Video, ArrowRight, Monitor, ExternalLink, Loader2 } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 
 interface DashboardContentProps {
@@ -29,8 +35,38 @@ export function DashboardContent({
   const router = useRouter();
   const t = useTranslations('dashboard');
   const tCommon = useTranslations('common');
+  const [isStartingKhutba, setIsStartingKhutba] = useState(false);
+
+  // Post-call kiosk redirect toggle. Boolean flag only —
+  // `useLeaveDestination` resolves the org slug from /api/me at leave-time.
+  // Default off; the toggle is visible to every signed-in user.
+  const [kioskRedirectOn, setKioskRedirectOn] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      setKioskRedirectOn(window.localStorage.getItem(KIOSK_REDIRECT_ENABLED_KEY) === '1');
+    } catch {
+      // localStorage can throw in private mode / storage-denied — treat as off.
+    }
+  }, []);
+
+  const handleKioskRedirectToggle = (next: boolean) => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (next) {
+        window.localStorage.setItem(KIOSK_REDIRECT_ENABLED_KEY, '1');
+      } else {
+        window.localStorage.removeItem(KIOSK_REDIRECT_ENABLED_KEY);
+      }
+      setKioskRedirectOn(next);
+    } catch {
+      // Storage denied — silently ignore so the dashboard doesn't break.
+    }
+  };
 
   const startKhutbaQuickstart = () => {
+    if (isStartingKhutba) return; // guard against double-click / re-entry
+    setIsStartingKhutba(true);
     const params = new URLSearchParams({
       speech: 'true',
       role: 'teacher',
@@ -40,6 +76,9 @@ export function DashboardContent({
     });
     if (organizationSlug) {
       params.set('org', organizationSlug);
+    }
+    if (kioskRedirectOn && organizationSlug) {
+      params.set(POST_CALL_REDIRECT_PARAM, 'true');
     }
     router.push(`/rooms/${generateRoomId()}?${params.toString()}`);
   };
@@ -128,23 +167,38 @@ export function DashboardContent({
             <div className="flex w-full justify-center">
               <button
                 onClick={startKhutbaQuickstart}
-                className="group inline-flex cursor-pointer items-center justify-center gap-3 rounded-2xl bg-black px-5 py-3 text-2xl font-bold text-white shadow-lg ring-offset-2 transition duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-black hover:ring-offset-white active:scale-[0.99] sm:text-3xl dark:bg-white dark:text-black dark:hover:ring-white dark:ring-offset-black"
+                disabled={isStartingKhutba}
+                aria-busy={isStartingKhutba}
+                className="group inline-flex cursor-pointer items-center justify-center gap-3 rounded-2xl bg-black px-5 py-3 text-2xl font-bold text-white shadow-lg ring-offset-2 transition duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-black hover:ring-offset-white active:scale-[0.99] disabled:cursor-wait disabled:opacity-80 disabled:hover:scale-100 disabled:hover:ring-0 sm:text-3xl dark:bg-white dark:text-black dark:hover:ring-white dark:ring-offset-black"
               >
-                {/* Source .lottie has an 800x800 canvas with the mic artwork
-                    only occupying the center ~half. Oversize the inner Lottie
-                    and clip the empty canvas padding with overflow-hidden so
-                    the centered artwork fills the visible viewport. */}
-                <span
-                  aria-hidden="true"
-                  className="relative h-14 w-14 shrink-0 overflow-hidden sm:h-16 sm:w-16"
-                >
-                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <LottieIcon src="/lottie/microphone-record.lottie" size={120} />
-                  </span>
-                </span>
-                <span>{t('quickActions.khutbaQuickstart')}</span>
+                {isStartingKhutba ? (
+                  <>
+                    <Loader2
+                      aria-hidden="true"
+                      className="h-10 w-10 shrink-0 animate-spin sm:h-12 sm:w-12"
+                    />
+                    <span>{t('quickActions.khutbaQuickstartStarting')}</span>
+                  </>
+                ) : (
+                  <>
+                    {/* Source .lottie has an 800x800 canvas with the mic artwork
+                        only occupying the center ~half. Oversize the inner Lottie
+                        and clip the empty canvas padding with overflow-hidden so
+                        the centered artwork fills the visible viewport. */}
+                    <span
+                      aria-hidden="true"
+                      className="relative h-14 w-14 shrink-0 overflow-hidden sm:h-16 sm:w-16"
+                    >
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <LottieIcon src="/lottie/microphone-record.lottie" size={120} />
+                      </span>
+                    </span>
+                    <span>{t('quickActions.khutbaQuickstart')}</span>
+                  </>
+                )}
               </button>
             </div>
+
           </CardContent>
         </Card>
 
@@ -177,7 +231,7 @@ export function DashboardContent({
                 {rooms.map((room) => (
                   <div
                     key={room.id}
-                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-accent/50 transition-colors cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-lg border border-[rgba(128,128,128,0.3)] hover:bg-accent/50 transition-colors cursor-pointer"
                     onClick={() => router.push('/dashboard/rooms')}
                   >
                     <div className="flex-1 min-w-0">
@@ -205,6 +259,66 @@ export function DashboardContent({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('settings.title')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={kioskRedirectOn}
+            aria-labelledby="kiosk-redirect-title"
+            aria-describedby="kiosk-redirect-description"
+            onClick={() => handleKioskRedirectToggle(!kioskRedirectOn)}
+            className="group flex w-full items-center justify-between gap-6 rounded-lg border border-[rgba(128,128,128,0.3)] bg-background p-4 text-left transition-colors hover:bg-white/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <div className="min-w-0 flex-1">
+              <div
+                id="kiosk-redirect-title"
+                className="text-sm font-medium text-black dark:text-white"
+              >
+                {t('settings.kioskRedirect.title')}
+              </div>
+              <p id="kiosk-redirect-description" className="mt-1 text-sm text-muted-foreground">
+                {t('settings.kioskRedirect.description')}
+              </p>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <span
+                className={cn(
+                  'hidden rounded-full border px-2.5 py-1 text-xs font-semibold uppercase tracking-wide sm:inline-flex',
+                  kioskRedirectOn
+                    ? 'border-white bg-white text-black'
+                    : 'border-[rgba(128,128,128,0.35)] bg-transparent text-muted-foreground',
+                )}
+              >
+                {kioskRedirectOn
+                  ? t('settings.kioskRedirect.enabled')
+                  : t('settings.kioskRedirect.disabled')}
+              </span>
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'relative inline-flex h-7 w-12 items-center rounded-full border border-[rgba(128,128,128,0.35)] transition-colors',
+                  kioskRedirectOn ? 'bg-white' : 'bg-transparent',
+                )}
+              >
+                <span
+                  className={cn(
+                    'absolute h-5 w-5 rounded-full shadow transition-transform',
+                    kioskRedirectOn
+                      ? 'translate-x-6 bg-black'
+                      : 'translate-x-1 bg-white dark:bg-zinc-600',
+                  )}
+                />
+              </span>
+            </div>
+          </button>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }

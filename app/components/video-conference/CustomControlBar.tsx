@@ -51,6 +51,7 @@ interface CustomControlBarProps {
   onSettingsClick?: () => void;
   onTranslationClick?: () => void;
   onRecordClick?: () => void;
+  onLeaveClick?: () => void;
   isRecording?: boolean;
   recordingLoading?: boolean;
   showTranslation?: boolean;
@@ -72,6 +73,7 @@ export function CustomControlBar({
   onSettingsClick,
   onTranslationClick,
   onRecordClick,
+  onLeaveClick,
   isRecording = false,
   recordingLoading = false,
   showTranslation = false,
@@ -395,7 +397,8 @@ export function CustomControlBar({
       {/* Leave Button */}
       {controls.leave && (
         <Button
-          {...disconnectButtonProps}
+          {...(onLeaveClick ? {} : disconnectButtonProps)}
+          onClick={onLeaveClick ?? disconnectButtonProps.onClick}
           variant="destructive"
           size="lg"
           className={clsx(buttonClass, 'ml-4')}

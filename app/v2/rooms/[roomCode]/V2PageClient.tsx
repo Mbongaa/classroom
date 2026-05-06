@@ -31,7 +31,12 @@ import {
   DisconnectReason,
 } from 'livekit-client';
 import { useRouter } from 'next/navigation';
-import { useLeaveDestination } from '@/lib/useLeaveDestination';
+import {
+  POST_CALL_REDIRECT_PARAM,
+  readKioskRedirectEnabled,
+  readPostCallRedirectEnabled,
+  useLeaveDestination,
+} from '@/lib/useLeaveDestination';
 
 interface V2ConnectResponse {
   serverUrl: string;
@@ -134,6 +139,9 @@ export function V2PageClient({ roomCode }: { roomCode: string }) {
     let link = `${window.location.origin}${prefix}${roomCode}`;
     const params = new URLSearchParams();
     if (orgSlug) params.set('org', orgSlug);
+    if (orgSlug && (readKioskRedirectEnabled() || readPostCallRedirectEnabled())) {
+      params.set(POST_CALL_REDIRECT_PARAM, 'true');
+    }
     if (classroomInfo.pin) params.set('pin', classroomInfo.pin);
     const qs = params.toString();
     if (qs) link += `?${qs}`;

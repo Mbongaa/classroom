@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Mail, Phone, MapPin, Send, Check, AlertCircle } from 'lucide-react';
+import { LottieIcon } from '@/components/lottie-icon';
 import {
   SketchButton,
   SketchCard,
@@ -18,6 +19,8 @@ export default function Contact() {
   const t = useTranslations('marketing.contact');
   const [status, setStatus] = useState<Status>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const whatsappNumber = t('phone').replace(/\D/g, '');
+  const whatsappHref = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(t('whatsapp.message'))}`;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -93,6 +96,47 @@ export default function Contact() {
             </p>
 
             <ul className="mt-6 flex flex-col gap-4">
+              <ContactItem
+                icon={<LottieIcon src="/lottie/whatsapp-button.lottie" size={40} />}
+                iconStyle={{
+                  background: 'transparent',
+                  border: '0',
+                  boxShadow: 'none',
+                }}
+              >
+                <a
+                  href={whatsappHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mkt-focus-ring"
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    gap: '0.1rem',
+                    fontFamily: 'var(--mkt-font-body)',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <span
+                    style={{
+                      color: 'var(--mkt-fg)',
+                      fontSize: '1.06rem',
+                      fontWeight: 750,
+                    }}
+                  >
+                    {t('whatsapp.label')}
+                  </span>
+                  <span
+                    style={{
+                      color: 'var(--mkt-fg-muted)',
+                      fontSize: '0.92rem',
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {t('whatsapp.helper')}
+                  </span>
+                </a>
+              </ContactItem>
               <ContactItem
                 icon={<Mail size={18} strokeWidth={2.6} aria-hidden />}
               >
@@ -277,9 +321,11 @@ export default function Contact() {
 
 function ContactItem({
   icon,
+  iconStyle,
   children,
 }: {
   icon: React.ReactNode;
+  iconStyle?: React.CSSProperties;
   children: React.ReactNode;
 }) {
   return (
@@ -292,6 +338,7 @@ function ContactItem({
           border: '2px solid var(--mkt-border)',
           borderRadius: 'var(--mkt-wobbly-blob-2)',
           boxShadow: '2px 2px 0 0 var(--mkt-border)',
+          ...iconStyle,
         }}
       >
         {icon}

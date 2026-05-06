@@ -13,6 +13,10 @@ import { Settings, RefreshCw, Loader2, KeyRound } from 'lucide-react';
 import { CopyIcon } from '@/components/ui/copy';
 import { CheckIcon as AnimatedCheckIcon } from '@/components/ui/check';
 import { TrashIcon } from '@/components/ui/trash';
+import {
+  POST_CALL_REDIRECT_PARAM,
+  readKioskRedirectEnabled,
+} from '@/lib/useLeaveDestination';
 
 export default function DashboardRoomsPage() {
   const router = useRouter();
@@ -71,18 +75,26 @@ export default function DashboardRoomsPage() {
     if (joiningRoomId) return; // guard against double-click / re-entry
     setJoiningRoomId(room.id);
     let url = `/v2/t/${room.room_code}`;
-    if (room.organization_slug) {
-      url += `?org=${encodeURIComponent(room.organization_slug)}`;
+    const params = new URLSearchParams();
+    if (room.organization_slug) params.set('org', room.organization_slug);
+    if (room.organization_slug && readKioskRedirectEnabled()) {
+      params.set(POST_CALL_REDIRECT_PARAM, 'true');
     }
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
     router.push(url);
   };
 
   const buildStudentLink = (room: Classroom) => {
     const prefix = room.room_type === 'speech' ? '/v2/speech-s/' : '/v2/s/';
     let url = `${window.location.origin}${prefix}${room.room_code}`;
-    if (room.organization_slug) {
-      url += `?org=${encodeURIComponent(room.organization_slug)}`;
+    const params = new URLSearchParams();
+    if (room.organization_slug) params.set('org', room.organization_slug);
+    if (room.organization_slug && readKioskRedirectEnabled()) {
+      params.set(POST_CALL_REDIRECT_PARAM, 'true');
     }
+    const qs = params.toString();
+    if (qs) url += `?${qs}`;
     return url;
   };
 
@@ -107,7 +119,11 @@ export default function DashboardRoomsPage() {
         throw new Error(data.error || t('errors.hostLinkFailed'));
       }
 
-      await navigator.clipboard.writeText(data.hostUrl);
+      const hostUrl = new URL(data.hostUrl, window.location.origin);
+      if (room.organization_slug && readKioskRedirectEnabled()) {
+        hostUrl.searchParams.set(POST_CALL_REDIRECT_PARAM, 'true');
+      }
+      await navigator.clipboard.writeText(hostUrl.toString());
       setCopiedHostRoomId(room.id);
       setTimeout(() => setCopiedHostRoomId(null), 2000);
     } catch (error) {
@@ -192,7 +208,7 @@ export default function DashboardRoomsPage() {
       {/* Empty */}
       {!loading && !error && rooms.length === 0 && (
         <div className="max-w-2xl mx-auto">
-          <div className="text-center py-12 border border-white/20 rounded-lg px-4">
+          <div className="text-center py-12 border border-[rgba(128,128,128,0.3)] rounded-lg px-4">
             <h2 className="text-xl font-semibold mb-2">{t('empty.title')}</h2>
             <p className="text-muted-foreground mb-6">{t('empty.subtitle')}</p>
             <CreateRoomDialog onRoomCreated={handleRoomCreated} />
@@ -206,7 +222,7 @@ export default function DashboardRoomsPage() {
           {rooms.map((room) => (
             <div
               key={room.id}
-              className="border border-white/20 rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 hover:border-white/30 transition-colors"
+              className="border border-[rgba(128,128,128,0.3)] rounded-xl px-4 sm:px-5 py-3.5 sm:py-4 hover:border-[rgba(128,128,128,0.45)] transition-colors"
             >
               {/* Desktop: single row */}
               <div className="hidden sm:flex items-center gap-4">
@@ -221,7 +237,7 @@ export default function DashboardRoomsPage() {
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="text-[11px] px-1.5 py-0 border-white/30 text-slate-200"
+                      className="text-[11px] px-1.5 py-0 border-[rgba(128,128,128,0.3)] text-slate-200"
                     >
                       {getLanguageLabel(room.settings?.language || 'en')}
                     </Badge>
@@ -251,7 +267,7 @@ export default function DashboardRoomsPage() {
                   >
                     <TrashIcon size={14} />
                   </Button>
-                  <div className="w-px h-6 bg-white/10 mx-1" />
+                  <div className="w-px h-6 bg-[rgba(128,128,128,0.3)] mx-1" />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -316,7 +332,7 @@ export default function DashboardRoomsPage() {
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="text-[10px] px-1.5 py-0 border-white/30 text-slate-200"
+                      className="text-[10px] px-1.5 py-0 border-[rgba(128,128,128,0.3)] text-slate-200"
                     >
                       {getLanguageLabel(room.settings?.language || 'en')}
                     </Badge>

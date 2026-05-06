@@ -214,7 +214,7 @@ export default function SessionHistoryPage() {
         </Card>
       ) : (
         <>
-          <div className="rounded-lg border border-border bg-card text-card-foreground shadow-sm">
+          <div className="rounded-lg border border-[rgba(128,128,128,0.3)] bg-background text-foreground shadow-sm">
             <Table>
               <TableHeader>
                 <TableRow>

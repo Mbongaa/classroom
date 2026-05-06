@@ -121,6 +121,21 @@ export function AppSidebar() {
   const navigation: NavItem[] =
     isFinanceMode && financeSlug ? financeNavigation : translationNavigation;
 
+  const isActiveHref = (href: string) => {
+    const isSectionRoot = href === '/dashboard' || href === `/mosque-admin/${financeSlug}`;
+    return isSectionRoot ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  const activeItemClassName = (isActive: boolean) =>
+    cn(
+      'relative',
+      isActive &&
+        cn(
+          'before:absolute before:inset-y-1 before:w-1 before:rounded-full before:bg-white before:content-[""]',
+          isRTL ? 'before:right-0' : 'before:left-0',
+        ),
+    );
+
   async function handleSignOut() {
     if (isMobile) {
       setOpenMobile(false);
@@ -141,13 +156,14 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {navigation.map((item) => {
-                const isActive = pathname === item.href;
+                const isActive = isActiveHref(item.href);
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
                       asChild
                       isActive={isActive}
                       tooltip={state === 'collapsed' ? item.label : undefined}
+                      className={activeItemClassName(isActive)}
                     >
                       <Link
                         href={item.href}
@@ -212,8 +228,9 @@ export function AppSidebar() {
             <SidebarMenuItem>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === '/dashboard/billing'}
+                isActive={isActiveHref('/dashboard/billing')}
                 tooltip={state === 'collapsed' ? t('footer.billing') : undefined}
+                className={activeItemClassName(isActiveHref('/dashboard/billing'))}
               >
                 <Link
                   href="/dashboard/billing"
@@ -230,8 +247,9 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              isActive={pathname === '/dashboard/profile'}
+              isActive={isActiveHref('/dashboard/profile')}
               tooltip={state === 'collapsed' ? t('footer.profile') : undefined}
+              className={activeItemClassName(isActiveHref('/dashboard/profile'))}
             >
               <Link
                 href="/dashboard/profile"

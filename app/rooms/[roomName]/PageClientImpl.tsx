@@ -41,7 +41,12 @@ import {
 import { useRouter } from 'next/navigation';
 import { useSetupE2EE } from '@/lib/useSetupE2EE';
 import { useLowCPUOptimizer } from '@/lib/usePerfomanceOptimiser';
-import { useLeaveDestination } from '@/lib/useLeaveDestination';
+import {
+  POST_CALL_REDIRECT_PARAM,
+  readKioskRedirectEnabled,
+  readPostCallRedirectEnabled,
+  useLeaveDestination,
+} from '@/lib/useLeaveDestination';
 
 const CONN_DETAILS_ENDPOINT =
   process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT ?? '/api/connection-details';
@@ -184,12 +189,18 @@ export function PageClientImpl(props: {
       url.searchParams.set('quickstart', 'khutba');
       url.searchParams.set('translationLanguage', selectedTranslationLanguage || 'nl');
       if (orgSlug) url.searchParams.set('org', orgSlug);
+      if (orgSlug && (readKioskRedirectEnabled() || readPostCallRedirectEnabled())) {
+        url.searchParams.set(POST_CALL_REDIRECT_PARAM, 'true');
+      }
       return url.toString();
     }
     const prefix = classroomInfo.mode === 'speech' ? '/speech-s/' : '/s/';
     let link = `${window.location.origin}${prefix}${props.roomName}`;
     const linkParams = new URLSearchParams();
     if (orgSlug) linkParams.set('org', orgSlug);
+    if (orgSlug && (readKioskRedirectEnabled() || readPostCallRedirectEnabled())) {
+      linkParams.set(POST_CALL_REDIRECT_PARAM, 'true');
+    }
     if (classroomInfo.pin) linkParams.set('pin', classroomInfo.pin);
     const qs = linkParams.toString();
     if (qs) link += `?${qs}`;
@@ -916,6 +927,17 @@ function VideoConferenceComponent(props: {
       // User clicked leave → end session and go home immediately
       if (reason === DisconnectReason.CLIENT_INITIATED) {
         console.log('[Disconnect Handler] Client-initiated disconnect, navigating home');
+        endSessionIfActive();
+        handleOnLeave();
+        return;
+      }
+
+      if (
+        reason === DisconnectReason.ROOM_DELETED ||
+        reason === DisconnectReason.ROOM_CLOSED ||
+        reason === DisconnectReason.PARTICIPANT_REMOVED
+      ) {
+        console.log('[Disconnect Handler] Room ended by host/server, navigating away');
         endSessionIfActive();
         handleOnLeave();
         return;
