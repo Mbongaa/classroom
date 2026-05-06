@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
+import { getFinanceAccessForOrganization } from '@/lib/finance-access';
 import { UserProviderWrapper } from '@/components/user-provider-wrapper';
 import AppSidebar from '@/components/dashboard-sidebar';
 import { DashboardHeader } from '@/components/dashboard-header';
@@ -46,6 +47,8 @@ export default async function DashboardGroupLayout({
   } = await supabase.auth.getUser();
 
   let orgSlug: string | null = null;
+  let organizationId: string | null = null;
+  let canAccessFinance = false;
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
@@ -86,12 +89,20 @@ export default async function DashboardGroupLayout({
     if (trialExpired && !typedProfile.is_superadmin) {
       redirect('/billing/required');
     }
+    organizationId = typedProfile.organization_id ?? null;
     orgSlug = org?.slug ?? null;
+    canAccessFinance =
+      typedProfile.is_superadmin === true ||
+      (organizationId
+        ? (await getFinanceAccessForOrganization(user.id, organizationId)).canAccessFinance
+        : false);
   }
 
   const actingAs = user ? await resolveActingAsForUser(user.id) : null;
   if (actingAs?.organizationSlug) {
     orgSlug = actingAs.organizationSlug;
+    organizationId = actingAs.organizationId;
+    canAccessFinance = true;
   }
 
   return (
@@ -110,7 +121,11 @@ export default async function DashboardGroupLayout({
           <AppSidebar />
           <SidebarInset>
             {actingAs ? <ImpersonationBanner actingAs={actingAs} /> : null}
-            <DashboardHeader orgSlug={orgSlug} showSidebarTrigger />
+            <DashboardHeader
+              orgSlug={orgSlug}
+              canAccessFinance={canAccessFinance}
+              showSidebarTrigger
+            />
             <main
               className="flex-1 overflow-y-auto p-6 min-h-0"
               style={{ WebkitOverflowScrolling: 'touch' }}

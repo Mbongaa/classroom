@@ -1,8 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireFinanceAccessBySlug } from '@/lib/finance-access';
 import { CampaignsClient, type Campaign, type CampaignWithRaised } from './CampaignsClient';
 
 /**
@@ -36,18 +35,13 @@ const CAMPAIGN_COLUMNS =
 
 export default async function CampaignsPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
   const t = await getTranslations('mosqueAdmin.campaigns');
   const tRoot = await getTranslations('mosqueAdmin');
+  const { supabaseAdmin } = await requireFinanceAccessBySlug(
+    slug,
+    `/mosque-admin/${slug}/campaigns`,
+  );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/login?redirect=/mosque-admin/${slug}/campaigns`);
-  }
-
-  const supabaseAdmin = createAdminClient();
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>('id, slug, name')
@@ -58,35 +52,8 @@ export default async function CampaignsPage({ params }: PageProps) {
     notFound();
   }
 
-  // Membership + role check.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_superadmin')
-    .eq('id', user.id)
-    .single();
-  const isSuperadmin = profile?.is_superadmin === true;
-
-  let userRole: 'admin' | 'teacher' | 'student' | 'superadmin' | null = isSuperadmin
-    ? 'superadmin'
-    : null;
-
-  if (!isSuperadmin) {
-    const { data: membership } = await supabaseAdmin
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organization.id)
-      .eq('user_id', user.id)
-      .single();
-    if (!membership) {
-      notFound();
-    }
-    userRole = membership.role as 'admin' | 'teacher' | 'student';
-  }
-
-  // Anyone in the org can view; admins and teachers can manage; only
-  // admins (and superadmins) can delete.
-  const canManage = userRole === 'admin' || userRole === 'teacher' || userRole === 'superadmin';
-  const canDelete = userRole === 'admin' || userRole === 'superadmin';
+  const canManage = true;
+  const canDelete = true;
 
   const { data: campaigns } = await supabaseAdmin
     .from('campaigns')

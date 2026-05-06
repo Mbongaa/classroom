@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { useLocale } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Volume2, VolumeOff } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 import styles from '@/app/components/SpeechTranslationPanel.module.css';
@@ -55,6 +55,7 @@ export function MarketingTranslationPanel({
   onToggleStreamMute,
 }: MarketingTranslationPanelProps) {
   const activeLocale = useLocale();
+  const t = useTranslations('marketing.translationPanel');
   // Resolve the target language: explicit prop wins, otherwise use the
   // active marketing locale, falling back to English when the locale isn't
   // one of the supported segment translation keys.
@@ -103,7 +104,7 @@ export function MarketingTranslationPanel({
               className={styles.emptyTitle}
               style={variant === 'mobile' ? { fontSize: 15, marginBottom: 4 } : undefined}
             >
-              Waiting for Translation
+              {t('emptyTitle')}
             </div>
             <div
               className={styles.emptyDescription}
@@ -113,13 +114,13 @@ export function MarketingTranslationPanel({
                   : undefined
               }
             >
-              Translations will appear here as the speaker talks
+              {t('emptyDescription')}
             </div>
             <div
               className={styles.languageIndicator}
               style={variant === 'mobile' ? { padding: '6px 12px', fontSize: 11 } : undefined}
             >
-              <span className={styles.languageLabel}>Translating to</span>
+              <span className={styles.languageLabel}>{t('translatingTo')}</span>
               <span>{languageLabels[lang] ?? lang.toUpperCase()}</span>
             </div>
           </div>
@@ -178,8 +179,8 @@ export function MarketingTranslationPanel({
                 <button
                   type="button"
                   onClick={onToggleStreamMute}
-                  aria-label="Unmute audio"
-                  title="Tap to hear the audio"
+                  aria-label={t('unmuteAria')}
+                  title={t('tapToHearTitle')}
                   style={{
                     position: 'relative',
                     zIndex: 1,
@@ -198,15 +199,15 @@ export function MarketingTranslationPanel({
                   }}
                 >
                   <VolumeOff style={{ width: 16, height: 16 }} />
-                  Tap to hear
+                  {t('tapToHear')}
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={onToggleStreamMute}
-                aria-label="Mute audio"
-                title="Mute"
+                aria-label={t('muteAria')}
+                title={t('muteTitle')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -222,7 +223,7 @@ export function MarketingTranslationPanel({
                 }}
               >
                 <Volume2 style={{ width: 16, height: 16 }} />
-                Mute
+                {t('mute')}
               </button>
             ))}
           <div className={styles.fontControls}>
@@ -231,7 +232,7 @@ export function MarketingTranslationPanel({
               onClick={() => setFontSize((p) => Math.max(MIN_FONT_SIZE, p - FONT_STEP))}
               disabled={fontSize <= MIN_FONT_SIZE}
               className={styles.fontButton}
-              title="Decrease font size"
+              title={t('decreaseFontSize')}
             >
               A-
             </button>
@@ -240,7 +241,7 @@ export function MarketingTranslationPanel({
               onClick={() => setFontSize((p) => Math.min(MAX_FONT_SIZE, p + FONT_STEP))}
               disabled={fontSize >= MAX_FONT_SIZE}
               className={styles.fontButton}
-              title="Increase font size"
+              title={t('increaseFontSize')}
             >
               A+
             </button>

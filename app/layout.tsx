@@ -27,25 +27,27 @@ const poppins = Poppins({
   display: 'swap',
 });
 
-// Marketing-only display fonts. Loaded globally so [data-mkt-root] inherits them
-// without flash; product UI never references --font-kalam / --font-patrick.
-// `display: 'optional'` lets the browser skip a delayed swap on slow connections —
-// product surfaces never render these, so the fallback is acceptable when the
-// font hasn't arrived inside the swap window.
+// Marketing-only display fonts. The marketing surface's identity depends on
+// these loading, so we use `display: 'swap'` (font swaps in once available)
+// + `preload: true` (fetched via <link rel="preload"> in <head>). The previous
+// `optional` + no-preload combo locked in a `cursive` fallback per-device on
+// uncached visits, which is why fonts looked different across devices.
+// Next/Font's default `adjustFontFallback: true` ships size-adjusted metrics
+// so the swap doesn't cause layout shift.
 const kalam = Kalam({
   subsets: ['latin'],
   weight: ['400', '700'],
   variable: '--font-kalam',
-  display: 'optional',
-  preload: false,
+  display: 'swap',
+  preload: true,
 });
 
 const patrickHand = Patrick_Hand({
   subsets: ['latin'],
   weight: ['400'],
   variable: '--font-patrick',
-  display: 'optional',
-  preload: false,
+  display: 'swap',
+  preload: true,
 });
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bayaan.ai';

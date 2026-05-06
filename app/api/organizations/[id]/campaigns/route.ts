@@ -55,7 +55,7 @@ export async function GET(
 
   // Any org member (including students) can read the list — the gate is
   // on writes only. Superadmins also pass via requireOrgAdmin.
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher', 'student']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   const supabaseAdmin = createAdminClient();
@@ -89,7 +89,7 @@ export async function POST(
   }
 
   // Matches the "Org admins can create campaigns" RLS policy.
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   let raw: unknown;
@@ -133,4 +133,3 @@ export async function POST(
 
   return NextResponse.json({ campaign: data }, { status: 201 });
 }
-

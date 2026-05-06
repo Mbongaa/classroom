@@ -372,6 +372,36 @@
   color: var(--lk-text2, #6b7280);
 }
 
+.poweredBy {
+  margin-top: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--lk-text2, #6b7280);
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.poweredBy:hover {
+  opacity: 1;
+}
+
+.poweredByLabel {
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.poweredByBrand {
+  font-weight: 600;
+  background: linear-gradient(90deg, #14b8a6, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
 /* Animations */
 @keyframes slideIn {
   from {

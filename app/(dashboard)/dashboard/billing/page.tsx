@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { AlertCircle } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
@@ -8,6 +9,7 @@ import {
   getSubscriptionDetails,
 } from '@/lib/stripe';
 import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
+import { getFinanceAccessForOrganization } from '@/lib/finance-access';
 import { ManageSubscriptionButton } from './ManageSubscriptionButton';
 import { CurrentPlanCard } from './CurrentPlanCard';
 import { PaymentMethodCard } from './PaymentMethodCard';
@@ -39,7 +41,7 @@ export default async function BillingPage() {
   // get a chance to honor the cookie.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('organization_id')
+    .select('organization_id, is_superadmin')
     .eq('id', user.id)
     .single();
 
@@ -52,8 +54,14 @@ export default async function BillingPage() {
     redirect('/dashboard');
   }
 
+  const supabaseAdmin = createAdminClient();
+  const access = await getFinanceAccessForOrganization(user.id, organizationId, supabaseAdmin);
+  if (!access.canAccessFinance) {
+    redirect('/dashboard');
+  }
+
   // Get organization with billing info
-  const { data: organization } = await supabase
+  const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select('*')
     .eq('id', organizationId)

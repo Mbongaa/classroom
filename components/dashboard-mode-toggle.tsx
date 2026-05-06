@@ -24,14 +24,19 @@ import { cn } from '@/lib/utils';
 interface DashboardModeToggleProps {
   /** Org slug for the finance route. Null = user has no primary org yet. */
   orgSlug: string | null;
+  /** True when the user is allowed to enter the finance dashboard. */
+  canAccessFinance?: boolean;
 }
 
-export function DashboardModeToggle({ orgSlug }: DashboardModeToggleProps) {
+export function DashboardModeToggle({
+  orgSlug,
+  canAccessFinance = false,
+}: DashboardModeToggleProps) {
   const pathname = usePathname();
   const t = useTranslations('header.mode');
   const financeActive = pathname.startsWith('/mosque-admin');
   const translationActive = !financeActive;
-  const financeHref = orgSlug ? `/mosque-admin/${orgSlug}` : null;
+  const financeHref = orgSlug && canAccessFinance ? `/mosque-admin/${orgSlug}` : null;
 
   return (
     <div

@@ -101,7 +101,9 @@
     "translation": {
       "dashboard": "Dashboard",
       "classrooms": "Classrooms",
-      "sessionHistory": "Session History"
+      "sessionHistory": "Session History",
+      "team": "Team",
+      "finance": "Finance"
     },
     "finance": {
       "dashboard": "Dashboard",
@@ -468,7 +470,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "e.g. ramadan-iftar",
         "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
-      "slugHintCreate": "Used in the donate URL, for example /donate/organization/campaign. Lowercase letters, numbers and hyphens.",
+        "slugHintCreate": "Used in the donate URL, for example /donate/organization/campaign. Lowercase letters, numbers and hyphens.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "What does this campaign support? Optional.",
         "causeLabel": "Cause type",
@@ -545,7 +547,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "e.g. quran-sahih-international",
         "slugHintEdit": "Slug cannot be changed — it would break links that have already been shared.",
-      "slugHintCreate": "Used in the shop URL, for example /shop/organization/product. Lowercase letters, numbers and hyphens.",
+        "slugHintCreate": "Used in the shop URL, for example /shop/organization/product. Lowercase letters, numbers and hyphens.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Product details. Optional.",
         "priceLabel": "Price (€)",
@@ -830,7 +832,8 @@
         "features": "Features",
         "useCases": "Use cases",
         "contact": "Contact"
-      }
+      },
+      "mobileMenuLabel": "menu"
     },
     "hero": {
       "eyebrow": "real time sermon translation",
@@ -973,6 +976,11 @@
           "title": "live translation, included",
           "body": "every donation page sits next to the khutbah stream. one mosque, one platform, one login."
         }
+      },
+      "previews": {
+        "donationsAlt": "Donor giving a one-time sadaqah on their phone",
+        "mandatesAlt": "Donor signing a SEPA mandate on their phone",
+        "recurringAlt": "Mosque admin members dashboard listing recurring donors with active SEPA mandates"
       }
     },
     "useCases": {
@@ -1052,7 +1060,8 @@
           "role": "Mosque Administrator",
           "location": "Maaseik, Belgium"
         }
-      }
+      },
+      "eyebrow": "kind words"
     },
     "contact": {
       "eyebrow": "get in touch",
@@ -1318,6 +1327,19 @@
         "helperSetup": "You can change this later in settings.",
         "errorGeneric": "Something went wrong. Please try again."
       }
+    },
+    "translationPanel": {
+      "emptyTitle": "Waiting for Translation",
+      "emptyDescription": "Translations will appear here as the speaker talks",
+      "translatingTo": "Translating to",
+      "mute": "Mute",
+      "muteAria": "Mute audio",
+      "muteTitle": "Mute",
+      "unmuteAria": "Unmute audio",
+      "tapToHear": "Tap to hear",
+      "tapToHearTitle": "Tap to hear the audio",
+      "decreaseFontSize": "Decrease font size",
+      "increaseFontSize": "Increase font size"
     }
   }
 }

@@ -6,6 +6,8 @@ import { LocaleSwitcher } from '@/components/locale-switcher';
 interface DashboardHeaderProps {
   /** Org slug for the finance route. Null = user has no primary org yet. */
   orgSlug: string | null;
+  /** Whether the current user can enter finance surfaces for this org. */
+  canAccessFinance?: boolean;
   /**
    * Render the sidebar hamburger on the left. Only valid when the page is
    * wrapped in a SidebarProvider.
@@ -15,6 +17,7 @@ interface DashboardHeaderProps {
 
 export function DashboardHeader({
   orgSlug,
+  canAccessFinance = false,
   showSidebarTrigger = false,
 }: DashboardHeaderProps) {
   return (
@@ -29,7 +32,7 @@ export function DashboardHeader({
         </div>
 
         {/* CENTER: Dashboard mode toggle */}
-        <DashboardModeToggle orgSlug={orgSlug} />
+        <DashboardModeToggle orgSlug={orgSlug} canAccessFinance={canAccessFinance} />
 
         {/* RIGHT: Language + Theme toggle */}
         <div className="flex items-center gap-2">

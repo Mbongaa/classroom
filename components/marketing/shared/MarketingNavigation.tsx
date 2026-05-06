@@ -30,6 +30,7 @@ export function MarketingNavigation() {
   const [open, setOpen] = useState(false);
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const dialogId = useId();
   const dialogTitleId = useId();
 
   useEffect(() => {
@@ -171,7 +172,7 @@ export function MarketingNavigation() {
             ref={triggerRef}
             aria-label={open ? t('closeMenu') : t('openMenu')}
             aria-expanded={open}
-            aria-controls={dialogTitleId}
+            aria-controls={dialogId}
             onClick={() => setOpen((v) => !v)}
             className="mkt-focus-ring flex h-11 w-11 items-center justify-center"
             style={{
@@ -193,6 +194,7 @@ export function MarketingNavigation() {
       {open && (
         <div
           ref={dialogRef}
+          id={dialogId}
           className="md:hidden fixed inset-0"
           style={{
             // Sit above the page but below the header's button so the X stays
@@ -215,7 +217,7 @@ export function MarketingNavigation() {
           >
             {/* Header tag */}
             <StickyTag rotate={-3} tone="postit">
-              <span id={dialogTitleId}>menu</span>
+              <span id={dialogTitleId}>{t('mobileMenuLabel')}</span>
             </StickyTag>
 
             {/* Nav links as tilted sticky-note cards */}

@@ -101,7 +101,9 @@
     "translation": {
       "dashboard": "Dashboard",
       "classrooms": "Klaslokalen",
-      "sessionHistory": "Sessiegeschiedenis"
+      "sessionHistory": "Sessiegeschiedenis",
+      "team": "Team",
+      "finance": "Financien"
     },
     "finance": {
       "dashboard": "Dashboard",
@@ -468,7 +470,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "bijv. ramadan-iftar",
         "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
-      "slugHintCreate": "Wordt gebruikt in de donatie-URL, bijvoorbeeld /donate/organisatie/campagne. Kleine letters, cijfers en streepjes.",
+        "slugHintCreate": "Wordt gebruikt in de donatie-URL, bijvoorbeeld /donate/organisatie/campagne. Kleine letters, cijfers en streepjes.",
         "descriptionLabel": "Beschrijving",
         "descriptionPlaceholder": "Wat ondersteunt deze campagne? Optioneel.",
         "causeLabel": "Type doel",
@@ -545,7 +547,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "bijv. quran-sahih-international",
         "slugHintEdit": "Slug kan niet worden gewijzigd — dit zou reeds gedeelde links breken.",
-      "slugHintCreate": "Wordt gebruikt in de winkel-URL, bijvoorbeeld /shop/organisatie/product. Kleine letters, cijfers en streepjes.",
+        "slugHintCreate": "Wordt gebruikt in de winkel-URL, bijvoorbeeld /shop/organisatie/product. Kleine letters, cijfers en streepjes.",
         "descriptionLabel": "Beschrijving",
         "descriptionPlaceholder": "Productdetails. Optioneel.",
         "priceLabel": "Prijs (€)",
@@ -830,7 +832,8 @@
         "features": "Mogelijkheden",
         "useCases": "Toepassingen",
         "contact": "Contact"
-      }
+      },
+      "mobileMenuLabel": "menu"
     },
     "hero": {
       "eyebrow": "Live in 12 moskeeën in Nederland en België",
@@ -962,6 +965,11 @@
           "title": "live vertaling, inbegrepen",
           "body": "elke donatiepagina staat naast de livestream van de khutba. één moskee, één platform, één login."
         }
+      },
+      "previews": {
+        "donationsAlt": "Donateur die een eenmalige sadaqah geeft op de telefoon",
+        "mandatesAlt": "Donateur die een SEPA-machtiging ondertekent op de telefoon",
+        "recurringAlt": "Moskee-beheerders dashboard met terugkerende donateurs met actieve SEPA-machtigingen"
       }
     },
     "useCases": {
@@ -1226,7 +1234,8 @@
           "role": "Moskeebeheerder",
           "location": "Maaseik, België"
         }
-      }
+      },
+      "eyebrow": "vriendelijke woorden"
     },
     "auth": {
       "shell": {
@@ -1344,6 +1353,19 @@
         "helperSetup": "Je kunt dit later wijzigen in instellingen.",
         "errorGeneric": "Er ging iets mis. Probeer het opnieuw."
       }
+    },
+    "translationPanel": {
+      "emptyTitle": "Wachten op vertaling",
+      "emptyDescription": "Vertalingen verschijnen hier zodra de spreker spreekt",
+      "translatingTo": "Vertalen naar",
+      "mute": "Dempen",
+      "muteAria": "Audio dempen",
+      "muteTitle": "Dempen",
+      "unmuteAria": "Geluid aan",
+      "tapToHear": "Tik om te luisteren",
+      "tapToHearTitle": "Tik om naar de audio te luisteren",
+      "decreaseFontSize": "Tekst verkleinen",
+      "increaseFontSize": "Tekst vergroten"
     }
   }
 }

@@ -57,6 +57,7 @@ export function AppSidebar() {
   const financeMatch = pathname.match(/^\/mosque-admin\/([^/]+)/);
   const isFinanceMode = financeMatch !== null;
   const financeSlug = financeMatch?.[1] ?? null;
+  const canAccessFinance = profile.can_access_finance === true || profile.is_superadmin === true;
 
   const translationNavigation: NavItem[] = [
     { label: t('translation.dashboard'), href: '/dashboard', icon: IconHome },
@@ -66,6 +67,15 @@ export function AppSidebar() {
       href: '/dashboard/recordings',
       icon: IconHistory,
     },
+    ...(canAccessFinance
+      ? [
+          {
+            label: t('translation.team'),
+            href: '/dashboard/team',
+            icon: IconUsers,
+          },
+        ]
+      : []),
   ];
 
   const financeNavigation: NavItem[] =
@@ -158,7 +168,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {financeComingSoon.length > 0 && (
+        {canAccessFinance && financeComingSoon.length > 0 && (
           <SidebarGroup>
             <SidebarGroupContent>
               <div
@@ -198,23 +208,25 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              isActive={pathname === '/dashboard/billing'}
-              tooltip={state === 'collapsed' ? t('footer.billing') : undefined}
-            >
-              <Link
-                href="/dashboard/billing"
-                onClick={() => {
-                  if (isMobile) setOpenMobile(false);
-                }}
+          {canAccessFinance && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/dashboard/billing'}
+                tooltip={state === 'collapsed' ? t('footer.billing') : undefined}
               >
-                <IconCreditCard className="size-4 text-black dark:text-white" />
-                <span className="text-black dark:text-white">{t('footer.billing')}</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+                <Link
+                  href="/dashboard/billing"
+                  onClick={() => {
+                    if (isMobile) setOpenMobile(false);
+                  }}
+                >
+                  <IconCreditCard className="size-4 text-black dark:text-white" />
+                  <span className="text-black dark:text-white">{t('footer.billing')}</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild

@@ -50,7 +50,7 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid organization id' }, { status: 400 });
   }
 
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher', 'student']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   const supabaseAdmin = createAdminClient();
@@ -83,7 +83,7 @@ export async function POST(
     return NextResponse.json({ error: 'Invalid organization id' }, { status: 400 });
   }
 
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   let raw: unknown;

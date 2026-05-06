@@ -33,7 +33,7 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher', 'student']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   const supabaseAdmin = createAdminClient();
@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 });
   }
 
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   let raw: unknown;

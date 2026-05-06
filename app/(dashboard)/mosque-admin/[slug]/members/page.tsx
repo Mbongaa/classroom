@@ -1,8 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireFinanceAccessBySlug } from '@/lib/finance-access';
 import { MembersClient, type MemberRow } from './MembersClient';
 
 /**
@@ -21,14 +20,12 @@ import { MembersClient, type MemberRow } from './MembersClient';
  *                              Signals "donor probably has no money,
  *                              candidate for cancellation".
  *
- * Auth: anyone in the org can view; only admins (and superadmins) can
- * cancel. The cancel button is wired to POST /api/organizations/[id]/
- * mandates/[mandateId]/cancel.
+ * Auth: finance admins only (and platform superadmins). The cancel button is
+ * wired to POST /api/organizations/[id]/mandates/[mandateId]/cancel.
  *
  * Why we fetch via the admin client: mandates are RLS-locked (donor PII,
- * service-role only), so we authenticate the user with the user-scoped
- * client and then drop to the admin client to read mandate rows. The
- * org-membership check above the fetch is the gate.
+ * service-role only), so the finance access check runs before we drop to the
+ * admin client to read mandate rows.
  */
 
 interface PageProps {
@@ -69,18 +66,13 @@ interface DirectDebitDbRow {
 
 export default async function MembersPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
   const t = await getTranslations('mosqueAdmin.members');
   const tRoot = await getTranslations('mosqueAdmin');
+  const { supabaseAdmin } = await requireFinanceAccessBySlug(
+    slug,
+    `/mosque-admin/${slug}/members`,
+  );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/login?redirect=/mosque-admin/${slug}/members`);
-  }
-
-  const supabaseAdmin = createAdminClient();
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>('id, slug, name')
@@ -91,32 +83,7 @@ export default async function MembersPage({ params }: PageProps) {
     notFound();
   }
 
-  // Membership + role check.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_superadmin')
-    .eq('id', user.id)
-    .single();
-  const isSuperadmin = profile?.is_superadmin === true;
-
-  let userRole: 'admin' | 'teacher' | 'student' | 'superadmin' | null = isSuperadmin
-    ? 'superadmin'
-    : null;
-
-  if (!isSuperadmin) {
-    const { data: membership } = await supabaseAdmin
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organization.id)
-      .eq('user_id', user.id)
-      .single();
-    if (!membership) {
-      notFound();
-    }
-    userRole = membership.role as 'admin' | 'teacher' | 'student';
-  }
-
-  const canCancel = userRole === 'admin' || userRole === 'superadmin';
+  const canCancel = true;
 
   // ---------------------------------------------------------------------
   // Fetch all mandates for campaigns owned by this org.

@@ -1,8 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireFinanceAccessBySlug } from '@/lib/finance-access';
 import { TransactionsClient, type UnifiedTransaction } from './TransactionsClient';
 
 /**
@@ -82,18 +81,13 @@ function pickRelation<T>(value: T | T[] | null | undefined): T | null {
 
 export default async function TransactionsPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
   const t = await getTranslations('mosqueAdmin.transactions');
   const tRoot = await getTranslations('mosqueAdmin');
+  const { supabaseAdmin } = await requireFinanceAccessBySlug(
+    slug,
+    `/mosque-admin/${slug}/transactions`,
+  );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/login?redirect=/mosque-admin/${slug}/transactions`);
-  }
-
-  const supabaseAdmin = createAdminClient();
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>('id, slug, name, donations_active')
@@ -107,26 +101,6 @@ export default async function TransactionsPage({ params }: PageProps) {
   // Gate: transactions are only visible after merchant onboarding is complete.
   if (!organization.donations_active) {
     redirect(`/mosque-admin/${slug}/settings`);
-  }
-
-  // Membership check.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_superadmin')
-    .eq('id', user.id)
-    .single();
-  const isSuperadmin = profile?.is_superadmin === true;
-
-  if (!isSuperadmin) {
-    const { data: membership } = await supabaseAdmin
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organization.id)
-      .eq('user_id', user.id)
-      .single();
-    if (!membership) {
-      notFound();
-    }
   }
 
   // ---------------------------------------------------------------------

@@ -23,7 +23,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Invalid organization id' }, { status: 400 });
   }
 
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   let raw: unknown;

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/api-auth';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { resolveActingAsForUser } from '@/lib/superadmin/acting-as';
+import { getFinanceAccessForOrganization } from '@/lib/finance-access';
 
 // Force dynamic execution so that `refetch()` after a server-action
 // revalidatePath always sees the fresh profile/org row instead of a
@@ -63,6 +64,7 @@ export async function GET() {
         ...profile,
         organization_id: actingAs.organizationId,
         organization: impersonatedOrg ?? profile.organization,
+        can_access_finance: true,
       },
       actingAs: {
         organizationId: actingAs.organizationId,
@@ -72,9 +74,17 @@ export async function GET() {
     });
   }
 
+  const canAccessFinance = profile.organization_id
+    ? (await getFinanceAccessForOrganization(user.id, profile.organization_id, admin))
+        .canAccessFinance
+    : profile.is_superadmin === true;
+
   return NextResponse.json({
     user: { id: user.id, email: user.email },
-    profile,
+    profile: {
+      ...profile,
+      can_access_finance: canAccessFinance,
+    },
     actingAs: null,
   });
 }

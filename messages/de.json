@@ -101,7 +101,9 @@
     "translation": {
       "dashboard": "Dashboard",
       "classrooms": "Klassenzimmer",
-      "sessionHistory": "Sitzungsverlauf"
+      "sessionHistory": "Sitzungsverlauf",
+      "team": "Team",
+      "finance": "Finanzen"
     },
     "finance": {
       "dashboard": "Dashboard",
@@ -468,7 +470,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "z. B. ramadan-iftar",
         "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
-      "slugHintCreate": "Wird in der Spenden-URL verwendet, zum Beispiel /donate/organisation/kampagne. Kleinbuchstaben, Zahlen und Bindestriche.",
+        "slugHintCreate": "Wird in der Spenden-URL verwendet, zum Beispiel /donate/organisation/kampagne. Kleinbuchstaben, Zahlen und Bindestriche.",
         "descriptionLabel": "Beschreibung",
         "descriptionPlaceholder": "Was unterstützt diese Kampagne? Optional.",
         "causeLabel": "Zweckart",
@@ -545,7 +547,7 @@
         "slugLabel": "Slug",
         "slugPlaceholder": "z. B. quran-sahih-international",
         "slugHintEdit": "Slug kann nicht geändert werden — dies würde bereits geteilte Links beschädigen.",
-      "slugHintCreate": "Wird in der Shop-URL verwendet, zum Beispiel /shop/organisation/produkt. Kleinbuchstaben, Zahlen und Bindestriche.",
+        "slugHintCreate": "Wird in der Shop-URL verwendet, zum Beispiel /shop/organisation/produkt. Kleinbuchstaben, Zahlen und Bindestriche.",
         "descriptionLabel": "Beschreibung",
         "descriptionPlaceholder": "Produktdetails. Optional.",
         "priceLabel": "Preis (€)",
@@ -830,7 +832,8 @@
         "features": "Features",
         "useCases": "Use cases",
         "contact": "Contact"
-      }
+      },
+      "mobileMenuLabel": "menü"
     },
     "hero": {
       "eyebrow": "Live in 12 Moscheen in NL und BE",
@@ -962,6 +965,11 @@
           "title": "live-übersetzung, inklusive",
           "body": "jede spendenseite steht neben dem khutba-livestream. eine moschee, eine plattform, ein login."
         }
+      },
+      "previews": {
+        "donationsAlt": "Spender gibt eine einmalige Sadaqah auf dem Telefon",
+        "mandatesAlt": "Spender unterschreibt ein SEPA-Mandat auf dem Telefon",
+        "recurringAlt": "Moschee-Admin Mitglieder-Dashboard mit wiederkehrenden Spendern mit aktiven SEPA-Mandaten"
       }
     },
     "useCases": {
@@ -1226,7 +1234,8 @@
           "role": "Moschee-Verwalter",
           "location": "Maaseik, Belgien"
         }
-      }
+      },
+      "eyebrow": "freundliche worte"
     },
     "auth": {
       "shell": {
@@ -1343,6 +1352,19 @@
         "helperSetup": "Du kannst das später in den Einstellungen ändern.",
         "errorGeneric": "Etwas ist schiefgelaufen. Bitte versuch es erneut."
       }
+    },
+    "translationPanel": {
+      "emptyTitle": "Warte auf Übersetzung",
+      "emptyDescription": "Übersetzungen erscheinen hier, sobald der Sprecher spricht",
+      "translatingTo": "Übersetzen nach",
+      "mute": "Stumm",
+      "muteAria": "Audio stummschalten",
+      "muteTitle": "Stumm",
+      "unmuteAria": "Stummschaltung aufheben",
+      "tapToHear": "Zum Anhören tippen",
+      "tapToHearTitle": "Zum Anhören des Audios tippen",
+      "decreaseFontSize": "Schrift verkleinern",
+      "increaseFontSize": "Schrift vergrößern"
     }
   }
 }

@@ -47,7 +47,7 @@ export async function GET(
   }
 
   // Any org member can read; admin/teacher gate is for writes only.
-  const auth = await requireOrgAdmin(id, ['admin', 'teacher', 'student']);
+  const auth = await requireOrgAdmin(id, ['admin']);
   if (!auth.success) return auth.response;
 
   const supabaseAdmin = createAdminClient();

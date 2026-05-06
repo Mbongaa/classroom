@@ -1,8 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireFinanceAccessBySlug } from '@/lib/finance-access';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
@@ -16,8 +15,8 @@ import { Separator } from '@/components/ui/separator';
  *   - Active campaigns count
  *   - Recent transactions (last 10)
  *
- * Gated by: the user must be a member of this organization (any role) OR a
- * platform superadmin. Redirects to /login when unauthenticated.
+ * Gated by: the user must be an admin of this organization OR a platform
+ * superadmin. Redirects to /login when unauthenticated.
  *
  * The route is still called `/mosque-admin/[slug]` for the user-facing label,
  * but the underlying tenant entity is `organizations` — there is no longer a
@@ -82,23 +81,14 @@ function kycBadgeVariant(
 
 export default async function MosqueAdminDashboard({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
   const t = await getTranslations('mosqueAdmin.dashboard');
   const tRoot = await getTranslations('mosqueAdmin');
-
-  // Require authentication
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/login?redirect=/mosque-admin/${slug}`);
-  }
+  const { supabaseAdmin } = await requireFinanceAccessBySlug(slug);
 
   // Resolve organization by slug. We use the admin client because the
   // existing organizations RLS only exposes the user's primary org via
   // profiles.organization_id, which doesn't cover users who belong to
   // multiple orgs via organization_members.
-  const supabaseAdmin = createAdminClient();
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>(
@@ -109,28 +99,6 @@ export default async function MosqueAdminDashboard({ params }: PageProps) {
 
   if (!organization) {
     notFound();
-  }
-
-  // Membership check (defense in depth on top of RLS).
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_superadmin')
-    .eq('id', user.id)
-    .single();
-
-  const isSuperadmin = profile?.is_superadmin === true;
-
-  if (!isSuperadmin) {
-    const { data: membership } = await supabaseAdmin
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organization.id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (!membership) {
-      notFound();
-    }
   }
 
   // Aggregates — admin client so superadmins and members see the same numbers.

@@ -17,7 +17,7 @@ export default function Testimonials() {
       <div className="mkt-container">
         <div className="mx-auto max-w-2xl text-center">
           <StickyTag rotate={2} tone="postit">
-            kind words
+            {t('eyebrow')}
           </StickyTag>
           <h2 className="mkt-h2 mt-6">{t('title')}</h2>
           <p className="mkt-lead mt-6 mx-auto" style={{ marginInline: 'auto' }}>

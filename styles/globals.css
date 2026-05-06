@@ -362,9 +362,15 @@ h2 a {
   --mkt-preview-border: #3a3a3a;
   --mkt-preview-brand: #ff4d4d;
 
-  /* Display fonts (Latin only). Arabic still uses Noto Sans Arabic where set. */
-  --mkt-font-display: var(--font-kalam), 'Kalam', cursive;
-  --mkt-font-body: var(--font-patrick), 'Patrick Hand', cursive;
+  /* Display fonts (Latin only). Arabic still uses Noto Sans Arabic where set.
+     Explicit fallback chain so the brief FOUT before Kalam/Patrick load is
+     visually identical cross-device — bare `cursive` resolves to Snell on
+     Apple, Comic Sans on Windows, system sans on Android, which is what
+     caused the "different fonts on different devices" report. */
+  --mkt-font-display: var(--font-kalam), 'Kalam',
+    'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+  --mkt-font-body: var(--font-patrick), 'Patrick Hand',
+    'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
 }
 
 /* The sketch system is light-only by design. If the global theme is dark,

@@ -1,8 +1,7 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { createClient } from '@/lib/supabase/server';
-import { createAdminClient } from '@/lib/supabase/admin';
+import { requireFinanceAccessBySlug } from '@/lib/finance-access';
 import { SettingsTabs } from './SettingsTabs';
 
 /**
@@ -90,22 +89,16 @@ interface KycDocumentRow {
 
 export default async function MosqueSettingsPage({ params }: PageProps) {
   const { slug } = await params;
-  const supabase = await createClient();
   const t = await getTranslations('mosqueAdmin.settings');
   const tRoot = await getTranslations('mosqueAdmin');
-
-  // Require authentication
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    redirect(`/login?redirect=/mosque-admin/${slug}/settings`);
-  }
+  const { supabaseAdmin } = await requireFinanceAccessBySlug(
+    slug,
+    `/mosque-admin/${slug}/settings`,
+  );
 
   // Use the admin client to resolve the org by slug — see the dashboard page
   // for the rationale (existing organizations RLS only exposes the user's
   // primary org via profiles.organization_id).
-  const supabaseAdmin = createAdminClient();
   const { data: organization } = await supabaseAdmin
     .from('organizations')
     .select<string, OrganizationRow>(
@@ -136,26 +129,6 @@ export default async function MosqueSettingsPage({ params }: PageProps) {
       .eq('organization_id', organization.id)
       .order('last_synced_at', { ascending: true }),
   ]);
-
-  // Membership check (defense in depth).
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('is_superadmin')
-    .eq('id', user.id)
-    .single();
-
-  const isSuperadmin = profile?.is_superadmin === true;
-  if (!isSuperadmin) {
-    const { data: membership } = await supabaseAdmin
-      .from('organization_members')
-      .select('role')
-      .eq('organization_id', organization.id)
-      .eq('user_id', user.id)
-      .single();
-    if (!membership) {
-      notFound();
-    }
-  }
 
   return (
     <div className="mx-auto max-w-4xl py-6">

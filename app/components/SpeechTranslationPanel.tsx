@@ -593,6 +593,15 @@ const SpeechTranslationPanel: React.FC<SpeechTranslationPanelProps> = ({
               <span className={styles.languageLabel}>Translating to</span>
               <span>{getLanguageLabel(targetLanguage)}</span>
             </div>
+            <a
+              href="https://bayaan.ai"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.poweredBy}
+            >
+              <span className={styles.poweredByLabel}>Powered by</span>
+              <span className={styles.poweredByBrand}>bayaan.ai</span>
+            </a>
           </div>
         ) : (
           translatedSegments.map((segment) => (

@@ -27,26 +27,27 @@ const tabs = [
 
 // Each tab gets its own preview surface — donations and mandates show the
 // real donor flow on a phone; recurring shows a screenshot of the mosque-admin
-// members dashboard where the automatic SEPA collection runs.
+// members dashboard where the automatic SEPA collection runs. Alt text is
+// resolved from i18n at the call site (see PhoneTabPreview / DashboardTabPreview).
 type PreviewConfig =
-  | { kind: 'phone'; src: string; alt: string }
-  | { kind: 'dashboard-image'; src: string; alt: string };
+  | { kind: 'phone'; src: string; altKey: string }
+  | { kind: 'dashboard-image'; src: string; altKey: string };
 
 const PREVIEW_BY_TAB: Record<typeof tabs[number]['id'], PreviewConfig> = {
   donations: {
     kind: 'phone',
     src: '/marketing/sadaqah-alabraar.mp4',
-    alt: 'Donor giving a one-time sadaqah on their phone',
+    altKey: 'donationsAlt',
   },
   mandates: {
     kind: 'phone',
     src: '/marketing/mandaat-alabraar.mp4',
-    alt: 'Donor signing a SEPA mandate on their phone',
+    altKey: 'mandatesAlt',
   },
   recurring: {
     kind: 'dashboard-image',
     src: '/marketing/automatic-incassos.png',
-    alt: 'Mosque admin members dashboard listing recurring donors with active SEPA mandates',
+    altKey: 'recurringAlt',
   },
 };
 
@@ -203,6 +204,7 @@ export default function Features() {
 type TabId = typeof tabs[number]['id'];
 
 function PhoneTabPreview({ activeTab }: { activeTab: TabId }) {
+  const t = useTranslations('marketing.features.previews');
   const cfg = PREVIEW_BY_TAB[activeTab];
   if (cfg.kind !== 'phone') return null;
   return (
@@ -210,7 +212,7 @@ function PhoneTabPreview({ activeTab }: { activeTab: TabId }) {
       <div style={{ width: 'min(360px, 86vw)' }}>
         <PhoneMockup
           screenshot={cfg.src}
-          alt={cfg.alt}
+          alt={t(cfg.altKey)}
           rotate={-1.5}
           showSideButtons
         />
@@ -220,6 +222,7 @@ function PhoneTabPreview({ activeTab }: { activeTab: TabId }) {
 }
 
 function DashboardTabPreview({ activeTab }: { activeTab: TabId }) {
+  const t = useTranslations('marketing.features.previews');
   const cfg = PREVIEW_BY_TAB[activeTab];
   if (cfg.kind !== 'dashboard-image') return null;
   return (
@@ -274,7 +277,7 @@ function DashboardTabPreview({ activeTab }: { activeTab: TabId }) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={cfg.src}
-            alt={cfg.alt}
+            alt={t(cfg.altKey)}
             loading="lazy"
             style={{ width: '100%', height: 'auto', display: 'block' }}
           />

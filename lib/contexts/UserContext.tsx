@@ -11,6 +11,7 @@ interface UserProfile {
   role: string;
   organization_id: string;
   is_superadmin: boolean;
+  can_access_finance?: boolean;
   created_at: string; // Timestamp from Supabase
   organization?: {
     id: string;

@@ -101,7 +101,9 @@
     "translation": {
       "dashboard": "Tableau de bord",
       "classrooms": "Salles de classe",
-      "sessionHistory": "Historique des sessions"
+      "sessionHistory": "Historique des sessions",
+      "team": "Equipe",
+      "finance": "Finance"
     },
     "finance": {
       "dashboard": "Tableau de bord",
@@ -468,7 +470,7 @@
         "slugLabel": "Identifiant",
         "slugPlaceholder": "ex. ramadan-iftar",
         "slugHintEdit": "L'identifiant ne peut pas être modifié — cela casserait les liens déjà partagés.",
-      "slugHintCreate": "Utilisé dans l'URL de don, par exemple /donate/organisation/campagne. Lettres minuscules, chiffres et tirets.",
+        "slugHintCreate": "Utilisé dans l'URL de don, par exemple /donate/organisation/campagne. Lettres minuscules, chiffres et tirets.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Que soutient cette campagne ? Optionnel.",
         "causeLabel": "Type de cause",
@@ -545,7 +547,7 @@
         "slugLabel": "Identifiant",
         "slugPlaceholder": "ex. quran-sahih-international",
         "slugHintEdit": "L'identifiant ne peut pas être modifié — cela casserait les liens déjà partagés.",
-      "slugHintCreate": "Utilisé dans l'URL de la boutique, par exemple /shop/organisation/produit. Lettres minuscules, chiffres et tirets.",
+        "slugHintCreate": "Utilisé dans l'URL de la boutique, par exemple /shop/organisation/produit. Lettres minuscules, chiffres et tirets.",
         "descriptionLabel": "Description",
         "descriptionPlaceholder": "Détails du produit. Optionnel.",
         "priceLabel": "Prix (€)",
@@ -830,7 +832,8 @@
         "features": "Features",
         "useCases": "Use cases",
         "contact": "Contact"
-      }
+      },
+      "mobileMenuLabel": "menu"
     },
     "hero": {
       "eyebrow": "En direct dans 12 mosquées aux Pays-Bas et en Belgique",
@@ -962,6 +965,11 @@
           "title": "traduction en direct, incluse",
           "body": "chaque page de don côtoie la diffusion de la khoutba. une mosquée, une plateforme, un seul compte."
         }
+      },
+      "previews": {
+        "donationsAlt": "Donateur effectuant une sadaqah ponctuelle sur son téléphone",
+        "mandatesAlt": "Donateur signant un mandat SEPA sur son téléphone",
+        "recurringAlt": "Tableau de bord membres admin mosquée listant les donateurs récurrents avec mandats SEPA actifs"
       }
     },
     "useCases": {
@@ -1226,7 +1234,8 @@
           "role": "Administrateur de mosquée",
           "location": "Maaseik, Belgique"
         }
-      }
+      },
+      "eyebrow": "des mots aimables"
     },
     "auth": {
       "shell": {
@@ -1343,6 +1352,19 @@
         "helperSetup": "Tu pourras modifier cela plus tard dans les paramètres.",
         "errorGeneric": "Une erreur s’est produite. Réessaie."
       }
+    },
+    "translationPanel": {
+      "emptyTitle": "En attente de traduction",
+      "emptyDescription": "Les traductions apparaîtront ici dès que le locuteur parlera",
+      "translatingTo": "Traduction vers",
+      "mute": "Muet",
+      "muteAria": "Couper l'audio",
+      "muteTitle": "Muet",
+      "unmuteAria": "Activer l'audio",
+      "tapToHear": "Toucher pour écouter",
+      "tapToHearTitle": "Toucher pour écouter l'audio",
+      "decreaseFontSize": "Réduire la taille du texte",
+      "increaseFontSize": "Agrandir la taille du texte"
     }
   }
 }

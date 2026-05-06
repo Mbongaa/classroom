@@ -111,19 +111,18 @@ export function DashboardContent({
             <div className="flex w-full justify-center">
               <button
                 onClick={startKhutbaQuickstart}
-                className="group flex w-full max-w-md cursor-pointer items-center justify-center gap-4 rounded-2xl bg-black px-8 py-7 text-2xl font-bold text-white shadow-lg ring-offset-2 transition duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-black hover:ring-offset-white active:scale-[0.99] sm:text-3xl dark:bg-white dark:text-black dark:hover:ring-white dark:ring-offset-black"
+                className="group inline-flex cursor-pointer items-center justify-center gap-3 rounded-2xl bg-black px-5 py-3 text-2xl font-bold text-white shadow-lg ring-offset-2 transition duration-200 hover:scale-[1.02] hover:ring-2 hover:ring-black hover:ring-offset-white active:scale-[0.99] sm:text-3xl dark:bg-white dark:text-black dark:hover:ring-white dark:ring-offset-black"
               >
                 {/* Source .lottie has an 800x800 canvas with the mic artwork
                     only occupying the center ~half. Oversize the inner Lottie
-                    to ~2× the visible box and clip the empty canvas padding
-                    with overflow-hidden, so the centered artwork fills the
-                    48x48 viewport. */}
+                    and clip the empty canvas padding with overflow-hidden so
+                    the centered artwork fills the visible viewport. */}
                 <span
                   aria-hidden="true"
-                  className="relative h-12 w-12 shrink-0 overflow-hidden sm:h-14 sm:w-14"
+                  className="relative h-14 w-14 shrink-0 overflow-hidden sm:h-16 sm:w-16"
                 >
                   <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <LottieIcon src="/lottie/microphone-record.lottie" size={96} />
+                    <LottieIcon src="/lottie/microphone-record.lottie" size={120} />
                   </span>
                 </span>
                 <span>{t('quickActions.khutbaQuickstart')}</span>
