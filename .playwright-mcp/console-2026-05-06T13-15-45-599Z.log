@@ -1,0 +1,56 @@
+[     757ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[     968ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[    1348ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1509ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[    1515ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1515ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /kiosk/[mosque], path: /kiosk/masjid-mawsil} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1516ms] [LOG] %c[Vercel Web Analytics]%c [view] http://172.24.112.1:3001/kiosk/masjid-mawsil color: rgb(120, 120, 120) color: inherit {o: http://172.24.112.1:3001/kiosk/masjid-mawsil, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1778073347115} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    2288ms] [LOG] [Fast Refresh] done in 948ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2333ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2335ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    2340ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    2344ms] [LOG] [Fast Refresh] done in 4ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    3678ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    3728ms] [LOG] [Fast Refresh] done in 51ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    8794ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    8828ms] [LOG] [Fast Refresh] done in 33ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   10029ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   10058ms] [LOG] [Fast Refresh] done in 28ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   18471ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   18519ms] [LOG] [Fast Refresh] done in 49ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   18547ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   18573ms] [LOG] [Fast Refresh] done in 27ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   18598ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   18619ms] [LOG] [Fast Refresh] done in 21ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   19869ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   19938ms] [LOG] [Fast Refresh] done in 69ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   19999ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   20054ms] [LOG] [Fast Refresh] done in 55ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   20061ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   20115ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   20157ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   20192ms] [LOG] [Fast Refresh] done in 35ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   20366ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   20398ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   20442ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   20489ms] [LOG] [Fast Refresh] done in 47ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   74898ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   74955ms] [LOG] [Fast Refresh] done in 58ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   76439ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   76492ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  128028ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  128075ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  130930ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  130993ms] [LOG] [Fast Refresh] done in 62ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  167201ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  167254ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  167292ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  167547ms] [LOG] [Fast Refresh] done in 255ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  167584ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  167588ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  168107ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  168289ms] [LOG] [Fast Refresh] done in 183ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  176012ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  177038ms] [LOG] [Fast Refresh] done in 938ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  182012ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  182848ms] [LOG] [Fast Refresh] done in 807ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560

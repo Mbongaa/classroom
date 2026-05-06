@@ -1,0 +1,532 @@
+[      91ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     139ms] [LOG] [Fast Refresh] done in 48ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     202ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     238ms] [LOG] [Fast Refresh] done in 37ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     546ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     568ms] [LOG] [Fast Refresh] done in 21ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     683ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(5), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[     684ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[     705ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[     821ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[     942ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     983ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1014ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1055ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1227ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1227ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /kiosk/[mosque], path: /kiosk/masjid-mawsil} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1228ms] [LOG] %c[Vercel Web Analytics]%c [view] http://172.24.112.1:3001/kiosk/masjid-mawsil color: rgb(120, 120, 120) color: inherit {o: http://172.24.112.1:3001/kiosk/masjid-mawsil, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1778074335089} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1228ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[   86893ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   86937ms] [LOG] [Fast Refresh] done in 44ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   87100ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   87146ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   87161ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   87282ms] [LOG] [Fast Refresh] done in 121ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   87335ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   87339ms] [LOG] [Fast Refresh] done in 4ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   87377ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   87431ms] [LOG] [Fast Refresh] done in 54ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  232857ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  232896ms] [LOG] [Fast Refresh] done in 39ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  232930ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  233491ms] [LOG] [Fast Refresh] done in 542ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  239457ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  240006ms] [LOG] [Fast Refresh] done in 508ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  245732ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  245770ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  245803ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  246297ms] [LOG] [Fast Refresh] done in 459ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  395252ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  395900ms] [LOG] [Fast Refresh] done in 617ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  471072ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  471135ms] [LOG] [Fast Refresh] done in 63ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  471168ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  471826ms] [LOG] [Fast Refresh] done in 644ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  601642ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  601696ms] [LOG] [Fast Refresh] done in 54ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  601726ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  602235ms] [LOG] [Fast Refresh] done in 497ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  678532ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  679042ms] [LOG] [Fast Refresh] done in 479ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  687537ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  688210ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:133:6
+Parsing ecmascript source code failed
+  131 |
+  132 |   return (
+> 133 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  134 |       {/* Header */}
+  135 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  136 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[  703675ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  703725ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:133:6
+Parsing ecmascript source code failed
+  131 |
+  132 |   return (
+> 133 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  134 |       {/* Header */}
+  135 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  136 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[  703771ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  704587ms] [LOG] [Fast Refresh] done in 741ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  704598ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  704606ms] [LOG] [Fast Refresh] done in 8ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  704613ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  704619ms] [LOG] [Fast Refresh] done in 6ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  704635ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  704673ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  704692ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  704783ms] [LOG] [Fast Refresh] done in 92ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  704808ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  705316ms] [LOG] [Fast Refresh] done in 508ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  705325ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  705332ms] [LOG] [Fast Refresh] done in 6ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  705337ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  705345ms] [LOG] [Fast Refresh] done in 9ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  705351ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  705375ms] [LOG] [Fast Refresh] done in 23ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  705512ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  705515ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  706890ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  706920ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  706959ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  706986ms] [LOG] [Fast Refresh] done in 26ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707012ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707058ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707403ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707443ms] [LOG] [Fast Refresh] done in 40ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707476ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707513ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707548ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707590ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707618ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707664ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707691ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707737ms] [LOG] [Fast Refresh] done in 45ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  707878ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  707908ms] [LOG] [Fast Refresh] done in 30ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  708099ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  708133ms] [LOG] [Fast Refresh] done in 34ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  708185ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  708206ms] [LOG] [Fast Refresh] done in 21ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  712093ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  712153ms] [LOG] [Fast Refresh] done in 60ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  712176ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  712626ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:133:6
+Parsing ecmascript source code failed
+  131 |
+  132 |   return (
+> 133 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  134 |       {/* Header */}
+  135 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  136 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[  721756ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  721807ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:133:6
+Parsing ecmascript source code failed
+  131 |
+  132 |   return (
+> 133 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  134 |       {/* Header */}
+  135 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  136 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[  721882ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  722453ms] [LOG] [Fast Refresh] done in 482ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  722468ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  722497ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  722557ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  722573ms] [LOG] [Fast Refresh] done in 15ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  722595ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  722644ms] [LOG] [Fast Refresh] done in 49ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  722669ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  722727ms] [LOG] [Fast Refresh] done in 58ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723357ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723389ms] [LOG] [Fast Refresh] done in 32ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723393ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723395ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723401ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723406ms] [LOG] [Fast Refresh] done in 5ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723411ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723415ms] [LOG] [Fast Refresh] done in 5ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723422ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723425ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  723432ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  723436ms] [LOG] [Fast Refresh] done in 4ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724222ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724284ms] [LOG] [Fast Refresh] done in 62ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724334ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724381ms] [LOG] [Fast Refresh] done in 48ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724420ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724451ms] [LOG] [Fast Refresh] done in 30ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724821ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724850ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724877ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724907ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724911ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  724937ms] [LOG] [Fast Refresh] done in 26ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  724964ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725004ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725486ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725516ms] [LOG] [Fast Refresh] done in 30ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725545ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725577ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725607ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725641ms] [LOG] [Fast Refresh] done in 33ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725669ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725730ms] [LOG] [Fast Refresh] done in 60ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725767ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725813ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  725847ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  725868ms] [LOG] [Fast Refresh] done in 21ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  845994ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  847348ms] [LOG] [Fast Refresh] done in 1355ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  847389ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  847614ms] [LOG] [Fast Refresh] done in 225ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  847952ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  847999ms] [LOG] [Fast Refresh] done in 47ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848035ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848062ms] [LOG] [Fast Refresh] done in 27ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848133ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848189ms] [LOG] [Fast Refresh] done in 55ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848452ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848521ms] [LOG] [Fast Refresh] done in 69ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848548ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848578ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848603ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848654ms] [LOG] [Fast Refresh] done in 51ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848801ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  848825ms] [LOG] [Fast Refresh] done in 25ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[  848948ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[  849216ms] [LOG] [Fast Refresh] done in 268ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1025786ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1025836ms] [LOG] [Fast Refresh] done in 49ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1025867ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1025899ms] [LOG] [Fast Refresh] done in 32ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1025980ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1026020ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1026026ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1026081ms] [LOG] [Fast Refresh] done in 54ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1026109ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1026138ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1026166ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1026236ms] [LOG] [Fast Refresh] done in 71ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1029771ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1029801ms] [LOG] [Fast Refresh] done in 30ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1029829ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1029886ms] [LOG] [Fast Refresh] done in 56ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1029923ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1030053ms] [LOG] [Fast Refresh] done in 130ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1035588ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1035627ms] [LOG] [Fast Refresh] done in 40ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1036248ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1036294ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1036319ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1036911ms] [LOG] [Fast Refresh] done in 552ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1051008ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1051698ms] [LOG] [Fast Refresh] done in 653ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1090430ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1090497ms] [LOG] [Fast Refresh] done in 67ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1090529ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1090602ms] [LOG] [Fast Refresh] done in 72ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1091001ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1091036ms] [LOG] [Fast Refresh] done in 34ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092006ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092067ms] [LOG] [Fast Refresh] done in 61ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092123ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092204ms] [LOG] [Fast Refresh] done in 81ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092261ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092304ms] [LOG] [Fast Refresh] done in 43ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092313ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092353ms] [LOG] [Fast Refresh] done in 40ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092516ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092572ms] [LOG] [Fast Refresh] done in 55ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092580ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092625ms] [LOG] [Fast Refresh] done in 45ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092695ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092733ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092737ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092785ms] [LOG] [Fast Refresh] done in 48ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092827ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092861ms] [LOG] [Fast Refresh] done in 34ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1092897ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1092924ms] [LOG] [Fast Refresh] done in 27ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1101080ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1101805ms] [LOG] [Fast Refresh] done in 660ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1157854ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1157896ms] [LOG] [Fast Refresh] done in 43ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1157948ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1158043ms] [LOG] [Fast Refresh] done in 95ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1158098ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1158456ms] [LOG] [Fast Refresh] done in 358ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1158482ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1158484ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1159173ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1159206ms] [LOG] [Fast Refresh] done in 32ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1159241ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1159303ms] [LOG] [Fast Refresh] done in 62ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1159334ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1159359ms] [LOG] [Fast Refresh] done in 25ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1159383ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1159425ms] [LOG] [Fast Refresh] done in 43ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1192321ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193029ms] Error: Link is not defined
+    at KioskDisplayClient (http://172.24.112.1:3001/_next/static/chunks/_cef14d90._.js?id=%255Bproject%255D%252Fapp%252Fkiosk%252F%255Bmosque%255D%252FKioskDisplayClient.tsx+%255Bapp-client%255D+%2528ecmascript%2529:263:347)
+    at KioskPage (rsc://React/Server/C:%5CUsers%5Chassa%5COneDrive%5CDesktop%5CBayaan.ai%5Cclassroom%5C.next%5Cserver%5Cchunks%5Cssr%5C%5Broot%20of%20the%20server%5D__098a361a._.js?23:234:374)
+[ 1193057ms] [LOG] [Fast Refresh] done in 653ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193070ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193105ms] [LOG] [Fast Refresh] done in 36ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193132ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193141ms] [LOG] [Fast Refresh] done in 9ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193151ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193199ms] [LOG] [Fast Refresh] done in 48ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193235ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193301ms] [LOG] [Fast Refresh] done in 67ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193313ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1193335ms] [LOG] [Fast Refresh] done in 22ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1193681ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[ 1193682ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[ 1193703ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[ 1193856ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[ 1194033ms] Error: Link is not defined
+    at KioskDisplayClient (http://172.24.112.1:3001/_next/static/chunks/_cef14d90._.js:438:347)
+    at KioskPage (rsc://React/Server/C:%5CUsers%5Chassa%5COneDrive%5CDesktop%5CBayaan.ai%5Cclassroom%5C.next%5Cserver%5Cchunks%5Cssr%5C%5Broot%20of%20the%20server%5D__098a361a._.js?23:234:374)
+[ 1194121ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194139ms] [LOG] [Fast Refresh] done in 18ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1194153ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194164ms] [LOG] [Fast Refresh] done in 10ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1194197ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194231ms] [LOG] [Fast Refresh] done in 34ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1194252ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194288ms] [LOG] [Fast Refresh] done in 35ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1194316ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194323ms] [LOG] [Fast Refresh] done in 8ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1194363ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1194376ms] [LOG] [Fast Refresh] done in 14ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1201607ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1202056ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:150:6
+Parsing ecmascript source code failed
+  148 |
+  149 |   return (
+> 150 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  151 |       {/* Header */}
+  152 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  153 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[ 1208665ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209050ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14806
+[ 1209072ms] [LOG] [Fast Refresh] done in 387ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209097ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209146ms] [LOG] [Fast Refresh] done in 50ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209168ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209214ms] [LOG] [Fast Refresh] done in 47ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209222ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209625ms] [LOG] [Fast Refresh] done in 404ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209630ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209632ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209638ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209640ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209649ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209695ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209705ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209735ms] [LOG] [Fast Refresh] done in 30ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209748ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209969ms] [LOG] [Fast Refresh] done in 222ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1209990ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1209998ms] [LOG] [Fast Refresh] done in 9ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1210065ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1210126ms] [LOG] [Fast Refresh] done in 62ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1210151ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[ 1210417ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[ 1210507ms] Error: Link is not defined
+    at http://172.24.112.1:3001/_next/static/chunks/_cef14d90._.js:565:377
+    at Array.map (<anonymous>)
+    at KioskDisplayClient (http://172.24.112.1:3001/_next/static/chunks/_cef14d90._.js:561:65)
+    at KioskPage (rsc://React/Server/C:%5CUsers%5Chassa%5COneDrive%5CDesktop%5CBayaan.ai%5Cclassroom%5C.next%5Cserver%5Cchunks%5Cssr%5C%5Broot%20of%20the%20server%5D__098a361a._.js?23:234:374)
+[ 1210599ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1210613ms] [LOG] [Fast Refresh] done in 15ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1210638ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1210665ms] [LOG] [Fast Refresh] done in 27ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1210688ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1210741ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1213937ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1214321ms] [ERROR] ./app/kiosk/[mosque]/KioskDisplayClient.tsx:150:6
+Parsing ecmascript source code failed
+  148 |
+  149 |   return (
+> 150 |     <main className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
+      |      ^^^^
+  151 |       {/* Header */}
+  152 |       <header className="shrink-0 border-b border-[rgba(128,128,128,0.15)] px-8 py-6 lg:px-12 xl:px-20 2xl:px-28">
+  153 |         <div className="flex items-center justify-between">
+
+Unexpected token `main`. Expected jsx identifier @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:1193
+[ 1219890ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220250ms] [WARNING] [Fast Refresh] performing full reload because your application had an unrecoverable error @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14806
+[ 1220270ms] [LOG] [Fast Refresh] done in 364ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220287ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220331ms] [LOG] [Fast Refresh] done in 43ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220391ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220697ms] [LOG] [Fast Refresh] done in 306ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220702ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220704ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220710ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220715ms] [LOG] [Fast Refresh] done in 6ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220858ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220909ms] [LOG] [Fast Refresh] done in 50ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220916ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1220967ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1220975ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221045ms] [LOG] [Fast Refresh] done in 69ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221095ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221163ms] [LOG] [Fast Refresh] done in 68ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221170ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221222ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221233ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221266ms] [LOG] [Fast Refresh] done in 33ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221392ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221395ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221461ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221475ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[ 1221708ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[ 1221905ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1221934ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1221957ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1222009ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1222029ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1222069ms] [LOG] [Fast Refresh] done in 40ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1222105ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1222144ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1222198ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[ 1222198ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /kiosk/[mosque], path: /kiosk/masjid-mawsil} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[ 1222198ms] [LOG] %c[Vercel Web Analytics]%c [view] http://172.24.112.1:3001/kiosk/masjid-mawsil color: rgb(120, 120, 120) color: inherit {o: http://172.24.112.1:3001/kiosk/masjid-mawsil, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1778075556060} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[ 1222200ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[ 1231148ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1231202ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1231207ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1231721ms] [LOG] [Fast Refresh] done in 499ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1298960ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1299006ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1299028ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1299642ms] [LOG] [Fast Refresh] done in 564ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1351220ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1351266ms] [LOG] [Fast Refresh] done in 45ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1351316ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1351470ms] [LOG] [Fast Refresh] done in 154ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1351510ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1351610ms] [LOG] [Fast Refresh] done in 101ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1351649ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1351652ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1351704ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1351759ms] [LOG] [Fast Refresh] done in 55ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398147ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398215ms] [LOG] [Fast Refresh] done in 67ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398249ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398345ms] [LOG] [Fast Refresh] done in 96ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398367ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398370ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398373ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398418ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398452ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398481ms] [LOG] [Fast Refresh] done in 29ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1398539ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1398566ms] [LOG] [Fast Refresh] done in 28ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1483120ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1483180ms] [LOG] [Fast Refresh] done in 61ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1570701ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1570755ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1570782ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1571275ms] [LOG] [Fast Refresh] done in 426ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1720517ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1720568ms] [LOG] [Fast Refresh] done in 51ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1720606ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1720713ms] [LOG] [Fast Refresh] done in 108ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1720740ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1720801ms] [LOG] [Fast Refresh] done in 61ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1720826ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1720849ms] [LOG] [Fast Refresh] done in 24ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1720915ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1720954ms] [LOG] [Fast Refresh] done in 39ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1791528ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1791573ms] [LOG] [Fast Refresh] done in 46ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 1791601ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 1792298ms] [LOG] [Fast Refresh] done in 680ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2045131ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2045170ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2045217ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2045608ms] [LOG] [Fast Refresh] done in 392ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2045632ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2045635ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2046341ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2046374ms] [LOG] [Fast Refresh] done in 33ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2046422ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2046459ms] [LOG] [Fast Refresh] done in 37ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2046510ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2046556ms] [LOG] [Fast Refresh] done in 45ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2046612ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2046648ms] [LOG] [Fast Refresh] done in 35ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2046913ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2047103ms] [LOG] [Fast Refresh] done in 190ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2047133ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2047135ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2047141ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2047164ms] [LOG] [Fast Refresh] done in 23ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2047243ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2047246ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2096112ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2096780ms] [LOG] [Fast Refresh] done in 612ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2104899ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2104953ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2104961ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2105490ms] [LOG] [Fast Refresh] done in 481ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2114317ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115198ms] [LOG] [Fast Refresh] done in 838ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115202ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115210ms] [LOG] [Fast Refresh] done in 9ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115216ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115221ms] [LOG] [Fast Refresh] done in 5ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115228ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115246ms] [LOG] [Fast Refresh] done in 18ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115325ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115375ms] [LOG] [Fast Refresh] done in 50ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115407ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115467ms] [LOG] [Fast Refresh] done in 60ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115675ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2115737ms] [LOG] [Fast Refresh] done in 62ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2115800ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2116263ms] [LOG] [Fast Refresh] done in 463ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2116298ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2116301ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2116307ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2116309ms] [LOG] [Fast Refresh] done in 2ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2116311ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2116313ms] [LOG] [Fast Refresh] done in 1ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2116315ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2116317ms] [LOG] [Fast Refresh] done in 3ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2125254ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2125306ms] [LOG] [Fast Refresh] done in 52ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2125336ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2125366ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2125391ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2125772ms] [LOG] [Fast Refresh] done in 380ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2125831ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2125835ms] [LOG] [Fast Refresh] done in 5ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2126395ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2126448ms] [LOG] [Fast Refresh] done in 53ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2126477ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2126515ms] [LOG] [Fast Refresh] done in 39ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2126647ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2126685ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[ 2126713ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[ 2126758ms] [LOG] [Fast Refresh] done in 45ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560

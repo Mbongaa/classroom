@@ -141,7 +141,11 @@
       "recordingsDescription": "تسجيلات الجلسات المحفوظة",
       "organization": "المنظمة",
       "organizationDescription": "منظمتك",
-      "organizationFallback": "غير متاح"
+      "organizationFallback": "غير متاح",
+      "kiosk": "كشك التبرعات",
+      "kioskDescription": "شاشة عرض للتبرعات داخل المسجد",
+      "kioskFallback": "فعّل التبرعات لاستخدام الكشك",
+      "openKiosk": "فتح الكشك"
     },
     "quickActions": {
       "title": "إجراءات سريعة",

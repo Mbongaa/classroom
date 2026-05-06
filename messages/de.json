@@ -141,7 +141,11 @@
       "recordingsDescription": "Gespeicherte Sitzungsaufzeichnungen",
       "organization": "Organisation",
       "organizationDescription": "Ihre Organisation",
-      "organizationFallback": "N/V"
+      "organizationFallback": "N/V",
+      "kiosk": "Spenden-Kiosk",
+      "kioskDescription": "Bildschirmanzeige für Spenden in der Moschee",
+      "kioskFallback": "Richte Spenden ein, um den Kiosk zu nutzen",
+      "openKiosk": "Kiosk öffnen"
     },
     "quickActions": {
       "title": "Quickstart",

@@ -1,0 +1,20 @@
+[     104ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     163ms] [LOG] [Fast Refresh] done in 59ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     201ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     241ms] [LOG] [Fast Refresh] done in 41ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     498ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[     528ms] [LOG] [Fast Refresh] done in 31ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[     642ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(3), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[     643ms] [LOG] %c[Vercel Speed Insights]%c [vitals] color: rgb(120, 120, 120) color: inherit {speed: 4g, metrics: Array(1), scriptVersion: 0.1.3, sdkName: @vercel/speed-insights/next, sdkVersion: 2.0.0} /_vercel/speed-insights/vitals @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[     670ms] [ERROR] The Cross-Origin-Opener-Policy header has been ignored, because the URL's origin was untrustworthy. It was defined either in the final response or a redirect. Please deliver the response using the HTTPS protocol. You can also use the 'localhost' origin instead. See https://www.w3.org/TR/powerful-features/#potentially-trustworthy-origin and https://html.spec.whatwg.org/#the-cross-origin-opener-policy-header. @ http://172.24.112.1:3001/kiosk/masjid-mawsil:0
+[     877ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_compiled_0ca52c9c._.js:16329
+[    1205ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    1254ms] [LOG] [Fast Refresh] done in 50ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[    1321ms] [LOG] %c[Vercel Web Analytics]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1322ms] [LOG] %c[Vercel Web Analytics]%c Running queued event color: rgb(120, 120, 120) color: inherit pageview {route: /kiosk/[mosque], path: /kiosk/masjid-mawsil} @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1323ms] [LOG] %c[Vercel Web Analytics]%c [view] http://172.24.112.1:3001/kiosk/masjid-mawsil color: rgb(120, 120, 120) color: inherit {o: http://172.24.112.1:3001/kiosk/masjid-mawsil, sv: 0.1.3, sdkn: @vercel/analytics/next, sdkv: 2.0.1, ts: 1778073532365} /_vercel/insights/view @ https://va.vercel-scripts.com/v1/script.debug.js:0
+[    1327ms] [LOG] %c[Vercel Speed Insights]%c Debug mode is enabled by default in development. No requests will be sent to the server. color: rgb(120, 120, 120) color: inherit @ https://va.vercel-scripts.com/v1/speed-insights/script.debug.js:0
+[    9028ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[    9065ms] [LOG] [Fast Refresh] done in 38ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560
+[   12075ms] [LOG] [Fast Refresh] rebuilding @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14731
+[   12115ms] [LOG] [Fast Refresh] done in 39ms @ http://172.24.112.1:3001/_next/static/chunks/28011_next_dist_client_3ab339b3._.js:14560

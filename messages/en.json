@@ -141,7 +141,11 @@
       "recordingsDescription": "Saved session recordings",
       "organization": "Organization",
       "organizationDescription": "Your organization",
-      "organizationFallback": "N/A"
+      "organizationFallback": "N/A",
+      "kiosk": "Donation Kiosk",
+      "kioskDescription": "Display screen for in-mosque donations",
+      "kioskFallback": "Set up donations to use the kiosk",
+      "openKiosk": "Open kiosk"
     },
     "quickActions": {
       "title": "Quickstart",

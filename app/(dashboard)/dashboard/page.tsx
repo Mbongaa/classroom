@@ -8,10 +8,7 @@ import PulsatingLoader from '@/components/ui/pulsating-loader';
 
 export default function DashboardPage() {
   const { user, profile, loading: userLoading } = useUser();
-  const [stats, setStats] = useState({
-    classroomCount: 0,
-    recordingCount: 0,
-  });
+  const [classroomCount, setClassroomCount] = useState(0);
   const [rooms, setRooms] = useState<Classroom[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,24 +24,12 @@ export default function DashboardPage() {
       // impersonation, so this page automatically reflects the impersonated
       // org without needing a separate code path.
       try {
-        const [classroomsRes, sessionsRes] = await Promise.all([
-          fetch('/api/classrooms'),
-          fetch('/api/sessions'),
-        ]);
-
+        const classroomsRes = await fetch('/api/classrooms');
         const classrooms: Classroom[] = classroomsRes.ok
           ? ((await classroomsRes.json()).classrooms ?? [])
           : [];
-        const sessions: { recording: unknown }[] = sessionsRes.ok
-          ? ((await sessionsRes.json()).sessions ?? [])
-          : [];
 
-        const recordingCount = sessions.filter((s) => s.recording !== null).length;
-
-        setStats({
-          classroomCount: classrooms.length,
-          recordingCount,
-        });
+        setClassroomCount(classrooms.length);
         // Show 3 most recent rooms (API already orders by created_at desc).
         setRooms(classrooms.slice(0, 3));
       } catch (err) {
@@ -72,8 +57,7 @@ export default function DashboardPage() {
   return (
     <DashboardContent
       userName={profile.full_name || ''}
-      classroomCount={stats.classroomCount}
-      recordingCount={stats.recordingCount}
+      classroomCount={classroomCount}
       organizationName={profile.organization?.name || 'N/A'}
       organizationSlug={profile.organization?.slug || ''}
       rooms={rooms}

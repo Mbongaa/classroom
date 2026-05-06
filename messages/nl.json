@@ -141,7 +141,11 @@
       "recordingsDescription": "Opgeslagen sessieopnames",
       "organization": "Organisatie",
       "organizationDescription": "Jouw organisatie",
-      "organizationFallback": "N.v.t."
+      "organizationFallback": "N.v.t.",
+      "kiosk": "Donatiekiosk",
+      "kioskDescription": "Schermweergave voor donaties in de moskee",
+      "kioskFallback": "Donaties instellen om de kiosk te gebruiken",
+      "openKiosk": "Kiosk openen"
     },
     "quickActions": {
       "title": "Quickstart",

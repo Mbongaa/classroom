@@ -1,0 +1,54 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e4]:
+      - heading "Masjid Mawsil" [level=1] [ref=e6]
+      - paragraph [ref=e7]:
+        - text: Powered by
+        - link "Bayaan" [ref=e8] [cursor=pointer]:
+          - /url: https://www.bayaan.app
+    - generic [ref=e9]:
+      - generic [ref=e127]:
+        - generic [ref=e132]: sadaqah
+        - heading "Ramadan eid 2026" [level=2] [ref=e133]
+        - paragraph [ref=e136]:
+          - text: € 0
+          - generic [ref=e137]: of € 30.000 · 0%
+      - generic [ref=e16]:
+        - img [ref=e18]
+        - paragraph [ref=e21]: Scan to donate
+        - list [ref=e22]:
+          - listitem [ref=e23]:
+            - generic [ref=e27]:
+              - paragraph [ref=e28]: Become a monthly member
+              - paragraph [ref=e29]: Recurring SEPA · cancel anytime
+          - listitem [ref=e30]:
+            - generic [ref=e35]:
+              - paragraph [ref=e36]: One-time donation
+              - paragraph [ref=e37]: Pick a cause to support
+    - region "All active causes" [ref=e38]:
+      - list [ref=e39]:
+        - listitem [ref=e40]:
+          - paragraph [ref=e46]: Sadaqah
+        - listitem [ref=e47]:
+          - paragraph [ref=e53]: zakat
+        - listitem [ref=e54]:
+          - paragraph [ref=e60]: Dawrah Student
+        - listitem [ref=e61]:
+          - generic [ref=e66]:
+            - paragraph [ref=e67]: Dawrah Donaties
+            - paragraph [ref=e68]: sadaqah
+        - listitem [ref=e69]:
+          - generic [ref=e74]:
+            - paragraph [ref=e75]: New Mosque (Belgium)
+            - paragraph [ref=e76]: sadaqah
+        - listitem [ref=e77]:
+          - generic [ref=e82]:
+            - paragraph [ref=e83]: Ramadan eid 2026
+            - paragraph [ref=e84]: sadaqah
+        - listitem [ref=e85]:
+          - generic [ref=e87]:
+            - paragraph [ref=e88]: Domain Migration Test - DELETE ME
+            - paragraph [ref=e89]: general
+  - button "Open Next.js Dev Tools" [ref=e117] [cursor=pointer]:
+    - img [ref=e118]
+  - alert [ref=e91]

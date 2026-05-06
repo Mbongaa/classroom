@@ -8,13 +8,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Classroom } from '@/lib/types';
 import { generateRoomId } from '@/lib/client-utils';
-import { Video, ArrowRight } from 'lucide-react';
+import { Video, ArrowRight, Monitor, ExternalLink } from 'lucide-react';
 import { LottieIcon } from '@/components/lottie-icon';
 
 interface DashboardContentProps {
   userName: string;
   classroomCount: number;
-  recordingCount: number;
   organizationName: string;
   organizationSlug?: string;
   rooms: Classroom[];
@@ -23,7 +22,6 @@ interface DashboardContentProps {
 export function DashboardContent({
   userName,
   classroomCount,
-  recordingCount,
   organizationName,
   organizationSlug,
   rooms,
@@ -46,18 +44,14 @@ export function DashboardContent({
     router.push(`/rooms/${generateRoomId()}?${params.toString()}`);
   };
 
+  const kioskHref = organizationSlug ? `/kiosk/${organizationSlug}` : null;
+
   const stats = [
     {
       title: t('stats.activeClassrooms'),
       value: classroomCount || 0,
       description: t('stats.activeClassroomsDescription'),
       link: '/dashboard/classrooms',
-    },
-    {
-      title: t('stats.recordings'),
-      value: recordingCount || 0,
-      description: t('stats.recordingsDescription'),
-      link: '/dashboard/recordings',
     },
     {
       title: t('stats.organization'),
@@ -95,6 +89,29 @@ export function DashboardContent({
             </CardContent>
           </Card>
         ))}
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">{t('stats.kiosk')}</CardTitle>
+            <Monitor className="h-4 w-4 text-muted-foreground" aria-hidden />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-black dark:text-white">
+              {organizationSlug || t('stats.organizationFallback')}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {kioskHref ? t('stats.kioskDescription') : t('stats.kioskFallback')}
+            </p>
+            {kioskHref && (
+              <a href={kioskHref} target="_blank" rel="noopener noreferrer">
+                <Button variant="link" className="px-0 mt-2" size="sm">
+                  {t('stats.openKiosk')}
+                  <ExternalLink className="ml-1 h-3 w-3" aria-hidden />
+                </Button>
+              </a>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
